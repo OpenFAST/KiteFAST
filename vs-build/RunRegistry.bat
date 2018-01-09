@@ -44,7 +44,7 @@ SET AD_Loc=%Local_Modules_Loc%\aerodyn\src
 SET SrvD_Loc=%Local_Modules_Loc%\servodyn\src
 SET BD_Loc=%Local_Modules_Loc%\beamdyn\src
 SET SC_Loc=%Local_Modules_Loc%\supercontroller\src
-
+SET ActDsk_Loc=%Local_Modules_Loc%\actuatordisk\src
 SET MAP_Loc_R=%MAP_Loc%\src
 
 SET ALL_FAST_Includes=-I "%FAST_Loc%" -I "%NWTC_Lib_Loc%" -I "%ED_Loc%" -I "%SrvD_Loc%" -I "%AD14_Loc%" -I^
@@ -261,6 +261,10 @@ SET CURR_LOC=%Farm_Loc%
 %REGISTRY% "%CURR_LOC%\FASTWrapper_Registry.txt" -I %NWTC_Lib_Loc%  %ALL_FAST_INCLUDES% -noextrap -O "%Output_Loc%"
 GOTO checkError
 
+:ActuatorDisk
+SET CURR_LOC=%ActDsk_Loc%
+%REGISTRY% "%CURR_LOC%\ActuatorDisk_Registry.txt" -I "%NWTC_Lib_Loc%" -noextrap -O "%Output_Loc%"
+GOTO checkError
 :checkError
 ECHO.
 IF %ERRORLEVEL% NEQ 0 (
