@@ -75,7 +75,7 @@ subroutine GetSteadyOutputs(AFInfo, AOA, Cl, Cd, Cm, Cd0, ErrStat, ErrMsg)
 ! Called by : UA_CalcOutput
 ! Calls  to : CubicSplineInterpM   
 !..............................................................................
-   type(AFInfoType), intent(in   ) :: AFInfo                ! Airfoil info structure 
+   type(AFI_ParameterType), intent(in   ) :: AFInfo                ! Airfoil info structure 
    real(ReKi),       intent(in   ) :: AOA                   ! Angle of attack (rad)
    real(ReKi),       intent(  out) :: Cl                    ! Coefficient of lift (-)
    real(ReKi),       intent(  out) :: Cd                    ! Coefficient of drag (-)
@@ -160,7 +160,7 @@ real(ReKi) function Get_f_from_Lookup( UAMod, Re, alpha, alpha0, C_nalpha_circ, 
    real(ReKi),       intent(in   ) :: alpha         ! angle of attack (radians)
    real(ReKi),       intent(in   ) :: alpha0
    real(ReKi),       intent(in   ) :: C_nalpha_circ
-   type(AFInfoType), intent(in   ) :: AFInfo        ! The airfoil parameter data
+   type(AFI_ParameterType), intent(in   ) :: AFInfo        ! The airfoil parameter data
    integer(IntKi),   intent(  out) :: ErrStat               ! Error status of the operation
    character(*),     intent(  out) :: ErrMsg                ! Error message if ErrStat /= ErrID_None
    
@@ -223,7 +223,7 @@ real(ReKi) function Get_f_c_from_Lookup( Re, alpha, alpha0, C_nalpha, AFInfo, Er
    real(ReKi),       intent(in   ) :: alpha         ! angle of attack (radians)
    real(ReKi),       intent(in   ) :: alpha0
    real(ReKi),       intent(in   ) :: C_nalpha
-   type(AFInfoType), intent(in   ) :: AFInfo        ! The airfoil parameter data
+   type(AFI_ParameterType), intent(in   ) :: AFInfo        ! The airfoil parameter data
    integer(IntKi),   intent(  out) :: ErrStat               ! Error status of the operation
    character(*),     intent(  out) :: ErrMsg                ! Error message if ErrStat /= ErrID_None
    
@@ -320,7 +320,7 @@ subroutine ComputeKelvinChain( i, j, u, p, xd, OtherState, misc, AFInfo, Cn_prim
    type(UA_DiscreteStateType),             intent(in   ) :: xd                ! Input: Discrete states at t;
    type(UA_OtherStateType),                intent(in   ) :: OtherState        ! Other states at t
    type(UA_MiscVarType),                   intent(inout) :: misc              ! Misc/optimization variables
-   type(AFInfoType),                       intent(in   ) :: AFInfo            ! The airfoil parameter data
+   type(AFI_ParameterType),                intent(in   ) :: AFInfo            ! The airfoil parameter data
    real(ReKi),                             intent(  out) :: Cn_prime          !
    real(ReKi),                             intent(  out) :: Cn_prime_diff
    real(ReKi),                             intent(  out) :: Cn1               ! critical value of Cn_prime at LE separation for alpha >= alpha0
@@ -1106,7 +1106,7 @@ subroutine UA_UpdateDiscOtherState( i, j, u, p, xd, OtherState, AFInfo, m, ErrSt
                                                                ! Output: Discrete states at Time + Interval
    type(UA_OtherStateType),      intent(inout)  :: OtherState  ! Other states  
    type(UA_MiscVarType),         intent(inout)  :: m           ! Misc/optimization variables
-   type(AFInfoType),             intent(in   )  :: AFInfo      ! The airfoil parameter data
+   type(AFI_ParameterType),      intent(in   )  :: AFInfo      ! The airfoil parameter data
    integer(IntKi),               intent(  out)  :: ErrStat     ! Error status of the operation
    character(*),                 intent(  out)  :: ErrMsg      ! Error message if ErrStat /= ErrID_None
 
@@ -1355,7 +1355,7 @@ subroutine UA_UpdateStates( i, j, u, p, xd, OtherState, AFInfo, m, ErrStat, ErrM
    type(UA_OtherStateType),       intent(inout) :: OtherState      ! Input: Other states at t;
                                                                    !   Output: Other states at t + Interval
    type(UA_MiscVarType),          intent(inout) :: m               ! Misc/optimization variables
-   type(AFInfoType),              intent(in   ) :: AFInfo          ! The airfoil parameter data
+   type(AFI_ParameterType),       intent(in   ) :: AFInfo          ! The airfoil parameter data
    integer(IntKi),                intent(  out) :: ErrStat         ! Error status of the operation
    character(*),                  intent(  out) :: ErrMsg          ! Error message if ErrStat /= ErrID_None
 
@@ -1402,7 +1402,7 @@ subroutine UA_CalcOutput( u, p, xd, OtherState, AFInfo, y, misc, ErrStat, ErrMsg
    type(UA_ParameterType),       intent(in   )  :: p           ! Parameters
    type(UA_DiscreteStateType),   intent(in   )  :: xd          ! Discrete states at Time
    type(UA_OtherStateType),      intent(in   )  :: OtherState  ! Other states at Time
-   type(AFInfoType),             intent(in   )  :: AFInfo      ! The airfoil parameter data
+   type(AFI_ParameterType),      intent(in   )  :: AFInfo      ! The airfoil parameter data
    type(UA_OutputType),          intent(inout)  :: y           ! Outputs computed at Time (Input only so that mesh con-
                                                                !   nectivity information does not have to be recalculated)
    type(UA_MiscVarType),         intent(inout)  :: misc        ! Misc/optimization variables

@@ -135,7 +135,7 @@ subroutine ComputeSteadyAirfoilCoefs( AOA, Re, AFInfo, &
 !..................................................................................................................................
    real(ReKi),             intent(in   ) :: AOA
    real(ReKi),             intent(in   ) :: Re           ! Unused in the current version!     
-   type(AFInfoType),       intent(in   ) :: AFInfo
+   type(AFI_ParameterType),       intent(in   ) :: AFInfo
    real(ReKi),             intent(  out) :: Cl, Cd, Cm, Cpmin
    integer(IntKi),         intent(  out) :: errStat       ! Error status of the operation
    character(*),           intent(  out) :: errMsg        ! Error message if ErrStat /= ErrID_None 
@@ -189,7 +189,7 @@ subroutine Compute_UA_AirfoilCoefs( AOA, U, Re, AFInfo, &
    real(ReKi),                   intent(in   ) :: AOA
    real(ReKi),                   intent(in   ) :: U
    real(ReKi),                   intent(in   ) :: Re                 ! Unused in the current version!
-   type(AFInfoType),             intent(in   ) :: AFInfo
+   type(AFI_ParameterType),             intent(in   ) :: AFInfo
    type(UA_ParameterType),       intent(in   ) :: p_UA               ! Parameters
    type(UA_DiscreteStateType),   intent(in   ) :: xd_UA              ! Discrete states at Time
    type(UA_OtherStateType),      intent(in   ) :: OtherState_UA      ! Other states at Time
@@ -237,7 +237,7 @@ real(ReKi) function BEMTU_InductionWithResidual(phi, AOA, Re, numBlades, rlocal,
    integer,                intent(in   ) :: numBlades
    real(ReKi),             intent(in   ) :: rlocal      
    real(ReKi),             intent(in   ) :: chord         
-   type(AFInfoType),       intent(in   ) :: AFInfo
+   type(AFI_ParameterType),       intent(in   ) :: AFInfo
    real(ReKi),             intent(in   ) :: Vx
    real(ReKi),             intent(in   ) :: Vy
    logical,                intent(in   ) :: useTanInd 
@@ -314,7 +314,7 @@ real(ReKi) function UncoupledErrFn(phi, theta, Re, numBlades, rlocal, chord, AFI
    integer,                intent(in   ) :: numBlades
    real(ReKi),             intent(in   ) :: rlocal      
    real(ReKi),             intent(in   ) :: chord         
-   type(AFInfoType),       intent(in   ) :: AFInfo
+   type(AFI_ParameterType),       intent(in   ) :: AFInfo
    real(ReKi),             intent(in   ) :: Vx
    real(ReKi),             intent(in   ) :: Vy
    logical,                intent(in   ) :: useTanInd 

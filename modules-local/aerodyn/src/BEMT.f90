@@ -519,7 +519,7 @@ subroutine BEMT_Init( InitInp, u, p, x, xd, z, OtherState, AFInfo, y, misc, Inte
    type(BEMT_ConstraintStateType), intent(  out)  :: z           ! Initial guess of the constraint states
    type(BEMT_OtherStateType),      intent(  out)  :: OtherState  ! Initial other states
    type(BEMT_MiscVarType),         intent(  out)  :: misc        ! Initial misc/optimization variables
-   type(AFInfoType),               intent(in   )  :: AFInfo(:)   ! The airfoil parameter data
+   type(AFI_ParameterType),        intent(in   )  :: AFInfo(:)   ! The airfoil parameter data
    type(BEMT_OutputType),          intent(  out)  :: y           ! Initial system outputs (outputs are not calculated;
                                                                  !   only the output mesh is initialized)
    real(DbKi),                     intent(inout)  :: interval    ! Coupling interval in seconds: the rate that
@@ -886,7 +886,7 @@ subroutine BEMT_UpdateStates( t, n, u1, u2,  p, x, xd, z, OtherState, AFInfo, m,
    type(BEMT_OtherStateType),           intent(inout) :: OtherState ! Input: Other states at t;
                                                                     !   Output: Other states at t + Interval
    type(BEMT_MiscVarType),              intent(inout) :: m          ! Misc/optimization variables
-   type(AFInfoType),                    intent(in   ) :: AFInfo(:)  ! The airfoil parameter data
+   type(AFI_ParameterType),             intent(in   ) :: AFInfo(:)  ! The airfoil parameter data
    integer(IntKi),                      intent(  out) :: errStat    ! Error status of the operation
    character(*),                        intent(  out) :: errMsg     ! Error message if ErrStat /= ErrID_None
 
@@ -1073,7 +1073,7 @@ subroutine BEMT_CalcOutput( t, u, p, x, xd, z, OtherState, AFInfo, y, m, errStat
    type(BEMT_ConstraintStateType), intent(in   )  :: z           ! Constraint states at t
    type(BEMT_OtherStateType),      intent(in   )  :: OtherState  ! Other states at t
    type(BEMT_MiscVarType),         intent(inout)  :: m           ! Misc/optimization variables
-   type(AFInfoType),               intent(in   )  :: AFInfo(:)   ! The airfoil parameter data
+   type(AFI_ParameterType),        intent(in   )  :: AFInfo(:)   ! The airfoil parameter data
    type(BEMT_OutputType),          intent(inout)  :: y           ! Outputs computed at t (Input only so that mesh con-
                                                                  !   nectivity information does not have to be recalculated)
    integer(IntKi),                 intent(  out)  :: errStat     ! Error status of the operation
@@ -1365,7 +1365,7 @@ subroutine BEMT_CalcConstrStateResidual( Time, u, p, x, xd, z, OtherState, m, z_
    type(BEMT_MiscVarType),         intent(inout)  :: m           ! Misc/optimization variables
    type(BEMT_ConstraintStateType), intent(inout)  :: z_residual  ! Residual of the constraint state equations using
                                                                  !     the input values described above
-   type(AFInfoType),               intent(in   )  :: AFInfo(:)   ! The airfoil parameter data
+   type(AFI_ParameterType),        intent(in   )  :: AFInfo(:)   ! The airfoil parameter data
    integer(IntKi),                 intent(  out)  :: ErrStat     ! Error status of the operation
    character(*),                   intent(  out)  :: ErrMsg      ! Error message if ErrStat /= ErrID_None
 
@@ -1449,7 +1449,7 @@ SUBROUTINE computeFrozenWake( u, p, y, m )
    !type(BEMT_ConstraintStateType), intent(in   )  :: z           ! Constraint states at t
    !type(BEMT_OtherStateType),      intent(in   )  :: OtherState  ! Other states at t
    type(BEMT_MiscVarType),         intent(inout)  :: m           ! Misc/optimization variables
-   !type(AFInfoType),               intent(in   )  :: AFInfo(:)   ! The airfoil parameter data
+   !type(AFI_ParameterType),        intent(in   )  :: AFInfo(:)   ! The airfoil parameter data
    type(BEMT_OutputType),          intent(inout)  :: y           ! Outputs computed at t (Input only so that mesh con-
                                                                  !   nectivity information does not have to be recalculated)
    !integer(IntKi),                 intent(  out)  :: errStat     ! Error status of the operation
@@ -1690,7 +1690,7 @@ integer function TestRegion(phiLower, phiUpper, numBlades, rlocal, chord, theta,
    real(ReKi),             intent(in   ) :: phiUpper
    integer,                intent(in   ) :: numBlades
    !integer,                intent(in   ) :: numBladeNodes
-   type(AFInfoType),       intent(in   ) :: AFInfo
+   type(AFI_ParameterType),intent(in   ) :: AFInfo
    real(ReKi),             intent(in   ) :: rlocal                    
    real(ReKi),             intent(in   ) :: chord          
    real(ReKi),             intent(in   ) :: theta           
@@ -1772,7 +1772,7 @@ subroutine BEMT_UnCoupledSolve( phi, numBlades, airDens, mu, AFInfo, rlocal, cho
    integer,                intent(in   ) :: numBlades
    real(ReKi),             intent(in   ) :: airDens
    real(ReKi),             intent(in   ) :: mu
-   TYPE(AFInfoType),       INTENT(IN   ) :: AFInfo
+   type(AFI_ParameterType),intent(in   ) :: AFInfo
    real(ReKi),             intent(in   ) :: rlocal                    
    real(ReKi),             intent(in   ) :: chord          
    real(ReKi),             intent(in   ) :: theta           
