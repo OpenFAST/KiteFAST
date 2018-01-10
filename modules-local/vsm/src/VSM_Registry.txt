@@ -1,0 +1,140 @@
+###################################################################################################################################
+# Registry for VSM in the FAST Modularization Framework
+# This Registry file is used to create MODULE VSM  which contains all of the user-defined types needed in VSM.
+# It also contains copy, destroy, pack,  and unpack routines associated with each defined data types.
+# See NWTC Programmer's Handbook for further information on the format/contents of this file.
+#
+# Entries are of the form
+# <keyword>         <ModuleName/ModName>          <TypeName>          <FieldType>         <FieldName>         <Dims>    <IO>      <DNAME>   <DESCRIP> <UNITS>
+#
+# Use ^ as a shortcut for the value in the same column from the previous line.
+# ...... Include files (definitions from NWTC Library) ............................................................................
+# make sure that the file name does not have any trailing white spaces!
+include   Registry_NWTC_Library.txt
+usefrom	 AirfoilInfo_Registry.txt
+#
+# ..... Initialization data which can be read from an input file ..................................................................
+#typedef   VSM/VSM          VSM_Element                         ReKi                     PtA                             {3}           -         -        "Location of 1st endpoint" m
+#typedef   ^                            ^                             ReKi                     PtB                             {3}           -         -        "Location of 2nd endpoint" m
+#typedef   ^                            ^                             ReKi                     PtC                             {3}           -         -        "Location of the mid-point between PtA and PtB" m
+#typedef   ^                            ^                             ReKi                     PtP                             {3}           -         -        "3/4 chord location which is either along the chord or projected to lie along the freestream line" m
+#typedef   ^                            ^                             ReKi                     x_hat                           {3}           -         -        "Local element x-axis unit vector" -
+#typedef   ^                            ^                             ReKi                     y_hat                           {3}           -         -        "Local element y-axis unit vector" -
+#typedef   ^                            ^                             ReKi                     U_Inf_v                         {3}           -         -        "Local inflow velocity in inertial coordinates" m/s
+#typedef   ^                            ^                             ReKi                     deltaf                           -            -         -        "control setting" -
+#typedef   ^                            ^                             ReKi                     chord                            -            -         -        "chord length" m
+#typedef   ^                            ^                             ReKi                     circ                             -            -         -        "aerodynamic circulation" m^2/s
+# ..... Initialization data .......................................................................................................
+# Define inputs that the initialization routine may need here:
+#   e.g.,  the name of the input file,  the file root name,etc.
+#
+typedef   VSM/VSM InitInputType   ReKi               AirDens         -       -    -    "Air density" kg/m^3
+typedef   ^    ^                  ReKi               KinVisc         -       -    -    "Kinematic viscosity of air" m^2/s  
+typedef   ^    ^                  IntKi              LiftMod         -       -    -    "Lifting-line calculation model (-) (switch) {1:geometric AoA, 2:vortex method}"    - 
+typedef   ^    ^                  IntKi              CtrlPtMod       -       -    -    "Method for determining the 3/4 chord point location. {1: on chord, 2: on freestream line}" -
+typedef   ^    ^                  ReKi               VSMToler        -       -    -    "Tolerance in the Newton iterations or DEFAULT" m^2/s  
+typedef   ^    ^                  ReKi               VSMMaxIter      -       -    -    "Maximum number of Newton iterations or DEFAULT" -
+typedef   ^    ^                  ReKi               VSMPerturb      -       -    -    "Perturbation size for computing the Jacobian in the Newton iterations or DEFAULT" m^2/s  
+typedef   ^    ^                  IntKi              AFTabMod        -       -    -    "Airfoil table interpolation model (-) (switch) {1:1D on AoA, 2:2D on AoA and Re, 3:2D on AoA and Ctrl}" -
+typedef   ^    ^                  IntKi              InCol_Alfa      -       -    -    "The column in the airfoil tables that contains the angle of attack"    -
+typedef   ^    ^                  IntKi              InCol_Cl        -       -    -    "The column in the airfoil tables that contains the lift coefficient"    -
+typedef   ^    ^                  IntKi              InCol_Cd        -       -    -    "The column in the airfoil tables that contains the drag coefficient"    -
+typedef   ^    ^                  IntKi              InCol_Cm        -       -    -    "The column in the airfoil tables that contains the pitching-moment coefficient; use zero if there is no Cm column"    -
+typedef   ^    ^                  IntKi              NumAFfiles      -       -    -    "Number of airfoil files used"    -
+typedef   ^    ^                  CHARACTER(1024)    AFNames        {:}      -    -    "Airfoil file names (NumAF lines)"    "quoted strings"
+typedef   ^    ^                  ReKi               Chords         {:}      -    -    "Element chords" m
+typedef   ^    ^                  IntKi              AFIDs          {:}      -    -    "Element airfoil id numbers" -
+typedef   ^    ^                  IntKi              NumElem         -       -    -    "Number of elements" -
+typedef   ^    ^                  INTEGER            NumOuts         -       -    -    ""    -
+typedef   ^    ^                  INTEGER            OutSwtch        -       -    -    ""    -
+typedef   ^    ^                  LOGICAL            OutAll          -       -    -    ""    -
+typedef   ^    ^                  CHARACTER(1024)    OutRootName     -       -    -    ""    -
+typedef   ^    ^                  INTEGER            UnOutFile       -       -    -    ""    -
+#                                                                                                                                         
+#                                                                                                                                         
+# Define outputs from the initialization routine here:                                                                                    
+#                                                                                                                                         
+typedef   ^    InitOutputType     ProgDesc           Version         -       -    -    "Version structure" -
+typedef   ^    ^                  CHARACTER(10)      WriteOutputHdr  {:}        -        -         ""    -
+typedef   ^    ^                  CHARACTER(10)      WriteOutputUnt  {:}        -        -         ""    -
+#
+#
+# ..... States ....................................................................................................................
+# Define continuous (differentiable) states here:
+#
+typedef   ^    ContinuousStateType           ReKi      DummyContState                  -             -         -        "Remove this variable if you have continuous states"        -
+#
+#
+# Define discrete (non-differentiable) states here:
+#
+typedef   ^    DiscreteStateType             ReKi      DummyDiscState                  -             -         -        "Remove this variable if you have discrete states"        -                 
+#
+#
+# Define constraint states here:
+#
+typedef   ^    ConstraintStateType           ReKi      Gammas                         {:}            -         -        "Aerodynamic circulation" m^2/s
+#
+#
+# Define any other states, including integer or logical states here:
+typedef   ^    OtherStateType                ReKi      DummyOtherState                 -             -         -        "Remove this variable if you have other states"   -
+#
+# ..... Misc/Optimization variables.................................................................................................
+# Define any data that are used only for efficiency purposes (these variables are not associated with time):
+#   e.g. indices for searching in an array, large arrays that are local variables in any routine called multiple times, etc.
+typedef   ^    MiscVarType                   ReKi                     PtP                             {:}{:}           -         -        "3/4 chord location which is either along the chord or projected to lie along the freestream line" m
+typedef   ^    ^                             ReKi                     PtC                             {:}{:}           -         -        "Location of the mid-point between PtA and PtB" m
+typedef   ^    ^                             ReKi                     Phi_v                           {:}{:}{:}        -         -        "Influence factor for each element" 1/m
+typedef   ^    ^                             ReKi                     Phi_AB2D_v                      {:}{:}           -         -        "Influence factor for each element" 1/m
+typedef   ^    ^                             Logical                  NoStates                         -               -         -        "Flag to indicate if the states exist (first call to CalcOutput before UpdateStates" -
+#
+# ..... Parameters ................................................................................................................
+# Define parameters here:
+# Time step for integration of continuous states (if a fixed-step integrator is used) and update of discrete states:
+#
+typedef   ^    ParameterType      ReKi                AirDens         -         -    -    "Air density" kg/m^3
+typedef   ^    ^                  ReKi                KinVisc         -         -    -    "Kinematic viscosity of air" m^2/s  
+typedef   ^    ^                  IntKi               LiftMod         -         -    -    "Lifting-line calculation model (-) (switch) {1:geometric AoA, 2:vortex method}"    - 
+typedef   ^    ^                  IntKi               CtrlPtMod       -         -    -    "Method for determining the 3/4 chord point location. {1: on chord, 2: on freestream line}" -
+typedef   ^    ^                  ReKi                VSMToler        -         -    -    "Tolerance in the Newton iterations or DEFAULT" m^2/s  
+typedef   ^    ^                  IntKi               VSMMaxIter      -         -    -    "Maximum number of Newton iterations or DEFAULT" -
+typedef   ^    ^                  ReKi                VSMPerturb      -         -    -    "Perturbation size for computing the Jacobian in the Newton iterations or DEFAULT" m^2/s  
+typedef   ^    ^                  IntKi               AFTabMod        -         -    -    "Airfoil table interpolation model (-) (switch) {1:1D on AoA, 2:2D on AoA and Re, 3:2D on AoA and Ctrl}" -
+typedef   ^    ^                  IntKi               NumElem         -         -    -    "Number of elements" -
+typedef   ^    ^                  ReKi                Chords          {:}       -    -    "Element chords" m
+typedef   ^    ^                  IntKi               AFIDs           {:}       -    -    "Slement airfoil id number" -
+typedef   ^    ^                  AFI_ParameterType   AFInfo          {:}       -    -    "Airfoil information parameters"
+typedef   ^    ^                  INTEGER             NumOuts         -         -    -    ""    -
+typedef   ^    ^                  INTEGER             OutSwtch        -         -    -    ""    -
+typedef   ^    ^                  LOGICAL             OutAll          -         -    -    ""    -
+typedef   ^    ^                  CHARACTER(1024)     OutRootName     -         -    -    ""    -
+typedef   ^    ^                  CHARACTER(10)       OutSFmt         -         -    -    ""    -
+typedef   ^    ^                  CHARACTER(10)       OutFmt          -         -    -    ""    -
+typedef   ^    ^                  CHARACTER(10)       Delim           -         -    -    ""    -
+typedef   ^    ^                  INTEGER             UnOutFile       -         -    -    ""    -
+typedef   ^    ^                  OutParmType         OutParam        {:}       -    -    ""    -
+#
+#
+# ..... Inputs ....................................................................................................................
+# Define inputs that are contained on the mesh here:
+#
+typedef   ^     InputType    ReKi   PtA         {:}{:}      -         -        "Location of 1st endpoint in inertial coordinates" m
+typedef   ^         ^        ReKi   PtB         {:}{:}      -         -        "Location of 2nd endpoint in inertial coordinates" m
+typedef   ^         ^        ReKi   x_hat       {:}{:}      -         -        "Local element x-axis unit vector in inertial coordinates" -
+typedef   ^         ^        ReKi   y_hat       {:}{:}      -         -        "Local element y-axis unit vector in inertial coordinates" -
+typedef   ^         ^        ReKi   z_hat       {:}{:}      -         -        "Local element z-axis unit vector in inertial coordinates" -
+typedef   ^         ^        ReKi   U_Inf_v     {:}{:}      -         -        "Local inflow velocity in inertial coordinates" m/s
+typedef   ^         ^        ReKi   Deltaf      {:}         -         -        "control settings" -
+#                                                                                                                                                             
+# ..... Outputs ...................................................................................................................                           
+# Define outputs that are contained on the mesh here:                                                                                                         
+typedef   ^     OutputType   ReKi   Loads         {:}{:}       -         -            "Loads in inertial coordinates" -
+typedef   ^     ^            ReKi   Vind          {:}{:}       -         -            "Induced velocity in the global coordinate system" m/s
+typedef   ^     ^            ReKi   AoA            {:}         -         -            "Angle of attack" rad
+typedef   ^     ^            ReKi   Cl             {:}         -         -            "Lift coefficient" -
+typedef   ^     ^            ReKi   Cd             {:}         -         -            "Drag coefficient" -
+typedef   ^     ^            ReKi   Cm             {:}         -         -            "Pitching moment coefficient" -
+!typedef   ^     ^            ReKi   Fxi             {:}         -         -            "Force per unit length along the local x-axis" N/m
+!typedef   ^     ^            ReKi   Fyi             {:}         -         -            "Force per unit length along the local y-axis" N/m
+!typedef   ^     ^            ReKi   Mmi             {:}         -         -            "Pitching moment per unit length about the local z-axis" N
+typedef   ^     ^            ReKi   WriteOutput    {:}         -         -            "outputs to be written to a file"  -
+
