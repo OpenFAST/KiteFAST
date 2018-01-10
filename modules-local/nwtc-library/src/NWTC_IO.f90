@@ -2137,7 +2137,7 @@ CONTAINS
          END IF
       END IF
       
-      CALL WrScr ( 'Running '//TRIM( GetNVD( ProgInfo ) )//'.' )
+      CALL WrScr ( ' Running '//TRIM( GetNVD( ProgInfo ) )//'.' )
 
    RETURN
    END SUBROUTINE DispNVD1
