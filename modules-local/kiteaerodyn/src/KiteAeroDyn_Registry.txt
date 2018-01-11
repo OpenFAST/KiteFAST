@@ -1,0 +1,245 @@
+###################################################################################################################################
+# Registry for KiteAeroDyn in the FAST Modularization Framework
+# This Registry file is used to create MODULE KiteAeroDyn  which contains all of the user-defined types needed in KiteAeroDyn.
+# It also contains copy, destroy, pack,  and unpack routines associated with each defined data types.
+# See NWTC Programmer's Handbook for further information on the format/contents of this file.
+#
+# Entries are of the form
+# <keyword>         <ModuleName/ModName>          <TypeName>          <FieldType>         <FieldName>         <Dims>    <IO>      <DNAME>   <DESCRIP> <UNITS>
+#
+# Use ^ as a shortcut for the value in the same column from the previous line.
+# ...... Include files (definitions from NWTC Library) ............................................................................
+# make sure that the file name does not have any trailing white spaces!
+include   Registry_NWTC_Library.txt
+usefrom	 ActuatorDisk_Registry.txt
+usefrom   VSM_Registry.txt
+#
+#
+# ..... Initialization data .......................................................................................................
+# Define inputs that the initialization routine may need here:
+#   e.g.,  the name of the input file,  the file root name,etc.
+#
+typedef    KiteAeroDyn/KAD    KAD_ActDsk_Data       ActDsk_ParameterType  p  - - - "Parameter data for Actuator Disk module" -
+typedef    ^                   ^                    ActDsk_InputType      u  - - - "Input data for Actuator Disk module" -
+typedef    ^                   ^                    ActDsk_OutputType     y  - - - "Output data for Actuator Disk module" -
+typedef    ^                  KAD_VSM_Data          VSM_ParameterType        p  - - - "Parameter data for VSM module" -
+typedef    ^                   ^                    VSM_MiscVarType          m  - - - "MiscVar data for VSM module" -
+typedef    ^                   ^                    VSM_ConstraintStateType  z  - - - "Constraint state data for VSM module" -
+typedef    ^                   ^                    VSM_InputType            u  - - - "Input data for VSM module" -
+typedef    ^                   ^                    VSM_OutputType           y  - - - "Output data for VSM module" -
+# ..... Member property data ......................................................................................................
+typedef    ^                  KAD_MbrPropsType IntKi              NumNds          -    -    -    "Number of member nodes" - 
+typedef    ^                  ^                ReKi               Pos            {:}{:}   -    -    "Node position(s) in local coordinate system" m 
+typedef    ^                  ^                R8Ki               Twist          {:}   -    -    "Node twist angle in local coordinate system" rad
+typedef    ^                  ^                ReKi               Chord          {:}   -    -    "Node chord length" m
+typedef    ^                  ^                IntKi              AFID           {:}   -    -    "Airfoil ID" -
+typedef    ^                  ^                IntKi              CntrlID        {:}   -    -    "Control Surface ID" -    
+# ..... Input file data ...........................................................................................................                                                                
+typedef    ^    KAD_InputFile    DbKi               DTAero          -    -    -    "Time interval for aerodynamic calculations {or "default"}"    s
+typedef    ^    KAD_InputFile    IntKi              LiftMod         -    -    -    "Lifting-line calculation model (-) (switch) {1:geometric AoA, 2:vortex method}"    -
+typedef    ^    KAD_InputFile    IntKi              RotorMod        -    -    -    "Rotor calculation model (-) (switch) {0:none, 1:actuator disk}"    -
+typedef    ^    KAD_InputFile    LOGICAL            UseCm           -    -    -    "Include aerodynamic pitching moment in calculations?"    flag
+typedef    ^    KAD_InputFile    ReKi               AirDens         -    -    -    "Air density"    kg/m^3
+typedef    ^    KAD_InputFile    ReKi               KinVisc         -    -    -    "Kinematic air viscosity"    m^2/s
+typedef    ^    KAD_InputFile    IntKi              VSMMod          -    -    -    "Trailing vortices alignment model (switch) {1:chord, 2: local free stream}" -
+typedef    ^    KAD_InputFile    ReKi               VSMToler        -    -    -    "Tolerance in the Newton iterations or DEFAULT"    m^2/s
+typedef    ^    KAD_InputFile    IntKi              VSMMaxIter      -    -    -    "Maximum number of Newton iterations or DEFAULT"   -
+typedef    ^    KAD_InputFile    ReKi               VSMPerturb      -    -    -    "Perturbation size for computing the Jacobian in the Newton iterations or DEFAULT"    m^2/s
+typedef    ^    KAD_InputFile    IntKi              AFTabMod        -    -    -    "Airfoil table interpolation model (-) (switch) {1:1D on AoA, 2:2D on AoA and Re, 3:2D on AoA and Ctrl}" -
+typedef    ^    KAD_InputFile    IntKi              InCol_Alfa      -    -    -    "The column in the airfoil tables that contains the angle of attack"    -
+typedef    ^    KAD_InputFile    IntKi              InCol_Cl        -    -    -    "The column in the airfoil tables that contains the lift coefficient"    -
+typedef    ^    KAD_InputFile    IntKi              InCol_Cd        -    -    -    "The column in the airfoil tables that contains the drag coefficient"    -
+typedef    ^    KAD_InputFile    IntKi              InCol_Cm        -    -    -    "The column in the airfoil tables that contains the pitching-moment coefficient; use zero if there is no Cm column"    -
+typedef    ^    KAD_InputFile    IntKi              NumAFfiles      -    -    -    "Number of airfoil files used"    -
+typedef    ^    KAD_InputFile    CHARACTER(1024)    AFNames        {:}   -    -    "Airfoil file names (NumAF lines)"    "quoted strings"
+typedef    ^    KAD_InputFile    KAD_MbrPropsType   FusProps       -    -    -    "fuselage property information"    -
+typedef    ^    KAD_InputFile    KAD_MbrPropsType   SWnProps        -    -    -    "Starboard wing property information"    -
+typedef    ^    KAD_InputFile    KAD_MbrPropsType   PWnProps        -    -    -    "Port wing property information"    -
+typedef    ^    KAD_InputFile    KAD_MbrPropsType   VSPProps        -    -    -    "Vertical stabilizer property information"    -
+typedef    ^    KAD_InputFile    KAD_MbrPropsType   SHSProps        -    -    -    "Starboard horizontal stabilizer property information"    -
+typedef    ^    KAD_InputFile    KAD_MbrPropsType   PHSProps        -    -    -    "Port horizontal stabilizer property information"    -
+typedef    ^    KAD_InputFile    KAD_MbrPropsType   SPyProps       {:}   -    -    "Starboard Pylon property information"    -
+typedef    ^    KAD_InputFile    KAD_MbrPropsType   PPyProps       {:}   -    -    "Port Pylon property information"    -
+typedef    ^    KAD_InputFile    ActDsk_InitInputType   RtrProps   {:}   -    -    "Rotor properties" -
+# .... Output related data ..............................
+typedef    ^    KAD_InputFile    Logical            SumPrint        -    -    -    "Print summary data to <RootName>.sum? (flag)" - 
+typedef    ^    KAD_InputFile    IntKi              OutSwtch        -    -    -    "Output requested channels to? (-) (switch) {1=KiteAeroDyn.out, 2=GlueCode.out, 3=both files]" -
+typedef    ^    KAD_InputFile    CHARACTER(ChanLen) OutFmt          -    -    -    "Format used for text tabular output, excluding the time channel; resulting field should be 10 characters (string)" -
+typedef    ^    KAD_InputFile    IntKi              NFusOuts        -    -    -    "Number of fuselage                    node outputs (-) [0 to 9]" -
+typedef    ^    KAD_InputFile    IntKi              FusOutNd        9    -    -    "List of fuselage                    nodes whose values will be output (-) [1 to NFusOuts] [unused for NFusOuts=0]" -
+typedef    ^    KAD_InputFile    IntKi              NSWnOuts        -    -    -    "Number of starboard wing                  node outputs (-) [0 to 9]" -
+typedef    ^    KAD_InputFile    IntKi              SWnOutNd        9    -    -    "List of starboard wing                  nodes whose values will be output (-) [1 to NSWnOuts] [unused for NSWnOuts=0]" -
+typedef    ^    KAD_InputFile    IntKi              NPWnOuts        -    -    -    "Number of port  wing                  node outputs (-) [0 to 9]" -
+typedef    ^    KAD_InputFile    IntKi              PWnOutNd        9    -    -    "List of port  wing                  nodes whose values will be output (-) [1 to NPWnOuts] [unused for NPWnOuts=0]" -
+typedef    ^    KAD_InputFile    IntKi              NVSOuts         -    -    -    "Number of vertical         stabilizer node outputs (-) [0 to 9]" -
+typedef    ^    KAD_InputFile    IntKi              VSOutNd         9    -    -    "List of vertical         stabilizer nodes whose values will be output (-) [1 to NVSOuts ] [unused for NVSOuts =0]" -
+typedef    ^    KAD_InputFile    IntKi              NSHSOuts        -    -    -    "Number of starboard horizontal stabilizer node outputs (-) [0 to 9]" -
+typedef    ^    KAD_InputFile    IntKi              SHSOutNd        9    -    -    "List of starboard horizontal stabilizer nodes whose values will be output (-) [1 to NSHSOuts] [unused for NSHSOuts=0]" -
+typedef    ^    KAD_InputFile    IntKi              NPHSOuts        -    -    -    "Number of port  horizontal stabilizer node outputs (-) [0 to 9]" -
+typedef    ^    KAD_InputFile    IntKi              PHSOutNd        9    -    -    "List of port  horizontal stabilizer nodes whose values will be output (-) [1 to NPHSOuts] [unused for NPHSOuts=0]" -
+typedef    ^    KAD_InputFile    IntKi              NPylOuts        -    -    -    "Number of pylon                       node outputs (-) [0 to 9]" -
+typedef    ^    KAD_InputFile    IntKi              PylOutNd        9    -    -    "List of pylon                       nodes whose values will be output (-) [1 to NPylOuts] [unused for NPylOuts=0]" -
+typedef	  ^	 KAD_InputFile	   IntKi	             NumOuts	        -	 0	   -	  "Number of parameters in the output list (number of outputs requested)"	-
+typedef	  ^	 KAD_InputFile	   LOGICAL	          TabDelim	     -	 -	   -	  "Flag to cause tab-delimited text output (delimited by space otherwise)"	-
+typedef    ^    KAD_InputFile    CHARACTER(ChanLen) OutList        {:}   -    -    "List of output parameters.  See OutListParameters.xlsx for a listing of available output channels (quoted string)" -
+# ..... Initialization Inputs .....................................................................................................
+typedef    ^    InitInputType    CHARACTER(1024)    FileName        -    -    -  "Supplied by Driver:  The name of the root file including the full path"    -
+typedef    ^    ^                KAD_InputFile      InpFileData     -    -    -  "Either populated when parsing the KAD inputfile or supplied by the Driver" 
+typedef    ^    ^                IntKi              NumFlaps        -    -    -  "Supplied by Driver:  Number of flaps per wing" -
+typedef    ^    ^                IntKi              NumPylons       -    -    -  "Supplied by Driver:  Number of pylons per wing" -
+typedef    ^    ^                ReKi               SWnOR          {3}   -    -  "Supplied by Driver:  " -
+typedef    ^    ^                ReKi               PWnOR          {3}   -    -  "Supplied by Driver:  " -
+typedef    ^    ^                ReKi               VSPOR          {3}   -    -  "Supplied by Driver:  " -
+typedef    ^    ^                ReKi               SHSOR          {3}   -    -  "Supplied by Driver:  " -
+typedef    ^    ^                ReKi               PHSOR          {3}   -    -  "Supplied by Driver:  " -
+typedef    ^    ^                ReKi               SPyOR        {:}{:}   -    -  "Supplied by Driver:  " -
+typedef    ^    ^                ReKi               PPyOR        {:}{:}   -    -  "Supplied by Driver:  " -
+typedef    ^    ^                ReKi               SPyRtrOR     {:}{:}{:}   -    -  "Supplied by Driver:  " -
+typedef    ^    ^                ReKi               PPyRtrOR     {:}{:}{:}   -    -  "Supplied by Driver:  " -
+#                                                                                                                                         
+#                                                                                                                                         
+# Define outputs from the initialization routine here:                                                                                    
+#                                                                                                                                         
+typedef   ^     InitOutputType   ProgDesc           Version         -    -    -  "Version structure" -
+typedef	 ^	    ^             	CHARACTER(ChanLen) WriteOutputHdr {:}	 -	   -	"Names of the output-to-file channels"	-
+typedef	 ^	    ^             	CHARACTER(ChanLen) WriteOutputUnt {:}	 -	   -	"Units of the output-to-file channels"	-
+#
+#
+# ..... States ....................................................................................................................
+# Define continuous (differentiable) states here:
+#
+typedef   ^                            ContinuousStateType           ReKi                     DummyContState                  -             -         -        "Remove this variable if you have continuous states"        -
+#
+#
+# Define discrete (non-differentiable) states here:
+#
+typedef   ^                            DiscreteStateType             ReKi                     DummyDiscState                  -             -         -        "Remove this variable if you have discrete states"        -                 
+#
+#
+# Define constraint states here:
+#
+typedef   ^                            ConstraintStateType           ReKi                     DummyConstraintState            -             -         -        "Remove this variable if you have contraint states" -
+#
+#
+# Define any other states, including integer or logical states here:
+typedef   ^                            OtherStateType                ReKi                     DummyOtherState                 -             -         -        "Remove this variable if you have other states"   -
+#
+# ..... Inputs ....................................................................................................................
+# Define inputs that are contained on the mesh here:
+#
+typedef  ^      InputType        MeshType           FusMotions      -    -    -  "Fuselage motions" -
+typedef  ^      InputType        MeshType           FusOMotions     -    -    -  "Fuselage Origin Point motions (a single node)" -
+typedef	^	    ^                MeshType           SWnMotions      -    -    -  "Starboard wing motions" -                                                                                                                                    
+typedef	^	    ^                MeshType           PWnMotions      -    -    -  "Port wing motions" -                                                                                                                                    
+typedef	^	    ^                MeshType           VSPMotions      -    -    -  "Vertical stabilizer motions" -                                                                                                                                    
+typedef	^	    ^                MeshType           SHSMotions      -    -    -  "Starboard horizontal stabilizer motions" -                                                                                                                                    
+typedef	^	    ^                MeshType           PHSMotions      -    -    -  "Port horizontal stabilizer motions" -                                                                                                                                    
+typedef	^	    ^                MeshType           SPyMotions     {:}   -    -  "Starboard pylon motions" -                                                                                                                                    
+typedef	^	    ^                MeshType           PPyMotions     {:}   -    -  "Port pylon motions" -                                                                                                                                    
+typedef	^	    ^                MeshType           SPyRtrMotions  {:}   -    -  "Starboard rotor motions" -                                                                                                                                    
+typedef	^	    ^                MeshType           PPyRtrMotions  {:}   -    -  "Port rotor motions" -                                                                                                                                    
+typedef	^	    ^                ReKi               V_Fus          {:}{:}   -    -  "Undisturbed wind speed on fuselage" m/s                                                                                                                                    
+typedef	^	    ^                ReKi               V_SWn          {:}{:}   -    -  "Undisturbed wind speed on starboard wing" m/s        
+typedef	^	    ^                ReKi               V_PWn          {:}{:}   -    -  "Undisturbed wind speed on port wing" m/s        
+typedef	^	    ^                ReKi               V_VSP          {:}{:}   -    -  "Undisturbed wind speed on vertical stabilizer" m/s        
+typedef	^	    ^                ReKi               V_SHS          {:}{:}   -    -  "Undisturbed wind speed on starboard horizontal stabilizer" m/s        
+typedef	^	    ^                ReKi               V_PHS          {:}{:}   -    -  "Undisturbed wind speed on port horizontal stabilizer" m/s        
+typedef	^	    ^                ReKi               V_SPy       {:}{:}{:}   -    -  "Undisturbed wind speed on starboard pylons" m/s        
+typedef	^	    ^                ReKi               V_PPy       {:}{:}{:}   -    -  "Undisturbed wind speed on port pylons" m/s        
+typedef	^	    ^                ReKi               V_SPyRtr    {:}{:}{:}   -    -  "Undisturbed wind speed on starboard pylon rotors" m/s        
+typedef	^	    ^                ReKi               V_PPyRtr    {:}{:}{:}   -    -  "Undisturbed wind speed on port pylon rotors" m/s       
+typedef	^	    ^                ReKi               Omega_SPyRtr {:}{:}   -    -  "Undisturbed wind speed on starboard pylon rotors" m/s                                                                                                                     
+typedef	^	    ^                ReKi               Omega_PPyRtr {:}{:}   -    -  "Undisturbed wind speed on port pylon rotors" m/s                                                                                                                     
+typedef	^	    ^                ReKi               Pitch_SPyRtr {:}{:}   -    -  "Undisturbed wind speed on starboard pylon rotors" m/s                                                                                                                     
+typedef	^	    ^                ReKi               Pitch_PPyRtr {:}{:}   -    -  "Undisturbed wind speed on port pylon rotors" m/s                                                                                                                     
+typedef	^	    ^                ReKi               Ctrl_SFlp      {:}   -    -  "Undisturbed wind speed on starboard pylon rotors" m/s                                                                                                                     
+typedef	^	    ^                ReKi               Ctrl_PFlp      {:}   -    -  "Undisturbed wind speed on port pylon rotors" m/s                                                                                                                     
+typedef	^	    ^                ReKi               Ctrl_Rudr      {:}   -    -  "Undisturbed wind speed on port pylon rotors" m/s                                                                                                                     
+typedef	^	    ^                ReKi               Ctrl_SElv      {:}   -    -  "Undisturbed wind speed on port pylon rotors" m/s                                                                                                                     
+typedef	^	    ^                ReKi               Ctrl_PElv      {:}   -    -  "Undisturbed wind speed on port pylon rotors" m/s       
+# ..... Misc/Optimization variables.................................................................................................
+# Define any data that are used only for efficiency purposes (these variables are not associated with time):
+#   e.g. indices for searching in an array, large arrays that are local variables in any routine called multiple times, etc.
+typedef   ^    MiscVarType    KAD_ActDsk_Data          ActDsk       {:}    -   -  "Actuator Disk framework data" -
+typedef   ^    MiscVarType    KAD_VSM_Data             VSM           -     -   -  "VSM framework data" -
+typedef   ^    MiscVarType    MeshMapType              Fus_L_2_P     -     -   -  "Mesh mapping between the Fuselage line2 mesh and the Fuselage point mesh"
+typedef   ^    MiscVarType    MeshMapType              SWn_L_2_P     -     -   -  "Mesh mapping between the Starboard wing line2 mesh and the Starboard wing point mesh"
+typedef   ^    MiscVarType    MeshMapType              PWn_L_2_P     -     -   -  "Mesh mapping between the Port wing line2 mesh and the Port wing point mesh"
+typedef   ^    MiscVarType    MeshMapType              VSP_L_2_P     -     -   -  "Mesh mapping between the Vertical stabilizer line2 mesh and the Vertical stabilizer point mesh"
+typedef   ^    MiscVarType    MeshMapType              SHS_L_2_P     -     -   -  "Mesh mapping between the Starboard horizontal stabilizer line2 mesh and the Starboard horizontal stabilizer point mesh"
+typedef   ^    MiscVarType    MeshMapType              PHS_L_2_P     -     -   -  "Mesh mapping between the Port horizontal stabilizer line2 mesh and the Port horizontal stabilizer point mesh"
+typedef   ^    MiscVarType    MeshMapType              SPy_L_2_P    {:}    -   -  "Mesh mapping between the Starboard Pylon line2 mesh(es) and the Starboard Pylon point mesh(es)"
+typedef   ^    MiscVarType    MeshMapType              PPy_L_2_P    {:}    -   -  "Mesh mapping between the Port Pylon line2 mesh(es) and the Port Pylon point mesh(es)"
+typedef   ^     ^             MeshType                 FusLoads      -    -    -  "Fuselage loads" -
+typedef	 ^	    ^             MeshType                 SWnLoads      -    -    -  "Starboard wing loads" -                                                                                                                                    
+typedef	 ^	    ^             MeshType                 PWnLoads      -    -    -  "Port wing loads" -                                                                                                                                    
+typedef	 ^	    ^             MeshType                 VSPLoads       -    -    -  "Vertical stabilizer loads" -                                                                                                                                    
+typedef	 ^	    ^             MeshType                 SHSLoads      -    -    -  "Starboard horizontal stabilizer loads" -                                                                                                                                    
+typedef	 ^	    ^             MeshType                 PHSLoads      -    -    -  "Port horizontal stabilizer loads" -                                                                                                                                    
+typedef	 ^	    ^             MeshType                 SPyLoads     {:}   -    -  "Starboard pylon loads" -                                                                                                                                    
+typedef	 ^	    ^             MeshType                 PPyLoads     {:}   -    -  "Port pylon loads" -      
+typedef	 ^	    ^             KAD_InputType            u_Interp      -    -    -  "Inputs for Extrap-Interp routine" -                                                                                                                                    
+typedef	 ^	    ^          	ReKi	                   AllOuts	     {:}	  -	 -	 "An array holding the value of all of the calculated (not only selected) output channels"	"see OutListParameters.xlsx spreadsheet"
+#
+# ..... Parameters ................................................................................................................
+# Define parameters here:
+# Time step for integration of continuous states (if a fixed-step integrator is used) and update of discrete states:
+#
+typedef   ^  ParameterType  IntKi            NumFlaps    -  -  -  "Number of flaps per wing" -
+typedef   ^  ^              IntKi            NumPylons   -  -  -  "Number of pylons per wing" -
+typedef   ^  ^              ReKi             AirDens     -  -  -  "Air density"    kg/m^3
+typedef   ^  ^              ReKi             KinVisc     -  -  -  "Kinematic air viscosity"    m^2/s
+typedef   ^  ^              DbKi             DTAero      -  -  -  "Time interval for aerodynamic calculations" s
+typedef   ^  ^              IntKi            SWnCtrlID  {:} -  -  "Starboard wing control surface ID" -
+typedef   ^  ^              IntKi            PWnCtrlID  {:} -  -  "Port wing control surface ID" -
+typedef   ^  ^              IntKi            SHSCtrlID  {:} -  -  "Starboard horizontal stabilizer control surface ID" -
+typedef   ^  ^              IntKi            PHSCtrlID  {:} -  -  "Port horizontal stabilizer control surface ID" -
+typedef   ^  ^              IntKi            VSPCtrlID  {:} -  -  "vertical stabilizer control surface ID" -
+typedef   ^  ^              ReKi             SWnChord   {:} -  -  "Starboard wing chord" m
+typedef   ^  ^              ReKi             PWnChord   {:} -  -  "Port wing chord" m
+typedef   ^  ^              ReKi             SHSChord   {:} -  -  "Starboard horizontal stabilizer chord" m
+typedef   ^  ^              ReKi             PHSChord   {:} -  -  "Port horizontal stabilizer chord" m
+typedef   ^  ^              ReKi             VSPChord   {:} -  -  "vertical stabilizer chord" m
+typedef   ^  ^              ReKi             SPyChord   {:}{:} -  -  "Starboard pylon chord" m
+typedef   ^  ^              ReKi             PPyChord   {:}{:} -  -  "Port pylon chord" m
+typedef   ^  ^              IntKi            LiftMod     -  -  -  "Lifting-line calculation model (-) (switch) {1:geometric AoA, 2:vortex method}"    - 
+typedef   ^  ^              IntKi            RotorMod    -  -  -  "Rotor calculation model (-) (switch) {0:none, 1:actuator disk}"    -    
+#typedef  ^  ^              KAD_RTRPropsType RtrProps   {:} -  -  "Rotor properties" -
+typedef	 ^	 ^	             IntKi	         NumOuts	   -	0	-	"Number of parameters in the output list (number of outputs requested)"	-
+typedef	 ^	 ^	             CHARACTER(20)	   OutFmt	   -	-	-	"Output format for tabular data"	-
+typedef	 ^	 ^	             CHARACTER(20)	   OutSFmt	   -	-	-	"Output format for channel labels and units"	-
+typedef   ^  ^              IntKi            NFusOuts    -  0  -  "Number of fuselage                    node outputs (-) [0 to 9]" -
+typedef   ^  ^              IntKi            FusOutNd    9  -  -  "List of fuselage                    nodes whose values will be output (-) [1 to NFusOuts] [unused for NFusOuts=0]" -
+typedef   ^  ^              IntKi            NSWnOuts    -  0  -  "Number of starboard wing                  node outputs (-) [0 to 9]" -
+typedef   ^  ^              IntKi            SWnOutNd    9  -  -  "List of starboard wing                  nodes whose values will be output (-) [1 to NSWnOuts] [unused for NSWnOuts=0]" -
+typedef   ^  ^              IntKi            NPWnOuts    -  0  -  "Number of port  wing                  node outputs (-) [0 to 9]" -
+typedef   ^  ^              IntKi            PWnOutNd    9  -  -  "List of port  wing                  nodes whose values will be output (-) [1 to NPWnOuts] [unused for NPWnOuts=0]" -
+typedef   ^  ^              IntKi            NVSOuts     -  0  -  "Number of vertical         stabilizer node outputs (-) [0 to 9]" -
+typedef   ^  ^              IntKi            VSOutNd     9  -  -  "List of vertical         stabilizer nodes whose values will be output (-) [1 to NVSOuts ] [unused for NVSOuts =0]" -
+typedef   ^  ^              IntKi            NSHSOuts    -  0  -  "Number of starboard horizontal stabilizer node outputs (-) [0 to 9]" -
+typedef   ^  ^              IntKi            SHSOutNd    9  -  -  "List of starboard horizontal stabilizer nodes whose values will be output (-) [1 to NSHSOuts] [unused for NSHSOuts=0]" -
+typedef   ^  ^              IntKi            NPHSOuts    -  0  -  "Number of port  horizontal stabilizer node outputs (-) [0 to 9]" -
+typedef   ^  ^              IntKi            PHSOutNd    9  -  -  "List of port  horizontal stabilizer nodes whose values will be output (-) [1 to NPHSOuts] [unused for NPHSOuts=0]" -
+typedef   ^  ^              IntKi            NPylOuts    -  0  -  "Number of pylon                       node outputs (-) [0 to 9]" -
+typedef   ^  ^              IntKi            PylOutNd    9  -  -  "List of pylon                       nodes whose values will be output (-) [1 to NPylOuts] [unused for NPylOuts=0]" -
+typedef	 ^	 ^	             OutParmType	   OutParam	  {:}	-	-	"Names and units (and other characteristics) of all requested output parameters"	-
+typedef	 ^	 ^	             CHARACTER(1)	   Delim	      -	-	-	"Column delimiter for output text files"	-
+typedef	 ^	 ^	             CHARACTER(1024)	OutFileRoot -	-	-	"Rootname of the KAD output file"	-
+typedef   ^  ^              IntKi            UnOutFile   -	-	-	"File unit for the KAD-generated output file"	-
+
+#
+#                                                                                                                                                                                                                         
+# ..... Outputs ...................................................................................................................                           
+# Define outputs that are contained on the mesh here:                                                                                                         
+typedef  ^      OutputType        MeshType          FusLoads      -    -    -  "Fuselage loads" -
+typedef  ^      ^                MeshType           FusOLoads     -    -    -  "Fuselage Origin Point loads (a single node)" -
+typedef	^	    ^                MeshType           SWnLoads      -    -    -  "Starboard wing loads" -                                                                                                                                    
+typedef	^	    ^                MeshType           PWnLoads      -    -    -  "Port wing loads" -                                                                                                                                    
+typedef	^	    ^                MeshType           VSPLoads       -    -    -  "Vertical stabilizer loads" -                                                                                                                                    
+typedef	^	    ^                MeshType           SHSLoads      -    -    -  "Starboard horizontal stabilizer loads" -                                                                                                                                    
+typedef	^	    ^                MeshType           PHSLoads      -    -    -  "Port horizontal stabilizer loads" -                                                                                                                                    
+typedef	^	    ^                MeshType           SPyLoads     {:}   -    -  "Starboard pylon loads" -                                                                                                                                    
+typedef	^	    ^                MeshType           PPyLoads     {:}   -    -  "Port pylon loads" -                                                                                                                                    
+typedef	^	    ^                MeshType           SPyRtrLoads  {:}   -    -  "Starboard rotor loads" -                                                                                                                                    
+typedef	^	    ^                MeshType           PPyRtrLoads  {:}   -    -  "Port rotor loads" -                                                                                                                                    
+typedef   ^     ^                ReKi               WriteOutput   {:}  -    -     "outputs to be written to a file"  -

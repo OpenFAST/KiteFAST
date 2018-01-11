@@ -45,6 +45,7 @@ SET SrvD_Loc=%Local_Modules_Loc%\servodyn\src
 SET BD_Loc=%Local_Modules_Loc%\beamdyn\src
 SET SC_Loc=%Local_Modules_Loc%\supercontroller\src
 SET ActDsk_Loc=%Local_Modules_Loc%\actuatordisk\src
+SET KAD_Loc=%Local_Modules_Loc%\kiteaerodyn\src
 SET VSM_Loc=%Local_Modules_Loc%\vsm\src
 SET MAP_Loc_R=%MAP_Loc%\src
 
@@ -266,10 +267,17 @@ GOTO checkError
 SET CURR_LOC=%ActDsk_Loc%
 %REGISTRY% "%CURR_LOC%\ActuatorDisk_Registry.txt" -I "%NWTC_Lib_Loc%" -noextrap -O "%Output_Loc%"
 GOTO checkError
+
+:KiteAeroDyn
+SET CURR_LOC=%KAD_Loc%
+%REGISTRY% "%CURR_LOC%\%ModuleName%_Registry.txt" -I "%NWTC_Lib_Loc%" -I "%CURR_LOC%" -I "%ActDsk_Loc%" -I "%VSM_Loc%" -I "%AD_Loc%" -O "%Output_Loc%"
+GOTO checkError
+
 :VSM
 SET CURR_LOC=%VSM_Loc%
 %REGISTRY% "%CURR_LOC%\%ModuleName%_Registry.txt" -I "%NWTC_Lib_Loc%" -I "%CURR_LOC%" -I "%AD_Loc%" -noextrap -O "%Output_Loc%"
 GOTO checkError
+
 :checkError
 ECHO.
 IF %ERRORLEVEL% NEQ 0 (
