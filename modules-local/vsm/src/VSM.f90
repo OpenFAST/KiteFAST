@@ -1094,10 +1094,6 @@ subroutine VSM_CalcOutput( t, n, u, p, z, m, y, errStat, errMsg )
       y%Writeoutput(count) = y%Vind(2,i)
       count = count + 1
       y%Writeoutput(count) = y%Vind(3,i)
-         ! Now transform this to global
-      y%Vind(1,i) = dot_product(u%x_hat(:,i),y%Vind(:,i))
-      y%Vind(2,i) = dot_product(u%y_hat(:,i),y%Vind(:,i))
-      y%Vind(3,i) = dot_product(u%z_hat(:,i),y%Vind(:,i))
       count = count + 1
       y%Writeoutput(count) = y%AoA(i)*R2D
       count = count + 1
