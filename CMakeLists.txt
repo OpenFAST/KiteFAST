@@ -76,6 +76,7 @@ set(FAST_MODULES_LOCAL
   nwtc-library
   inflowwind
   actuatordisk
+  kiteaerodyn
   aerodyn
   aerodyn14
   airfoilinfo
@@ -89,6 +90,7 @@ set(FAST_MODULES_LOCAL
   openfoam
   supercontroller
   turbsim
+  vsm
   fast-library
   )
 
