@@ -77,6 +77,7 @@ set(FAST_MODULES_LOCAL
   inflowwind
   aerodyn
   aerodyn14
+  airfoilinfo
   servodyn
   elastodyn
   beamdyn
