@@ -2598,7 +2598,7 @@ module KiteAeroDyn_IO
                                                  SP21Re,    SP22Re,    SP23Re,    SP24Re,    SP25Re,    SP26Re,    SP27Re,    SP28Re,    SP29Re/), (/9,2/) )
    INTEGER,  PARAMETER :: SPM(9,2) = reshape( (/SP11M,     SP12M,     SP13M,     SP14M,     SP15M,     SP16M,     SP17M,     SP18M,     SP19M, &
                                                 SP21M,     SP22M,     SP23M,     SP24M,     SP25M,     SP26M,     SP27M,     SP28M,     SP29M/), (/9,2/) )
-   INTEGER,  PARAMETER :: SPVIndx(2,9) = reshape( (/SP11VIndx, SP12VIndx, SP13VIndx, SP14VIndx, SP15VIndx, SP16VIndx, SP17VIndx, SP18VIndx, SP19VIndx, &
+   INTEGER,  PARAMETER :: SPVIndx(9,2) = reshape( (/SP11VIndx, SP12VIndx, SP13VIndx, SP14VIndx, SP15VIndx, SP16VIndx, SP17VIndx, SP18VIndx, SP19VIndx, &
                                                     SP21VIndx, SP22VIndx, SP23VIndx, SP24VIndx, SP25VIndx, SP26VIndx, SP27VIndx, SP28VIndx, SP29VIndx/), (/9,2/) )
    INTEGER,  PARAMETER :: SPVIndy(9,2) = reshape( (/SP11VIndy, SP12VIndy, SP13VIndy, SP14VIndy, SP15VIndy, SP16VIndy, SP17VIndy, SP18VIndy, SP19VIndy, &
                                                     SP21VIndy, SP22VIndy, SP23VIndy, SP24VIndy, SP25VIndy, SP26VIndy, SP27VIndy, SP28VIndy, SP29VIndy/), (/9,2/) )
@@ -2646,7 +2646,7 @@ module KiteAeroDyn_IO
                                                  PP21Re,    PP22Re,    PP23Re,    PP24Re,    PP25Re,    PP26Re,    PP27Re,    PP28Re,    PP29Re/), (/9,2/) )
    INTEGER,  PARAMETER :: PPM(9,2) = reshape( (/PP11M,     PP12M,     PP13M,     PP14M,     PP15M,     PP16M,     PP17M,     PP18M,     PP19M, &
                                                 PP21M,     PP22M,     PP23M,     PP24M,     PP25M,     PP26M,     PP27M,     PP28M,     PP29M/), (/9,2/) )
-   INTEGER,  PARAMETER :: PPVIndx(2,9) = reshape( (/PP11VIndx, PP12VIndx, PP13VIndx, PP14VIndx, PP15VIndx, PP16VIndx, PP17VIndx, PP18VIndx, PP19VIndx, &
+   INTEGER,  PARAMETER :: PPVIndx(9,2) = reshape( (/PP11VIndx, PP12VIndx, PP13VIndx, PP14VIndx, PP15VIndx, PP16VIndx, PP17VIndx, PP18VIndx, PP19VIndx, &
                                                     PP21VIndx, PP22VIndx, PP23VIndx, PP24VIndx, PP25VIndx, PP26VIndx, PP27VIndx, PP28VIndx, PP29VIndx/), (/9,2/) )
    INTEGER,  PARAMETER :: PPVIndy(9,2) = reshape( (/PP11VIndy, PP12VIndy, PP13VIndy, PP14VIndy, PP15VIndy, PP16VIndy, PP17VIndy, PP18VIndy, PP19VIndy, &
                                                     PP21VIndy, PP22VIndy, PP23VIndy, PP24VIndy, PP25VIndy, PP26VIndy, PP27VIndy, PP28VIndy, PP29VIndy/), (/9,2/) )
