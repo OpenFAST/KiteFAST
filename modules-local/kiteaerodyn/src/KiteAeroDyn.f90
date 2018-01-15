@@ -276,7 +276,8 @@ subroutine ReadRotorProps( UnIn, fileName, numRotors, ActDsk_InitInp, errStat, e
             return
          end if
          
-         read( charAry(2), *, IOSTAT=IOS) ActDsk_InitInp(i)%FileName
+         ActDsk_InitInp(i)%FileName = charAry(2)
+
          if (IOS /= 0) then
             call SetErrStat( ErrID_Fatal, 'Could not parse the rotor file name from the KiteAeroDyn input file', errStat, errMsg, RoutineName )
             return
