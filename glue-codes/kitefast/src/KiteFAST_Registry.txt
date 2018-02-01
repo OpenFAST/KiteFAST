@@ -1,0 +1,59 @@
+###################################################################################################################################
+# Registry for KiteFAST in the FAST Modularization Framework
+# This Registry file is used to create MODULE KiteFAST  which contains all of the user-defined types needed in KiteFAST.
+# It also contains copy, destroy, pack,  and unpack routines associated with each defined data types.
+# See NWTC Programmer's Handbook for further information on the format/contents of this file.
+#
+# Entries are of the form
+# <keyword>         <ModuleName/ModName>          <TypeName>          <FieldType>         <FieldName>         <Dims>    <IO>      <DNAME>   <DESCRIP> <UNITS>
+#
+# Use ^ as a shortcut for the value in the same column from the previous line.
+# ...... Include files (definitions from NWTC Library and module components) ............................................................................
+include	Registry_NWTC_Library.txt
+usefrom	KiteAeroDyn_Registry.txt
+usefrom	InflowWind.txt
+usefrom	MoorDyn_Registry.txt
+usefrom	ActuatorDisk_Registry.txt
+usefrom  VSM_Registry.txt
+
+#
+#
+# ..... Initialization data .......................................................................................................
+# Define inputs that the initialization routine may need here:
+#   e.g.,  the name of the input file,  the file root name,etc.
+#
+typedef    KiteFAST/KFAST    KAD_Data          KAD_ParameterType  p  - - - "Parameter data for KiteAeroDyn module" -
+typedef    ^                   ^               KAD_InputType      u  - - - "Input data for KiteAeroDyn module" -
+typedef    ^                   ^               KAD_MiscVarType    m  - - - "Misc vars for KiteAeroDyn module" -
+typedef    ^                   ^               KAD_OutputType     y  - - - "Output data for KiteAeroDyn module" -    
+typedef    KiteFAST/KFAST    IfW_Data          InflowWind_ParameterType  p  - - - "Parameter data for InflowWind module" -
+typedef    ^                   ^               InflowWind_InputType      u  - - - "Input data for InflowWind module" -
+typedef    ^                   ^               InflowWind_MiscVarType    m  - - - "Misc vars for InflowWind module" -
+typedef    ^                   ^               InflowWind_ContinuousStateType    x  - - - "Misc vars for InflowWind module" -
+typedef    ^                   ^               InflowWind_DiscreteStateType    xd  - - - "Misc vars for InflowWind module" -
+typedef    ^                   ^               InflowWind_ConstraintStateType    z  - - - "Misc vars for InflowWind module" -
+typedef    ^                   ^               InflowWind_OtherStateType    OtherSt  - - - "Misc vars for InflowWind module" -
+typedef    ^                   ^               InflowWind_OutputType     y  - - - "Output data for InflowWind module" -    
+typedef    KiteFAST/KFAST    MD_Data           MD_ParameterType  p  - - - "Parameter data for MoorDyn module" -
+typedef    ^                   ^               MD_InputType      u  - - - "Input data for MoorDyn module" -
+typedef    ^                   ^               MD_MiscVarType    m  - - - "Misc vars for MoorDyn module" -
+typedef    ^                   ^               MD_ContinuousStateType    x  - - - "Misc vars for MoorDyn module" -
+typedef    ^                   ^               MD_DiscreteStateType    xd  - - - "Misc vars for MoorDyn module" -
+typedef    ^                   ^               MD_ConstraintStateType    z  - - - "Misc vars for MoorDyn module" -
+typedef    ^                   ^               MD_OtherStateType    OtherSt  - - - "Misc vars for MoorDyn module" -
+typedef    ^                   ^               MD_OutputType     y  - - - "Output data for MoorDyn module" -    
+# ..... Misc/Optimization variables.................................................................................................
+# Define any data that are used only for efficiency purposes (these variables are not associated with time):
+#   e.g. indices for searching in an array, large arrays that are local variables in any routine called multiple times, etc.
+typedef   ^    MiscVarType    KAD_Data         KAD           -    -   -  "KiteAeroDyn framework data" -
+typedef   ^    MiscVarType    IfW_Data         IfW           -    -   -  "InflowWind framework data" -
+typedef   ^    MiscVarType    MD_Data          MD            -    -   -  "MoorDyn framework data" -
+#
+# ..... Parameters ................................................................................................................
+# Define parameters here:
+# Time step for integration of continuous states (if a fixed-step integrator is used) and update of discrete states:
+#
+typedef   ^  ParameterType  IntKi            numFlaps    -  -  -  "Number of flaps per wing" -
+typedef   ^  ^              IntKi            numPylons   -  -  -  "Number of pylons per wing" -
+typedef   ^  ^              DbKi             dt          -  -  -  "Time interval for calculations" s
+typedef	 ^	 ^	             CHARACTER(1024)	outFileRoot -	-	-	"Rootname of the KiteFAST output file(s)"	-
