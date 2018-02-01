@@ -21,6 +21,7 @@ usefrom   VSM_Registry.txt
 #
 typedef    KiteAeroDyn/KAD    KAD_ActDsk_Data       ActDsk_ParameterType  p  - - - "Parameter data for Actuator Disk module" -
 typedef    ^                   ^                    ActDsk_InputType      u  - - - "Input data for Actuator Disk module" -
+typedef    ^                   ^                    ActDsk_MiscVarType    m  - - - "Misc vars for Actuator Disk module" -
 typedef    ^                   ^                    ActDsk_OutputType     y  - - - "Output data for Actuator Disk module" -
 typedef    ^                  KAD_VSM_Data          VSM_ParameterType        p  - - - "Parameter data for VSM module" -
 typedef    ^                   ^                    VSM_MiscVarType          m  - - - "MiscVar data for VSM module" -
@@ -101,6 +102,8 @@ typedef    ^    ^                ReKi               PPyRtrOR     {:}{:}{:}   -  
 # Define outputs from the initialization routine here:                                                                                    
 #                                                                                                                                         
 typedef   ^     InitOutputType   ProgDesc           Version         -    -    -  "Version structure" -
+typedef	 ^	    ^             	ReKi               AirDens         -    -    -  "Air density" kg/m^3
+typedef	 ^	    ^             	IntKi              nIfWPts         -    -    -  "Number of locations where we need inflow wind data" -
 typedef	 ^	    ^             	CHARACTER(ChanLen) WriteOutputHdr {:}	 -	   -	"Names of the output-to-file channels"	-
 typedef	 ^	    ^             	CHARACTER(ChanLen) WriteOutputUnt {:}	 -	   -	"Units of the output-to-file channels"	-
 #
@@ -195,6 +198,8 @@ typedef   ^  ^              IntKi            PWnCtrlID  {:} -  -  "Port wing con
 typedef   ^  ^              IntKi            SHSCtrlID  {:} -  -  "Starboard horizontal stabilizer control surface ID" -
 typedef   ^  ^              IntKi            PHSCtrlID  {:} -  -  "Port horizontal stabilizer control surface ID" -
 typedef   ^  ^              IntKi            VSPCtrlID  {:} -  -  "vertical stabilizer control surface ID" -
+typedef   ^  ^              ReKi             FusChord   {:} -  -  "Fuselage chord" m
+#typedef  ^  ^              ReKi             Fus_AFIDs  {:} -  -  "Fuselage airfoil IDs" m
 typedef   ^  ^              ReKi             SWnChord   {:} -  -  "Starboard wing chord" m
 typedef   ^  ^              ReKi             PWnChord   {:} -  -  "Port wing chord" m
 typedef   ^  ^              ReKi             SHSChord   {:} -  -  "Starboard horizontal stabilizer chord" m
@@ -202,6 +207,15 @@ typedef   ^  ^              ReKi             PHSChord   {:} -  -  "Port horizont
 typedef   ^  ^              ReKi             VSPChord   {:} -  -  "vertical stabilizer chord" m
 typedef   ^  ^              ReKi             SPyChord   {:}{:} -  -  "Starboard pylon chord" m
 typedef   ^  ^              ReKi             PPyChord   {:}{:} -  -  "Port pylon chord" m
+typedef   ^  ^              ReKi             FusElemLen {:} -  -  "Fuselage element length" m
+typedef   ^  ^              ReKi             SWnElemLen {:} -  -  "Starboard wing element length" m
+typedef   ^  ^              ReKi             PWnElemLen {:} -  -  "Port wing element length" m
+typedef   ^  ^              ReKi             SHSElemLen {:} -  -  "Starboard horizontal stabilizer element length" m
+typedef   ^  ^              ReKi             PHSElemLen {:} -  -  "Port horizontal stabilizer element length" m
+typedef   ^  ^              ReKi             VSPElemLen {:} -  -  "vertical stabilizer element length" m
+typedef   ^  ^              ReKi             SPyElemLen {:}{:} -  -  "Starboard pylon element length" m
+typedef   ^  ^              ReKi             PPyElemLen {:}{:} -  -  "Port pylon element length" m
+
 typedef   ^  ^              IntKi            LiftMod     -  -  -  "Lifting-line calculation model (-) (switch) {1:geometric AoA, 2:vortex method}"    - 
 typedef   ^  ^              IntKi            RotorMod    -  -  -  "Rotor calculation model (-) (switch) {0:none, 1:actuator disk}"    -    
 #typedef  ^  ^              KAD_RTRPropsType RtrProps   {:} -  -  "Rotor properties" -
