@@ -258,11 +258,11 @@ subroutine ReadActDskFile(InitInp, errStat, errMsg)
    errStat  = ErrID_None
    errMsg   = ""
    UnEc     = -1 
-   fileName = trim(InitInp%Filename)
+   fileName = InitInp%Filename
    
    call GetNewUnit( UnIn )   
   
-   call OpenFInpfile(UnIn, trim(fileName), errStat, errMsg)
+   call OpenFInpfile(UnIn, fileName, errStat, errMsg)
       if ( errStat /= ErrID_None ) then
          errStat = ErrID_Fatal
          call CleanUp()
@@ -602,13 +602,13 @@ subroutine ActDsk_Init( InitInp, u, p, y, interval, &
    if (allocated(InitInp%InitInpFile%Vinfs)) call Move_Alloc( InitInp%InitInpFile%Vinfs,  p%Vinfs )
    if (allocated(InitInp%InitInpFile%Omega_Ptch_Vinf_Skw_Table)) call Move_Alloc( InitInp%InitInpFile%Omega_Ptch_Vinf_Skw_Table,  p%Omega_Ptch_Vinf_Skw_Table )
    
-   ! TODO Set the rest of the InitOut values per plan once we see how they are used/need by KiteAeroDyn (for use in KiteVSM?) 
+   ! TODO Set the rest of the InitOut values per plan once we see how they are used/need by KiteAeroDyn (for use in VSM?) 
    
 end subroutine ActDsk_Init
 !==============================================================================                                  
 
 !============================================================================== 
-subroutine ActDsk_CalcOutput( u, p, y, errStat, errMsg )   
+subroutine ActDsk_CalcOutput( u, p, m, y, errStat, errMsg )   
 ! Routine for computing outputs, used in both loose and tight coupling.
 ! Called by : Driver/Glue-code
 ! Calls  to : CoefInterp, SetErrStat
@@ -616,6 +616,7 @@ subroutine ActDsk_CalcOutput( u, p, y, errStat, errMsg )
    
    type(ActDsk_InputType),           intent(in   )  :: u           !< Inputs at Time
    type(ActDsk_ParameterType),       intent(in   )  :: p           !< Parameters
+   type(ActDsk_MiscVarType),         intent(inout)  :: m           !< MiscVars
    type(ActDsk_OutputType),          intent(inout)  :: y           !< Outputs computed at Time
    integer(IntKi),                   intent(  out)  :: errStat     !< Error status of the operation
    character(*),                     intent(  out)  :: errMsg      !< Error message if errStat /= ErrID_None
@@ -627,7 +628,7 @@ subroutine ActDsk_CalcOutput( u, p, y, errStat, errMsg )
    real(ReKi)                                       :: TSR         ! Tip-speed-ratio for the current time step
    real(ReKi)                                       :: coefs(7)
    character(*), parameter                          :: routineName = 'ActDsk_CalcOutput'
-
+   real(ReKi)                                       :: factorF, factorM, rtrArea
    
    errStat   = ErrID_None           ! no error has occurred
    errMsg    = ""
@@ -647,6 +648,9 @@ subroutine ActDsk_CalcOutput( u, p, y, errStat, errMsg )
       y%My = 0.0_ReKi
       y%Mz = 0.0_ReKi
       y%P  = 0.0_ReKi
+      m%Cp = 0.0_ReKi
+      m%Cq = 0.0_ReKi
+      m%Ct = 0.0_ReKi
       return  
    end if
    
@@ -657,21 +661,26 @@ subroutine ActDsk_CalcOutput( u, p, y, errStat, errMsg )
       call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName ) 
       
    velsqrd = u%DiskAve_Vx_Rel*u%DiskAve_Vx_Rel
-
-   y%Fx = p%halfRhoA*velsqrd*coefs(1)
-
-   y%Fy = p%halfRhoA*velsqrd*coefs(2)
-
-   y%Fz = p%halfRhoA*velsqrd*coefs(3)
-
-   y%Mx = p%halfRhoA*p%R*velsqrd*coefs(4)
-
-   y%My = p%halfRhoA*p%R*velsqrd*coefs(5)  
-
-   y%Mz = p%halfRhoA*p%R*velsqrd*coefs(6)
+   factorF  = p%halfRhoA*velsqrd 
+   factorM  = factorF*p%R
    
-   y%P = p%halfRhoA*velsqrd*u%DiskAve_Vx_Rel*coefs(7)
-  
+   y%Fx = factorF*coefs(1)
+   y%Fy = factorF*coefs(2)
+   y%Fz = factorF*coefs(3)
+   y%Mx = factorM*coefs(4)
+   y%My = factorM*coefs(5)  
+   y%Mz = factorM*coefs(6)
+   
+   y%P  = factorF*u%DiskAve_Vx_Rel*coefs(7)
+    
+   rtrArea = PI*p%R**2
+   m%Cp = coefs(7)
+   m%Cq = coefs(4)/rtrArea
+   m%Ct = coefs(1)/rtrArea  
+   
+               
+   
+   
 end subroutine ActDsk_CalcOutput
 
 end module ActuatorDisk

@@ -67,7 +67,9 @@ typedef   ^                            OtherStateType                ReKi       
 # ..... Misc/Optimization variables.................................................................................................
 # Define any data that are used only for efficiency purposes (these variables are not associated with time):
 #   e.g. indices for searching in an array, large arrays that are local variables in any routine called multiple times, etc.
-typedef   ^                            MiscVarType                   ReKi                     DummyMiscVar                    -             -         -        "Remove this variable if you have misc vars states" -
+typedef   ^                            MiscVarType                   ReKi                     Cp                    -             -         -        "Power coefficient" -
+typedef   ^                            MiscVarType                   ReKi                     Ct                    -             -         -        "Thrust coefficient" -
+typedef   ^                            MiscVarType                   ReKi                     Cq                    -             -         -        "Torque coefficient" -
 #
 # ..... Parameters ................................................................................................................
 # Define parameters here:
@@ -112,5 +114,5 @@ typedef   ^                            OutputType                    ReKi       
 typedef   ^                            OutputType                    ReKi                     My                              -         -         -            "Transverse (y) moment" Nm
 typedef   ^                            OutputType                    ReKi                     Mz                              -         -         -            "Transverse (z) moment" Nm
 typedef   ^                            OutputType                    ReKi                     P                               -         -         -            "Electrical power" W
-#typedef   ^                            ^                             ReKi                     WriteOutput                     {:}       -         -            "outputs to be written to a file"  -
+#typedef   ^                            ^                             ReKi                    WriteOutput                     {:}       -         -            "outputs to be written to a file"  -
 
