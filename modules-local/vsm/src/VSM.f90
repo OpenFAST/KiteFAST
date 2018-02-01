@@ -329,9 +329,10 @@ subroutine VSM_WriteOutput( Un, numElem, Gamma, U_Inf_v, U_Ind_v, AoA, Fx, Fy, M
    
 end subroutine VSM_WriteOutput
 
-subroutine VSM_Compute_Influence(KinVisc,  numElem, inPtA, inPtB, U_Inf_v, x_hat, y_hat, chord, Phi_v, Phi_AB2D_v, errStat, errMsg)
+subroutine VSM_Compute_Influence(KinVisc,  numVolElem, numElem, inPtA, inPtB, U_Inf_v, x_hat, y_hat, chord, Phi_v, Phi_AB2D_v, errStat, errMsg)
 
    real(ReKi),              intent(in   ) :: KinVisc
+   integer(IntKi),          intent(in   ) :: numVolElem
    integer(IntKi),          intent(in   ) :: numElem
    real(ReKi),              intent(in   ) :: inPtA(:,:), inPtB(:,:), U_Inf_v(:,:), x_hat(:,:), y_hat(:,:)
    real(ReKi),              intent(in   ) :: chord(:)
@@ -355,7 +356,7 @@ subroutine VSM_Compute_Influence(KinVisc,  numElem, inPtA, inPtB, U_Inf_v, x_hat
    
    Phi_v = 0.0_ReKi
    
-   do i = 1, numElem
+   do i = 1+numVolElem, numElem
       
       
       PtC(:,i) = (inPtA(:,i) + inPtB(:,i)) / 2.0_ReKi
@@ -385,7 +386,7 @@ subroutine VSM_Compute_Influence(KinVisc,  numElem, inPtA, inPtB, U_Inf_v, x_hat
       
    end do
    
-   do j = 1, numElem
+   do j = 1+numVolElem, numElem
 
       alpha0 = 1.25643 ! Oseen parameter
       
@@ -406,7 +407,7 @@ subroutine VSM_Compute_Influence(KinVisc,  numElem, inPtA, inPtB, U_Inf_v, x_hat
          Phi_AB2D_v(:,j) = ( r0 / (2.0*Pi*Factor2D))*tmp2D_v  
       end if   
    
-      do i = 1, numElem
+      do i = 1+numVolElem, numElem
          r0_v  = PtB(:,i) - PtA(:,i)
          r0    = TwoNorm(r0_v)
          r1_v  = PtP(:,j) - PtA(:,i)
@@ -608,9 +609,10 @@ subroutine VSM_Compute_Influence(KinVisc,  numElem, inPtA, inPtB, U_Inf_v, x_hat
 
 end subroutine VSM_Compute_Influence
 
-subroutine VSM_Compute( AirDens, numElem, PtA, PtB, U_Inf_v, x_hat, y_hat, p_AFI, AFIDs, deltaf, chord, Gammas, Phi_v, Phi_AB2D_v, U_Ind_v, alpha, Fx, Fy, Mz, Cl, Cd, Cm, residual, errStat, errMsg)
+subroutine VSM_Compute( AirDens, numVolElem, numElem, PtA, PtB, U_Inf_v, x_hat, y_hat, p_AFI, AFIDs, deltaf, chord, Gammas, Phi_v, Phi_AB2D_v, U_Ind_v, alpha, Fx, Fy, Mz, Cl, Cd, Cm, residual, errStat, errMsg)
 
    real(ReKi),              intent(in   ) :: AirDens
+   integer(IntKi),          intent(in   ) :: numVolElem
    integer(IntKi),          intent(in   ) :: numElem
    real(ReKi),              intent(in   ) :: PtA(3,numElem), PtB(3,numElem), U_Inf_v(3,numElem), x_hat(3,numElem), y_hat(3,numElem)
    type(AFI_ParameterType), intent(in   ) :: p_AFI(:)
@@ -628,15 +630,22 @@ subroutine VSM_Compute( AirDens, numElem, PtA, PtB, U_Inf_v, x_hat, y_hat, p_AFI
    real(ReKi)  :: Ux, Uy, Cpmin, U_2D, U_Infx, U_Infy, U_Inf_2D , Factor
    character(*), parameter                  :: routineName = 'VSM_Compute'
    
+   
    do j = 1, numElem
       
-      U_ind_v(:,j) = 0.0_ReKi
+      U_ind_v(:,j) = 0.0_ReKi  ! Volume elements will not have induction
       
-      do i = 1, numElem
-         U_ind_v(:,j) = U_ind_v(:,j) + Gammas(i)*Phi_v(:,i,j)
-      end do
+      if (j > numVolElem) then
+      
+         do i = 1+numVolElem, numElem
+            U_ind_v(:,j) = U_ind_v(:,j) + Gammas(i-numVolElem)*Phi_v(:,i,j)
+         end do
+      
+         U_ind_v(:,j)  = U_ind_v(:,j) - Gammas(j-numVolElem)*Phi_AB2D_v(:,j)
          
-      U_rel_v = U_Inf_v(:,j) + U_ind_v(:,j) - Gammas(j)*Phi_AB2D_v(:,j)
+      end if
+   
+      U_rel_v = U_Inf_v(:,j) + U_ind_v(:,j)
    
       Ux      = dot_product( U_rel_v, x_hat(:,j))
       Uy      = dot_product( U_rel_v, y_hat(:,j))
@@ -650,15 +659,17 @@ subroutine VSM_Compute( AirDens, numElem, PtA, PtB, U_Inf_v, x_hat, y_hat, p_AFI
       U_Infy  = dot_product( U_Inf_v(:,j), y_hat(:,j))
       U_Inf_2D = sqrt(U_Infx**2 + U_Infy**2)
       Factor = TwoNorm(PtB(:,j) - PtA(:,j))  ! TODO: This should be using a static fixed length (p%r0)
-      Factor = 0.5*AirDens*U_2D*Factor
+      Factor = 0.5*AirDens*U_2D*Factor*chord(j)
       
-         ! These are in the local airfoil frame and are per unit length values
-      Fx(j) = Factor*(  Cl(j)*cos(alpha(j)) + Cd(j)*sin(alpha(j)) ) ! N/m
-      Fy(j) = Factor*( -Cl(j)*sin(alpha(j)) + Cd(j)*cos(alpha(j)) ) ! N/m
-      Mz(j) = Factor*chord(j)*Cm(j)                                 ! N
+         ! These are in the local airfoil frame 
+      Fx(j) = Factor*(  Cl(j)*cos(alpha(j)) + Cd(j)*sin(alpha(j)) ) ! N
+      Fy(j) = Factor*( -Cl(j)*sin(alpha(j)) + Cd(j)*cos(alpha(j)) ) ! N
+      Mz(j) = Factor*chord(j)*Cm(j)                                 ! Nm
    
-      residual(j) = U_Inf_2D*Gammas(j) - 0.5*U_2D*chord(j)*Cl(j)
-      
+         ! Do not incude the drag elements in the residual calculations
+      if (j > numVolElem) then     
+         residual(j-numVolElem) = U_Inf_2D*Gammas(j-numVolElem) - 0.5*U_2D*chord(j)*Cl(j)
+      end if 
       
    end do ! j
    
@@ -754,9 +765,11 @@ subroutine VSM_UpdateStates( t, n, u, p, z, m, errStat, errMsg )
    integer(IntKi)   :: i, k
    real(ReKi)       :: dz
    type(VSM_ConstraintStateType)  :: zPerturb, z_residual, z_resPerturb
-   real(ReKi)       :: deltazMag, deltaz(p%numElem)
-   real(ReKi)       :: dZdz(p%numElem,p%numElem), dZdz_factor(p%numElem,p%numElem)
-   integer          :: dZdz_pivot(p%numElem)
+   real(ReKi)       :: deltazMag, deltaz(p%numGammas)
+   real(ReKi)       :: dZdz(p%numGammas,p%numGammas), dZdz_factor(p%numGammas,p%numGammas)
+   integer          :: dZdz_pivot(p%numGammas)
+   
+   if ( p%LiftMod == 1 ) return ! no real states: z%Gammas were set to zero at initialization
    
    if ( m%NoStates ) z%Gammas = 0.6
    
@@ -767,7 +780,7 @@ subroutine VSM_UpdateStates( t, n, u, p, z, m, errStat, errMsg )
    k  = 0
    dz = p%VSMPerturb
 
-   call VSM_Compute_Influence(p%KinVisc, p%numElem, u%PtA, u%PtB, u%U_Inf_v, u%x_hat, u%y_hat, p%Chords, m%Phi_v, m%Phi_AB2D_v, errStat, errMsg)
+   call VSM_Compute_Influence(p%KinVisc, p%NumVolElem, p%numElem, u%PtA, u%PtB, u%U_Inf_v, u%x_hat, u%y_hat, p%Chords, m%Phi_v, m%Phi_AB2D_v, errStat, errMsg)
       if ( errStat >= AbortErrLev ) return
    do 
       if ( k == p%VSMMaxIter ) then
@@ -782,7 +795,7 @@ subroutine VSM_UpdateStates( t, n, u, p, z, m, errStat, errMsg )
          if ( errStat >= AbortErrLev ) return
          ! Compute the gradient matrix dZdz(n,n) when perturbing z
       zPerturb%Gammas = z%Gammas
-      do i = 1, p%NumElem
+      do i = 1, p%NumGammas
          zPerturb%Gammas(i) = z%Gammas(i) + dz
          call VSM_CalcConstrStateResidual( t, u, p, zPerturb, m, z_resPerturb, errStat, errMsg )
             if ( errStat >= AbortErrLev ) return
@@ -799,10 +812,10 @@ subroutine VSM_UpdateStates( t, n, u, p, z, m, errStat, errMsg )
       if ( deltazMag < p%VSMToler ) exit
       
       
-      call LAPACK_getrf( M=p%NumElem, N=p%NumElem, A=dZdz_factor, IPIV=dZdz_pivot, ErrStat=errStat, ErrMsg=errMsg )  
+      call LAPACK_getrf( M=p%NumGammas, N=p%NumGammas, A=dZdz_factor, IPIV=dZdz_pivot, ErrStat=errStat, ErrMsg=errMsg )  
          if ( errStat >= AbortErrLev ) return
       
-      call LAPACK_getrs( TRANS='N',N=p%NumElem, A=dZdz_factor,IPIV=dZdz_pivot, B=deltaz, ErrStat=ErrStat, ErrMsg=ErrMsg)
+      call LAPACK_getrs( TRANS='N',N=p%NumGammas, A=dZdz_factor,IPIV=dZdz_pivot, B=deltaz, ErrStat=ErrStat, ErrMsg=ErrMsg)
          if ( ErrStat >= AbortErrLev ) return
 
      
@@ -842,9 +855,11 @@ subroutine VSM_CalcConstrStateResidual( Time, u, p, z, m, z_residual, errStat, e
    
    errStat = ErrID_None
    errMsg  = ""
- 
-   call VSM_Compute( p%AirDens, p%numElem, u%PtA, u%PtB, u%U_Inf_v, u%x_hat, u%y_hat, p%AFInfo, p%AFIDs, u%deltaf, p%Chords, z%Gammas, m%Phi_v, m%Phi_AB2D_v, U_Ind_v, alpha, Fx, Fy, Mz, Cl, Cd, Cm, z_residual%Gammas, errStat, errMsg)
-   
+   if ( p%LiftMod == 1 ) then
+      z_residual%Gammas = 0.0_ReKi
+   else   
+      call VSM_Compute( p%AirDens, p%NumVolElem, p%numElem, u%PtA, u%PtB, u%U_Inf_v, u%x_hat, u%y_hat, p%AFInfo, p%AFIDs, u%deltaf, p%Chords, z%Gammas, m%Phi_v, m%Phi_AB2D_v, U_Ind_v, alpha, Fx, Fy, Mz, Cl, Cd, Cm, z_residual%Gammas, errStat, errMsg)
+   end if
    
 end subroutine VSM_CalcConstrStateResidual
 
@@ -892,15 +907,17 @@ subroutine VSM_Init( InitInp, u, p, z, m, y, interval, InitOut, errStat, errMsg 
    call DispNVD( VSM_Ver )
   
       ! Set parameters based on initialization inputs
-   p%AirDens    = InitInp%AirDens
-   p%KinVisc    = InitInp%KinVisc
-   p%CtrlPtMod  = InitInp%CtrlPtMod
-   p%VSMMaxIter = InitInp%VSMMaxIter
-   p%VSMPerturb = InitInp%VSMPerturb
-   p%VSMToler   = InitInp%VSMToler  
-   p%AFTabMod   = InitInp%AFTabMod
-   p%NumElem    = InitInp%NumElem
-   
+   p%AirDens       = InitInp%AirDens
+   p%KinVisc       = InitInp%KinVisc
+   p%CtrlPtMod     = InitInp%CtrlPtMod
+   p%LiftMod       = InitInp%LiftMod
+   p%VSMMaxIter    = InitInp%VSMMaxIter
+   p%VSMPerturb    = InitInp%VSMPerturb
+   p%VSMToler      = InitInp%VSMToler  
+   p%AFTabMod      = InitInp%AFTabMod
+   p%NumVolElem = InitInp%NumVolElem
+   p%NumElem       = InitInp%NumElem         ! This includes the Volume elements (NumVolElem)
+   p%NumGammas     = p%NumElem - p%NumVolElem
       ! Allocate arrays
    call AllocAry( p%Chords, p%NumElem, 'p%Chords', errStat2, errMsg2 )
       call SetErrStat( errStat2, errMsg2, errStat, errMsg, RoutineName )
@@ -943,16 +960,13 @@ subroutine VSM_Init( InitInp, u, p, z, m, y, interval, InitOut, errStat, errMsg 
    call AllocAry( y%Cd , p%NumElem, 'y%Cd ' , errStat2, errMsg2 )   
       call SetErrStat( errStat2, errMsg2, errStat, errMsg, RoutineName )
    call AllocAry( y%Cm , p%NumElem, 'y%Cm ' , errStat2, errMsg2 )   
-      call SetErrStat( errStat2, errMsg2, errStat, errMsg, RoutineName )   
-   call AllocAry( z%Gammas, p%NumElem, 'z%Gammas ' , errStat2, errMsg2 )   
-      call SetErrStat( errStat2, errMsg2, errStat, errMsg, RoutineName )
-   z%Gammas = 0.0_ReKi
-   
-   !allocate( p%AFInfo(InitInp%NumAFfiles), STAT=errStat2)
-   !   if ( errStat2 /= 0 ) then
-   !      call SetErrStat( ErrID_FATAL, 'Could not allocate memory for p%AFInfo', errStat, errMsg, RoutineName )
-   !   end if
+      call SetErrStat( errStat2, errMsg2, errStat, errMsg, RoutineName ) 
       
+      ! The volume elements do not have states
+   call AllocAry( z%Gammas, p%NumGammas, 'z%Gammas ' , errStat2, errMsg2 )   
+      call SetErrStat( errStat2, errMsg2, errStat, errMsg, RoutineName )
+   z%Gammas = 0.0_ReKi ! This will force Gammas to always be 0.0 for LiftMod = 1
+   
    if ( errStat >= AbortErrLev ) return
    
    p%Chords     = InitInp%Chords
@@ -1058,28 +1072,40 @@ subroutine VSM_CalcOutput( t, n, u, p, z, m, y, errStat, errMsg )
    type(VSM_ConstraintStateType)                    :: zTmp, z_residual
    real(ReKi)                                       :: U_Ind_v(3,p%NumElem), alpha(p%NumElem), Fx(p%numElem), Fy(p%numElem), Mz(p%numElem), Cl(p%numElem), Cd(p%numElem), Cm(p%numElem)
    integer(IntKi)                                   :: count, i
-   real(ReKi)                                       :: Forces(3), Moments(3)
+   real(ReKi)                                       :: forces(3), moments(3)
    
    errStat   = ErrID_None           ! no error has occurred
    errMsg    = ""
-
-   if ( m%NoStates ) then
-      ! UpdateStates has never been called, so no real states exist, we need to 'solve for the states' before generating the outputs
-      call VSM_CopyConstrState( z, zTmp, 0, errStat, errMsg )
-      call VSM_CopyConstrState( z, z_residual, 0, errStat, errMsg )
-      call VSM_UpdateStates( t, n, u, p, zTmp, m, errStat, errMsg )
-         if ( errStat >= AbortErrLev ) return
-      m%NoStates = .true.
-      call VSM_Compute( p%AirDens, p%numElem, u%PtA, u%PtB, u%U_Inf_v, u%x_hat, u%y_hat, p%AFInfo, p%AFIDs, u%deltaf, p%Chords, zTmp%Gammas, m%Phi_v, m%Phi_AB2D_v, y%Vind, y%AoA, Fx, Fy,Mz, y%Cl, y%Cd, y%Cm, z_residual%Gammas, errStat, errMsg)     
-         if ( errStat >= AbortErrLev ) return
+   forces    = 0.0_ReKi
+   moments   = 0.0_ReKi
+   
+   
+   if ( p%LiftMod == 2 ) then
+      if ( m%NoStates ) then
+         ! UpdateStates has never been called, so no real states exist, we need to 'solve for the states' before generating the outputs
+         call VSM_CopyConstrState( z, zTmp, 0, errStat, errMsg )
+         call VSM_CopyConstrState( z, z_residual, 0, errStat, errMsg )
+         call VSM_UpdateStates( t, n, u, p, zTmp, m, errStat, errMsg )
+            if ( errStat >= AbortErrLev ) return
+         m%NoStates = .true.
+         call VSM_Compute( p%AirDens, p%NumVolElem, p%numElem, u%PtA, u%PtB, u%U_Inf_v, u%x_hat, u%y_hat, p%AFInfo, p%AFIDs, u%deltaf, p%Chords, zTmp%Gammas, m%Phi_v, m%Phi_AB2D_v, y%Vind, y%AoA, Fx, Fy,Mz, y%Cl, y%Cd, y%Cm, z_residual%Gammas, errStat, errMsg)     
+            if ( errStat >= AbortErrLev ) return
+      else
+            ! TODO: may want to store this z_residual as a miscvar to avoid the copy here
+         call VSM_CopyConstrState( z, z_residual, 0, errStat, errMsg )
+         call VSM_Compute_Influence(p%KinVisc, p%NumVolElem, p%numElem, u%PtA, u%PtB, u%U_Inf_v, u%x_hat, u%y_hat, p%Chords, m%Phi_v, m%Phi_AB2D_v, errStat, errMsg)
+            if ( errStat >= AbortErrLev ) return
+         call VSM_Compute( p%AirDens, p%NumVolElem, p%numElem, u%PtA, u%PtB, u%U_Inf_v, u%x_hat, u%y_hat, p%AFInfo, p%AFIDs, u%deltaf, p%Chords, z%Gammas, m%Phi_v, m%Phi_AB2D_v, y%Vind, y%AoA, Fx, Fy, Mz, y%Cl, y%Cd, y%Cm, z_residual%Gammas, errStat, errMsg)
+            if ( errStat >= AbortErrLev ) return
+      end if
    else
-         ! TODO: may want to store this z_residual as a miscvar to avoid the copy here
-      call VSM_CopyConstrState( z, z_residual, 0, errStat, errMsg )
-      call VSM_Compute_Influence(p%KinVisc, p%numElem, u%PtA, u%PtB, u%U_Inf_v, u%x_hat, u%y_hat, p%Chords, m%Phi_v, m%Phi_AB2D_v, errStat, errMsg)
+         ! Compute Loads without induction, all states (Gammas are zero)
+      
+      call VSM_Compute( p%AirDens, p%NumVolElem, p%numElem, u%PtA, u%PtB, u%U_Inf_v, u%x_hat, u%y_hat, p%AFInfo, p%AFIDs, u%deltaf, p%Chords, z%Gammas, m%Phi_v, m%Phi_AB2D_v, y%Vind, y%AoA, Fx, Fy, Mz, y%Cl, y%Cd, y%Cm, z_residual%Gammas, errStat, errMsg)
          if ( errStat >= AbortErrLev ) return
-      call VSM_Compute( p%AirDens, p%numElem, u%PtA, u%PtB, u%U_Inf_v, u%x_hat, u%y_hat, p%AFInfo, p%AFIDs, u%deltaf, p%Chords, z%Gammas, m%Phi_v, m%Phi_AB2D_v, y%Vind, y%AoA, Fx, Fy, Mz, y%Cl, y%Cd, y%Cm, z_residual%Gammas, errStat, errMsg)
-         if ( errStat >= AbortErrLev ) return
+
    end if
+   
    count = 1
    ! U_Inf_v, U_Ind_v, AoA, Gamma, residual, Fx, Fy, Mz
    do i=1,p%NumElem
@@ -1103,13 +1129,22 @@ subroutine VSM_CalcOutput( t, n, u, p, z, m, y, errStat, errMsg )
       count = count + 1
       y%Writeoutput(count) = y%Cm(i)
       count = count + 1
-      if ( m%NoStates ) then
-         y%Writeoutput(count) = zTmp%Gammas(i)
+      if ( i > p%NumVolElem ) then
+         if ( m%NoStates ) then
+            y%Writeoutput(count) = zTmp%Gammas(i-p%NumVolElem)
+         else
+            y%Writeoutput(count) = z%Gammas(i-p%NumVolElem)       
+         end if
       else
-         y%Writeoutput(count) = z%Gammas(i)       
+         y%Writeoutput(count) = 0.0
       end if
+      
       count = count + 1
-      y%Writeoutput(count) = z_residual%Gammas(i)
+      if ( i > p%NumVolElem ) then
+         y%Writeoutput(count) = z_residual%Gammas(i-p%NumVolElem)
+      else
+         y%Writeoutput(count) = 0.0
+      end if   
       count = count + 1
       y%Writeoutput(count) = Fx(i)
       count = count + 1
@@ -1119,15 +1154,15 @@ subroutine VSM_CalcOutput( t, n, u, p, z, m, y, errStat, errMsg )
       count = count + 1
       
       ! Transform loads to global from local
-      Forces(1) = Fx(i)
-      Forces(2) = Fy(i)
-      Moments(3) = Mz(i)
-      y%Loads(1,:) =  dot_product(u%x_hat(:,i),Forces)
-      y%Loads(2,:) =  dot_product(u%y_hat(:,i),Forces)
-      y%Loads(3,:) =  dot_product(u%z_hat(:,i),Forces)
-      y%Loads(4,:) =  dot_product(u%x_hat(:,i),Moments)
-      y%Loads(5,:) =  dot_product(u%y_hat(:,i),Moments)
-      y%Loads(6,:) =  dot_product(u%z_hat(:,i),Moments)
+      forces(1) = Fx(i)
+      forces(2) = Fy(i)
+      moments(3) = Mz(i)
+      y%Loads(1,:) =  dot_product(u%x_hat(:,i),forces)
+      y%Loads(2,:) =  dot_product(u%y_hat(:,i),forces)
+      y%Loads(3,:) =  dot_product(u%z_hat(:,i),forces)
+      y%Loads(4,:) =  dot_product(u%x_hat(:,i),moments)
+      y%Loads(5,:) =  dot_product(u%y_hat(:,i),moments)
+      y%Loads(6,:) =  dot_product(u%z_hat(:,i),moments)
 
    end do
    

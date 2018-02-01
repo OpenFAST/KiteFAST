@@ -41,6 +41,7 @@ typedef   ^    ^                  IntKi              InCol_Cl        -       -  
 typedef   ^    ^                  IntKi              InCol_Cd        -       -    -    "The column in the airfoil tables that contains the drag coefficient"    -
 typedef   ^    ^                  IntKi              InCol_Cm        -       -    -    "The column in the airfoil tables that contains the pitching-moment coefficient; use zero if there is no Cm column"    -
 typedef   ^    ^                  IntKi              NumAFfiles      -       -    -    "Number of airfoil files used"    -
+typedef   ^    ^                  IntKi              NumVolElem   -       -    -    "Number of drag body elements used [these must always be placed at the beginning of the elements arrays]" -
 typedef   ^    ^                  CHARACTER(1024)    AFNames        {:}      -    -    "Airfoil file names (NumAF lines)"    "quoted strings"
 typedef   ^    ^                  ReKi               Chords         {:}      -    -    "Element chords" m
 typedef   ^    ^                  IntKi              AFIDs          {:}      -    -    "Element airfoil id numbers" -
@@ -103,6 +104,8 @@ typedef   ^    ^                  IntKi               NumElem         -         
 typedef   ^    ^                  ReKi                Chords          {:}       -    -    "Element chords" m
 typedef   ^    ^                  IntKi               AFIDs           {:}       -    -    "Slement airfoil id number" -
 typedef   ^    ^                  AFI_ParameterType   AFInfo          {:}       -    -    "Airfoil information parameters"
+typedef   ^    ^                  IntKi               NumVolElem   -         -    -    "Number of drag body elements used [these must always be placed at the beginning of the elements arrays]" -
+typedef   ^    ^                  IntKi               NumGammas       -         -    -    "Number of constraint states [does not include the drag body elements]" -
 typedef   ^    ^                  INTEGER             NumOuts         -         -    -    ""    -
 typedef   ^    ^                  INTEGER             OutSwtch        -         -    -    ""    -
 typedef   ^    ^                  LOGICAL             OutAll          -         -    -    ""    -
