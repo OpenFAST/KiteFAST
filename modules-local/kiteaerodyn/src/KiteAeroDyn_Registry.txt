@@ -13,6 +13,7 @@
 include   Registry_NWTC_Library.txt
 usefrom	 ActuatorDisk_Registry.txt
 usefrom   VSM_Registry.txt
+usefrom   AirfoilInfo_Registry.txt
 #
 #
 # ..... Initialization data .......................................................................................................
