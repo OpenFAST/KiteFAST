@@ -157,10 +157,10 @@ end subroutine CreateMBDynPtMotionsMesh
 subroutine KFAST_Init(dt, numFlaps, numPylons, numComp, numCompNds, KAD_FileName_c, IfW_FileName_c, MD_FileName_c, &
                        outFileRoot_c, gravity, FusODCM_c, numRtrPtsElem_c, rtrPts_c, numRefPtElem_c, refPts_c, numDCMElem_c, nodeDCMs_c, errStat_c, errMsg_c ) BIND (C, NAME='KFAST_Init')
    IMPLICIT NONE
-#ifndef IMPLICIT_DLLEXPORT
-!DEC$ ATTRIBUTES DLLEXPORT :: KFAST_Init
-!GCC$ ATTRIBUTES DLLEXPORT :: KFAST_Init
-#endif
+!!!#ifndef IMPLICIT_DLLEXPORT
+!!!!DEC$ ATTRIBUTES DLLEXPORT :: KFAST_Init
+!!!!GCC$ ATTRIBUTES DLLEXPORT :: KFAST_Init
+!!!#endif
 
    real(C_DOUBLE),         intent(in   ) :: dt                         ! simulation time step size (s)
    integer(C_INT),         intent(in   ) :: numFlaps                   ! number of flaps per wing
@@ -220,7 +220,7 @@ subroutine KFAST_Init(dt, numFlaps, numPylons, numComp, numCompNds, KAD_FileName
    numVSPNds = numCompNds(4)
    numSHSNds = numCompNds(5)
    numPHSNds = numCompNds(6)
-   c=6
+   c=7
    do i = 1, numPylons
       numSPyNds(i) = numCompNds(c)
       c = c + 1
@@ -233,16 +233,16 @@ subroutine KFAST_Init(dt, numFlaps, numPylons, numComp, numCompNds, KAD_FileName
       ! Decode rotor positions
    c=1
    do i = 1, numPylons
-      SPyRtrO(:,1,i) = rtrPts_c(c:c+3)
-      c = c + 4
-      SPyRtrO(:,2,i) = rtrPts_c(c:c+3)
-      c = c + 4
+      SPyRtrO(:,1,i) = rtrPts_c(c:c+2)
+      c = c + 3
+      SPyRtrO(:,2,i) = rtrPts_c(c:c+2)
+      c = c + 3
    end do
    do i = 1, numPylons
-      PPyRtrO(:,1,i) = rtrPts_c(c:c+3)
-      c = c + 4
-      PPyRtrO(:,2,i) = rtrPts_c(c:c+3)
-      c = c + 4
+      PPyRtrO(:,1,i) = rtrPts_c(c:c+2)
+      c = c + 3
+      PPyRtrO(:,2,i) = rtrPts_c(c:c+2)
+      c = c + 3
    end do
     
       ! Convert 1D float array data into specific quantities
@@ -255,12 +255,12 @@ subroutine KFAST_Init(dt, numFlaps, numPylons, numComp, numCompNds, KAD_FileName
    PHSO = refPts_c(16:18)
    c = 19
    do i = 1, numPylons
-      SPyO(:,i) = refPts_c(c:c+3)
-      c = c + 4
+      SPyO(:,i) = refPts_c(c:c+2)
+      c = c + 3
    end do
    do i = 1, numPylons
-      PPyO(:,i) = refPts_c(c:c+3)
-      c = c + 4
+      PPyO(:,i) = refPts_c(c:c+2)
+      c = c + 3
    end do
  
    if ( (c-1) /= numRefPtElem_c ) then
@@ -394,7 +394,7 @@ subroutine KFAST_Init(dt, numFlaps, numPylons, numComp, numCompNds, KAD_FileName
 !----------------------------------------------------------------
 
       ! Set KiteAeroDyn initialization input data
-   !KAD_InitInp%FileName  = KAD_FileName_c
+!  KAD_InitInp%FileName  = KAD_FileName_c(1:1024)
    KAD_InitInp%NumFlaps  = numFlaps
    KAD_InitInp%NumPylons = numPylons
    interval              = dt
@@ -510,10 +510,10 @@ end subroutine KFAST_Init
 
 subroutine KFAST_AssRes() BIND (C, NAME='KFAST_AssRes')
    IMPLICIT NONE
-#ifndef IMPLICIT_DLLEXPORT
-!DEC$ ATTRIBUTES DLLEXPORT :: KFAST_AssRes
-!GCC$ ATTRIBUTES DLLEXPORT :: KFAST_AssRes
-#endif
+!!!#ifndef IMPLICIT_DLLEXPORT
+!!!!DEC$ ATTRIBUTES DLLEXPORT :: KFAST_AssRes
+!!!!GCC$ ATTRIBUTES DLLEXPORT :: KFAST_AssRes
+!!!#endif
  
    
 
@@ -521,10 +521,10 @@ end subroutine KFAST_AssRes
    
 subroutine KFAST_End() BIND (C, NAME='KFAST_End')
    IMPLICIT NONE
-#ifndef IMPLICIT_DLLEXPORT
-!DEC$ ATTRIBUTES DLLEXPORT :: KFAST_End
-!GCC$ ATTRIBUTES DLLEXPORT :: KFAST_End
-#endif
+!!!#ifndef IMPLICIT_DLLEXPORT
+!!!!DEC$ ATTRIBUTES DLLEXPORT :: KFAST_End
+!!!!GCC$ ATTRIBUTES DLLEXPORT :: KFAST_End
+!!!#endif
    
    ! Call the End subroutines for KiteAeroDyn, MoorDyn, InflowWind, and the Controller
    ! Close the output file
