@@ -92,6 +92,7 @@ set(FAST_MODULES_LOCAL
   turbsim
   vsm
   fast-library
+  kitefast-library
   )
 
 ########################################################################
