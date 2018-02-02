@@ -30,13 +30,12 @@
 *.pyc
 
 # CMake specific files
-build/**/*
-install/*
-ctest-build/*
+build
+install
 
 # vs-build specific folders and files
 vs-build/*
 
-
-build
+# ide and system specific directories and files
 .DS_Store
+.vscode
