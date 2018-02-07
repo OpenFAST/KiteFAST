@@ -65,8 +65,8 @@ module KiteFastController
          real(C_DOUBLE),         intent(  out) :: Rudr(2)           
          real(C_DOUBLE),         intent(  out) :: SElv(2)           
          real(C_DOUBLE),         intent(  out) :: PElv(2)           
-         real(C_DOUBLE),         intent(  out) :: GenSPyRtr(8)
-         real(C_DOUBLE),         intent(  out) :: GenPPyRtr(8)
+         real(C_DOUBLE),         intent(  out) :: GenSPyRtr(4)
+         real(C_DOUBLE),         intent(  out) :: GenPPyRtr(4)
          integer(C_INT),         intent(inout) :: errStat           !< error status code (uses NWTC_Library error codes)
          character(kind=C_CHAR), intent(inout) :: errMsg(1025)      !< Error Message from DLL to simulation code        
       end subroutine KFC_DLL_Step_PROC   
@@ -238,11 +238,8 @@ module KiteFastController
       y%Rudr  =   Rudr_c 
       y%SElv  =   SElv_c
       y%PElv  =   PElv_c   
-      y%GenSPyRtr = GenSPyRtr_c
-      y%GenPPyRtr = GenPPyRtr_c
-      
-      
-      
+      y%GenSPyRtr = reshape(GenSPyRtr_c,(/2,2/))
+      y%GenPPyRtr = reshape(GenPPyRtr_c,(/2,2/))
       
       
          ! TODO Error checking

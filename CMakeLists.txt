@@ -93,6 +93,7 @@ set(FAST_MODULES_LOCAL
   vsm
   fast-library
   kitefast-library
+  kitefast-controller
   )
 
 ########################################################################
