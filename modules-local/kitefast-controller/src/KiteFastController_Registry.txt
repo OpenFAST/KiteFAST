@@ -1,0 +1,57 @@
+###################################################################################################################################
+# Registry for the KiteFast Controller in the FAST Modularization Framework
+# This Registry file is used to create MODULE KiteFastController_Types, which contains all of the user-defined types needed in Controller.
+# It also contains copy, destroy, pack, and unpack routines associated with each defined data types.
+#
+# Entries are of the form
+# keyword <ModuleName/ModName> <TypeName>    <FieldType>    <FieldName>  <Dims>  <IO> <DNAME> <DESCRIP> <UNITS>
+#
+# Use ^ as a shortcut for the value from the previous line.
+# See NWTC Programmer's Handbook at https://nwtc.nrel.gov/FAST-Developers for further information on the format/contents of this file.
+###################################################################################################################################
+#
+# ...... Include files (definitions from NWTC Library) ............................................................................
+include Registry_NWTC_Library.txt
+# ..... InitInput  ................................................................................................................
+typedef  KiteFastController/KFC InitInputType         DbKi           DT       -    -       - "Simulation timestep [controller expects 0.01]" s
+typedef  ^                  InitInputType          CHARACTER(1024) DLL_FileName    -    -       - "Name of the shared library which the super controller logic" -
+typedef  ^                  ^                      IntKi           numPylons       -    -       - "Number of pylons per wing [controller expects 2]" -
+typedef  ^                  ^                      IntKi           numFlaps        -    -       - "Number of flaps per wing [controller expects 2]" -
+# ..... InitOutput ................................................................................................................
+typedef  ^                  InitOutputType         ProgDesc        Ver             -    -       - "This module's name, version, and date"	-                                        
+# ..... Parameters ................................................................................................................
+typedef	^	                ParameterType	        DbKi	         DT	             -	   -	     - "Time step for continuous state integration & discrete state update"	secondstypedef  ^                  ParameterType         IntKi           NumTurbines     -    -       - "Number of turbines in the simulation" -
+typedef  ^                  ParameterType         IntKi           numPylons       -    -       - "Number of pylons per wing" - 
+typedef  ^                  ParameterType         IntKi           numFlaps        -    -       - "Number of flaps per wing" - 
+typedef	^                  ParameterType         DLL_Type        DLL_Trgt        -    -       - "The addresses and names of the super controller shared library and its procedures"	-
+# ..... Discrete (nondifferentiable) States .........................................................................................................
+typedef  ^                  DiscreteStateType     SiKi            Dummy           -   -       - "Remove this variable if you have discrete states" -
+# ..... Continuous States  ......................................................................................
+typedef    ^                ContinuousStateType   SiKi            Dummy           -    -       - "Remove this variable if you have continuous states" -
+# ..... constraint states here:
+typedef   ^                 ConstraintStateType   SiKi            Dummy           -    -       - "Remove this variable if you have constraint states" -
+# ..... misc vars here:
+typedef   ^                 MiscVarType           SiKi            Dummy           -   -       - "Remove this variable if you have misc vars" -
+# ..... Other States ..............................................................................................................
+typedef  ^                  OtherStateType        IntKi           Dummy           -    -       - "Dummy Other State" - 
+# ..... Inputs ....................................................................................................................
+typedef   ^                 InputType             R8Ki            dcm_g2b        {:}{:}   -       - "The DCM to go from the controller ground system to the kite body system" -
+typedef   ^                 ^                     ReKi            pqr            {:}      -       - "The kite angular velocities expressed in the kite body system" -
+typedef   ^                 ^                     ReKi            acc_norm        -       -       - "Magnitude of the acceleration vector" -
+typedef   ^                 ^                     ReKi            Xg             {:}      -       - "Location of the Kite Fuselage reference point in the controller ground system" -
+typedef   ^                 ^                     ReKi            Vg             {:}      -       - "The kite translational velocities expressed in the controller ground system" -
+typedef   ^                 ^                     ReKi            Vb             {:}      -       - "The kite translational velocities expressed in the kite body system" -
+typedef   ^                 ^                     ReKi            Ag             {:}      -       - "The kite accelerations expressed in the controller ground system" -
+typedef   ^                 ^                     ReKi            Ab             {:}      -       - "The kite accelerations expressed in the kite body system" -
+typedef   ^                 ^                     ReKi            rho             -       -       - "Location of the Kite Fuselage reference point in the controller ground system" -
+typedef   ^                 ^                     ReKi            apparent_wind  {:}      -       - "Location of the Kite Fuselage reference point in the controller ground system" -
+typedef   ^                 ^                     ReKi            tether_force   {:}      -       - "Location of the Kite Fuselage reference point in the controller ground system" -
+typedef   ^                 ^                     ReKi            wind_g         {:}      -       - "Location of the Kite Fuselage reference point in the controller ground system" -
+# ..... Outputs ...................................................................................................................
+typedef  ^                  OutputType            ReKi            SFlp           {3}      -       - "Starboard flap angles " rad 
+typedef  ^                  ^                     ReKi            PFlp           {3}      -       - "Port flap angles " rad 
+typedef  ^                  ^                     ReKi            Rudr           {2}      -       - "Rudder flap angles " rad 
+typedef  ^                  ^                     ReKi            SElv           {2}      -       - "Starboard elevator flap angles " rad 
+typedef  ^                  ^                     ReKi            PElv           {2}      -       - "Port elevator flap angles " rad 
+typedef  ^                  ^                     ReKi            GenSPyRtr      {:}{:}   -       - "Starboard generator torques from controller" Nm 
+typedef  ^                  ^                     ReKi            GenPPyRtr      {:}{:}   -       - "Port generator torques from controller" Nm 
