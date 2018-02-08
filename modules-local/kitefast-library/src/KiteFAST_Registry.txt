@@ -48,6 +48,39 @@ typedef    ^                   ^               MD_OutputType     y  - - - "Outpu
 typedef   ^    MiscVarType    KAD_Data         KAD           -    -   -  "KiteAeroDyn framework data" -
 typedef   ^    MiscVarType    IfW_Data         IfW           -    -   -  "InflowWind framework data" -
 typedef   ^    MiscVarType    MD_Data          MD            -    -   -  "MoorDyn framework data" -
+typedef   ^    MiscVarType    MeshType         mbdFusMotions -    -   -  "" -
+typedef   ^    MiscVarType    MeshType         mbdSWnMotions -    -   -  "" -
+typedef   ^    MiscVarType    MeshType         mbdPWnMotions -    -   -  "" -
+typedef   ^    MiscVarType    MeshType         mbdVSPMotions -    -   -  "" -
+typedef   ^    MiscVarType    MeshType         mbdSHSMotions -    -   -  "" -
+typedef   ^    MiscVarType    MeshType         mbdPHSMotions -    -   -  "" -
+typedef   ^    MiscVarType    MeshType         mbdSPyMotions {:}  -   -  "" -
+typedef   ^    MiscVarType    MeshType         mbdPPyMotions {:}  -   -  "" -
+typedef   ^    MiscVarType    MeshType         mbdFusLoads -    -   -  "" -
+typedef   ^    MiscVarType    MeshType         mbdSWnLoads -    -   -  "" -
+typedef   ^    MiscVarType    MeshType         mbdPWnLoads -    -   -  "" -
+typedef   ^    MiscVarType    MeshType         mbdVSPLoads -    -   -  "" -
+typedef   ^    MiscVarType    MeshType         mbdSHSLoads -    -   -  "" -
+typedef   ^    MiscVarType    MeshType         mbdPHSLoads -    -   -  "" -
+typedef   ^    MiscVarType    MeshType         mbdSPyLoads {:}  -   -  "" -
+typedef   ^    MiscVarType    MeshType         mbdPPyLoads {:}  -   -  "" -
+typedef   ^    MiscVarType    MeshMapType      Fus_L2_L2    -   -   -  "" - 
+typedef   ^    MiscVarType    MeshMapType      SWn_L2_L2    -   -   -  "" - 
+typedef   ^    MiscVarType    MeshMapType      PWn_L2_L2    -   -   -  "" - 
+typedef   ^    MiscVarType    MeshMapType      VSP_L2_L2    -   -   -  "" - 
+typedef   ^    MiscVarType    MeshMapType      SHS_L2_L2    -   -   -  "" - 
+typedef   ^    MiscVarType    MeshMapType      PHS_L2_L2    -   -   -  "" - 
+typedef   ^    MiscVarType    MeshMapType      SPy_L2_L2   {:}  -   -  "" - 
+typedef   ^    MiscVarType    MeshMapType      PPy_L2_L2   {:}  -   -  "" - 
+typedef   ^    MiscVarType    MeshMapType      Fus_P_P    -   -   -  "" - 
+typedef   ^    MiscVarType    MeshMapType      SWn_P_P    -   -   -  "" - 
+typedef   ^    MiscVarType    MeshMapType      PWn_P_P    -   -   -  "" - 
+typedef   ^    MiscVarType    MeshMapType      VSP_P_P    -   -   -  "" - 
+typedef   ^    MiscVarType    MeshMapType      SHS_P_P    -   -   -  "" - 
+typedef   ^    MiscVarType    MeshMapType      PHS_P_P    -   -   -  "" - 
+typedef   ^    MiscVarType    MeshMapType      SPy_P_P   {:}  -   -  "" - 
+typedef   ^    MiscVarType    MeshMapType      PPy_P_P   {:}  -   -  "" - 
+
 #
 # ..... Parameters ................................................................................................................
 # Define parameters here:
@@ -56,4 +89,19 @@ typedef   ^    MiscVarType    MD_Data          MD            -    -   -  "MoorDy
 typedef   ^  ParameterType  IntKi            numFlaps    -  -  -  "Number of flaps per wing" -
 typedef   ^  ^              IntKi            numPylons   -  -  -  "Number of pylons per wing" -
 typedef   ^  ^              DbKi             dt          -  -  -  "Time interval for calculations" s
+typedef   ^  ^              IntKi            numFusNds   -  -  -  "Number of fuselage structural nodes" -
+typedef   ^  ^              IntKi            numSwnNds   -  -  -  "Number of starboard wing structural nodes" -
+typedef   ^  ^              IntKi            numPWnNds   -  -  -  "Number of port wing structural nodes" -
+typedef   ^  ^              IntKi            numVSPNds   -  -  -  "Number of vertical stabilizer structural nodes" -
+typedef   ^  ^              IntKi            numSHSNds   -  -  -  "Number of starboard horizontal stabilizer structural nodes" -
+typedef   ^  ^              IntKi            numPHSNds   -  -  -  "Number of port horizontal stabilizer structural nodes" -
+typedef   ^  ^              IntKi            numSPyNds  {:} -  -  "Number of starboard pylon structural nodes" -
+typedef   ^  ^              IntKi            numPPyNds  {:} -  -  "Number of port pylon structural nodes" -
+
+
+
+
+
+
+
 typedef	 ^	 ^	             CHARACTER(1024)	outFileRoot -	-	-	"Rootname of the KiteFAST output file(s)"	-

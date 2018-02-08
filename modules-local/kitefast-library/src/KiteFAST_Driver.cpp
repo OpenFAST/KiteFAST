@@ -15,8 +15,8 @@ int _tmain(int argc, _TCHAR* argv[])
 //    KFAST_INITPROC ProcInit;
 //    BOOL fFreeResult, fRunTimeLinkSuccess = FALSE;
     int i;
-    double dt = 0.1;
-    int numFlaps = 2;
+    double dt = 0.01;
+    int numFlaps = 3;
     int numPylons = 2;
     int numComp = 10;
     int *pNumCompNds = NULL;
@@ -30,13 +30,15 @@ int _tmain(int argc, _TCHAR* argv[])
     double *pRtrPts;
     int numRefPtElem;
     double *pRefPts;
+    int numNodePtElem;
+    double *pNodePts;
     int numDCMElem;
     double *pNodeDCMs;
     int errStat;
     char errMsg[INTERFACE_STRING_LENGTH];
 
     // Set input file names
-    strcpy(KAD_FileName, "Kite-m600.inp");
+    strcpy(KAD_FileName, "C:\\Dev\\makani\\nrel_kite_fast\\config\\kite_aerodyn\\kad_m600_001.inp");
     strcpy(IfW_FileName, "steady-wind.inp");
     strcpy(MD_FileName , "Kite-tethers.inp");
     strcpy(outFileRoot , "KiteTest");
@@ -129,22 +131,30 @@ int _tmain(int argc, _TCHAR* argv[])
 
     // nodal DCMs
     numDCMElem = 0;
+    numNodePtElem = 0;
     for (i = 0; i < numComp; i++) 
     {
-        numDCMElem = numDCMElem + 9 * pNumCompNds[i];
+        numDCMElem    = numDCMElem + 9 * pNumCompNds[i];
+        numNodePtElem = numNodePtElem + 3 * pNumCompNds[i];
     }
     pNodeDCMs = (double *)malloc(numDCMElem * sizeof(double));
+    pNodePts  = (double *)malloc(numNodePtElem * sizeof(double));
     for (i = 0; i < numDCMElem; i++)
     {
         pNodeDCMs[i] = 1.0;
     }
+    for (i = 0; i < numNodePtElem; i++)
+    {
+        pNodePts[i] = 1.0;
+    }
     KFAST_Init(&dt, &numFlaps, &numPylons, &numComp, pNumCompNds, KAD_FileName, IfW_FileName, MD_FileName, outFileRoot, &gravity,
-        pFusODCM, &numRtrPtsElem, pRtrPts, &numRefPtElem, pRefPts, &numDCMElem, pNodeDCMs, &errStat, errMsg);
+        pFusODCM, &numRtrPtsElem, pRtrPts, &numRefPtElem, pRefPts, &numNodePtElem, pNodePts, &numDCMElem, pNodeDCMs, &errStat, errMsg);
 
     free(pNumCompNds);
     free(pFusODCM);
     free(pRtrPts);
     free(pRefPts);
+    free(pNodePts);
     free(pNodeDCMs);
 
 

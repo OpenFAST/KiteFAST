@@ -6,7 +6,7 @@
 #define EXTERNAL_ROUTINE extern
 #endif
 EXTERNAL_ROUTINE void KFAST_Init(double *dt, int *numFlaps, int *numPylons, int *numComp, int *numCompNds, const char KAD_FileName[], const char IfW_FileName[], const char MD_FileName[],
-    const char *outFileRoot, double *gravity, double FusODCM_c[], int *numRtrPtsElem_c, double rtrPts_c[], int *numRefPtElem_c, double refPts_c[], int *numDCMElem_c, double nodeDCMs_c[], int *errStat, char errMsg[]);
+    const char *outFileRoot, double *gravity, double FusODCM_c[], int *numRtrPtsElem_c, double rtrPts_c[], int *numRefPtElem_c, double refPts_c[], int *numNodePtElem_c, double nodePts_c[], int *numDCMElem_c, double nodeDCMs_c[], int *errStat, char errMsg[]);
 EXTERNAL_ROUTINE void KFAST_AssRes();
 EXTERNAL_ROUTINE void KFAST_End();
 
