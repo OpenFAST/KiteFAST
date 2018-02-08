@@ -675,8 +675,8 @@ subroutine ActDsk_CalcOutput( u, p, m, y, errStat, errMsg )
     
    rtrArea = PI*p%R**2
    m%Cp = coefs(7)
-   m%Cq = coefs(4)/rtrArea
-   m%Ct = coefs(1)/rtrArea  
+   m%Cq = coefs(4)
+   m%Ct = -coefs(1)  ! TODO: verify the sign here
    
                
    
