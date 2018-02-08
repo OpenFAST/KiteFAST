@@ -55,6 +55,9 @@ program KiteFastController_Driver
    u%apparent_wind = 1.0
    u%tether_force = 1.0
    u%wind_g = 1.0
+   y%GenSPyRtr = reshape((/ 1, 2, 3, 4 /), shape(y%GenSPyRtr))
+   y%GenPPyRtr = reshape((/ 1, 2, 3, 4 /), shape(y%GenPPyRtr))
+
    call KFC_CalcOutput(t, u, p, y, errStat, errMsg )
       print *, "KiteFastController_Driver calling KFC_CalcOutput received ErrStat=", errStat, " ErrMsg=" , trim(errMsg)
       if ( errStat >= AbortErrLev ) call Cleanup()

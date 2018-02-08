@@ -210,26 +210,28 @@ module KiteFastController
       real(C_DOUBLE)                                :: Rudr_c(2)           
       real(C_DOUBLE)                                :: SElv_c(2)           
       real(C_DOUBLE)                                :: PElv_c(2)           
-      real(C_DOUBLE)                                :: GenSPyRtr_c(8)
-      real(C_DOUBLE)                                :: GenPPyRtr_c(8)
+      real(C_DOUBLE)                                :: GenSPyRtr_c(4)
+      real(C_DOUBLE)                                :: GenPPyRtr_c(4)
 
       errStat2 = ErrID_None
       errMsg2  = ''
       
          ! Cast and massage inputs to match DLL datatypes
-      dcm_g2b_c       = reshape(u%dcm_g2b,(/9/))      
-      pqr_c           = u%pqr          
-      acc_norm_c      = u%acc_norm     
-      Xg_c            = u%Xg              
-      Vg_c            = u%Vg   
-      Vb_c            = u%Vb   
-      Ag_c            = u%Ag   
-      Ab_c            = u%Ab   
-      rho_c           = u%rho  
+      dcm_g2b_c       = reshape(u%dcm_g2b,(/9/))
+      pqr_c           = u%pqr
+      acc_norm_c      = u%acc_norm
+      Xg_c            = u%Xg
+      Vg_c            = u%Vg
+      Vb_c            = u%Vb
+      Ag_c            = u%Ag
+      Ab_c            = u%Ab
+      rho_c           = u%rho
       apparent_wind_c = u%apparent_wind
-      tether_force_c  = u%tether_force 
-      wind_g_c        = u%wind_g       
-             
+      tether_force_c  = u%tether_force
+      wind_g_c        = u%wind_g
+      GenSPyRtr_c     = reshape(y%GenSPyRtr,(/4/))
+      GenPPyRtr_c     = reshape(y%GenPPyRtr,(/4/))
+
          ! Call the DLL (first associate the address from the procedure in the DLL with the subroutine):
       call C_F_PROCPOINTER( p%DLL_Trgt%ProcAddr(2), DLL_KFC_Step_Subroutine) 
       call DLL_KFC_Step_Subroutine ( dcm_g2b_c, pqr_c, acc_norm_c, Xg_c, Vg_c, Vb_c, Ag_c, Ab_c, rho_c, apparent_wind_c, tether_force_c, wind_g_c, SFlp_c, PFlp_c, Rudr_c, SElv_c, PElv_c, GenSPyRtr_c, GenPPyRtr_c, errStat, errMsg_c ) 
@@ -244,7 +246,6 @@ module KiteFastController
       y%GenSPyRtr = reshape(GenSPyRtr_c,(/2,2/))
       y%GenPPyRtr = reshape(GenPPyRtr_c,(/2,2/))
       
-
          ! TODO Error checking
     
    end subroutine KFC_CalcOutput
