@@ -42,7 +42,7 @@ private
    contains
 
 !> Routine to compute the rotor loads using a Actuator Disk Method on a per wing basis.
-subroutine RotorDisk_CalcOutput(c_offset, numPylons, V_PyRtr, PyRtrMotions, omegas, pitches, ActDsk, errStat, errMsg)
+subroutine RotorDisk_CalcOutput(c_offset, numPylons, V_PyRtr, PyRtrMotions, omegas, pitches, ActDsk, PyRtrLoads, errStat, errMsg)
    integer(IntKi),          intent(in   ) :: c_offset          !< Offset into the 1D ActDsk array, either 0 (starboard wing) or numPylons (port wing)
    integer(IntKi),          intent(in   ) :: numPylons         !< Number of pylons
    real(ReKi),              intent(in   ) :: V_PyRtr(:,:,:)    !< Undisturbed wind velocities at the rotors (1st index: u,v,w, 2nd index: 1=top, 2=bottom, 3rd index: 1,NumPylons)
@@ -50,6 +50,7 @@ subroutine RotorDisk_CalcOutput(c_offset, numPylons, V_PyRtr, PyRtrMotions, omeg
    real(ReKi),              intent(in   ) :: omegas(:,:)       !< Rotor speeds in rad/s for the wing's pylons (1st index: 1=top, 2=bottom, 2nd index: 1,NumPylons)
    real(ReKi),              intent(in   ) :: pitches(:,:)      !< Rotor pitches in rad for the wing's pylons (1st index: 1=top, 2=bottom, 2nd index: 1,NumPylons)
    type(KAD_ActDsk_Data),   intent(inout) :: ActDsk(:)         !< Framework data associated with all the Actuator Disk models, starboard wing first, followed by port wing
+   type(MeshType),          intent(inout) :: PyRtrLoads(:)     !< Rotor loads meshes
    integer(IntKi),          intent(  out) :: errStat           !< Error status of the operation
    character(*),            intent(  out) :: errMsg            !< Error message if errStat /= ErrID_None
    
@@ -63,7 +64,9 @@ subroutine RotorDisk_CalcOutput(c_offset, numPylons, V_PyRtr, PyRtrMotions, omeg
    real(ReKi)                             :: y_hat_disk(3)     ! Unit vector in the plane of the rotor disk
    real(ReKi)                             :: z_hat_disk(3)     ! Unit vector in the plane of the rotor disk
    real(ReKi)                             :: tmp(3)            ! temporary vector
+   real(ReKi)                             :: dcm(3,3)          ! direct cosine matrix
    real(ReKi)                             :: tmp_sz, tmp_sz_y  ! temporary quantities for calculations
+   real(ReKi)                             :: forces(3), moments(3)
    character(*), parameter                :: routineName = 'RotorDisk_CalcOutput'
 
    errStat   = ErrID_None           ! no error has occurred
@@ -90,10 +93,10 @@ subroutine RotorDisk_CalcOutput(c_offset, numPylons, V_PyRtr, PyRtrMotions, omeg
          tmp_sz = TwoNorm(tmp)
          if ( EqualRealNos( tmp_sz, 0.0_ReKi ) ) then
             y_hat_disk = PyRtrMotions(index)%Orientation(2,:,1)
-            !z_hat_disk = PyRtrMotions(index)%Orientation(3,:,1)
+            z_hat_disk = PyRtrMotions(index)%Orientation(3,:,1)
          else
             y_hat_disk = tmp / tmp_sz
-            !z_hat_disk = cross_product( Vrel, x_hat_disk ) / tmp_sz
+            z_hat_disk = cross_product( Vrel, x_hat_disk ) / tmp_sz
          end if
          
             ! "Angle between the negative vector normal to the rotor plane and the wind vector (e.g., the yaw angle in the case of no tilt)" rad 
@@ -117,6 +120,21 @@ subroutine RotorDisk_CalcOutput(c_offset, numPylons, V_PyRtr, PyRtrMotions, omeg
             ! Compute the outputs from the Actuator disk model for a particular rotor
          call ActDsk_CalcOutput(ActDsk(c)%u, ActDsk(c)%p, ActDsk(c)%m, ActDsk(c)%y, errStat2, errMsg2)
             call SetErrStat( errStat2, errMsg2, errStat, errMsg, RoutineName )
+            
+         dcm(1,:) = x_hat_disk
+         dcm(2,:) = y_hat_disk
+         dcm(3,:) = z_hat_disk
+            ! dcm is transform from global to local, but we need local to global so transpose
+         dcm = transpose(dcm)
+         forces  = (/ActDsk(c)%y%Fx,ActDsk(c)%y%Fy,ActDsk(c)%y%Fz/)
+         moments = (/ActDsk(c)%y%Mx,ActDsk(c)%y%My,ActDsk(c)%y%Mz/)
+         
+            ! Transform loads from disk to global
+         forces = matmul(dcm, forces)
+         moments = matmul (dcm, moments)
+         PyRtrLoads(index)%Force(:,1)  = forces
+         PyRtrLoads(index)%Moment(:,1) = moments
+         
       end do
    end do
 
@@ -494,6 +512,7 @@ subroutine CreatePtLoadsMesh(origin, numNodes, positions, alignDCM, twists, axis
                      , force    = .true.           &
                      , moment   = .true.           &
                      , orientation = .true.        &
+                     , translationdisp = .true.        &
                      )
          call SetErrStat( errStat2, errMsg2, errStat, errMsg, RoutineName )
 
@@ -672,6 +691,39 @@ subroutine CreateMeshMappings( u, y, p, m, errStat, errMsg )
 
 end subroutine CreateMeshMappings
 
+subroutine FindVSMElemBasedOnMotionNode( motionNd, motionMesh, VSMoffset, VSMElem )
+
+   integer(IntKi),            intent(in   ) :: motionNd
+   type(MeshType),           intent(in   ) :: motionMesh
+   integer(IntKi),            intent(in   ) :: VSMoffset
+   integer(IntKi),                intent(  out) :: VSMElem
+   
+   
+   ! Search element list to find the requested motion node
+
+   integer(IntKi) :: i, n1, n2
+   
+   i = 1 !! element index
+   VSMElem = 0
+   
+   do while ( i <= motionMesh%NElemList ) 
+      
+      n1 = motionMesh%ELEMLIST(i)%ELEMENT%ELEMNODES(1)
+      n2 = motionMesh%ELEMLIST(i)%ELEMENT%ELEMNODES(2) 
+      
+      if ( n1 == motionNd ) then
+         ! left node in 1st element, no averaging
+         VSMElem =VSMoffset+i
+         exit
+      end if
+      
+      i = i + 1
+      
+   end do
+   
+   
+end subroutine FindVSMElemBasedOnMotionNode
+
 subroutine MapVSMontoMotionNode( motionNd, motionMesh, VSMoffset, VSMdata, val )
 
    integer(IntKi),            intent(in   ) :: motionNd
@@ -741,27 +793,27 @@ subroutine Map1D_VSMontoMotionNode( motionNd, motionMesh, VSMoffset, VSMdata, va
       n1 = motionMesh%ELEMLIST(i)%ELEMENT%ELEMNODES(1)
       n2 = motionMesh%ELEMLIST(i)%ELEMENT%ELEMNODES(2) 
       
-      if (n1 == motionNd .and. i == 1) then
+      if (n1 == motionNd ) then !.and. i == 1) then
          ! left node in 1st element, no averaging
          val = VSMdata(VSMoffset+i)
          exit
-      elseif (n2 == motionNd) then
-         if ( i == motionMesh%NElemList  ) then
-            ! No more elements, don't average
-            val = VSMdata(VSMoffset+i)
-            exit
-         else
-            ! may need to average, so look at next element
-            n1 = motionMesh%ELEMLIST(i+1)%ELEMENT%ELEMNODES(1)
-            val = VSMdata(VSMoffset+i)
-            if (n1 == motionNd) then
-               ! yep, average
-               val = val + VSMdata(VSMoffset+i+1)
-            else
-               ! nope, no average
-            end if
-            exit
-         end if
+      !elseif (n2 == motionNd) then
+      !   if ( i == motionMesh%NElemList  ) then
+      !      ! No more elements, don't average
+      !      val = VSMdata(VSMoffset+i)
+      !      exit
+      !   else
+      !      ! may need to average, so look at next element
+      !      n1 = motionMesh%ELEMLIST(i+1)%ELEMENT%ELEMNODES(1)
+      !      val = VSMdata(VSMoffset+i)
+      !      if (n1 == motionNd) then
+      !         ! yep, average
+      !         val = (val + VSMdata(VSMoffset+i+1)) / 2.0_ReKi
+      !      else
+      !         ! nope, no average
+      !      end if
+      !      exit
+      !   end if
       end if
       
       i = i + 1
@@ -1237,12 +1289,15 @@ end subroutine Init_u
 !
 !end subroutine Init_FusAFIparams
 
-subroutine ComputeAeroOnMotionNodes(i, outNds, motionMesh, VSMoffset, y_VSM, u_V, chords, elemLens,airDens, kinVisc, speedOfSound, Vinf_v, Vstruct_v, Vind_v, Vrel, DynP, Re, XM, AoA, Cl, Cd, Cm, Fl, Fd, Mm, Fn, Ft )
+subroutine ComputeAeroOnMotionNodes(i, outNds, motionMesh, VSMoffset, u_VSM, y_VSM, u_V, chords, elemLens,airDens, kinVisc, &
+                                    speedOfSound, Vinf_v, Vstruct_v, Vind_v, Vrel, DynP, Re, XM, AoA, Cl, Cd, Cm, Fl, Fd, &
+                                    Mm, Cn, Ct, Fn, Ft, errStat, errMsg )
             
    integer(IntKi)      , intent(in   ) :: i 
    integer(IntKi)      , intent(in   ) :: outNds(:)
    type(MeshType)      , intent(in   ) :: motionMesh
    integer(IntKi)      , intent(in   ) :: VSMoffset
+   type(VSM_InputType) , intent(in   ) :: u_VSM
    type(VSM_OutputType), intent(in   ) :: y_VSM
    real(ReKi)          , intent(in   ) :: u_V(:,:)
    real(ReKi)          , intent(in   ) :: chords(:)
@@ -1264,71 +1319,104 @@ subroutine ComputeAeroOnMotionNodes(i, outNds, motionMesh, VSMoffset, y_VSM, u_V
    real(ReKi)          , intent(  out) :: Fl
    real(ReKi)          , intent(  out) :: Fd
    real(ReKi)          , intent(  out) :: Mm
+   real(ReKi)          , intent(  out) :: Cn
+   real(ReKi)          , intent(  out) :: Ct
    real(ReKi)          , intent(  out) :: Fn
    real(ReKi)          , intent(  out) :: Ft
+   integer(IntKi)      , intent(  out) :: errStat     !< Error status of the operation
+   character(*)        , intent(  out) :: errMsg      !< Error message if errStat /= ErrID_None
 
+   ! NOTE: All of the Motion node output quantities are computed via the underlying VSM elements
+   !       In order to avoid inconsistencies in mapping these element-level quantities to related
+   !       motion nodes [user-inputted nodes], we are simply finding the single VSM element
+   !       which contains the motion node and applying quantities of the VSM element directly to
+   !       the motion node.  This is obviously a compromise.  Where physically possible the motion node will
+   !       be the inboard node of a chosen VSM element (not the outboard node).  We cannot therefore compute
+   !       Aero quantities for the most outboard motion node on a span.  In the case where the geometry is
+   !       not defined inboard to outboard, the node closer to the start of the user-defined geometry node-list
+   !       will be selected, and hence the last node in the list cannot be selected for outputs
 
    ! Local Variables
    real(ReKi)       :: DCM(3,3)
-   real(ReKi)       :: chord, factor, elemLen
+   real(ReKi)       :: chord, factor, elemLen, F2d, Vx, Vy
    real(ReKi)       :: Vrel_v(3), Vrel_hat(3), forces(3), moments(3), d_v(3), d_hat(3), l_hat(3)
+   integer(IntKi)   :: VSMElemIndx, compElemIndx, n1, n2
+   character(*), parameter   :: routineName = 'ComputeAeroOnMotionNodes'
    
+         ! Initialize variables for this routine
+   errStat  = ErrID_None
+   errMsg   = ""
    
-      ! Gobal coord inflow
-   Vinf_v    = u_V(:, outNds(i))
-         
+   call FindVSMElemBasedOnMotionNode( outNds(i), motionMesh, VSMoffset, VSMElemIndx)
+   
+   if ( VSMElemIndx == 0 ) then
+      errMsg  = 'node '//trim(num2lstr(outNds(i)))//'cannot be related to a VSM element.  You cannot output data for the last node in a component list.'
+      errStat = ErrID_Fatal
+      return
+   end if
+   
+   compElemIndx = VSMElemIndx - VSMoffset
+   
+     
       ! Orientation is transform from global to local
-   DCM     = motionMesh%Orientation(:,:,outNds(i))
+      ! Find DCM for VSM element closest to the requested output node
+   DCM(1,:) = u_VSM%x_hat(:,VSMElemIndx)
+   DCM(2,:) = u_VSM%y_hat(:,VSMElemIndx)
+   DCM(3,:) = u_VSM%z_hat(:,VSMElemIndx)
   
-      ! Local coord inflow
-   Vinf_v    = matmul( DCM,Vinf_v )
-         
-   Vstruct_v = matmul( DCM, motionMesh%TranslationVel(:,outNds(i)) )
-         
-         ! Obtain Induced velocity for the Motion node in global coordinates
-   call MapVSMontoMotionNode( outNds(i), motionMesh, VSMoffset, y_VSM%Vind, Vind_v )
-   Vind_v   = matmul( DCM,Vind_v ) ! place in local coordinates
-   Vrel_v   = Vinf_v - Vstruct_v + Vind_v
-   Vrel     = TwoNorm(Vrel_v)
-   Vrel_hat = Vrel_v / Vrel
+       
+      ! Average the structural velocities of the nodes making up this VSM element in global coords
+   n1 = motionMesh%ELEMLIST(compElemIndx)%ELEMENT%ELEMNODES(1)
+   n2 = motionMesh%ELEMLIST(compElemIndx)%ELEMENT%ELEMNODES(2)     
+   Vstruct_v = (motionMesh%TranslationVel(:,n1) + motionMesh%TranslationVel(:,n2)) / 2.0_ReKi
+
+      ! Gobal coord inflow  minus the average structural motion is the VSM element inflow, so we need to add back the structural motions 
+   Vinf_v = u_VSM%U_Inf_v(:,VSMElemIndx) + Vstruct_v
+
+      ! Obtain Induced velocity for the Motion node in global coordinates
+   Vind_v = y_VSM%Vind(:,VSMElemIndx)
+
+      ! Relative velocity in global coordinates
+   Vrel_v   = u_VSM%U_Inf_v(:,VSMElemIndx) + Vind_v
+   
+         ! Local coord ambient inflow, structural motion, relative and induced velocity
+   Vinf_v    = matmul( DCM,Vinf_v    )
+   Vstruct_v = matmul( DCM,Vstruct_v )
+   Vind_v    = matmul( DCM,Vind_v    ) 
+   Vrel_v    = matmul( DCM,Vrel_v    ) 
+   Vx        = Vrel_v(1)
+   Vy        = Vrel_v(2)
+   Vrel     = sqrt(Vx**2 + Vy**2)
+   !Vrel_hat = Vrel_v / Vrel
    chord    = chords(outNds(i))
    elemLen  = elemLens(outNds(i))
-   Re       = airDens * Vrel * chord / kinVisc
+   Re       = Vrel * chord / (1e6*kinVisc)  ! in millions
    XM       = Vrel / speedOfSound
    DynP     = 0.5 * airDens * Vrel**2
  
       ! Now compute the equivalent loads at the motion node
    !call MapVSMloadsOntoMotionNode()
-   call MapVSMontoMotionNode( outNds(i), motionMesh, VSMoffset, y_VSM%Loads(1:3,:), forces )
-   call MapVSMontoMotionNode( outNds(i), motionMesh, VSMoffset, y_VSM%Loads(4:6,:), moments )
+   !forces  = y_VSM%Loads(1:3,VSMElemIndx)
+   !moments = y_VSM%Loads(4:6,VSMElemIndx)
+   !
+   !   ! Now transform these loads into the motion node (airfoil) coordinate system
+   !forces  = matmul( DCM, forces  ) / elemLen
+   !moments = matmul( DCM, moments ) / elemLen
    
-      ! Now transform these loads into the motion node (airfoil) coordinate system
-   forces  = matmul( DCM, forces  )
-   moments = matmul( DCM, moments )
+   Cl  = y_VSM%Cl(VSMElemIndx)
+   Cd  = y_VSM%Cd(VSMElemIndx)
+   Cm  = y_VSM%Cm(VSMElemIndx)
+   AoA = y_VSM%AoA(VSMElemIndx)
+   Cn  = Cl*cos(AoA)+Cd*sin(AoA)
+   Ct  = Cl*sin(AoA)-Cd*cos(AoA)
    
-      ! Compute Fd, Fl for the motion node using these loads
-   d_v = Vrel_v
-   d_v(3) = 0.0_ReKi
-   d_hat = d_v / TwoNorm(d_v)  ! drag unit vector
-   l_hat = (/d_hat(2), -d_hat(1), 0.0_ReKi/) ! lift unit vector (-90 deg rotation of d_hat about airfoil z-axis)
+      ! Forces per unit length
+   Ft = DynP*Ct
+   Fn = DynP*Cn
+   Fl = DynP*Cl
+   Fd = DynP*Cd
+   Mm = DynP*Cm*chord
    
-      ! Drag and Lift forces
-   Fd = dot_product(forces,d_hat)
-   Fl = dot_product(forces,l_hat)
-   Mm = moments(3)
-
-      ! Compute Cd, Cl, and Cm from these loads 
-   factor = 1.0_ReKi / ( 0.5_ReKi*chord*elemLen*Vrel**2 )
-   Cd = Fd*factor
-   Cl = Fl*factor
-   Cm = Mm*factor/chord
-   
-   
-   call Map1D_VSMontoMotionNode( outNds(i), motionMesh, VSMoffset, y_VSM%AoA, AoA )
-  
-      ! Compute Ft (along airfoil y-axis) , Fn (along airfoil x-axis)
-   Ft = forces(1)
-   Fn = forces(2)
          
 end subroutine ComputeAeroOnMotionNodes
 
@@ -2042,7 +2130,301 @@ SUBROUTINE KAD_CloseOutput ( p, ErrStat, ErrMsg )
 
 END SUBROUTINE KAD_CloseOutput
 !====================================================================================================   
+SUBROUTINE Transfer_Motions_Line2_to_Point( Src, Dest, MeshMap, ErrStat, ErrMsg )
 
+   TYPE(MeshType),                 INTENT(IN   )  :: Src       !< The source (Line2) mesh with motion fields allocated
+   TYPE(MeshType),                 INTENT(INOUT)  :: Dest      !< The destination mesh
+
+   TYPE(MeshMapType),              INTENT(INOUT)  :: MeshMap   !< The mapping data
+
+   INTEGER(IntKi),                 INTENT(  OUT)  :: ErrStat   !< Error status of the operation
+   CHARACTER(*),                   INTENT(  OUT)  :: ErrMsg    !< Error message if ErrStat /= ErrID_None
+
+      ! local variables
+   INTEGER(IntKi)            :: i , j                          ! counter over the nodes
+   INTEGER(IntKi)            :: k                              ! counter components
+   INTEGER(IntKi)            :: n, n1, n2                      ! temporary space for node numbers
+   REAL(R8Ki)                :: FieldValueN1(3)                ! Temporary variable to store field values on element nodes
+   REAL(R8Ki)                :: FieldValueN2(3)                ! Temporary variable to store field values on element nodes
+   REAL(ReKi)                :: TmpVec(3)
+   REAL(R8Ki)                :: RotationMatrix(3,3)
+
+   REAL(DbKi)                :: FieldValue(3,2)                ! Temporary variable to store values for DCM interpolation
+   REAL(DbKi)                :: RotationMatrixD(3,3)
+   REAL(DbKi)                :: tensor_interp(3)
+   
+
+   ErrStat = ErrID_None
+   ErrMsg  = ""
+
+  !> Define \f$ \phi_1 = 1-\bar{l}^S \f$  and 
+  !!        \f$ \phi_2 =   \bar{l}^S \f$.
+
+!bjj: FieldValueN1 and FieldValueN2 should really be one matrix of DIM (3,2) now that we've modified some of the other data structures....
+             
+      ! ---------------------------- Translation ------------------------------------------------
+      !> Translational Displacement: \f$\vec{u}^D = \sum\limits_{i=1}^{2}\left( 
+      !!              \vec{u}^S_{eSn_i} + \left[\left[\theta^S_{eSn_i}\right]^T \theta^{SR}_{eSn_i} - I\right]\left\{\vec{p}^{ODR}-\vec{p}^{OSR}_{eSn_i}\right\}
+      !!              \right) \phi_i\f$
+
+      ! u_Dest1 = u_Src + [Orientation_Src^T * RefOrientation_Src - I] * [p_Dest - p_Src] at Source Node n1
+      ! u_Dest2 = u_Src + [Orientation_Src^T * RefOrientation_Src - I] * [p_Dest - p_Src] at Source Node n2
+      ! u_Dest = (1.-elem_position)*u_Dest1 + elem_position*u_Dest2
+   if ( Src%FieldMask(MASKID_TranslationDisp) .AND. Dest%FieldMask(MASKID_TranslationDisp) ) then
+      do i=1, Dest%Nnodes
+         !if ( MeshMap%MapMotions(i)%OtherMesh_Element < 1 )  CYCLE
+
+            ! add the translation displacement portion part
+         do j=1,NumNodes(ELEMENT_LINE2) ! number of nodes per line2 element
+            n = Src%ElemTable(ELEMENT_LINE2)%Elements(MeshMap%MapMotions(i)%OtherMesh_Element)%ElemNodes(j)
+         
+            FieldValue(:,j) = Src%TranslationDisp(:,n)
+         end do
+            
+
+            ! if Src mesh has orientation, superpose Dest displacement with translation due to rotation and couple arm
+         if ( Src%FieldMask(MASKID_Orientation) ) then
+
+            do j=1,NumNodes(ELEMENT_LINE2) ! number of nodes per line2 element
+               n = Src%ElemTable(ELEMENT_LINE2)%Elements(MeshMap%MapMotions(i)%OtherMesh_Element)%ElemNodes(j)
+         
+                  !Calculate RotationMatrix as O_S^T*O_SR
+               RotationMatrix = TRANSPOSE( Src%Orientation(:,:,n ) )
+               RotationMatrix = MATMUL( RotationMatrix, Src%RefOrientation(:,:,n) )
+
+                  ! subtract I
+               do k=1,3
+                  RotationMatrix(k,k)= RotationMatrix(k,k) - 1.0_ReKi
+               end do
+               
+               FieldValue(:,j) = FieldValue(:,j) + MATMUL(RotationMatrix,(Dest%Position(:,i)-Src%Position(:,n)))
+                              
+            end do
+                        
+         end if
+
+            ! now form a weighted average of the two points:
+         Dest%TranslationDisp(:,i) = MeshMap%MapMotions(i)%shape_fn(1)*FieldValue(:,1)  &
+                                   + MeshMap%MapMotions(i)%shape_fn(2)*FieldValue(:,2)
+
+      end do
+
+   end if
+
+      ! ---------------------------- ORIENTATION/Direction Cosine Matrix   ----------------------
+      !> Orientation: \f$\theta^D = \Lambda\left( \sum\limits_{i=1}^{2} 
+      !!              \log\left( \theta^{DR}\left[\theta^{SR}_{eSn_i}\right]^T\theta^S_{eSn_i} \right)
+      !!              \phi_i \right)\f$
+      !! where \f$\log()\f$ is nwtc_num::dcm_logmap and \f$\Lambda()\f$ is nwtc_num::dcm_exp
+   
+   
+   
+      ! transfer direction cosine matrix, aka orientation
+
+   if ( Src%FieldMask(MASKID_Orientation) .AND. Dest%FieldMask(MASKID_Orientation) ) then
+
+      do i=1, Dest%Nnodes
+         !if ( MeshMap%MapMotions(i)%OtherMesh_Element < 1 )  CYCLE
+                  
+         n1 = Src%ElemTable(ELEMENT_LINE2)%Elements(MeshMap%MapMotions(i)%OtherMesh_Element)%ElemNodes(1)
+         n2 = Src%ElemTable(ELEMENT_LINE2)%Elements(MeshMap%MapMotions(i)%OtherMesh_Element)%ElemNodes(2)
+
+            ! bjj: added this IF statement because of numerical issues when the angle of rotation is pi, 
+            !      (where DCM_exp( DCM_logmap (x) ) isn't quite x
+         if ( EqualRealNos( MeshMap%MapMotions(i)%shape_fn(1), 1.0_ReKi ) ) then
+            
+            RotationMatrixD = MATMUL( TRANSPOSE( Src%RefOrientation(:,:,n1) ), Src%Orientation(:,:,n1) )
+            RotationMatrixD = MATMUL( Dest%RefOrientation(:,:,i), RotationMatrixD )
+      
+         elseif ( EqualRealNos( MeshMap%MapMotions(i)%shape_fn(2), 1.0_ReKi ) ) then
+            
+            RotationMatrixD = MATMUL( TRANSPOSE( Src%RefOrientation(:,:,n2) ), Src%Orientation(:,:,n2) )
+            RotationMatrixD = MATMUL( Dest%RefOrientation(:,:,i), RotationMatrixD )
+      
+         else
+
+               ! calculate Rotation matrix for FieldValueN1 and convert to tensor:
+            RotationMatrixD = MATMUL( TRANSPOSE( Src%RefOrientation(:,:,n1) ), Src%Orientation(:,:,n1) )
+            RotationMatrixD = MATMUL( Dest%RefOrientation(:,:,i), RotationMatrixD )
+
+            CALL DCM_logmap( RotationMatrixD, FieldValue(:,1), ErrStat, ErrMsg )
+            IF (ErrStat >= AbortErrLev) RETURN
+
+               ! calculate Rotation matrix for FieldValueN2 and convert to tensor:
+            RotationMatrixD = MATMUL( TRANSPOSE( Src%RefOrientation(:,:,n2) ), Src%Orientation(:,:,n2) )
+            RotationMatrixD = MATMUL( Dest%RefOrientation(:,:,i), RotationMatrixD )
+         
+            CALL DCM_logmap( RotationMatrixD, FieldValue(:,2), ErrStat, ErrMsg )                  
+            IF (ErrStat >= AbortErrLev) RETURN
+         
+            CALL DCM_SetLogMapForInterp( FieldValue )  ! make sure we don't cross a 2pi boundary
+         
+         
+               ! interpolate tensors: 
+            tensor_interp =   MeshMap%MapMotions(i)%shape_fn(1)*FieldValue(:,1)  &
+                            + MeshMap%MapMotions(i)%shape_fn(2)*FieldValue(:,2)    
+                  
+               ! convert back to DCM:
+            RotationMatrixD = DCM_exp( tensor_interp )
+                        
+         end if
+         
+         Dest%Orientation(:,:,i) = REAL( RotationMatrixD, R8Ki )
+             
+      end do
+
+   endif
+
+      ! ---------------------------- Calculated total displaced positions  ---------------------
+      ! these values are used in both the translational velocity and translational acceleration
+      ! calculations. The calculations rely on the TranslationDisp fields, which are calculated
+      ! earlier in this routine.
+   IF ( Src%FieldMask(MASKID_TranslationVel) .OR. Src%FieldMask(MASKID_TranslationAcc) ) THEN
+      DO i = 1,Dest%Nnodes
+         !if ( MeshMap%MapMotions(i)%OtherMesh_Element < 1 )  CYCLE
+      
+         DO j=1,NumNodes(ELEMENT_LINE2) ! number of nodes per line2 element
+            n = Src%ElemTable(ELEMENT_LINE2)%Elements(MeshMap%MapMotions(i)%OtherMesh_Element)%ElemNodes(j)
+         
+            MeshMap%DisplacedPosition(:,i,j) =    Src%Position(:,n) +  Src%TranslationDisp(:,n)  &
+                                               - Dest%Position(:,i) - Dest%TranslationDisp(:,i)  
+         end do
+      
+      END DO   
+   END IF
+   
+      ! ---------------------------- TranslationVel  --------------------------------------------
+      !> Translational Velocity: \f$\vec{v}^D = \sum\limits_{i=1}^{2}\left( 
+      !!              \vec{v}^S_{eSn_i} 
+      !!              + \left\{ \left\{ \vec{p}^{OSR}_{eSn_i} + \vec{u}^S_{eSn_i} \right\} - \left\{ \vec{p}^{ODR} + \vec{u}^D \right\} \right\} \times \vec{\omega}^S_{eSn_i}
+      !!              \right) \phi_i\f$
+   
+   
+   if ( Src%FieldMask(MASKID_TranslationVel) .AND. Dest%FieldMask(MASKID_TranslationVel) ) then
+      do i=1, Dest%Nnodes
+         !if ( MeshMap%MapMotions(i)%OtherMesh_Element < 1 )  CYCLE
+
+         n1 = Src%ElemTable(ELEMENT_LINE2)%Elements(MeshMap%MapMotions(i)%OtherMesh_Element)%ElemNodes(1)
+         n2 = Src%ElemTable(ELEMENT_LINE2)%Elements(MeshMap%MapMotions(i)%OtherMesh_Element)%ElemNodes(2)
+
+         FieldValueN1 = Src%TranslationVel(:,n1)
+         FieldValueN2 = Src%TranslationVel(:,n2)
+
+         if ( Src%FieldMask(MASKID_RotationVel) ) then
+            FieldValueN1 = FieldValueN1 + cross_product ( MeshMap%DisplacedPosition(:,i,1), Src%RotationVel(:,n1) )
+            FieldValueN2 = FieldValueN2 + cross_product ( MeshMap%DisplacedPosition(:,i,2), Src%RotationVel(:,n2) )
+         endif
+
+         Dest%TranslationVel(:,i) = MeshMap%MapMotions(i)%shape_fn(1)*FieldValueN1  &
+                                  + MeshMap%MapMotions(i)%shape_fn(2)*FieldValueN2
+
+
+      end do
+
+   endif
+
+      ! ---------------------------- RotationVel  -----------------------------------------------
+      !> Rotational Velocity: \f$\vec{\omega}^D = \sum\limits_{i=1}^{2} 
+      !!              \vec{\omega}^S_{eSn_i} 
+      !!              \phi_i\f$
+
+   
+   if ( Src%FieldMask(MASKID_RotationVel) .AND. Dest%FieldMask(MASKID_RotationVel) ) then
+      do i=1, Dest%Nnodes
+         !if ( MeshMap%MapMotions(i)%OtherMesh_Element < 1 )  CYCLE
+
+         n1 = Src%ElemTable(ELEMENT_LINE2)%Elements(MeshMap%MapMotions(i)%OtherMesh_Element)%ElemNodes(1)
+         n2 = Src%ElemTable(ELEMENT_LINE2)%Elements(MeshMap%MapMotions(i)%OtherMesh_Element)%ElemNodes(2)
+
+         Dest%RotationVel(:,i) = MeshMap%MapMotions(i)%shape_fn(1)*Src%RotationVel(:,n1)  &
+                               + MeshMap%MapMotions(i)%shape_fn(2)*Src%RotationVel(:,n2)
+      end do
+
+   end if
+
+      ! ---------------------------- TranslationAcc -----------------------------------------------
+      !> Translational Acceleration: \f$\vec{a}^D = \sum\limits_{i=1}^{2}\left( 
+      !!              \vec{a}^S_{eSn_i} 
+      !!            + \left\{ \left\{ \vec{p}^{OSR}_{eSn_i} + \vec{u}^S_{eSn_i} \right\} - \left\{ \vec{p}^{ODR} + \vec{u}^D \right\} \right\} \times \vec{\alpha}^S_{eSn_i}
+      !!            + \vec{\omega}^S_{eSn_i} \times \left\{
+      !!              \left\{ \left\{ \vec{p}^{OSR}_{eSn_i} + \vec{u}^S_{eSn_i} \right\} - \left\{ \vec{p}^{ODR} + \vec{u}^D \right\} \right\} \times \vec{\omega}^S_{eSn_i}
+      !!              \right\}
+      !!              \right) \phi_i\f$
+
+   
+   
+   
+   if ( Src%FieldMask(MASKID_TranslationAcc) .AND. Dest%FieldMask(MASKID_TranslationAcc) ) then
+      do i=1, Dest%Nnodes
+         !if ( MeshMap%MapMotions(i)%OtherMesh_Element < 1 )  CYCLE
+
+         n1 = Src%ElemTable(ELEMENT_LINE2)%Elements(MeshMap%MapMotions(i)%OtherMesh_Element)%ElemNodes(1)
+         n2 = Src%ElemTable(ELEMENT_LINE2)%Elements(MeshMap%MapMotions(i)%OtherMesh_Element)%ElemNodes(2)
+
+         FieldValueN1 = Src%TranslationAcc(:,n1)
+         FieldValueN2 = Src%TranslationAcc(:,n2)
+
+
+         if ( Src%FieldMask(MASKID_RotationAcc) )  then
+            FieldValueN1 = FieldValueN1 + cross_product( MeshMap%DisplacedPosition(:,i,1), Src%RotationAcc(:,n1) )
+            FieldValueN2 = FieldValueN2 + cross_product( MeshMap%DisplacedPosition(:,i,2), Src%RotationAcc(:,n2) )
+         endif
+
+         if ( Src%FieldMask(MASKID_RotationVel) )  then
+            TmpVec = cross_product( MeshMap%DisplacedPosition(:,i,1), Src%RotationVel(:,n1) )
+            FieldValueN1 =  FieldValueN1 + cross_product( Src%RotationVel(:,n1), TmpVec )
+            
+            TmpVec = cross_product( MeshMap%DisplacedPosition(:,i,2), Src%RotationVel(:,n2) )
+            FieldValueN2 =  FieldValueN2 + cross_product( Src%RotationVel(:,n2), TmpVec )
+                                           
+         endif
+
+         Dest%TranslationAcc(:,i) = MeshMap%MapMotions(i)%shape_fn(1)*FieldValueN1  &
+                                  + MeshMap%MapMotions(i)%shape_fn(2)*FieldValueN2
+
+      end do
+   endif
+
+
+      ! ---------------------------- RotationAcc  -----------------------------------------------
+      !> Rotational Acceleration: \f$\vec{\alpha}^D = \sum\limits_{i=1}^{2} 
+      !!              \vec{\alpha}^S_{eSn_i} 
+      !!              \phi_i\f$
+
+   if (Src%FieldMask(MASKID_RotationAcc) .AND. Dest%FieldMask(MASKID_RotationAcc) ) then
+      do i=1, Dest%Nnodes
+         !if ( MeshMap%MapMotions(i)%OtherMesh_Element < 1 )  CYCLE
+
+         n1 = Src%ElemTable(ELEMENT_LINE2)%Elements(MeshMap%MapMotions(i)%OtherMesh_Element)%ElemNodes(1)
+         n2 = Src%ElemTable(ELEMENT_LINE2)%Elements(MeshMap%MapMotions(i)%OtherMesh_Element)%ElemNodes(2)
+
+         Dest%RotationAcc(:,i) = MeshMap%MapMotions(i)%shape_fn(1)*Src%RotationAcc(:,n1)  &
+                               + MeshMap%MapMotions(i)%shape_fn(2)*Src%RotationAcc(:,n2)
+
+
+      end do
+   end if
+
+      ! ---------------------------- Scalars  -----------------------------------------------
+      !> Scalar: \f$S^D = \sum\limits_{i=1}^{2} 
+      !!              S^S_{eSn_i} 
+      !!              \phi_i\f$
+
+   if (Src%FieldMask(MASKID_SCALAR) .AND. Dest%FieldMask(MASKID_SCALAR) ) then
+      do i=1, Dest%Nnodes
+         !if ( MeshMap%MapMotions(i)%OtherMesh_Element < 1 )  CYCLE
+
+         n1 = Src%ElemTable(ELEMENT_LINE2)%Elements(MeshMap%MapMotions(i)%OtherMesh_Element)%ElemNodes(1)
+         n2 = Src%ElemTable(ELEMENT_LINE2)%Elements(MeshMap%MapMotions(i)%OtherMesh_Element)%ElemNodes(2)
+
+         Dest%Scalars(:,i) = MeshMap%MapMotions(i)%shape_fn(1)*Src%Scalars(:,n1)  &
+                           + MeshMap%MapMotions(i)%shape_fn(2)*Src%Scalars(:,n2)
+
+      end do
+   end if
+
+
+END SUBROUTINE Transfer_Motions_Line2_to_Point
 subroutine Transfer_Orientation(Src, Dest, MeshMap, ErrStat, ErrMsg )
 
    TYPE(MeshType),                 INTENT(IN   )  :: Src       !< The source (Line2) mesh with motion fields allocated
@@ -2126,6 +2508,61 @@ subroutine Transfer_Orientation(Src, Dest, MeshMap, ErrStat, ErrMsg )
    endif
    
 end subroutine Transfer_Orientation
+
+
+
+!====================================================================================================
+subroutine KAD_WriteSummary( outRootName, VSM_ElemPts, VSMnumCompElems, VSM, errStat, errMsg )
+! This subroutine writes the data stored in WriteOutputs (and indexed in OutParam) to the file
+! opened in VSM_Init()
+!---------------------------------------------------------------------------------------------------- 
+
+      ! Passed variables 
+   character(*),                intent( in    ) :: outRootName
+   real(ReKi),                  intent( in    ) :: VSM_ElemPts(:,:,:)
+   integer(IntKi),              intent( in    ) :: VSMnumCompElems(:)
+   type(KAD_VSM_Data),          intent( in    ) :: VSM                    ! VSM module's output data
+  ! type(VSM_ParameterType),      intent( in    ) :: p                    ! VSM module's parameter data
+   integer,                     intent(   out ) :: errStat              ! returns a non-zero value when an error occurs  
+   character(*),                intent(   out ) :: errMsg               ! Error message if ErrStat /= ErrID_None
+   
+      ! Local variables
+   integer                                :: i,k,l                          ! Generic loop counter
+   integer                                :: numComp
+   character(1024)                        :: OutFileName
+   integer                                :: Un
+   
+   OutFileName = TRIM(outRootName)//'.KAD.sum'
+   call GetNewUnit( Un )
+   
+   call OpenFOutFile ( Un, OutFileName, errStat, errMsg ) 
+   if (ErrStat >=AbortErrLev) return
+      
+      
+      
+         ! Write the output file header
+      
+   write (Un,'(/,A/)', IOSTAT=errStat)  'This file were generated by '//TRIM(KAD_Ver%Name)//&
+                      ' on '//CurDate()//' at '//CurTime()//'.'
+   
+         ! Write the names of the output parameters:
+   write (Un,'(A)', IOSTAT=errStat) '------------------------------------------------------------------------'
+   write (Un,'(A)', IOSTAT=errStat) '----                         VSM Data                               ----'
+   write (Un,'(A/)', IOSTAT=errStat) '------------------------------------------------------------------------'
+   write(Un,'(A9,1X,A9,6(1X,A11))')  'Element #', 'CompElm #', 'PointAX', 'PointAY', 'PointAZ', 'PointBX', 'PointBY', 'PointBZ'
+      
+   i = 1
+   do l = 1, size(VSMnumCompElems,1)
+      do k = 1, VSMnumCompElems(l)
+         write(Un, '(I9,1X,I9,6(1X,F11.4))') i, k, VSM_ElemPts(1,1,i), VSM_ElemPts(2,1,i), VSM_ElemPts(3,1,i), VSM_ElemPts(1,2,i), VSM_ElemPts(2,2,i), VSM_ElemPts(3,2,i)
+         i = i + 1
+      end do
+   end do
+   
+   close(Un)   
+      
+end subroutine KAD_WriteSummary
+
 subroutine FixUnitVectors(vec)
    real(ReKi), intent(inout) :: vec(3)
    real(ReKi) :: tmp
@@ -2156,22 +2593,30 @@ subroutine Set_VSM_Inputs(u, m, p, u_VSM, errStat, errMsg)
    errMsg          = "" 
 
       !  Map the orientations from the Inputs line2 mesh to the Output point mesh
-   call Transfer_Orientation( u%FusMotions, m%FusLoads, m%Fus_L_2_P, errStat2, errMsg2 )
+  ! call Transfer_Orientation( u%FusMotions, m%FusLoads, m%Fus_L_2_P, errStat2, errMsg2 )
+   call Transfer_Motions_Line2_to_Point( u%FusMotions, m%FusLoads, m%Fus_L_2_P, errStat2, errMsg2 )
       call SetErrStat(errStat2, errMsg2, errStat, errMsg,' Set_VSM_Inputs: Transfer_Fus_L_2_P' )      
-   call Transfer_Orientation( u%SWnMotions, m%SWnLoads, m%SWn_L_2_P, errStat2, errMsg2 )
+   !call Transfer_Orientation( u%SWnMotions, m%SWnLoads, m%SWn_L_2_P, errStat2, errMsg2 )
+   call Transfer_Motions_Line2_to_Point( u%SWnMotions, m%SWnLoads, m%SWn_L_2_P, errStat2, errMsg2 )
       call SetErrStat(errStat2, errMsg2, errStat, errMsg,' Set_VSM_Inputs: Transfer_SWn_L_2_P' )      
-   call Transfer_Orientation( u%PWnMotions, m%PWnLoads, m%PWn_L_2_P, errStat2, errMsg2 )
+  ! call Transfer_Orientation( u%PWnMotions, m%PWnLoads, m%PWn_L_2_P, errStat2, errMsg2 )
+   call Transfer_Motions_Line2_to_Point( u%PWnMotions, m%PWnLoads, m%PWn_L_2_P, errStat2, errMsg2 )
       call SetErrStat(errStat2, errMsg2, errStat, errMsg,' Set_VSM_Inputs: Transfer_PWn_L_2_P' )      
-   call Transfer_Orientation( u%VSPMotions, m%VSPLoads, m%VSP_L_2_P, errStat2, errMsg2 )
+  ! call Transfer_Orientation( u%VSPMotions, m%VSPLoads, m%VSP_L_2_P, errStat2, errMsg2 )
+   call Transfer_Motions_Line2_to_Point( u%VSPMotions, m%VSPLoads, m%VSP_L_2_P, errStat2, errMsg2 )
       call SetErrStat(errStat2, errMsg2, errStat, errMsg,' Set_VSM_Inputs: Transfer_VSP_L_2_P' )      
-   call Transfer_Orientation( u%SHSMotions, m%SHSLoads, m%SHS_L_2_P, errStat2, errMsg2 )
+   !call Transfer_Orientation( u%SHSMotions, m%SHSLoads, m%SHS_L_2_P, errStat2, errMsg2 )
+   call Transfer_Motions_Line2_to_Point( u%SHSMotions, m%SHSLoads, m%SHS_L_2_P, errStat2, errMsg2 )
       call SetErrStat(errStat2, errMsg2, errStat, errMsg,' Set_VSM_Inputs: Transfer_SHS_L_2_P' )      
-   call Transfer_Orientation( u%PHSMotions, m%PHSLoads, m%PHS_L_2_P, errStat2, errMsg2 )
+  ! call Transfer_Orientation( u%PHSMotions, m%PHSLoads, m%PHS_L_2_P, errStat2, errMsg2 )
+   call Transfer_Motions_Line2_to_Point( u%PHSMotions, m%PHSLoads, m%PHS_L_2_P, errStat2, errMsg2 )
       call SetErrStat(errStat2, errMsg2, errStat, errMsg,' Set_VSM_Inputs: Transfer_PHS_L_2_P' )      
    do i = 1, p%NumPylons
-      call Transfer_Orientation( u%SPyMotions(i), m%SPyLoads(i), m%SPy_L_2_P(i), errStat2, errMsg2 )
+      !call Transfer_Orientation( u%SPyMotions(i), m%SPyLoads(i), m%SPy_L_2_P(i), errStat2, errMsg2 )
+      call Transfer_Motions_Line2_to_Point( u%SPyMotions(i), m%SPyLoads(i), m%SPy_L_2_P(i), errStat2, errMsg2 )
          call SetErrStat(errStat2, errMsg2, errStat, errMsg,' Set_VSM_Inputs: Transfer_SPy_L_2_P' )      
-      call Transfer_Orientation( u%PPyMotions(i), m%PPyLoads(i), m%PPy_L_2_P(i), errStat2, errMsg2 )
+      !call Transfer_Orientation( u%PPyMotions(i), m%PPyLoads(i), m%PPy_L_2_P(i), errStat2, errMsg2 )
+      call Transfer_Motions_Line2_to_Point( u%PPyMotions(i), m%PPyLoads(i), m%PPy_L_2_P(i), errStat2, errMsg2 )
          call SetErrStat(errStat2, errMsg2, errStat, errMsg,' Set_VSM_Inputs: Transfer_PPy_L_2_P' )      
    end do
    
@@ -2265,7 +2710,7 @@ subroutine Set_VSM_Inputs(u, m, p, u_VSM, errStat, errMsg)
       n2 = u%PHSMotions%ELEMLIST(i)%ELEMENT%ELEMNODES(2)     
       u_VSM%PtA    (:,count) = u%PHSMotions%Position(:,n1) + u%PHSMotions%TranslationDisp(:,n1)
       u_VSM%PtB    (:,count) = u%PHSMotions%Position(:,n2) + u%PHSMotions%TranslationDisp(:,n2)
-      u_VSM%U_Inf_v(:,count) = ( u%V_SHS(:,n1) + u%V_SHS(:,n2) ) / 2.0   -  ( u%PHSMotions%TranslationVel(:,n1  ) + u%PHSMotions%TranslationVel(:,n2) ) / 2.0
+      u_VSM%U_Inf_v(:,count) = ( u%V_PHS(:,n1) + u%V_PHS(:,n2) ) / 2.0   -  ( u%PHSMotions%TranslationVel(:,n1  ) + u%PHSMotions%TranslationVel(:,n2) ) / 2.0
       u_VSM%x_hat  (:,count) = u%PHSMotions%Orientation(1,:,n1)
       u_VSM%y_hat  (:,count) = u%PHSMotions%Orientation(2,:,n1)
       u_VSM%z_hat  (:,count) = u%PHSMotions%Orientation(3,:,n1)
@@ -2316,8 +2761,9 @@ subroutine Set_VSM_Inputs(u, m, p, u_VSM, errStat, errMsg)
    
 end subroutine Set_VSM_Inputs
 
-subroutine KAD_MapOutputs(p, u, y, y_VSM, m, z, errStat, errMsg)
+subroutine KAD_MapOutputs(p, u, u_VSM, y, y_VSM, m, z, errStat, errMsg)
    type(KAD_InputType),           intent(in   )  :: u           !< An initial guess for the input; input mesh must be defined
+   type(VSM_InputType),           intent(in   )  :: u_VSM       !< 
    type(KAD_ParameterType),       intent(in   )  :: p           !< Parameters
    type(KAD_OutputType),          intent(in   )  :: y           !< Initial system outputs (outputs are not calculated;
    type(VSM_OutputType),          intent(in   )  :: y_VSM       !< Initial system outputs (outputs are not calculated;
@@ -2326,27 +2772,34 @@ subroutine KAD_MapOutputs(p, u, y, y_VSM, m, z, errStat, errMsg)
    integer(IntKi),                intent(  out)  :: errStat     !< Error status of the operation
    character(*),                  intent(  out)  :: errMsg      !< Error message if errStat /= ErrID_None
    
-   real   (ReKi)  :: Vinf_v(3)
-   real   (ReKi)  :: DCM(3,3)  
-   real   (ReKi)  :: Vstruct_v(3)
-   real   (ReKi)  :: Vrel   
-   real   (ReKi)  :: Vind, Vrel_v(3), Vind_v(3), AoA, Cl, Cd, Cm, Fl, Fd, Mm, Fn, Ft
-   real   (ReKi)  :: Re     
-   real   (ReKi)  :: XM     
-   real   (ReKi)  :: DynP  
-   integer(IntKi) :: VSMoffset
-   integer(IntKi) :: i, j
-   real   (ReKi)  :: SpeedOfSound
-   real   (ReKi)  :: chord
+   real   (ReKi)               :: Vinf_v(3)
+   real   (ReKi)               :: DCM(3,3)  
+   real   (ReKi)               :: Vstruct_v(3)
+   real   (ReKi)               :: Vrel   
+   real   (ReKi)               :: Vind, Vrel_v(3), Vind_v(3), AoA, Cl, Cd, Cm, Fl, Fd, Mm, Cn, Ct, Fn, Ft
+   real   (ReKi)               :: Re     
+   real   (ReKi)               :: XM     
+   real   (ReKi)               :: DynP  
+   integer(IntKi)              :: VSMoffset
+   integer(IntKi)              :: i, j
+   real   (ReKi)               :: SpeedOfSound
+   real   (ReKi)               :: chord
    real   (ReKi), allocatable  :: Vinfs_v(:,:)
    real   (ReKi), allocatable  :: chords(:)
    real   (ReKi), allocatable  :: elemLens(:)
-   integer(IntKi) :: n, offset
+   real   (ReKi), allocatable  :: forces(:,:), moments(:,:)
+   integer(IntKi)              :: n, offset
+   character(*), parameter     :: RoutineName = 'KAD_MapOutputs'
+
+   errStat = ErrID_None
+   errMsg  = ''
    
    SpeedOfSound = 343.0  ! m/s   ! TODO: This should be a parameter 
    VSMoffset    = 0
+   
    n = size(u%V_SPy,2)
    call AllocAry(Vinfs_v, 3, n, 'Vinfs', errStat, errMsg)
+   
    n = size(p%SPyChord,1)
    call AllocAry(chords, n, 'chords', errStat, errMsg) 
    call AllocAry(elemLens, n, 'elemLens', errStat, errMsg) 
@@ -2358,32 +2811,39 @@ subroutine KAD_MapOutputs(p, u, y, y_VSM, m, z, errStat, errMsg)
    !!=======================================   
    do i = 1, p%NFusOuts
       
-         call ComputeAeroOnMotionNodes(i, p%FusOutNd, u%FusMotions, VSMoffset, y_VSM, u%V_Fus, p%FusChord, p%FusElemLen, p%AirDens, p%KinVisc, speedOfSound, Vinf_v, Vstruct_v, Vind_v, Vrel, DynP, Re, XM, AoA, Cl, Cd, Cm, Fl, Fd, Mm, Fn, Ft )
-
-         m%AllOuts( FusVAmbx(i) ) = Vinf_v(1)
-         m%AllOuts( FusVAmby(i) ) = Vinf_v(2)
-         m%AllOuts( FusVAmbz(i) ) = Vinf_v(3)
-         m%AllOuts( FusSTVx (i) ) = Vstruct_v(1)
-         m%AllOuts( FusSTVy (i) ) = Vstruct_v(2)
-         m%AllOuts( FusSTVz (i) ) = Vstruct_v(3)
-         m%AllOuts( FusVrel (i) ) = Vrel
-         m%AllOuts( FusDynP (i) ) = DynP
-         m%AllOuts( FusRe   (i) ) = Re
-         m%AllOuts( FusM    (i) ) = XM
-         m%AllOuts( FusVIndy(i) ) = Vind_v(1)
-         m%AllOuts( FusVIndy(i) ) = Vind_v(2)
-         m%AllOuts( FusVIndz(i) ) = Vind_v(3)     
-         m%AllOuts( FusAlpha(i) ) = AoA
-         m%AllOuts( FusCl   (i) ) = Cl
-         m%AllOuts( FusCd   (i) ) = Cd
-         m%AllOuts( FusCm   (i) ) = Cm
-         m%AllOuts( FusCn   (i) ) = Cl*cos(AoA) + Cd*sin(AoA)
-         m%AllOuts( FusCt   (i) ) = Cl*sin(AoA) - Cd*cos(AoA)
-         m%AllOuts( FusFl   (i) ) = Fl
-         m%AllOuts( FusFd   (i) ) = Fd
-         m%AllOuts( FusMm   (i) ) = Mm
-         m%AllOuts( FusFn   (i) ) = 0.0_ReKi
-         m%AllOuts( FusFt   (i) ) = 0.0_ReKi
+      call ComputeAeroOnMotionNodes(i, p%FusOutNd, u%FusMotions, VSMoffset, u_VSM, y_VSM, u%V_Fus, &
+                                     p%FusChord, p%FusElemLen, p%AirDens, p%KinVisc, speedOfSound, &
+                                     Vinf_v, Vstruct_v, Vind_v, Vrel, DynP, Re, XM, AoA, Cl, Cd, Cm, &
+                                     Fl, Fd, Mm, Cn, Ct, Fn, Ft, errStat, errMsg )
+         if (errStat >= AbortErrLev) then
+            call SetErrStat( ErrID_Fatal, 'The fuselage ', errStat, errMsg, RoutineName )
+            return
+         end if
+      
+      m%AllOuts( FusVAmbx(i) ) = Vinf_v(1)
+      m%AllOuts( FusVAmby(i) ) = Vinf_v(2)
+      m%AllOuts( FusVAmbz(i) ) = Vinf_v(3)
+      m%AllOuts( FusSTVx (i) ) = Vstruct_v(1)
+      m%AllOuts( FusSTVy (i) ) = Vstruct_v(2)
+      m%AllOuts( FusSTVz (i) ) = Vstruct_v(3)
+      m%AllOuts( FusVrel (i) ) = Vrel
+      m%AllOuts( FusDynP (i) ) = DynP
+      m%AllOuts( FusRe   (i) ) = Re
+      m%AllOuts( FusM    (i) ) = XM
+      m%AllOuts( FusVIndx(i) ) = Vind_v(1)
+      m%AllOuts( FusVIndy(i) ) = Vind_v(2)
+      m%AllOuts( FusVIndz(i) ) = Vind_v(3)     
+      m%AllOuts( FusAlpha(i) ) = AoA*R2D
+      m%AllOuts( FusCl   (i) ) = Cl
+      m%AllOuts( FusCd   (i) ) = Cd
+      m%AllOuts( FusCm   (i) ) = Cm
+      m%AllOuts( FusCn   (i) ) = Cn
+      m%AllOuts( FusCt   (i) ) = Ct
+      m%AllOuts( FusFl   (i) ) = Fl
+      m%AllOuts( FusFd   (i) ) = Fd
+      m%AllOuts( FusMm   (i) ) = Mm
+      m%AllOuts( FusFn   (i) ) = 0.0_ReKi
+      m%AllOuts( FusFt   (i) ) = 0.0_ReKi
    
    end do
    VSMoffset = u%FusMotions%NElemList
@@ -2393,32 +2853,38 @@ subroutine KAD_MapOutputs(p, u, y, y_VSM, m, z, errStat, errMsg)
    !=======================================   
    do i = 1, p%NSWnOuts
       
-        call ComputeAeroOnMotionNodes(i, p%SWnOutNd, u%SWnMotions, VSMoffset, y_VSM, u%V_SWn, p%SWnChord, p%SWnElemLen, p%AirDens, p%KinVisc, speedOfSound, Vinf_v, Vstruct_v, Vind_v, Vrel, DynP, Re, XM, AoA, Cl, Cd, Cm, Fl, Fd, Mm, Fn, Ft )
+      call ComputeAeroOnMotionNodes(i, p%SWnOutNd, u%SWnMotions, VSMoffset, u_VSM, y_VSM, u%V_SWn, p%SWnChord, &
+                                      p%SWnElemLen, p%AirDens, p%KinVisc, speedOfSound, Vinf_v, Vstruct_v, Vind_v, &
+                                      Vrel, DynP, Re, XM, AoA, Cl, Cd, Cm, Fl, Fd, Mm, Cn, Ct, Fn, Ft, errStat, errMsg )
+         if (errStat >= AbortErrLev) then
+            call SetErrStat( ErrID_Fatal, 'The starboard wing ', errStat, errMsg, RoutineName )
+            return
+         end if
          
-         m%AllOuts( SWnVAmbx(i) ) = Vinf_v(1)
-         m%AllOuts( SWnVAmby(i) ) = Vinf_v(2)
-         m%AllOuts( SWnVAmbz(i) ) = Vinf_v(3)
-         m%AllOuts( SWnSTVx (i) ) = Vstruct_v(1)
-         m%AllOuts( SWnSTVy (i) ) = Vstruct_v(2)
-         m%AllOuts( SWnSTVz (i) ) = Vstruct_v(3)
-         m%AllOuts( SWnVrel (i) ) = Vrel
-         m%AllOuts( SWnDynP (i) ) = DynP
-         m%AllOuts( SWnRe   (i) ) = Re
-         m%AllOuts( SWnM    (i) ) = XM
-         m%AllOuts( SWnVIndy(i) ) = Vind_v(1)
-         m%AllOuts( SWnVIndy(i) ) = Vind_v(2)
-         m%AllOuts( SWnVIndz(i) ) = Vind_v(3)       
-         m%AllOuts( SWnAlpha(i) ) = AoA
-         m%AllOuts( SWnCl   (i) ) = Cl
-         m%AllOuts( SWnCd   (i) ) = Cd
-         m%AllOuts( SWnCm   (i) ) = Cm
-         m%AllOuts( SWnCn   (i) ) = Cl*cos(AoA) + Cd*sin(AoA)
-         m%AllOuts( SWnCt   (i) ) = Cl*sin(AoA) - Cd*cos(AoA)
-         m%AllOuts( SWnFl   (i) ) = Fl
-         m%AllOuts( SWnFd   (i) ) = Fd
-         m%AllOuts( SWnMm   (i) ) = Mm
-         m%AllOuts( SWnFn   (i) ) = Fn
-         m%AllOuts( SWnFt   (i) ) = Ft
+      m%AllOuts( SWnVAmbx(i) ) = Vinf_v(1)
+      m%AllOuts( SWnVAmby(i) ) = Vinf_v(2)
+      m%AllOuts( SWnVAmbz(i) ) = Vinf_v(3)
+      m%AllOuts( SWnSTVx (i) ) = Vstruct_v(1)
+      m%AllOuts( SWnSTVy (i) ) = Vstruct_v(2)
+      m%AllOuts( SWnSTVz (i) ) = Vstruct_v(3)
+      m%AllOuts( SWnVrel (i) ) = Vrel
+      m%AllOuts( SWnDynP (i) ) = DynP
+      m%AllOuts( SWnRe   (i) ) = Re
+      m%AllOuts( SWnM    (i) ) = XM
+      m%AllOuts( SWnVIndx(i) ) = Vind_v(1)
+      m%AllOuts( SWnVIndy(i) ) = Vind_v(2)
+      m%AllOuts( SWnVIndz(i) ) = Vind_v(3)       
+      m%AllOuts( SWnAlpha(i) ) = AoA*R2D
+      m%AllOuts( SWnCl   (i) ) = Cl
+      m%AllOuts( SWnCd   (i) ) = Cd
+      m%AllOuts( SWnCm   (i) ) = Cm
+      m%AllOuts( SWnCn   (i) ) = Cn
+      m%AllOuts( SWnCt   (i) ) = Ct
+      m%AllOuts( SWnFl   (i) ) = Fl
+      m%AllOuts( SWnFd   (i) ) = Fd
+      m%AllOuts( SWnMm   (i) ) = Mm
+      m%AllOuts( SWnFn   (i) ) = Fn
+      m%AllOuts( SWnFt   (i) ) = Ft
 
    end do
    VSMoffset = VSMoffset + u%SWnMotions%NElemList
@@ -2428,32 +2894,38 @@ subroutine KAD_MapOutputs(p, u, y, y_VSM, m, z, errStat, errMsg)
    !=======================================   
    do i = 1, p%NPWnOuts
          
-         call ComputeAeroOnMotionNodes(i, p%PWnOutNd, u%PWnMotions, VSMoffset, y_VSM, u%V_PWn, p%PWnChord, p%PWnElemLen, p%AirDens, p%KinVisc, speedOfSound, Vinf_v, Vstruct_v, Vind_v, Vrel, DynP, Re, XM, AoA, Cl, Cd, Cm, Fl, Fd, Mm, Fn, Ft )
+      call ComputeAeroOnMotionNodes(i, p%PWnOutNd, u%PWnMotions, VSMoffset, u_VSM, y_VSM, u%V_PWn, p%PWnChord, &
+                                    p%PWnElemLen, p%AirDens, p%KinVisc, speedOfSound, Vinf_v, Vstruct_v, Vind_v, &
+                                    Vrel, DynP, Re, XM, AoA, Cl, Cd, Cm, Fl, Fd, Mm, Cn, Ct, Fn, Ft, errStat, errMsg )
+         if (errStat >= AbortErrLev) then
+            call SetErrStat( ErrID_Fatal, 'The port wing ', errStat, errMsg, RoutineName )
+            return
+         end if
  
-         m%AllOuts( PWnVAmbx(i) ) = Vinf_v(1)
-         m%AllOuts( PWnVAmby(i) ) = Vinf_v(2)
-         m%AllOuts( PWnVAmbz(i) ) = Vinf_v(3)
-         m%AllOuts( PWnSTVx (i) ) = Vstruct_v(1)
-         m%AllOuts( PWnSTVy (i) ) = Vstruct_v(2)
-         m%AllOuts( PWnSTVz (i) ) = Vstruct_v(3)
-         m%AllOuts( PWnVrel (i) ) = Vrel
-         m%AllOuts( PWnDynP (i) ) = DynP
-         m%AllOuts( PWnRe   (i) ) = Re
-         m%AllOuts( PWnM    (i) ) = XM
-         m%AllOuts( PWnVIndy(i) ) = Vind_v(1)
-         m%AllOuts( PWnVIndy(i) ) = Vind_v(2)
-         m%AllOuts( PWnVIndz(i) ) = Vind_v(3)       
-         m%AllOuts( PWnAlpha(i) ) = AoA
-         m%AllOuts( PWnCl   (i) ) = Cl
-         m%AllOuts( PWnCd   (i) ) = Cd
-         m%AllOuts( PWnCm   (i) ) = Cm
-         m%AllOuts( PWnCn   (i) ) = Cl*cos(AoA) + Cd*sin(AoA)
-         m%AllOuts( PWnCt   (i) ) = Cl*sin(AoA) - Cd*cos(AoA)
-         m%AllOuts( PWnFl   (i) ) = Fl 
-         m%AllOuts( PWnFd   (i) ) = Fd 
-         m%AllOuts( PWnMm   (i) ) = Mm 
-         m%AllOuts( PWnFn   (i) ) = Fn
-         m%AllOuts( PWnFt   (i) ) = Ft
+      m%AllOuts( PWnVAmbx(i) ) = Vinf_v(1)
+      m%AllOuts( PWnVAmby(i) ) = Vinf_v(2)
+      m%AllOuts( PWnVAmbz(i) ) = Vinf_v(3)
+      m%AllOuts( PWnSTVx (i) ) = Vstruct_v(1)
+      m%AllOuts( PWnSTVy (i) ) = Vstruct_v(2)
+      m%AllOuts( PWnSTVz (i) ) = Vstruct_v(3)
+      m%AllOuts( PWnVrel (i) ) = Vrel
+      m%AllOuts( PWnDynP (i) ) = DynP
+      m%AllOuts( PWnRe   (i) ) = Re
+      m%AllOuts( PWnM    (i) ) = XM
+      m%AllOuts( PWnVIndx(i) ) = Vind_v(1)
+      m%AllOuts( PWnVIndy(i) ) = Vind_v(2)
+      m%AllOuts( PWnVIndz(i) ) = Vind_v(3)       
+      m%AllOuts( PWnAlpha(i) ) = AoA*R2D
+      m%AllOuts( PWnCl   (i) ) = Cl
+      m%AllOuts( PWnCd   (i) ) = Cd
+      m%AllOuts( PWnCm   (i) ) = Cm
+      m%AllOuts( PWnCn   (i) ) = Cn
+      m%AllOuts( PWnCt   (i) ) = Ct
+      m%AllOuts( PWnFl   (i) ) = Fl 
+      m%AllOuts( PWnFd   (i) ) = Fd 
+      m%AllOuts( PWnMm   (i) ) = Mm 
+      m%AllOuts( PWnFn   (i) ) = Fn
+      m%AllOuts( PWnFt   (i) ) = Ft
 
    end do
    VSMoffset = VSMoffset + u%PWnMotions%NElemList
@@ -2463,32 +2935,38 @@ subroutine KAD_MapOutputs(p, u, y, y_VSM, m, z, errStat, errMsg)
    !=======================================   
    do i = 1, p%NVSOuts
          
-         call ComputeAeroOnMotionNodes(i, p%VSOutNd, u%VSPMotions, VSMoffset, y_VSM, u%V_VSP, p%VSPChord, p%VSPElemLen, p%AirDens, p%KinVisc, speedOfSound, Vinf_v, Vstruct_v, Vind_v, Vrel, DynP, Re, XM, AoA, Cl, Cd, Cm, Fl, Fd, Mm, Fn, Ft )
+      call ComputeAeroOnMotionNodes(i, p%VSOutNd, u%VSPMotions, VSMoffset, u_VSM, y_VSM, u%V_VSP, p%VSPChord, p%VSPElemLen, &
+                                    p%AirDens, p%KinVisc, speedOfSound, Vinf_v, Vstruct_v, Vind_v, Vrel, DynP, Re, XM, AoA, &
+                                    Cl, Cd, Cm, Fl, Fd, Mm, Cn, Ct, Fn, Ft, errStat, errMsg )
+         if (errStat >= AbortErrLev) then
+            call SetErrStat( ErrID_Fatal, 'The vertical stabilizer ', errStat, errMsg, RoutineName )
+            return
+         end if
 
-         m%AllOuts( VSVAmbx(i) ) = Vinf_v(1)
-         m%AllOuts( VSVAmby(i) ) = Vinf_v(2)
-         m%AllOuts( VSVAmbz(i) ) = Vinf_v(3)
-         m%AllOuts( VSSTVx (i) ) = Vstruct_v(1)
-         m%AllOuts( VSSTVy (i) ) = Vstruct_v(2)
-         m%AllOuts( VSSTVz (i) ) = Vstruct_v(3)
-         m%AllOuts( VSVrel (i) ) = Vrel
-         m%AllOuts( VSDynP (i) ) = DynP
-         m%AllOuts( VSRe   (i) ) = Re
-         m%AllOuts( VSMa   (i) ) = XM
-         m%AllOuts( VSVIndy(i) ) = Vind_v(1)
-         m%AllOuts( VSVIndy(i) ) = Vind_v(2)
-         m%AllOuts( VSVIndz(i) ) = Vind_v(3)              
-         m%AllOuts( VSAlpha(i) ) = AoA 
-         m%AllOuts( VSCl   (i) ) = Cl 
-         m%AllOuts( VSCd   (i) ) = Cd 
-         m%AllOuts( VSCm   (i) ) = Cm 
-         m%AllOuts( VSCn   (i) ) = Cl*cos(AoA) + Cd*sin(AoA)
-         m%AllOuts( VSCt   (i) ) = Cl*sin(AoA) - Cd*cos(AoA)
-         m%AllOuts( VSFl   (i) ) = Fl
-         m%AllOuts( VSFd   (i) ) = Fd
-         m%AllOuts( VSMm   (i) ) = Mm
-         m%AllOuts( VSFn   (i) ) = Fn
-         m%AllOuts( VSFt   (i) ) = Ft
+      m%AllOuts( VSVAmbx(i) ) = Vinf_v(1)
+      m%AllOuts( VSVAmby(i) ) = Vinf_v(2)
+      m%AllOuts( VSVAmbz(i) ) = Vinf_v(3)
+      m%AllOuts( VSSTVx (i) ) = Vstruct_v(1)
+      m%AllOuts( VSSTVy (i) ) = Vstruct_v(2)
+      m%AllOuts( VSSTVz (i) ) = Vstruct_v(3)
+      m%AllOuts( VSVrel (i) ) = Vrel
+      m%AllOuts( VSDynP (i) ) = DynP
+      m%AllOuts( VSRe   (i) ) = Re
+      m%AllOuts( VSMa   (i) ) = XM
+      m%AllOuts( VSVIndx(i) ) = Vind_v(1)
+      m%AllOuts( VSVIndy(i) ) = Vind_v(2)
+      m%AllOuts( VSVIndz(i) ) = Vind_v(3)              
+      m%AllOuts( VSAlpha(i) ) = AoA*R2D 
+      m%AllOuts( VSCl   (i) ) = Cl 
+      m%AllOuts( VSCd   (i) ) = Cd 
+      m%AllOuts( VSCm   (i) ) = Cm 
+      m%AllOuts( VSCn   (i) ) = Cn
+      m%AllOuts( VSCt   (i) ) = Ct
+      m%AllOuts( VSFl   (i) ) = Fl
+      m%AllOuts( VSFd   (i) ) = Fd
+      m%AllOuts( VSMm   (i) ) = Mm
+      m%AllOuts( VSFn   (i) ) = Fn
+      m%AllOuts( VSFt   (i) ) = Ft
 
    end do
    VSMoffset = VSMoffset + u%VSPMotions%NElemList
@@ -2498,32 +2976,38 @@ subroutine KAD_MapOutputs(p, u, y, y_VSM, m, z, errStat, errMsg)
    !=======================================   
    do i = 1, p%NSHSOuts
          
-         call ComputeAeroOnMotionNodes(i, p%SHSOutNd, u%SHSMotions, VSMoffset, y_VSM, u%V_SHS, p%SHSChord, p%SHSElemLen, p%AirDens, p%KinVisc, speedOfSound, Vinf_v, Vstruct_v, Vind_v, Vrel, DynP, Re, XM, AoA, Cl, Cd, Cm, Fl, Fd, Mm, Fn, Ft )
+      call ComputeAeroOnMotionNodes(i, p%SHSOutNd, u%SHSMotions, VSMoffset, u_VSM, y_VSM, u%V_SHS, p%SHSChord, p%SHSElemLen, & 
+                                    p%AirDens, p%KinVisc, speedOfSound, Vinf_v, Vstruct_v, Vind_v, Vrel, DynP, Re, XM, AoA, &
+                                    Cl, Cd, Cm, Fl, Fd, Mm, Cn, Ct, Fn, Ft, errStat, errMsg )
+         if (errStat >= AbortErrLev) then
+            call SetErrStat( ErrID_Fatal, 'The starboard horizontal stabilizer ', errStat, errMsg, RoutineName )
+            return
+         end if
 
-         m%AllOuts( SHSVAmbx(i) ) = Vinf_v(1)
-         m%AllOuts( SHSVAmby(i) ) = Vinf_v(2)
-         m%AllOuts( SHSVAmbz(i) ) = Vinf_v(3)
-         m%AllOuts( SHSSTVx (i) ) = Vstruct_v(1)
-         m%AllOuts( SHSSTVy (i) ) = Vstruct_v(2)
-         m%AllOuts( SHSSTVz (i) ) = Vstruct_v(3)
-         m%AllOuts( SHSVrel (i) ) = Vrel
-         m%AllOuts( SHSDynP (i) ) = DynP
-         m%AllOuts( SHSRe   (i) ) = Re
-         m%AllOuts( SHSM    (i) ) = XM
-         m%AllOuts( SHSVIndy(i) ) = Vind_v(1)
-         m%AllOuts( SHSVIndy(i) ) = Vind_v(2)
-         m%AllOuts( SHSVIndz(i) ) = Vind_v(3)                     
-         m%AllOuts( SHSAlpha(i) ) = AoA  
-         m%AllOuts( SHSCl   (i) ) = Cl  
-         m%AllOuts( SHSCd   (i) ) = Cd  
-         m%AllOuts( SHSCm   (i) ) = Cm  
-         m%AllOuts( SHSCn   (i) ) = Cl*cos(AoA) + Cd*sin(AoA)
-         m%AllOuts( SHSCt   (i) ) = Cl*sin(AoA) - Cd*cos(AoA)
-         m%AllOuts( SHSFl   (i) ) = Fl
-         m%AllOuts( SHSFd   (i) ) = Fd
-         m%AllOuts( SHSMm   (i) ) = Mm
-         m%AllOuts( SHSFn   (i) ) = Fn
-         m%AllOuts( SHSFt   (i) ) = Ft
+      m%AllOuts( SHSVAmbx(i) ) = Vinf_v(1)
+      m%AllOuts( SHSVAmby(i) ) = Vinf_v(2)
+      m%AllOuts( SHSVAmbz(i) ) = Vinf_v(3)
+      m%AllOuts( SHSSTVx (i) ) = Vstruct_v(1)
+      m%AllOuts( SHSSTVy (i) ) = Vstruct_v(2)
+      m%AllOuts( SHSSTVz (i) ) = Vstruct_v(3)
+      m%AllOuts( SHSVrel (i) ) = Vrel
+      m%AllOuts( SHSDynP (i) ) = DynP
+      m%AllOuts( SHSRe   (i) ) = Re
+      m%AllOuts( SHSM    (i) ) = XM
+      m%AllOuts( SHSVIndx(i) ) = Vind_v(1)
+      m%AllOuts( SHSVIndy(i) ) = Vind_v(2)
+      m%AllOuts( SHSVIndz(i) ) = Vind_v(3)                     
+      m%AllOuts( SHSAlpha(i) ) = AoA*R2D  
+      m%AllOuts( SHSCl   (i) ) = Cl  
+      m%AllOuts( SHSCd   (i) ) = Cd  
+      m%AllOuts( SHSCm   (i) ) = Cm  
+      m%AllOuts( SHSCn   (i) ) = Cn
+      m%AllOuts( SHSCt   (i) ) = Ct
+      m%AllOuts( SHSFl   (i) ) = Fl
+      m%AllOuts( SHSFd   (i) ) = Fd
+      m%AllOuts( SHSMm   (i) ) = Mm
+      m%AllOuts( SHSFn   (i) ) = Fn
+      m%AllOuts( SHSFt   (i) ) = Ft
 
    end do
    VSMoffset = VSMoffset + u%SHSMotions%NElemList
@@ -2533,32 +3017,38 @@ subroutine KAD_MapOutputs(p, u, y, y_VSM, m, z, errStat, errMsg)
    !=======================================   
    do i = 1, p%NPHSOuts
       
-         call ComputeAeroOnMotionNodes(i, p%PHSOutNd, u%PHSMotions, VSMoffset, y_VSM, u%V_PHS, p%PHSChord, p%PHSElemLen, p%AirDens, p%KinVisc, speedOfSound, Vinf_v, Vstruct_v, Vind_v, Vrel, DynP, Re, XM, AoA, Cl, Cd, Cm, Fl, Fd, Mm, Fn, Ft )
+      call ComputeAeroOnMotionNodes(i, p%PHSOutNd, u%PHSMotions, VSMoffset, u_VSM, y_VSM, u%V_PHS, p%PHSChord, p%PHSElemLen, &
+                                    p%AirDens, p%KinVisc, speedOfSound, Vinf_v, Vstruct_v, Vind_v, Vrel, DynP, Re, XM, AoA, &
+                                    Cl, Cd, Cm, Fl, Fd, Mm, Cn, Ct, Fn, Ft, errStat, errMsg )
+         if (errStat >= AbortErrLev) then
+            call SetErrStat( ErrID_Fatal, 'The port horizontal stabilizer ', errStat, errMsg, RoutineName )
+            return
+         end if
 
-         m%AllOuts( PHSVAmbx(i) ) = Vinf_v(1)
-         m%AllOuts( PHSVAmby(i) ) = Vinf_v(2)
-         m%AllOuts( PHSVAmbz(i) ) = Vinf_v(3)
-         m%AllOuts( PHSSTVx (i) ) = Vstruct_v(1)
-         m%AllOuts( PHSSTVy (i) ) = Vstruct_v(2)
-         m%AllOuts( PHSSTVz (i) ) = Vstruct_v(3)
-         m%AllOuts( PHSVrel (i) ) = Vrel
-         m%AllOuts( PHSDynP (i) ) = DynP
-         m%AllOuts( PHSRe   (i) ) = Re
-         m%AllOuts( PHSM    (i) ) = XM
-         m%AllOuts( PHSVIndy(i) ) = Vind_v(1)
-         m%AllOuts( PHSVIndy(i) ) = Vind_v(2)
-         m%AllOuts( PHSVIndz(i) ) = Vind_v(3)                     
-         m%AllOuts( PHSAlpha(i) ) = AoA  
-         m%AllOuts( PHSCl   (i) ) = Cl  
-         m%AllOuts( PHSCd   (i) ) = Cd  
-         m%AllOuts( PHSCm   (i) ) = Cm  
-         m%AllOuts( PHSCn   (i) ) = Cl*cos(AoA) + Cd*sin(AoA)
-         m%AllOuts( PHSCt   (i) ) = Cl*sin(AoA) - Cd*cos(AoA)
-         m%AllOuts( PHSFl   (i) ) = Fl
-         m%AllOuts( PHSFd   (i) ) = Fd
-         m%AllOuts( PHSMm   (i) ) = Mm
-         m%AllOuts( PHSFn   (i) ) = Fn
-         m%AllOuts( PHSFt   (i) ) = Ft
+      m%AllOuts( PHSVAmbx(i) ) = Vinf_v(1)
+      m%AllOuts( PHSVAmby(i) ) = Vinf_v(2)
+      m%AllOuts( PHSVAmbz(i) ) = Vinf_v(3)
+      m%AllOuts( PHSSTVx (i) ) = Vstruct_v(1)
+      m%AllOuts( PHSSTVy (i) ) = Vstruct_v(2)
+      m%AllOuts( PHSSTVz (i) ) = Vstruct_v(3)
+      m%AllOuts( PHSVrel (i) ) = Vrel
+      m%AllOuts( PHSDynP (i) ) = DynP
+      m%AllOuts( PHSRe   (i) ) = Re
+      m%AllOuts( PHSM    (i) ) = XM
+      m%AllOuts( PHSVIndx(i) ) = Vind_v(1)
+      m%AllOuts( PHSVIndy(i) ) = Vind_v(2)
+      m%AllOuts( PHSVIndz(i) ) = Vind_v(3)                     
+      m%AllOuts( PHSAlpha(i) ) = AoA*R2D  
+      m%AllOuts( PHSCl   (i) ) = Cl  
+      m%AllOuts( PHSCd   (i) ) = Cd  
+      m%AllOuts( PHSCm   (i) ) = Cm  
+      m%AllOuts( PHSCn   (i) ) = Cn
+      m%AllOuts( PHSCt   (i) ) = Ct
+      m%AllOuts( PHSFl   (i) ) = Fl
+      m%AllOuts( PHSFd   (i) ) = Fd
+      m%AllOuts( PHSMm   (i) ) = Mm
+      m%AllOuts( PHSFn   (i) ) = Fn
+      m%AllOuts( PHSFt   (i) ) = Ft
 
    end do
    VSMoffset = VSMoffset + u%PHSMotions%NElemList
@@ -2572,7 +3062,13 @@ subroutine KAD_MapOutputs(p, u, y, y_VSM, m, z, errStat, errMsg)
          Vinfs_v = u%V_SPy(:, :,j)
          chords  = p%SPyChord(:,j) 
          elemLens = p%SPyElemLen(:,j)
-         call ComputeAeroOnMotionNodes(i, p%PylOutNd, u%SPyMotions(j), VSMoffset, y_VSM, Vinfs_v, chords, elemLens, p%AirDens, p%KinVisc, speedOfSound, Vinf_v, Vstruct_v, Vind_v, Vrel, DynP, Re, XM, AoA, Cl, Cd, Cm, Fl, Fd, Mm, Fn, Ft )
+         call ComputeAeroOnMotionNodes(i, p%PylOutNd, u%SPyMotions(j), VSMoffset, u_VSM, y_VSM, Vinfs_v, chords, elemLens, &
+                                       p%AirDens, p%KinVisc, speedOfSound, Vinf_v, Vstruct_v, Vind_v, Vrel, DynP, Re, XM, AoA, &
+                                       Cl, Cd, Cm, Fl, Fd, Mm, Cn, Ct, Fn, Ft, errStat, errMsg )
+         if (errStat >= AbortErrLev) then
+            call SetErrStat( ErrID_Fatal, 'The starboard pylon ', errStat, errMsg, RoutineName )
+            return
+         end if
 
          m%AllOuts( SPVAmbx(i,j) ) = Vinf_v(1)
          m%AllOuts( SPVAmby(i,j) ) = Vinf_v(2)
@@ -2584,15 +3080,15 @@ subroutine KAD_MapOutputs(p, u, y, y_VSM, m, z, errStat, errMsg)
          m%AllOuts( SPDynP (i,j) ) = DynP
          m%AllOuts( SPRe   (i,j) ) = Re
          m%AllOuts( SPM    (i,j) ) = XM
-         m%AllOuts( SPVIndy(i,j) ) = Vind_v(1)
+         m%AllOuts( SPVIndx(i,j) ) = Vind_v(1)
          m%AllOuts( SPVIndy(i,j) ) = Vind_v(2)
          m%AllOuts( SPVIndz(i,j) ) = Vind_v(3)                    
-         m%AllOuts( SPAlpha(i,j) ) = AoA 
+         m%AllOuts( SPAlpha(i,j) ) = AoA*R2D 
          m%AllOuts( SPCl   (i,j) ) = Cl 
          m%AllOuts( SPCd   (i,j) ) = Cd 
          m%AllOuts( SPCm   (i,j) ) = Cm 
-         m%AllOuts( SPCn   (i,j) ) = Cl*cos(AoA) + Cd*sin(AoA)
-         m%AllOuts( SPCt   (i,j) ) = Cl*sin(AoA) - Cd*cos(AoA)
+         m%AllOuts( SPCn   (i,j) ) = Cn
+         m%AllOuts( SPCt   (i,j) ) = Ct
          m%AllOuts( SPFl   (i,j) ) = Fl
          m%AllOuts( SPFd   (i,j) ) = Fd
          m%AllOuts( SPMm   (i,j) ) = Mm
@@ -2612,7 +3108,13 @@ subroutine KAD_MapOutputs(p, u, y, y_VSM, m, z, errStat, errMsg)
          Vinfs_v = u%V_PPy(:, :,j)
          chords  = p%PPyChord(:,j) 
          elemLens = p%PPyElemLen(:,j)
-         call ComputeAeroOnMotionNodes(i, p%PylOutNd, u%PPyMotions(j), VSMoffset, y_VSM, Vinfs_v, chords, elemLens, p%AirDens, p%KinVisc, speedOfSound, Vinf_v, Vstruct_v, Vind_v, Vrel, DynP, Re, XM, AoA, Cl, Cd, Cm, Fl, Fd, Mm, Fn, Ft )
+         call ComputeAeroOnMotionNodes(i, p%PylOutNd, u%PPyMotions(j), VSMoffset, u_VSM, y_VSM, Vinfs_v, chords, elemLens, &
+                                       p%AirDens, p%KinVisc, speedOfSound, Vinf_v, Vstruct_v, Vind_v, Vrel, DynP, Re, XM, AoA, &
+                                        Cl, Cd, Cm, Fl, Fd, Mm, Cn, Ct, Fn, Ft, errStat, errMsg )
+         if (errStat >= AbortErrLev) then
+            call SetErrStat( ErrID_Fatal, 'The port pylon ', errStat, errMsg, RoutineName )
+            return
+         end if
 
 
          m%AllOuts( PPVAmbx(i,j) ) = Vinf_v(1)
@@ -2625,15 +3127,15 @@ subroutine KAD_MapOutputs(p, u, y, y_VSM, m, z, errStat, errMsg)
          m%AllOuts( PPDynP (i,j) ) = DynP
          m%AllOuts( PPRe   (i,j) ) = Re
          m%AllOuts( PPM    (i,j) ) = XM
-         m%AllOuts( PPVIndy(i,j) ) = Vind_v(1)
+         m%AllOuts( PPVIndx(i,j) ) = Vind_v(1)
          m%AllOuts( PPVIndy(i,j) ) = Vind_v(2)
          m%AllOuts( PPVIndz(i,j) ) = Vind_v(3)                   
-         m%AllOuts( PPAlpha(i,j) ) = AoA 
+         m%AllOuts( PPAlpha(i,j) ) = AoA*R2D 
          m%AllOuts( PPCl   (i,j) ) = Cl 
          m%AllOuts( PPCd   (i,j) ) = Cd 
          m%AllOuts( PPCm   (i,j) ) = Cm 
-         m%AllOuts( PPCn   (i,j) ) = Cl*cos(AoA) + Cd*sin(AoA)
-         m%AllOuts( PPCt   (i,j) ) = Cl*sin(AoA) - Cd*cos(AoA)
+         m%AllOuts( PPCn   (i,j) ) = Cn
+         m%AllOuts( PPCt   (i,j) ) = Ct
          m%AllOuts( PPFl   (i,j) ) = Fl 
          m%AllOuts( PPFd   (i,j) ) = Fd 
          m%AllOuts( PPMm   (i,j) ) = Mm 
@@ -2645,12 +3147,23 @@ subroutine KAD_MapOutputs(p, u, y, y_VSM, m, z, errStat, errMsg)
    
    ! Actuator Disks
    ! Starboard Pylon 1   Top and Bottom rotors
+  
+   call AllocAry(forces, 3, p%NumPylons*2, 'forces', errStat, errMsg) 
+   call AllocAry(moments, 3, p%NumPylons*2, 'moments', errStat, errMsg) 
+   
+   ! Orientation is transform from global to local
+   do i = 1, 2*p%NumPylons
+      DCM = y%SPyRtrLoads(i)%Orientation(:,:,1)
+      forces(:,i)  = matmul(DCM, y%SPyRtrLoads(i)%Force(:,1))
+      moments(:,i) = matmul (DCM,y%SPyRtrLoads(i)%Moment(:,1))
+   end do
+   
  m%AllOuts( SP1TVRelx) = m%ActDsk(1)%u%DiskAve_Vx_Rel
  m%AllOuts( SP1BVRelx) = m%ActDsk(2)%u%DiskAve_Vx_Rel
  m%AllOuts( SP1TRtSpd) = m%ActDsk(1)%u%omega
  m%AllOuts( SP1BRtSpd) = m%ActDsk(2)%u%omega
- m%AllOuts( SP1TSkew ) = m%ActDsk(1)%u%skew
- m%AllOuts( SP1BSkew ) = m%ActDsk(2)%u%skew
+ m%AllOuts( SP1TSkew ) = m%ActDsk(1)%u%skew*R2D
+ m%AllOuts( SP1BSkew ) = m%ActDsk(2)%u%skew*R2D
  m%AllOuts( SP1TVrel ) = m%ActDsk(1)%u%DiskAve_Vinf_Rel
  m%AllOuts( SP1BVrel ) = m%ActDsk(2)%u%DiskAve_Vinf_Rel
  m%AllOuts( SP1TCp   ) = m%ActDsk(1)%m%Cp
@@ -2659,18 +3172,18 @@ subroutine KAD_MapOutputs(p, u, y, y_VSM, m, z, errStat, errMsg)
  m%AllOuts( SP1BCq   ) = m%ActDsk(2)%m%Cq
  m%AllOuts( SP1TCt   ) = m%ActDsk(1)%m%Ct
  m%AllOuts( SP1BCt   ) = m%ActDsk(2)%m%Ct
- m%AllOuts( SP1TFx   ) = m%ActDsk(1)%y%Fx
- m%AllOuts( SP1BFx   ) = m%ActDsk(2)%y%Fx
- m%AllOuts( SP1TFy   ) = m%ActDsk(1)%y%Fy
- m%AllOuts( SP1BFy   ) = m%ActDsk(2)%y%Fy
- m%AllOuts( SP1TFz   ) = m%ActDsk(1)%y%Fz
- m%AllOuts( SP1BFz   ) = m%ActDsk(2)%y%Fz
- m%AllOuts( SP1TMx   ) = m%ActDsk(1)%y%Mx
- m%AllOuts( SP1BMx   ) = m%ActDsk(2)%y%Mx
- m%AllOuts( SP1TMy   ) = m%ActDsk(1)%y%My
- m%AllOuts( SP1BMy   ) = m%ActDsk(2)%y%My
- m%AllOuts( SP1TMz   ) = m%ActDsk(1)%y%Mz
- m%AllOuts( SP1BMz   ) = m%ActDsk(2)%y%Mz
+ m%AllOuts( SP1TFx   ) = forces(1,1)
+ m%AllOuts( SP1BFx   ) = forces(1,2)
+ m%AllOuts( SP1TFy   ) = forces(2,1)
+ m%AllOuts( SP1BFy   ) = forces(2,2)
+ m%AllOuts( SP1TFz   ) = forces(3,1)
+ m%AllOuts( SP1BFz   ) = forces(3,2)
+ m%AllOuts( SP1TMx   ) = moments(1,1)
+ m%AllOuts( SP1BMx   ) = moments(1,2)
+ m%AllOuts( SP1TMy   ) = moments(2,1)
+ m%AllOuts( SP1BMy   ) = moments(2,2)
+ m%AllOuts( SP1TMz   ) = moments(3,1)
+ m%AllOuts( SP1BMz   ) = moments(3,2)
  m%AllOuts( SP1TPwr  ) = m%ActDsk(1)%y%P
  m%AllOuts( SP1BPwr  ) = m%ActDsk(2)%y%P
 
@@ -2679,8 +3192,8 @@ subroutine KAD_MapOutputs(p, u, y, y_VSM, m, z, errStat, errMsg)
  m%AllOuts( SP2BVRelx) = m%ActDsk(4)%u%DiskAve_Vx_Rel
  m%AllOuts( SP2TRtSpd) = m%ActDsk(3)%u%omega
  m%AllOuts( SP2BRtSpd) = m%ActDsk(4)%u%omega
- m%AllOuts( SP2TSkew ) = m%ActDsk(3)%u%skew
- m%AllOuts( SP2BSkew ) = m%ActDsk(4)%u%skew
+ m%AllOuts( SP2TSkew ) = m%ActDsk(3)%u%skew*R2D
+ m%AllOuts( SP2BSkew ) = m%ActDsk(4)%u%skew*R2D
  m%AllOuts( SP2TVrel ) = m%ActDsk(3)%u%DiskAve_Vinf_Rel
  m%AllOuts( SP2BVrel ) = m%ActDsk(4)%u%DiskAve_Vinf_Rel
  m%AllOuts( SP2TCp   ) = m%ActDsk(3)%m%Cp
@@ -2689,30 +3202,37 @@ subroutine KAD_MapOutputs(p, u, y, y_VSM, m, z, errStat, errMsg)
  m%AllOuts( SP2BCq   ) = m%ActDsk(4)%m%Cq
  m%AllOuts( SP2TCt   ) = m%ActDsk(3)%m%Ct
  m%AllOuts( SP2BCt   ) = m%ActDsk(4)%m%Ct
- m%AllOuts( SP2TFx   ) = m%ActDsk(3)%y%Fx
- m%AllOuts( SP2BFx   ) = m%ActDsk(4)%y%Fx
- m%AllOuts( SP2TFy   ) = m%ActDsk(3)%y%Fy
- m%AllOuts( SP2BFy   ) = m%ActDsk(4)%y%Fy
- m%AllOuts( SP2TFz   ) = m%ActDsk(3)%y%Fz
- m%AllOuts( SP2BFz   ) = m%ActDsk(4)%y%Fz
- m%AllOuts( SP2TMx   ) = m%ActDsk(3)%y%Mx
- m%AllOuts( SP2BMx   ) = m%ActDsk(4)%y%Mx
- m%AllOuts( SP2TMy   ) = m%ActDsk(3)%y%My
- m%AllOuts( SP2BMy   ) = m%ActDsk(4)%y%My
- m%AllOuts( SP2TMz   ) = m%ActDsk(3)%y%Mz
- m%AllOuts( SP2BMz   ) = m%ActDsk(4)%y%Mz
+ m%AllOuts( SP2TFx   ) = forces(1,3)
+ m%AllOuts( SP2BFx   ) = forces(1,4)
+ m%AllOuts( SP2TFy   ) = forces(2,3)
+ m%AllOuts( SP2BFy   ) = forces(2,4)
+ m%AllOuts( SP2TFz   ) = forces(3,3)
+ m%AllOuts( SP2BFz   ) = forces(3,4)
+ m%AllOuts( SP2TMx   ) = moments(1,3)
+ m%AllOuts( SP2BMx   ) = moments(1,4)
+ m%AllOuts( SP2TMy   ) = moments(2,3)
+ m%AllOuts( SP2BMy   ) = moments(2,4)
+ m%AllOuts( SP2TMz   ) = moments(3,3)
+ m%AllOuts( SP2BMz   ) = moments(3,4)
  m%AllOuts( SP2TPwr  ) = m%ActDsk(3)%y%P
  m%AllOuts( SP2BPwr  ) = m%ActDsk(4)%y%P
 
  offset = p%NumPylons*2
  
+ ! Orientation is transform from global to local
+do i = 1, 2*p%NumPylons
+   DCM = y%PPyRtrLoads(i)%Orientation(:,:,1)
+   forces(:,i)  = matmul(DCM, y%PPyRtrLoads(i)%Force(:,1))
+   moments(:,i) = matmul (DCM,y%PPyRtrLoads(i)%Moment(:,1))
+end do
+   
    ! Port Pylon 1   Top and Bottom rotors
  m%AllOuts( PP1TVRelx) = m%ActDsk(1+offset)%u%DiskAve_Vx_Rel
  m%AllOuts( PP1BVRelx) = m%ActDsk(2+offset)%u%DiskAve_Vx_Rel
  m%AllOuts( PP1TRtSpd) = m%ActDsk(1+offset)%u%omega
  m%AllOuts( PP1BRtSpd) = m%ActDsk(2+offset)%u%omega
- m%AllOuts( PP1TSkew ) = m%ActDsk(1+offset)%u%skew
- m%AllOuts( PP1BSkew ) = m%ActDsk(2+offset)%u%skew
+ m%AllOuts( PP1TSkew ) = m%ActDsk(1+offset)%u%skew*R2D
+ m%AllOuts( PP1BSkew ) = m%ActDsk(2+offset)%u%skew*R2D
  m%AllOuts( PP1TVrel ) = m%ActDsk(1+offset)%u%DiskAve_Vinf_Rel
  m%AllOuts( PP1BVrel ) = m%ActDsk(2+offset)%u%DiskAve_Vinf_Rel
  m%AllOuts( PP1TCp   ) = m%ActDsk(1+offset)%m%Cp
@@ -2721,18 +3241,18 @@ subroutine KAD_MapOutputs(p, u, y, y_VSM, m, z, errStat, errMsg)
  m%AllOuts( PP1BCq   ) = m%ActDsk(2+offset)%m%Cq
  m%AllOuts( PP1TCt   ) = m%ActDsk(1+offset)%m%Ct
  m%AllOuts( PP1BCt   ) = m%ActDsk(2+offset)%m%Ct
- m%AllOuts( PP1TFx   ) = m%ActDsk(1+offset)%y%Fx
- m%AllOuts( PP1BFx   ) = m%ActDsk(2+offset)%y%Fx
- m%AllOuts( PP1TFy   ) = m%ActDsk(1+offset)%y%Fy
- m%AllOuts( PP1BFy   ) = m%ActDsk(2+offset)%y%Fy
- m%AllOuts( PP1TFz   ) = m%ActDsk(1+offset)%y%Fz
- m%AllOuts( PP1BFz   ) = m%ActDsk(2+offset)%y%Fz
- m%AllOuts( PP1TMx   ) = m%ActDsk(1+offset)%y%Mx
- m%AllOuts( PP1BMx   ) = m%ActDsk(2+offset)%y%Mx
- m%AllOuts( PP1TMy   ) = m%ActDsk(1+offset)%y%My
- m%AllOuts( PP1BMy   ) = m%ActDsk(2+offset)%y%My
- m%AllOuts( PP1TMz   ) = m%ActDsk(1+offset)%y%Mz
- m%AllOuts( PP1BMz   ) = m%ActDsk(2+offset)%y%Mz
+ m%AllOuts( PP1TFx   ) = forces(1,1)
+ m%AllOuts( PP1BFx   ) = forces(1,2)
+ m%AllOuts( PP1TFy   ) = forces(2,1)
+ m%AllOuts( PP1BFy   ) = forces(2,2)
+ m%AllOuts( PP1TFz   ) = forces(3,1)
+ m%AllOuts( PP1BFz   ) = forces(3,2)
+ m%AllOuts( PP1TMx   ) = moments(1,1)
+ m%AllOuts( PP1BMx   ) = moments(1,2)
+ m%AllOuts( PP1TMy   ) = moments(2,1)
+ m%AllOuts( PP1BMy   ) = moments(2,2)
+ m%AllOuts( PP1TMz   ) = moments(3,1)
+ m%AllOuts( PP1BMz   ) = moments(3,2)
  m%AllOuts( PP1TPwr  ) = m%ActDsk(1+offset)%y%P
  m%AllOuts( PP1BPwr  ) = m%ActDsk(2+offset)%y%P
 
@@ -2741,8 +3261,8 @@ subroutine KAD_MapOutputs(p, u, y, y_VSM, m, z, errStat, errMsg)
  m%AllOuts( PP2BVRelx) = m%ActDsk(4+offset)%u%DiskAve_Vx_Rel
  m%AllOuts( PP2TRtSpd) = m%ActDsk(3+offset)%u%omega
  m%AllOuts( PP2BRtSpd) = m%ActDsk(4+offset)%u%omega
- m%AllOuts( PP2TSkew ) = m%ActDsk(3+offset)%u%skew
- m%AllOuts( PP2BSkew ) = m%ActDsk(4+offset)%u%skew
+ m%AllOuts( PP2TSkew ) = m%ActDsk(3+offset)%u%skew*R2D
+ m%AllOuts( PP2BSkew ) = m%ActDsk(4+offset)%u%skew*R2D
  m%AllOuts( PP2TVrel ) = m%ActDsk(3+offset)%u%DiskAve_Vinf_Rel
  m%AllOuts( PP2BVrel ) = m%ActDsk(4+offset)%u%DiskAve_Vinf_Rel
  m%AllOuts( PP2TCp   ) = m%ActDsk(3+offset)%m%Cp
@@ -2751,18 +3271,18 @@ subroutine KAD_MapOutputs(p, u, y, y_VSM, m, z, errStat, errMsg)
  m%AllOuts( PP2BCq   ) = m%ActDsk(4+offset)%m%Cq
  m%AllOuts( PP2TCt   ) = m%ActDsk(3+offset)%m%Ct
  m%AllOuts( PP2BCt   ) = m%ActDsk(4+offset)%m%Ct
- m%AllOuts( PP2TFx   ) = m%ActDsk(3+offset)%y%Fx
- m%AllOuts( PP2BFx   ) = m%ActDsk(4+offset)%y%Fx
- m%AllOuts( PP2TFy   ) = m%ActDsk(3+offset)%y%Fy
- m%AllOuts( PP2BFy   ) = m%ActDsk(4+offset)%y%Fy
- m%AllOuts( PP2TFz   ) = m%ActDsk(3+offset)%y%Fz
- m%AllOuts( PP2BFz   ) = m%ActDsk(4+offset)%y%Fz
- m%AllOuts( PP2TMx   ) = m%ActDsk(3+offset)%y%Mx
- m%AllOuts( PP2BMx   ) = m%ActDsk(4+offset)%y%Mx
- m%AllOuts( PP2TMy   ) = m%ActDsk(3+offset)%y%My
- m%AllOuts( PP2BMy   ) = m%ActDsk(4+offset)%y%My
- m%AllOuts( PP2TMz   ) = m%ActDsk(3+offset)%y%Mz
- m%AllOuts( PP2BMz   ) = m%ActDsk(4+offset)%y%Mz
+ m%AllOuts( PP2TFx   ) = forces(1,3)
+ m%AllOuts( PP2BFx   ) = forces(1,4)
+ m%AllOuts( PP2TFy   ) = forces(2,3)
+ m%AllOuts( PP2BFy   ) = forces(2,4)
+ m%AllOuts( PP2TFz   ) = forces(3,3)
+ m%AllOuts( PP2BFz   ) = forces(3,4)
+ m%AllOuts( PP2TMx   ) = moments(1,3)
+ m%AllOuts( PP2BMx   ) = moments(1,4)
+ m%AllOuts( PP2TMy   ) = moments(2,3)
+ m%AllOuts( PP2BMy   ) = moments(2,4)
+ m%AllOuts( PP2TMz   ) = moments(3,3)
+ m%AllOuts( PP2BMz   ) = moments(3,4)
  m%AllOuts( PP2TPwr  ) = m%ActDsk(3+offset)%y%P
  m%AllOuts( PP2BPwr  ) = m%ActDsk(4+offset)%y%P
  
@@ -2802,7 +3322,9 @@ subroutine KAD_Init( InitInp, u, p, y, interval, m, InitOut, errStat, errMsg )
    integer(IntKi)                               :: i, j, n, count, numElem, n1, n2, nIfWPts
    type(VSM_InitOutputType)                     :: VSM_InitOut
    type(VSM_InitInputType)                      :: VSM_InitInp
-    
+   integer(IntKi), allocatable                  :: VSM_numCompElems(:)
+   integer(IntKi)                               :: c
+   real(ReKi), allocatable                      :: VSM_ElemPts(:,:,:)
       ! Initialize variables for this routine
    errStat         = ErrID_None
    errMsg          = "" 
@@ -3053,16 +3575,35 @@ subroutine KAD_Init( InitInp, u, p, y, interval, m, InitOut, errStat, errMsg )
    call AllocAry( VSM_InitInp%AFNames, VSM_InitInp%NumAFfiles, 'VSM_InitInp%AFNames', errStat2, errMsg2 )
       call SetErrStat( errStat2, errMsg2, errStat, errMsg, RoutineName )
       
-   VSM_InitInp%AFNames     = InitInp%InpFileData%AFNames  
+   VSM_InitInp%AFNames     = InitInp%InpFileData%AFNames
+   
+   call AllocAry( VSM_numCompElems, 6+2*p%NumPylons, 'VSM_numCompElems', errStat2, errMsg2 )
+      call SetErrStat( errStat2, errMsg2, errStat, errMsg, RoutineName )
+   VSM_numCompElems(1) = u%FusMotions%NElemList  
+   VSM_numCompElems(2) = u%SWnMotions%NElemList
+   VSM_numCompElems(3) = u%PWnMotions%NElemList
+   VSM_numCompElems(4) = u%VSPMotions%NElemList
+   VSM_numCompElems(5) = u%SHSMotions%NElemList
+   VSM_numCompElems(6) = u%PHSMotions%NElemList
+   c = 7
    numElem = u%FusMotions%NElemList + u%SWnMotions%NElemList + u%PWnMotions%NElemList + u%VSPMotions%NElemList + u%SHSMotions%NElemList + u%PHSMotions%NElemList
    do i = 1, + p%NumPylons
-      numElem = numElem + u%SPyMotions(i)%NElemList + u%PPyMotions(i)%NElemList
+      VSM_numCompElems(c) = u%SPyMotions(i)%NElemList
+      c = c + 1
+      numElem = numElem + u%SPyMotions(i)%NElemList
+   end do
+   do i = 1, + p%NumPylons
+      VSM_numCompElems(c) = u%PPyMotions(i)%NElemList
+      c = c + 1
+      numElem = numElem + u%PPyMotions(i)%NElemList
    end do
    VSM_InitInp%NumElem     = numElem
    
    call AllocAry( VSM_InitInp%Chords, numElem, 'VSM_InitInp%Chords', errStat2, errMsg2 )
       call SetErrStat( errStat2, errMsg2, errStat, errMsg, RoutineName )
    call AllocAry( VSM_InitInp%AFIDs, numElem, 'VSM_InitInp%AFIDs', errStat2, errMsg2 )
+      call SetErrStat( errStat2, errMsg2, errStat, errMsg, RoutineName )
+   call AllocAry( VSM_ElemPts, 3,2,numElem, 'VSM_ElemPts', errStat2, errMsg2 )
       call SetErrStat( errStat2, errMsg2, errStat, errMsg, RoutineName )
       
    ! Loop over kite components to set these values
@@ -3072,14 +3613,20 @@ subroutine KAD_Init( InitInp, u, p, y, interval, m, InitOut, errStat, errMsg )
    !       they are first in the list and we need to tell the module how many of these we have.  GJH 1/16/2018
    
    do i = 1, u%FusMotions%NElemList
-      VSM_InitInp%Chords(count) = (InitInp%InpFileData%FusProps%Chord(i) + InitInp%InpFileData%FusProps%Chord(i+1)) / 2.0
-      VSM_InitInp%AFIDs(count)  = InitInp%InpFileData%FusProps%AFID(i)
+      n1 = u%FusMotions%ELEMLIST(i)%ELEMENT%ELEMNODES(1)
+      n2 = u%FusMotions%ELEMLIST(i)%ELEMENT%ELEMNODES(2)     
+      VSM_ElemPts(:,1,count)    = u%FusMotions%Position(:,n1)
+      VSM_ElemPts(:,2,count)    = u%FusMotions%Position(:,n2)
+      VSM_InitInp%Chords(count) = (InitInp%InpFileData%FusProps%Chord(n1) + InitInp%InpFileData%FusProps%Chord(n2)) / 2.0
+      VSM_InitInp%AFIDs(count)  = InitInp%InpFileData%FusProps%AFID(n1)
       count = count + 1
    end do  
    
    do i = 1, u%SWnMotions%NElemList
       n1 = u%SWnMotions%ELEMLIST(i)%ELEMENT%ELEMNODES(1)
-      n2 = u%SWnMotions%ELEMLIST(i)%ELEMENT%ELEMNODES(2)     
+      n2 = u%SWnMotions%ELEMLIST(i)%ELEMENT%ELEMNODES(2)    
+      VSM_ElemPts(:,1,count)    = u%SWnMotions%Position(:,n1)
+      VSM_ElemPts(:,2,count)    = u%SWnMotions%Position(:,n2)
       VSM_InitInp%Chords(count) = (InitInp%InpFileData%SWnProps%Chord(n1) + InitInp%InpFileData%SWnProps%Chord(n2)) / 2.0
       VSM_InitInp%AFIDs(count)  = InitInp%InpFileData%SWnProps%AFID(n1)
       count = count + 1
@@ -3087,6 +3634,8 @@ subroutine KAD_Init( InitInp, u, p, y, interval, m, InitOut, errStat, errMsg )
    do i = 1, u%PWnMotions%NElemList
       n1 = u%PWnMotions%ELEMLIST(i)%ELEMENT%ELEMNODES(1)
       n2 = u%PWnMotions%ELEMLIST(i)%ELEMENT%ELEMNODES(2)     
+      VSM_ElemPts(:,1,count)    = u%PWnMotions%Position(:,n1)
+      VSM_ElemPts(:,2,count)    = u%PWnMotions%Position(:,n2)
       VSM_InitInp%Chords(count) = (InitInp%InpFileData%PWnProps%Chord(n1) + InitInp%InpFileData%PWnProps%Chord(n2)) / 2.0
       VSM_InitInp%AFIDs(count)  = InitInp%InpFileData%PWnProps%AFID(n1)
       count = count + 1
@@ -3094,6 +3643,8 @@ subroutine KAD_Init( InitInp, u, p, y, interval, m, InitOut, errStat, errMsg )
    do i = 1, u%VSPMotions%NElemList
       n1 = u%VSPMotions%ELEMLIST(i)%ELEMENT%ELEMNODES(1)
       n2 = u%VSPMotions%ELEMLIST(i)%ELEMENT%ELEMNODES(2)     
+      VSM_ElemPts(:,1,count)    = u%VSPMotions%Position(:,n1)
+      VSM_ElemPts(:,2,count)    = u%VSPMotions%Position(:,n2)
       VSM_InitInp%Chords(count) = (InitInp%InpFileData%VSPProps%Chord(n1) + InitInp%InpFileData%VSPProps%Chord(n2)) / 2.0
       VSM_InitInp%AFIDs(count)  = InitInp%InpFileData%VSPProps%AFID(n1)
       count = count + 1
@@ -3101,6 +3652,8 @@ subroutine KAD_Init( InitInp, u, p, y, interval, m, InitOut, errStat, errMsg )
    do i = 1, u%SHSMotions%NElemList
       n1 = u%SHSMotions%ELEMLIST(i)%ELEMENT%ELEMNODES(1)
       n2 = u%SHSMotions%ELEMLIST(i)%ELEMENT%ELEMNODES(2)     
+      VSM_ElemPts(:,1,count)    = u%SHSMotions%Position(:,n1)
+      VSM_ElemPts(:,2,count)    = u%SHSMotions%Position(:,n2)
       VSM_InitInp%Chords(count) = (InitInp%InpFileData%SHSProps%Chord(n1) + InitInp%InpFileData%SHSProps%Chord(n2)) / 2.0
       VSM_InitInp%AFIDs(count)  = InitInp%InpFileData%SHSProps%AFID(n1)
       count = count + 1
@@ -3108,6 +3661,8 @@ subroutine KAD_Init( InitInp, u, p, y, interval, m, InitOut, errStat, errMsg )
    do i = 1, u%PHSMotions%NElemList
       n1 = u%PHSMotions%ELEMLIST(i)%ELEMENT%ELEMNODES(1)
       n2 = u%PHSMotions%ELEMLIST(i)%ELEMENT%ELEMNODES(2)     
+      VSM_ElemPts(:,1,count)    = u%PHSMotions%Position(:,n1)
+      VSM_ElemPts(:,2,count)    = u%PHSMotions%Position(:,n2)
       VSM_InitInp%Chords(count) = (InitInp%InpFileData%PHSProps%Chord(n1) + InitInp%InpFileData%PHSProps%Chord(n2)) / 2.0
       VSM_InitInp%AFIDs(count)  = InitInp%InpFileData%PHSProps%AFID(n1)
       count = count + 1
@@ -3116,6 +3671,8 @@ subroutine KAD_Init( InitInp, u, p, y, interval, m, InitOut, errStat, errMsg )
       do i = 1, u%SPyMotions(j)%NElemList
          n1 = u%SPyMotions(j)%ELEMLIST(i)%ELEMENT%ELEMNODES(1)
          n2 = u%SPyMotions(j)%ELEMLIST(i)%ELEMENT%ELEMNODES(2)     
+         VSM_ElemPts(:,1,count)    = u%SPyMotions(j)%Position(:,n1)
+         VSM_ElemPts(:,2,count)    = u%SPyMotions(j)%Position(:,n2)
          VSM_InitInp%Chords(count) = (InitInp%InpFileData%SPyProps(j)%Chord(n1) + InitInp%InpFileData%SPyProps(j)%Chord(n2)) / 2.0
          VSM_InitInp%AFIDs(count)  = InitInp%InpFileData%SPyProps(j)%AFID(n1)
          count = count + 1
@@ -3125,6 +3682,8 @@ subroutine KAD_Init( InitInp, u, p, y, interval, m, InitOut, errStat, errMsg )
       do i = 1, u%PPyMotions(j)%NElemList
          n1 = u%PPyMotions(j)%ELEMLIST(i)%ELEMENT%ELEMNODES(1)
          n2 = u%PPyMotions(j)%ELEMLIST(i)%ELEMENT%ELEMNODES(2)     
+         VSM_ElemPts(:,1,count)    = u%PPyMotions(j)%Position(:,n1)
+         VSM_ElemPts(:,2,count)    = u%PPyMotions(j)%Position(:,n2)
          VSM_InitInp%Chords(count) = (InitInp%InpFileData%PPyProps(j)%Chord(n1) + InitInp%InpFileData%PPyProps(j)%Chord(n2)) / 2.0
          VSM_InitInp%AFIDs(count)  = InitInp%InpFileData%PPyProps(j)%AFID(n1)
          count = count + 1
@@ -3136,6 +3695,9 @@ subroutine KAD_Init( InitInp, u, p, y, interval, m, InitOut, errStat, errMsg )
       
    InitOut%AirDens = p%AirDens
    InitOut%nIfWPts = nIfWPts   
+   
+   call KAD_WriteSummary( p%OutFileRoot, VSM_ElemPts, VSM_numCompElems, m%VSM, errStat, errMsg )
+   
 end subroutine KAD_Init
         
                               
@@ -3270,32 +3832,34 @@ subroutine KAD_CalcOutput( Time, u, p, x, xd, z, OtherState, y, m, errStat, errM
    ! FusOLoads  - where do these loads come from?
    
    if ( p%RotorMod == 1 ) then
-      call RotorDisk_CalcOutput(0,             p%NumPylons, u%V_SPyRtr, u%SPyRtrMotions, u%Omega_SPyRtr, u%Pitch_SPyRtr, m%ActDsk, errStat, errMsg)
+      call RotorDisk_CalcOutput(0,             p%NumPylons, u%V_SPyRtr, u%SPyRtrMotions, u%Omega_SPyRtr, u%Pitch_SPyRtr, m%ActDsk, y%SPyRtrLoads, errStat, errMsg)
          if ( errStat >= AbortErrLev ) return
-      call RotorDisk_CalcOutput(p%NumPylons*2, p%NumPylons, u%V_PPyRtr, u%PPyRtrMotions, u%Omega_PPyRtr, u%Pitch_PPyRtr, m%ActDsk, errStat, errMsg)
+      call RotorDisk_CalcOutput(p%NumPylons*2, p%NumPylons, u%V_PPyRtr, u%PPyRtrMotions, u%Omega_PPyRtr, u%Pitch_PPyRtr, m%ActDsk, y%PPyRtrLoads, errStat, errMsg)
          if ( errStat >= AbortErrLev ) return
          
           ! Rotor Loads in global
       do i = 1, p%NumPylons*2
-         forces  = (/m%ActDsk(i)%y%Fx,m%ActDsk(i)%y%Fy,m%ActDsk(i)%y%Fz/)
-         moments = (/m%ActDsk(i)%y%Mx,m%ActDsk(i)%y%My,m%ActDsk(i)%y%Mz/)
-            ! Orientation is transform from global to local, but we need local to global so transpose
-         DCM = transpose(y%SPyRtrLoads(i)%Orientation(:,:,1))
-         forces = matmul(DCM, forces)
-         moments = matmul (DCM, moments)
-         y%SPyRtrLoads(i)%Force(:,1)  = forces
-         y%SPyRtrLoads(i)%Moment(:,1) = moments
+         !forces  = (/m%ActDsk(i)%y%Fx,m%ActDsk(i)%y%Fy,m%ActDsk(i)%y%Fz/)
+         !moments = (/m%ActDsk(i)%y%Mx,m%ActDsk(i)%y%My,m%ActDsk(i)%y%Mz/)
+         !   ! Orientation is transform from global to local, but we need local to global so transpose
+         !DCM = transpose(y%SPyRtrLoads(i)%Orientation(:,:,1))
+         !forces = matmul(DCM, forces)
+         !moments = matmul (DCM, moments)
+         !y%SPyRtrLoads(i)%Force(:,1)  = forces
+         !y%SPyRtrLoads(i)%Moment(:,1) = moments
       end do
       do i = 1, p%NumPylons*2
          j = i + p%NumPylons*2
-         forces  = (/m%ActDsk(j)%y%Fx,m%ActDsk(j)%y%Fy,m%ActDsk(j)%y%Fz/)
-         moments = (/m%ActDsk(j)%y%Mx,m%ActDsk(j)%y%My,m%ActDsk(j)%y%Mz/)
-            ! Orientation is transform from global to local, but we need local to global so transpose
-         DCM = transpose(y%PPyRtrLoads(i)%Orientation(:,:,1))
-         forces = matmul(DCM, forces)
-         moments = matmul (DCM, moments)
-         y%PPyRtrLoads(i)%Force(:,1)  = forces
-         y%PPyRtrLoads(i)%Moment(:,1) = moments
+         !forces  = (/m%ActDsk(j)%y%Fx,m%ActDsk(j)%y%Fy,m%ActDsk(j)%y%Fz/)
+         !moments = (/m%ActDsk(j)%y%Mx,m%ActDsk(j)%y%My,m%ActDsk(j)%y%Mz/)
+         !   ! Orientation is transform from global to local, but we need local to global so transpose
+         !
+         !DCM = transpose(y%PPyRtrLoads(i)%Orientation(:,:,1))
+         !
+         !forces = matmul(DCM, forces)
+         !moments = matmul (DCM, moments)
+         !y%PPyRtrLoads(i)%Force(:,1)  = forces
+         !y%PPyRtrLoads(i)%Moment(:,1) = moments
       end do
    
    else
@@ -3304,7 +3868,7 @@ subroutine KAD_CalcOutput( Time, u, p, x, xd, z, OtherState, y, m, errStat, errM
    
    ! Map the output quantities to the AllOuts array
    
-   call KAD_MapOutputs(p, u, y, m%VSM%y, m, z, errStat, errMsg)
+   call KAD_MapOutputs(p, u, m%VSM%u, y, m%VSM%y, m, z, errStat, errMsg)
       if ( errStat >= AbortErrLev ) return
       
    !...............................................................................................................................
