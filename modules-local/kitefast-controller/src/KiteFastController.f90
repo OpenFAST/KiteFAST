@@ -89,7 +89,7 @@ module KiteFastController
    
    subroutine KFC_End(p, errStat, errMsg)
 
-      type(KFC_ParameterType),         intent(inout)  :: p               !< Parameters
+      type(KFC_ParameterType),        intent(inout)  :: p               !< Parameters
       integer(IntKi),                 intent(  out)  :: errStat         !< Error status of the operation
       character(*),                   intent(  out)  :: errMsg          !< Error message if ErrStat /= ErrID_None
 
@@ -97,14 +97,15 @@ module KiteFastController
       character(*), parameter                        :: routineName = 'KFC_End'
       integer(IntKi)                                 :: errStat2       ! The error status code
       character(ErrMsgLen)                           :: errMsg2        ! The error message, if an error occurred
-      procedure(KFC_DLL_END_PROC),pointer             :: DLL_KFC_End_Subroutine       ! The address of the controller cc_end procedure in the DLL
-      
+      procedure(KFC_DLL_END_PROC),pointer            :: DLL_KFC_End_Subroutine       ! The address of the controller cc_end procedure in the DLL
+      character(kind=C_CHAR)                         :: errMsg_c(IntfStrLen)
       errStat = ErrID_None
       errMsg= ''
       
          ! Call the DLL's end subroutine:
       call C_F_PROCPOINTER( p%DLL_Trgt%ProcAddr(3), DLL_KFC_End_Subroutine) 
-      call DLL_KFC_End_Subroutine ( errStat, errMsg ) 
+      call DLL_KFC_End_Subroutine ( errStat, errMsg_c ) 
+      call c_to_fortran_string(errMsg_c, errMsg)
       
       ! TODO: Check errors
       
@@ -126,10 +127,10 @@ module KiteFastController
       character(*), parameter                 :: routineName = 'KFC_Init'
       integer(IntKi)                          :: errStat2                     ! The error status code
       character(ErrMsgLen)                    :: errMsg2                      ! The error message, if an error occurred
-      procedure(KFC_DLL_Init_PROC),pointer     :: DLL_KFC_Init_Subroutine       ! The address of the controller cc_init procedure in the DLL
+      procedure(KFC_DLL_Init_PROC),pointer    :: DLL_KFC_Init_Subroutine       ! The address of the controller cc_init procedure in the DLL
       
       integer(IntKi)                          :: nParams
-      
+      character(kind=C_CHAR)                  :: errMsg_c(IntfStrLen)
       
       errStat2 = ErrID_None
       errMsg2  = ''
@@ -167,7 +168,8 @@ module KiteFastController
 
          ! Call the DLL (first associate the address from the procedure in the DLL with the subroutine):
       call C_F_PROCPOINTER( p%DLL_Trgt%ProcAddr(1), DLL_KFC_Init_Subroutine) 
-      call DLL_KFC_Init_Subroutine ( errStat, errMsg ) 
+      call DLL_KFC_Init_Subroutine ( errStat, errMsg_c ) 
+      call c_to_fortran_string(errMsg_c, errMsg)
       
       ! TODO: Check errors
            
@@ -186,30 +188,30 @@ module KiteFastController
       character(*),                  intent(  out)  :: errMsg      !< Error message if ErrStat /= ErrID_None
    
       
-      character(*), parameter                        :: routineName = 'KFC_CalcOutput'
-      integer(IntKi)                                 :: errStat2       ! The error status code
-      character(ErrMsgLen)                           :: errMsg2        ! The error message, if an error occurred     
-      procedure(KFC_DLL_Step_PROC),pointer           :: DLL_KFC_Step_Subroutine              ! The address of the supercontroller sc_calcoutputs procedure in the DLL
-      real(C_DOUBLE)                                 :: dcm_g2b_c(9)      
-      real(C_DOUBLE)                                 :: pqr_c(3)          
-      real(C_DOUBLE)                                 :: acc_norm_c(3)     
-      real(C_DOUBLE)                                 :: Xg_c(3)           
-      real(C_DOUBLE)                                 :: Vg_c(3)           
-      real(C_DOUBLE)                                 :: Vb_c(3)           
-      real(C_DOUBLE)                                 :: Ag_c(3)           
-      real(C_DOUBLE)                                 :: Ab_c(3)           
-      real(C_DOUBLE)                                 :: rho_c          
-      real(C_DOUBLE)                                 :: apparent_wind_c(3)
-      real(C_DOUBLE)                                 :: tether_force_c(3) 
-      real(C_DOUBLE)                                 :: wind_g_c(3)       
-      character(kind=C_CHAR)                         :: errMsg_c(IntfStrLen)
-      real(C_DOUBLE)                                 :: SFlp_c(3)           
-      real(C_DOUBLE)                                 :: PFlp_c(3)           
-      real(C_DOUBLE)                                 :: Rudr_c(2)           
-      real(C_DOUBLE)                                 :: SElv_c(2)           
-      real(C_DOUBLE)                                 :: PElv_c(2)           
-      real(C_DOUBLE)                                 :: GenSPyRtr_c(8)
-      real(C_DOUBLE)                                 :: GenPPyRtr_c(8)
+      character(*), parameter                       :: routineName = 'KFC_CalcOutput'
+      integer(IntKi)                                :: errStat2       ! The error status code
+      character(ErrMsgLen)                          :: errMsg2        ! The error message, if an error occurred     
+      procedure(KFC_DLL_Step_PROC),pointer          :: DLL_KFC_Step_Subroutine              ! The address of the supercontroller sc_calcoutputs procedure in the DLL
+      real(C_DOUBLE)                                :: dcm_g2b_c(9)      
+      real(C_DOUBLE)                                :: pqr_c(3)          
+      real(C_DOUBLE)                                :: acc_norm_c(3)     
+      real(C_DOUBLE)                                :: Xg_c(3)           
+      real(C_DOUBLE)                                :: Vg_c(3)           
+      real(C_DOUBLE)                                :: Vb_c(3)           
+      real(C_DOUBLE)                                :: Ag_c(3)           
+      real(C_DOUBLE)                                :: Ab_c(3)           
+      real(C_DOUBLE)                                :: rho_c          
+      real(C_DOUBLE)                                :: apparent_wind_c(3)
+      real(C_DOUBLE)                                :: tether_force_c(3) 
+      real(C_DOUBLE)                                :: wind_g_c(3)       
+      character(kind=C_CHAR)                        :: errMsg_c(IntfStrLen)
+      real(C_DOUBLE)                                :: SFlp_c(3)           
+      real(C_DOUBLE)                                :: PFlp_c(3)           
+      real(C_DOUBLE)                                :: Rudr_c(2)           
+      real(C_DOUBLE)                                :: SElv_c(2)           
+      real(C_DOUBLE)                                :: PElv_c(2)           
+      real(C_DOUBLE)                                :: GenSPyRtr_c(8)
+      real(C_DOUBLE)                                :: GenPPyRtr_c(8)
 
       errStat2 = ErrID_None
       errMsg2  = ''
@@ -227,24 +229,33 @@ module KiteFastController
       apparent_wind_c = u%apparent_wind
       tether_force_c  = u%tether_force 
       wind_g_c        = u%wind_g       
-
+             
          ! Call the DLL (first associate the address from the procedure in the DLL with the subroutine):
       call C_F_PROCPOINTER( p%DLL_Trgt%ProcAddr(2), DLL_KFC_Step_Subroutine) 
       call DLL_KFC_Step_Subroutine ( dcm_g2b_c, pqr_c, acc_norm_c, Xg_c, Vg_c, Vb_c, Ag_c, Ab_c, rho_c, apparent_wind_c, tether_force_c, wind_g_c, SFlp_c, PFlp_c, Rudr_c, SElv_c, PElv_c, GenSPyRtr_c, GenPPyRtr_c, errStat, errMsg_c ) 
-             
+      call c_to_fortran_string(errMsg_c, errMsg)
+
          ! Convert the controller outputs into the KiteFAST Fortran-style controller outputs
       y%SFlp = SFlp_c
       y%SFlp = SFlp_c   
-      y%Rudr  =   Rudr_c 
-      y%SElv  =   SElv_c
-      y%PElv  =   PElv_c   
+      y%Rudr = Rudr_c 
+      y%SElv = SElv_c
+      y%PElv = PElv_c   
       y%GenSPyRtr = reshape(GenSPyRtr_c,(/2,2/))
       y%GenPPyRtr = reshape(GenPPyRtr_c,(/2,2/))
       
-      
+
          ! TODO Error checking
     
    end subroutine KFC_CalcOutput
    
+   subroutine c_to_fortran_string(input, output)
+      character(kind=C_CHAR), intent(in) :: input(IntfStrLen)
+      character(*), intent(out) :: output
+      character(1024) :: temp_string
+      temp_string = transfer(input(1:1024), output)
+      call RemoveNullChar(temp_string)
+      output = trim(temp_string)
+   end subroutine
 
 end module KiteFastController
