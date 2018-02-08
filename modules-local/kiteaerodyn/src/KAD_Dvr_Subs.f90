@@ -451,14 +451,14 @@ subroutine ReadMotions( UnIn, fileName, NumTimes, NumFlaps, NumPylons, Motions, 
       c = 1
    
       do k=1,NumPylons  ! All starboard rotors
-         Motions%SRtSpd(i,1,k)   = vals(13+c  )*RPM2RPS   ! Top RtSpd 
-         Motions%SRtSpd(i,2,k)   = vals(13+c+1)*RPM2RPS ! Bottom RtSpd
+         Motions%SRtSpd(i,1,k)   = vals(13+c  )   ! Top RtSpd in rad/s
+         Motions%SRtSpd(i,2,k)   = vals(13+c+1)   ! Bottom RtSpd in rad/s
        
          c = c + 2 ! increment rotor count
       end do
       do k=1,NumPylons  ! All port rotors
-         Motions%PRtSpd(i,1,k)   = vals(13+c  )*RPM2RPS   ! Top RtSpd 
-         Motions%PRtSpd(i,2,k)   = vals(13+c+1)*RPM2RPS ! Bottom RtSpd
+         Motions%PRtSpd(i,1,k)   = vals(13+c  )   ! Top RtSpd in rad/s
+         Motions%PRtSpd(i,2,k)   = vals(13+c+1)   ! Bottom RtSpd in rad/s
        
          c = c + 2 ! increment rotor count
       end do
