@@ -246,8 +246,8 @@ subroutine CreateMeshMappings(m, p, KAD, MD, errStat, errMsg)
    call MeshMapCreate( m%mbdPWnMotions, KAD%u%PWnMotions, m%PWn_L2_L2, errStat2, errMsg2 )
       call SetErrStat( errStat2, errMsg2, errStat, errMsg, ' CreateMeshMappings: m%PWn_L2_L2' )     
          if (ErrStat>=AbortErrLev) return
-   call MeshMapCreate( m%mbdVSPMotions, KAD%u%VSPMotions, m%VSP_L2_L2, errStat2, errMsg2 )
-      call SetErrStat( errStat2, errMsg2, errStat, errMsg, ' CreateMeshMappings: m%VSP_L2_L2' )     
+   call MeshMapCreate( m%mbdVSMotions, KAD%u%VSMotions, m%VS_L2_L2, errStat2, errMsg2 )
+      call SetErrStat( errStat2, errMsg2, errStat, errMsg, ' CreateMeshMappings: m%VS_L2_L2' )     
          if (ErrStat>=AbortErrLev) return
    call MeshMapCreate( m%mbdSHSMotions, KAD%u%SHSMotions, m%SHS_L2_L2, errStat2, errMsg2 )
       call SetErrStat( errStat2, errMsg2, errStat, errMsg, ' CreateMeshMappings: m%SHS_L2_L2' )     
@@ -283,8 +283,8 @@ subroutine CreateMeshMappings(m, p, KAD, MD, errStat, errMsg)
    call MeshMapCreate( KAD%y%PWnLoads, m%mbdPWnLoads, m%PWn_P_P, errStat2, errMsg2 )
       call SetErrStat( errStat2, errMsg2, errStat, errMsg, ' CreateMeshMappings: m%PWn_P_P' )     
          if (ErrStat>=AbortErrLev) return
-   call MeshMapCreate( KAD%y%VSPLoads, m%mbdVSPLoads, m%VSP_P_P, errStat2, errMsg2 )
-      call SetErrStat( errStat2, errMsg2, errStat, errMsg, ' CreateMeshMappings: m%VSP_P_P' )     
+   call MeshMapCreate( KAD%y%VSLoads, m%mbdVSLoads, m%VS_P_P, errStat2, errMsg2 )
+      call SetErrStat( errStat2, errMsg2, errStat, errMsg, ' CreateMeshMappings: m%VS_P_P' )     
          if (ErrStat>=AbortErrLev) return
    call MeshMapCreate( KAD%y%SHSLoads, m%mbdSHSLoads, m%SHS_P_P, errStat2, errMsg2 )
       call SetErrStat( errStat2, errMsg2, errStat, errMsg, ' CreateMeshMappings: m%SHS_P_P' )     
@@ -343,12 +343,12 @@ subroutine KFAST_Init(dt, numFlaps, numPylons, numComp, numCompNds, KAD_FileName
    character(kind=C_CHAR), intent(  out) :: errMsg_c(IntfStrLen)   
 
       ! Local variables
-   real(ReKi)                      :: FusO(3), SWnO(3), PWnO(3), VSPO(3), SHSO(3), PHSO(3)
+   real(ReKi)                      :: FusO(3), SWnO(3), PWnO(3), VSO(3), SHSO(3), PHSO(3)
    real(R8Ki)                      :: FusODCM(3,3)
    real(ReKi)                      :: SPyO(3,numPylons), PPyO(3,numPylons), SPyRtrO(3,2,numPylons), PPyRtrO(3,2,numPylons)
-   real(R8Ki), allocatable         :: FusNdDCMs(:,:,:),SWnNdDCMs(:,:,:),PWnNdDCMs(:,:,:),VSPNdDCMs(:,:,:),SHSNdDCMs(:,:,:),PHSNdDCMs(:,:,:)
+   real(R8Ki), allocatable         :: FusNdDCMs(:,:,:),SWnNdDCMs(:,:,:),PWnNdDCMs(:,:,:),VSNdDCMs(:,:,:),SHSNdDCMs(:,:,:),PHSNdDCMs(:,:,:)
    real(R8Ki), allocatable         :: SPyNdDCMs(:,:,:,:), PPyNdDCMs(:,:,:,:)
-   real(ReKi), allocatable         :: FusPts(:,:),SWnPts(:,:),PWnPts(:,:),VSPPts(:,:),SHSPts(:,:),PHSPts(:,:)
+   real(ReKi), allocatable         :: FusPts(:,:),SWnPts(:,:),PWnPts(:,:),VSPts(:,:),SHSPts(:,:),PHSPts(:,:)
    real(ReKi), allocatable         :: SPyPts(:,:,:), PPyPts(:,:,:)
    type(KAD_InitInputType)         :: KAD_InitInp
    type(KAD_InitOutputType)        :: KAD_InitOut
@@ -371,7 +371,7 @@ subroutine KFAST_Init(dt, numFlaps, numPylons, numComp, numCompNds, KAD_FileName
    ! Validate some of the input data
    if ( numFlaps /=  3 )  call SetErrStat( ErrID_FATAL, "Due to the Controller interface requirements, numFlaps must be set to 3", errStat, errMsg, routineName )
    if ( numPylons /=  2 ) call SetErrStat( ErrID_FATAL, "Due to the Controller interface requirements, numPylons must be set to 2", errStat, errMsg, routineName )
-   if ( .not. EqualRealNos(dt,0.01_DbKi) )  call SetErrStat( ErrID_FATAL, "Due to the Controller requirements, dt must be set to 0.01", errStat, errMsg, routineName )
+   if ( .not. EqualRealNos(REAL(dt, DbKi) ,0.01_DbKi) )  call SetErrStat( ErrID_FATAL, "Due to the Controller requirements, dt must be set to 0.01", errStat, errMsg, routineName )
 
    if (errStat >= AbortErrLev) then
       !errStat_c = errStat
@@ -393,7 +393,7 @@ subroutine KFAST_Init(dt, numFlaps, numPylons, numComp, numCompNds, KAD_FileName
    p%numFusNds = numCompNds(1)
    p%numSwnNds = numCompNds(2)
    p%numPWnNds = numCompNds(3)
-   p%numVSPNds = numCompNds(4)
+   p%numVSNds = numCompNds(4)
    p%numSHSNds = numCompNds(5)
    p%numPHSNds = numCompNds(6)
    c=7
@@ -436,7 +436,7 @@ subroutine KFAST_Init(dt, numFlaps, numPylons, numComp, numCompNds, KAD_FileName
    FusO = refPts_c(1:3)  
    SWnO = refPts_c(4:6)
    PWnO = refPts_c(7:9)
-   VSPO = refPts_c(10:12)
+   VSO = refPts_c(10:12)
    SHSO = refPts_c(13:15)
    PHSO = refPts_c(16:18)
    c = 19
@@ -462,7 +462,7 @@ subroutine KFAST_Init(dt, numFlaps, numPylons, numComp, numCompNds, KAD_FileName
       call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
    call AllocAry( PWnNdDCMs, 3, 3, p%numPWnNds, 'PWnNdDCMs', errStat2, errMsg2 )
       call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
-   call AllocAry( VSPNdDCMs, 3, 3, p%numVSPNds, 'VSPNdDCMs', errStat2, errMsg2 )
+   call AllocAry( VSNdDCMs, 3, 3, p%numVSNds, 'VSNdDCMs', errStat2, errMsg2 )
       call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
    call AllocAry( SHSNdDCMs, 3, 3, p%numSHSNds, 'SHSNdDCMs', errStat2, errMsg2 )
       call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
@@ -479,7 +479,7 @@ subroutine KFAST_Init(dt, numFlaps, numPylons, numComp, numCompNds, KAD_FileName
       call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
    call AllocAry( PWnPts, 3, p%numPWnNds, 'PWnPts', errStat2, errMsg2 )
       call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
-   call AllocAry( VSPPts, 3, p%numVSPNds, 'VSPPts', errStat2, errMsg2 )
+   call AllocAry( VSPts, 3, p%numVSNds, 'VSPts', errStat2, errMsg2 )
       call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
    call AllocAry( SHSPts, 3, p%numSHSNds, 'SHSPts', errStat2, errMsg2 )
       call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
@@ -515,9 +515,9 @@ subroutine KFAST_Init(dt, numFlaps, numPylons, numComp, numCompNds, KAD_FileName
       c = c + 9
       n = n + 3
    end do
-   do i = 1,p%numVSPNds
-      VSPNdDCMs(:,:,i) = reshape(nodeDCMs_c(c:c+8),(/3,3/))
-      VSPPts(:,i)      = nodePts_c(n:n+2)
+   do i = 1,p%numVSNds
+      VSNdDCMs(:,:,i) = reshape(nodeDCMs_c(c:c+8),(/3,3/))
+      VSPts(:,i)      = nodePts_c(n:n+2)
       c = c + 9
       n = n + 3
    end do
@@ -571,7 +571,7 @@ subroutine KFAST_Init(dt, numFlaps, numPylons, numComp, numCompNds, KAD_FileName
       ! Port Wing
    call CreateMBDynL2MotionsMesh(FusO, p%numPWnNds, PWnPts, FusODCM, PWnNdDCMs, m%mbdPWnMotions, errStat, errMsg)
       ! Vertical Stabilizer
-   call CreateMBDynL2MotionsMesh(FusO, p%numVSPNds, VSPPts, FusODCM, VSPNdDCMs, m%mbdVSPMotions, errStat, errMsg)
+   call CreateMBDynL2MotionsMesh(FusO, p%numVSNds, VSPts, FusODCM, VSNdDCMs, m%mbdVSMotions, errStat, errMsg)
       ! Starboard Horizontal Stabilizer
    call CreateMBDynL2MotionsMesh(FusO, p%numSHSNds, SHSPts, FusODCM, SHSNdDCMs, m%mbdSHSMotions, errStat, errMsg)
       ! Port Horizontal Stabilizer
@@ -613,7 +613,7 @@ subroutine KFAST_Init(dt, numFlaps, numPylons, numComp, numCompNds, KAD_FileName
       ! Port Wing
    call CreateMBDynPtLoadsMesh(FusO, p%numPWnNds, PWnPts, FusODCM, PWnNdDCMs, m%mbdPWnLoads, errStat, errMsg)
       ! Vertical Stabilizer
-   call CreateMBDynPtLoadsMesh(FusO, p%numVSPNds, VSPPts, FusODCM, VSPNdDCMs, m%mbdVSPLoads, errStat, errMsg)
+   call CreateMBDynPtLoadsMesh(FusO, p%numVSNds, VSPts, FusODCM, VSNdDCMs, m%mbdVSLoads, errStat, errMsg)
       ! Starboard Horizontal Stabilizer
    call CreateMBDynPtLoadsMesh(FusO, p%numSHSNds, SHSPts, FusODCM, SHSNdDCMs, m%mbdSHSLoads, errStat, errMsg)
       ! Port Horizontal Stabilizer
@@ -667,8 +667,8 @@ subroutine KFAST_Init(dt, numFlaps, numPylons, numComp, numCompNds, KAD_FileName
    KAD_InitInp%SWnOR = matmul(FusODCM,KAD_InitInp%SWnOR)
    KAD_InitInp%PWnOR =  PwnO - FusO
    KAD_InitInp%PWnOR = matmul(FusODCM,KAD_InitInp%PWnOR)
-   KAD_InitInp%VSPOR =  VSPO - FusO
-   KAD_InitInp%VSPOR = matmul(FusODCM,KAD_InitInp%VSPOR)
+   KAD_InitInp%VSOR =  VSO - FusO
+   KAD_InitInp%VSOR = matmul(FusODCM,KAD_InitInp%VSOR)
    KAD_InitInp%SHSOR =  SHSO - FusO
    KAD_InitInp%SHSOR = matmul(FusODCM,KAD_InitInp%SHSOR)
    KAD_InitInp%PHSOR =  PHSO - FusO
