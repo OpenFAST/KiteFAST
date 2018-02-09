@@ -35,23 +35,23 @@ typedef   ^                 MiscVarType           SiKi            Dummy         
 # ..... Other States ..............................................................................................................
 typedef  ^                  OtherStateType        IntKi           Dummy           -    -       - "Dummy Other State" - 
 # ..... Inputs ....................................................................................................................
-typedef   ^                 InputType             R8Ki            dcm_g2b        {:}{:}   -       - "The DCM to go from the controller ground system to the kite body system" -
-typedef   ^                 ^                     ReKi            pqr            {:}      -       - "The kite angular velocities expressed in the kite body system" -
+typedef   ^                 InputType             R8Ki            dcm_g2b        {3}{3}   -       - "The DCM to go from the controller ground system to the kite body system" -
+typedef   ^                 ^                     ReKi            pqr            {3}      -       - "The kite angular velocities expressed in the kite body system" -
 typedef   ^                 ^                     ReKi            acc_norm        -       -       - "Magnitude of the acceleration vector" -
-typedef   ^                 ^                     ReKi            Xg             {:}      -       - "Location of the Kite Fuselage reference point in the controller ground system" -
-typedef   ^                 ^                     ReKi            Vg             {:}      -       - "The kite translational velocities expressed in the controller ground system" -
-typedef   ^                 ^                     ReKi            Vb             {:}      -       - "The kite translational velocities expressed in the kite body system" -
-typedef   ^                 ^                     ReKi            Ag             {:}      -       - "The kite accelerations expressed in the controller ground system" -
-typedef   ^                 ^                     ReKi            Ab             {:}      -       - "The kite accelerations expressed in the kite body system" -
+typedef   ^                 ^                     ReKi            Xg             {3}      -       - "Location of the Kite Fuselage reference point in the controller ground system" -
+typedef   ^                 ^                     ReKi            Vg             {3}      -       - "The kite translational velocities expressed in the controller ground system" -
+typedef   ^                 ^                     ReKi            Vb             {3}      -       - "The kite translational velocities expressed in the kite body system" -
+typedef   ^                 ^                     ReKi            Ag             {3}      -       - "The kite accelerations expressed in the controller ground system" -
+typedef   ^                 ^                     ReKi            Ab             {3}      -       - "The kite accelerations expressed in the kite body system" -
 typedef   ^                 ^                     ReKi            rho             -       -       - "Location of the Kite Fuselage reference point in the controller ground system" -
-typedef   ^                 ^                     ReKi            apparent_wind  {:}      -       - "Location of the Kite Fuselage reference point in the controller ground system" -
-typedef   ^                 ^                     ReKi            tether_force   {:}      -       - "Location of the Kite Fuselage reference point in the controller ground system" -
-typedef   ^                 ^                     ReKi            wind_g         {:}      -       - "Location of the Kite Fuselage reference point in the controller ground system" -
+typedef   ^                 ^                     ReKi            apparent_wind  {3}      -       - "Location of the Kite Fuselage reference point in the controller ground system" -
+typedef   ^                 ^                     ReKi            tether_force   {3}      -       - "Location of the Kite Fuselage reference point in the controller ground system" -
+typedef   ^                 ^                     ReKi            wind_g         {3}      -       - "Location of the Kite Fuselage reference point in the controller ground system" -
 # ..... Outputs ...................................................................................................................
 typedef  ^                  OutputType            ReKi            SFlp           {3}      -       - "Starboard flap angles " rad 
 typedef  ^                  ^                     ReKi            PFlp           {3}      -       - "Port flap angles " rad 
 typedef  ^                  ^                     ReKi            Rudr           {2}      -       - "Rudder flap angles " rad 
 typedef  ^                  ^                     ReKi            SElv           {2}      -       - "Starboard elevator flap angles " rad 
 typedef  ^                  ^                     ReKi            PElv           {2}      -       - "Port elevator flap angles " rad 
-typedef  ^                  ^                     ReKi            GenSPyRtr      {:}{:}   -       - "Starboard generator torques from controller" Nm 
-typedef  ^                  ^                     ReKi            GenPPyRtr      {:}{:}   -       - "Port generator torques from controller" Nm 
+typedef  ^                  ^                     ReKi            GenSPyRtr      {2}{2}   -       - "2x2 matrix - Starboard generator torques from controller" Nm 
+typedef  ^                  ^                     ReKi            GenPPyRtr      {2}{2}   -       - "2x2 matrix - Port generator torques from controller" Nm 
