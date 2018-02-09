@@ -34,7 +34,7 @@ program KiteFastController_Driver
    InitInp%numFlaps = 3
    InitInp%numPylons = 2
    InitInp%DT  = 0.01_DbKi
-   InitInp%DLL_Filename = 'libkitefastcontroller_controller.dylib'
+   InitInp%DLL_Filename = 'libkitefastcontroller_controller.so'
    
    call KFC_Init(InitInp, p, InitOut, errStat, errMsg)
       print *, "KiteFastController_Driver calling KFC_Init received ErrStat=", errStat, " ErrMsg=" , trim(errMsg)
