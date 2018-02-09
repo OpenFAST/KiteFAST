@@ -3019,37 +3019,37 @@ SUBROUTINE KAD_SetOutParam(OutList, p, ErrStat, ErrMsg )
                                "SWN9CL   ","SWN9CM   ","SWN9CN   ","SWN9CT   ","SWN9DYNP ","SWN9FD   ","SWN9FL   ", &
                                "SWN9FN   ","SWN9FT   ","SWN9M    ","SWN9MM   ","SWN9RE   ","SWN9STVX ","SWN9STVY ", &
                                "SWN9STVZ ","SWN9VAMBX","SWN9VAMBY","SWN9VAMBZ","SWN9VINDX","SWN9VINDY","SWN9VINDZ", &
-                               "SWN9VREL ","VS1ALPHA","VS1CD   ","VS1CL   ","VS1CM   ","VS1CN   ","VS1CT   ", &
-                               "VS1DYNP ","VS1FD   ","VS1FL   ","VS1FN   ","VS1FT   ","VS1M    ","VS1MM   ", &
-                               "VS1RE   ","VS1STVX ","VS1STVY ","VS1STVZ ","VS1VAMBX","VS1VAMBY","VS1VAMBZ", &
-                               "VS1VINDX","VS1VINDY","VS1VINDZ","VS1VREL ","VS2ALPHA","VS2CD   ","VS2CL   ", &
-                               "VS2CM   ","VS2CN   ","VS2CT   ","VS2DYNP ","VS2FD   ","VS2FL   ","VS2FN   ", &
-                               "VS2FT   ","VS2M    ","VS2MM   ","VS2RE   ","VS2STVX ","VS2STVY ","VS2STVZ ", &
-                               "VS2VAMBX","VS2VAMBY","VS2VAMBZ","VS2VINDX","VS2VINDY","VS2VINDZ","VS2VREL ", &
-                               "VS3ALPHA","VS3CD   ","VS3CL   ","VS3CM   ","VS3CN   ","VS3CT   ","VS3DYNP ", &
-                               "VS3FD   ","VS3FL   ","VS3FN   ","VS3FT   ","VS3M    ","VS3MM   ","VS3RE   ", &
-                               "VS3STVX ","VS3STVY ","VS3STVZ ","VS3VAMBX","VS3VAMBY","VS3VAMBZ","VS3VINDX", &
-                               "VS3VINDY","VS3VINDZ","VS3VREL ","VS4ALPHA","VS4CD   ","VS4CL   ","VS4CM   ", &
-                               "VS4CN   ","VS4CT   ","VS4DYNP ","VS4FD   ","VS4FL   ","VS4FN   ","VS4FT   ", &
-                               "VS4M    ","VS4MM   ","VS4RE   ","VS4STVX ","VS4STVY ","VS4STVZ ","VS4VAMBX", &
-                               "VS4VAMBY","VS4VAMBZ","VS4VINDX","VS4VINDY","VS4VINDZ","VS4VREL ","VS5ALPHA", &
-                               "VS5CD   ","VS5CL   ","VS5CM   ","VS5CN   ","VS5CT   ","VS5DYNP ","VS5FD   ", &
-                               "VS5FL   ","VS5FN   ","VS5FT   ","VS5M    ","VS5MM   ","VS5RE   ","VS5STVX ", &
-                               "VS5STVY ","VS5STVZ ","VS5VAMBX","VS5VAMBY","VS5VAMBZ","VS5VINDX","VS5VINDY", &
-                               "VS5VINDZ","VS5VREL ","VS6ALPHA","VS6CD   ","VS6CL   ","VS6CM   ","VS6CN   ", &
-                               "VS6CT   ","VS6DYNP ","VS6FD   ","VS6FL   ","VS6FN   ","VS6FT   ","VS6M    ", &
-                               "VS6MM   ","VS6RE   ","VS6STVX ","VS6STVY ","VS6STVZ ","VS6VAMBX","VS6VAMBY", &
-                               "VS6VAMBZ","VS6VINDX","VS6VINDY","VS6VINDZ","VS6VREL ","VS7ALPHA","VS7CD   ", &
-                               "VS7CL   ","VS7CM   ","VS7CN   ","VS7CT   ","VS7DYNP ","VS7FD   ","VS7FL   ", &
-                               "VS7FN   ","VS7FT   ","VS7M    ","VS7MM   ","VS7RE   ","VS7STVX ","VS7STVY ", &
-                               "VS7STVZ ","VS7VAMBX","VS7VAMBY","VS7VAMBZ","VS7VINDX","VS7VINDY","VS7VINDZ", &
-                               "VS7VREL ","VS8ALPHA","VS8CD   ","VS8CL   ","VS8CM   ","VS8CN   ","VS8CT   ", &
-                               "VS8DYNP ","VS8FD   ","VS8FL   ","VS8FN   ","VS8FT   ","VS8M    ","VS8MM   ", &
-                               "VS8RE   ","VS8STVX ","VS8STVY ","VS8STVZ ","VS8VAMBX","VS8VAMBY","VS8VAMBZ", &
-                               "VS8VINDX","VS8VINDY","VS8VINDZ","VS8VREL ","VS9ALPHA","VS9CD   ","VS9CL   ", &
-                               "VS9CM   ","VS9CN   ","VS9CT   ","VS9DYNP ","VS9FD   ","VS9FL   ","VS9FN   ", &
-                               "VS9FT   ","VS9M    ","VS9MM   ","VS9RE   ","VS9STVX ","VS9STVY ","VS9STVZ ", &
-                               "VS9VAMBX","VS9VAMBY","VS9VAMBZ","VS9VINDX","VS9VINDY","VS9VINDZ","VS9VREL "/)
+                               "SWN9VREL ","VS1ALPHA ","VS1CD    ","VS1CL    ","VS1CM    ","VS1CN    ","VS1CT    ", &
+                               "VS1DYNP  ","VS1FD    ","VS1FL    ","VS1FN    ","VS1FT    ","VS1M     ","VS1MM    ", &
+                               "VS1RE    ","VS1STVX  ","VS1STVY  ","VS1STVZ  ","VS1VAMBX ","VS1VAMBY ","VS1VAMBZ ", &
+                               "VS1VINDX ","VS1VINDY ","VS1VINDZ ","VS1VREL  ","VS2ALPHA ","VS2CD    ","VS2CL    ", &
+                               "VS2CM    ","VS2CN    ","VS2CT    ","VS2DYNP  ","VS2FD    ","VS2FL    ","VS2FN    ", &
+                               "VS2FT    ","VS2M     ","VS2MM    ","VS2RE    ","VS2STVX  ","VS2STVY  ","VS2STVZ  ", &
+                               "VS2VAMBX ","VS2VAMBY ","VS2VAMBZ ","VS2VINDX ","VS2VINDY ","VS2VINDZ ","VS2VREL  ", &
+                               "VS3ALPHA ","VS3CD    ","VS3CL    ","VS3CM    ","VS3CN    ","VS3CT    ","VS3DYNP  ", &
+                               "VS3FD    ","VS3FL    ","VS3FN    ","VS3FT    ","VS3M     ","VS3MM    ","VS3RE    ", &
+                               "VS3STVX  ","VS3STVY  ","VS3STVZ  ","VS3VAMBX ","VS3VAMBY ","VS3VAMBZ ","VS3VINDX ", &
+                               "VS3VINDY ","VS3VINDZ ","VS3VREL  ","VS4ALPHA ","VS4CD    ","VS4CL    ","VS4CM    ", &
+                               "VS4CN    ","VS4CT    ","VS4DYNP  ","VS4FD    ","VS4FL    ","VS4FN    ","VS4FT    ", &
+                               "VS4M     ","VS4MM    ","VS4RE    ","VS4STVX  ","VS4STVY  ","VS4STVZ  ","VS4VAMBX ", &
+                               "VS4VAMBY ","VS4VAMBZ ","VS4VINDX ","VS4VINDY ","VS4VINDZ ","VS4VREL  ","VS5ALPHA ", &
+                               "VS5CD    ","VS5CL    ","VS5CM    ","VS5CN    ","VS5CT    ","VS5DYNP  ","VS5FD    ", &
+                               "VS5FL    ","VS5FN    ","VS5FT    ","VS5M     ","VS5MM    ","VS5RE    ","VS5STVX  ", &
+                               "VS5STVY  ","VS5STVZ  ","VS5VAMBX ","VS5VAMBY ","VS5VAMBZ ","VS5VINDX ","VS5VINDY ", &
+                               "VS5VINDZ ","VS5VREL  ","VS6ALPHA ","VS6CD    ","VS6CL    ","VS6CM    ","VS6CN    ", &
+                               "VS6CT    ","VS6DYNP  ","VS6FD    ","VS6FL    ","VS6FN    ","VS6FT    ","VS6M     ", &
+                               "VS6MM    ","VS6RE    ","VS6STVX  ","VS6STVY  ","VS6STVZ  ","VS6VAMBX ","VS6VAMBY ", &
+                               "VS6VAMBZ ","VS6VINDX ","VS6VINDY ","VS6VINDZ ","VS6VREL  ","VS7ALPHA ","VS7CD    ", &
+                               "VS7CL    ","VS7CM    ","VS7CN    ","VS7CT    ","VS7DYNP  ","VS7FD    ","VS7FL    ", &
+                               "VS7FN    ","VS7FT    ","VS7M     ","VS7MM    ","VS7RE    ","VS7STVX  ","VS7STVY  ", &
+                               "VS7STVZ  ","VS7VAMBX ","VS7VAMBY ","VS7VAMBZ ","VS7VINDX ","VS7VINDY ","VS7VINDZ ", &
+                               "VS7VREL  ","VS8ALPHA ","VS8CD    ","VS8CL    ","VS8CM    ","VS8CN    ","VS8CT    ", &
+                               "VS8DYNP  ","VS8FD    ","VS8FL    ","VS8FN    ","VS8FT    ","VS8M     ","VS8MM    ", &
+                               "VS8RE    ","VS8STVX  ","VS8STVY  ","VS8STVZ  ","VS8VAMBX ","VS8VAMBY ","VS8VAMBZ ", &
+                               "VS8VINDX ","VS8VINDY ","VS8VINDZ ","VS8VREL  ","VS9ALPHA ","VS9CD    ","VS9CL    ", &
+                               "VS9CM    ","VS9CN    ","VS9CT    ","VS9DYNP  ","VS9FD    ","VS9FL    ","VS9FN    ", &
+                               "VS9FT    ","VS9M     ","VS9MM    ","VS9RE    ","VS9STVX  ","VS9STVY  ","VS9STVZ  ", &
+                               "VS9VAMBX ","VS9VAMBY ","VS9VAMBZ ","VS9VINDX ","VS9VINDY ","VS9VINDZ ","VS9VREL  "/)
    INTEGER(IntKi), PARAMETER :: ParamIndxAry(2324) =  (/ &                            ! This lists the index into AllOuts(:) of the allowed parameters ValidParamAry(:)
                                 Fus1Alpha ,    Fus1Cd ,    Fus1Cl ,    Fus1Cm ,    Fus1Cn ,    Fus1Ct ,  Fus1DynP , &
                                    Fus1Fd ,    Fus1Fl ,    Fus1Fn ,    Fus1Ft ,     Fus1M ,    Fus1Mm ,    Fus1Re , &
