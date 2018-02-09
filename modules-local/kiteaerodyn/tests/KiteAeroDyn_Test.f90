@@ -77,7 +77,7 @@ contains
      
       InitInData%SWnOR           = (/0.0_ReKi, 0.0_ReKi, 0.0_ReKi/)
       InitInData%PWnOR           = (/0.0_ReKi, 0.0_ReKi, 0.0_ReKi/)
-      InitInData%VSPOR           = (/3.0_ReKi, 0.0_ReKi, 0.0_ReKi/)
+      InitInData%VSOR           = (/3.0_ReKi, 0.0_ReKi, 0.0_ReKi/)
       InitInData%SHSOR           = (/3.0_ReKi, 0.0_ReKi, 0.0_ReKi/)
       InitInData%PHSOR           = (/3.0_ReKi, 0.0_ReKi, 0.0_ReKi/)
       InitInData%SPyOR(:,1)      = (/0.0_ReKi, 2.0_ReKi, 0.0_ReKi/)
@@ -256,32 +256,32 @@ contains
    !   
    !   ! --- VERTICAL STABILIZER PROPERTIES ---
    !
-   !   InitInData%VSPProps%NumNds = 3
+   !   InitInData%VSProps%NumNds = 3
    !   
    !      ! allocate the data based on NumNds
    !   
-   !   allocate(  InitInData%VSPProps%Pos(InitInData%VSPProps%NumNds), STAT = errStat )
-   !   allocate(  InitInData%VSPProps%Twist(InitInData%VSPProps%NumNds), STAT = errStat )
-   !   allocate(  InitInData%VSPProps%Chord(InitInData%VSPProps%NumNds), STAT = errStat )
-   !   allocate(  InitInData%VSPProps%AFID(InitInData%VSPProps%NumNds), STAT = errStat )
-   !   allocate(  InitInData%VSPProps%CntrlID(InitInData%VSPProps%NumNds), STAT = errStat )
+   !   allocate(  InitInData%VSProps%Pos(InitInData%VSProps%NumNds), STAT = errStat )
+   !   allocate(  InitInData%VSProps%Twist(InitInData%VSProps%NumNds), STAT = errStat )
+   !   allocate(  InitInData%VSProps%Chord(InitInData%VSProps%NumNds), STAT = errStat )
+   !   allocate(  InitInData%VSProps%AFID(InitInData%VSProps%NumNds), STAT = errStat )
+   !   allocate(  InitInData%VSProps%CntrlID(InitInData%VSProps%NumNds), STAT = errStat )
    !   
-   !   InitInData%VSPProps%Pos(:,1) = (/ 0.0_ReKi, 0.0_ReKi, 0.0_ReKi /)
-   !   InitInData%VSPProps%Pos(:,2) = (/ 0.0_ReKi, 0.0_ReKi, 0.0_ReKi /)
-   !   InitInData%VSPProps%Pos(:,3) = (/ 0.0_ReKi, 0.0_ReKi, 0.0_ReKi /)
+   !   InitInData%VSProps%Pos(:,1) = (/ 0.0_ReKi, 0.0_ReKi, 0.0_ReKi /)
+   !   InitInData%VSProps%Pos(:,2) = (/ 0.0_ReKi, 0.0_ReKi, 0.0_ReKi /)
+   !   InitInData%VSProps%Pos(:,3) = (/ 0.0_ReKi, 0.0_ReKi, 0.0_ReKi /)
    !   
-   !   !InitInData%VSPProps%Twist  (1) =  
-   !   !InitInData%VSPProps%Twist  (2) =  
-   !   !InitInData%VSPProps%Twist  (3) =  
-   !   !InitInData%VSPProps%Chord  (1) =   
-   !   !InitInData%VSPProps%Chord  (2) =   
-   !   !InitInData%VSPProps%Chord  (3) =   
-   !   !InitInData%VSPProps%AFID   (1) =  
-   !   !InitInData%VSPProps%AFID   (2) = 
-   !   !InitInData%VSPProps%AFID   (3) =  
-   !   !InitInData%VSPProps%CntrlID(1) = 
-   !   !InitInData%VSPProps%CntrlID(2) = 
-   !   !InitInData%VSPProps%CntrlID(3) = 
+   !   !InitInData%VSProps%Twist  (1) =  
+   !   !InitInData%VSProps%Twist  (2) =  
+   !   !InitInData%VSProps%Twist  (3) =  
+   !   !InitInData%VSProps%Chord  (1) =   
+   !   !InitInData%VSProps%Chord  (2) =   
+   !   !InitInData%VSProps%Chord  (3) =   
+   !   !InitInData%VSProps%AFID   (1) =  
+   !   !InitInData%VSProps%AFID   (2) = 
+   !   !InitInData%VSProps%AFID   (3) =  
+   !   !InitInData%VSProps%CntrlID(1) = 
+   !   !InitInData%VSProps%CntrlID(2) = 
+   !   !InitInData%VSProps%CntrlID(3) = 
    !   !
    !   
    !   ! --- STARBOARD HORIZONTAL STABILIER PROPERTIES ---

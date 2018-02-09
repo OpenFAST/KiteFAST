@@ -731,132 +731,132 @@ module KiteAeroDyn_IO
 
      ! Vertical Stabilizer Outputs:
 
-   INTEGER(IntKi), PARAMETER      :: VSP1VAmbx =  667
-   INTEGER(IntKi), PARAMETER      :: VSP2VAmbx =  668
-   INTEGER(IntKi), PARAMETER      :: VSP3VAmbx =  669
-   INTEGER(IntKi), PARAMETER      :: VSP4VAmbx =  670
-   INTEGER(IntKi), PARAMETER      :: VSP5VAmbx =  671
-   INTEGER(IntKi), PARAMETER      :: VSP6VAmbx =  672
-   INTEGER(IntKi), PARAMETER      :: VSP7VAmbx =  673
-   INTEGER(IntKi), PARAMETER      :: VSP8VAmbx =  674
-   INTEGER(IntKi), PARAMETER      :: VSP9VAmbx =  675
-   INTEGER(IntKi), PARAMETER      :: VSP1VAmby =  676
-   INTEGER(IntKi), PARAMETER      :: VSP2VAmby =  677
-   INTEGER(IntKi), PARAMETER      :: VSP3VAmby =  678
-   INTEGER(IntKi), PARAMETER      :: VSP4VAmby =  679
-   INTEGER(IntKi), PARAMETER      :: VSP5VAmby =  680
-   INTEGER(IntKi), PARAMETER      :: VSP6VAmby =  681
-   INTEGER(IntKi), PARAMETER      :: VSP7VAmby =  682
-   INTEGER(IntKi), PARAMETER      :: VSP8VAmby =  683
-   INTEGER(IntKi), PARAMETER      :: VSP9VAmby =  684
-   INTEGER(IntKi), PARAMETER      :: VSP1VAmbz =  685
-   INTEGER(IntKi), PARAMETER      :: VSP2VAmbz =  686
-   INTEGER(IntKi), PARAMETER      :: VSP3VAmbz =  687
-   INTEGER(IntKi), PARAMETER      :: VSP4VAmbz =  688
-   INTEGER(IntKi), PARAMETER      :: VSP5VAmbz =  689
-   INTEGER(IntKi), PARAMETER      :: VSP6VAmbz =  690
-   INTEGER(IntKi), PARAMETER      :: VSP7VAmbz =  691
-   INTEGER(IntKi), PARAMETER      :: VSP8VAmbz =  692
-   INTEGER(IntKi), PARAMETER      :: VSP9VAmbz =  693
-   INTEGER(IntKi), PARAMETER      :: VSP1STVx  =  694
-   INTEGER(IntKi), PARAMETER      :: VSP2STVx  =  695
-   INTEGER(IntKi), PARAMETER      :: VSP3STVx  =  696
-   INTEGER(IntKi), PARAMETER      :: VSP4STVx  =  697
-   INTEGER(IntKi), PARAMETER      :: VSP5STVx  =  698
-   INTEGER(IntKi), PARAMETER      :: VSP6STVx  =  699
-   INTEGER(IntKi), PARAMETER      :: VSP7STVx  =  700
-   INTEGER(IntKi), PARAMETER      :: VSP8STVx  =  701
-   INTEGER(IntKi), PARAMETER      :: VSP9STVx  =  702
-   INTEGER(IntKi), PARAMETER      :: VSP1STVy  =  703
-   INTEGER(IntKi), PARAMETER      :: VSP2STVy  =  704
-   INTEGER(IntKi), PARAMETER      :: VSP3STVy  =  705
-   INTEGER(IntKi), PARAMETER      :: VSP4STVy  =  706
-   INTEGER(IntKi), PARAMETER      :: VSP5STVy  =  707
-   INTEGER(IntKi), PARAMETER      :: VSP6STVy  =  708
-   INTEGER(IntKi), PARAMETER      :: VSP7STVy  =  709
-   INTEGER(IntKi), PARAMETER      :: VSP8STVy  =  710
-   INTEGER(IntKi), PARAMETER      :: VSP9STVy  =  711
-   INTEGER(IntKi), PARAMETER      :: VSP1STVz  =  712
-   INTEGER(IntKi), PARAMETER      :: VSP2STVz  =  713
-   INTEGER(IntKi), PARAMETER      :: VSP3STVz  =  714
-   INTEGER(IntKi), PARAMETER      :: VSP4STVz  =  715
-   INTEGER(IntKi), PARAMETER      :: VSP5STVz  =  716
-   INTEGER(IntKi), PARAMETER      :: VSP6STVz  =  717
-   INTEGER(IntKi), PARAMETER      :: VSP7STVz  =  718
-   INTEGER(IntKi), PARAMETER      :: VSP8STVz  =  719
-   INTEGER(IntKi), PARAMETER      :: VSP9STVz  =  720
-   INTEGER(IntKi), PARAMETER      :: VSP1VRel  =  721
-   INTEGER(IntKi), PARAMETER      :: VSP2VRel  =  722
-   INTEGER(IntKi), PARAMETER      :: VSP3VRel  =  723
-   INTEGER(IntKi), PARAMETER      :: VSP4VRel  =  724
-   INTEGER(IntKi), PARAMETER      :: VSP5VRel  =  725
-   INTEGER(IntKi), PARAMETER      :: VSP6VRel  =  726
-   INTEGER(IntKi), PARAMETER      :: VSP7VRel  =  727
-   INTEGER(IntKi), PARAMETER      :: VSP8VRel  =  728
-   INTEGER(IntKi), PARAMETER      :: VSP9VRel  =  729
-   INTEGER(IntKi), PARAMETER      :: VSP1DynP  =  730
-   INTEGER(IntKi), PARAMETER      :: VSP2DynP  =  731
-   INTEGER(IntKi), PARAMETER      :: VSP3DynP  =  732
-   INTEGER(IntKi), PARAMETER      :: VSP4DynP  =  733
-   INTEGER(IntKi), PARAMETER      :: VSP5DynP  =  734
-   INTEGER(IntKi), PARAMETER      :: VSP6DynP  =  735
-   INTEGER(IntKi), PARAMETER      :: VSP7DynP  =  736
-   INTEGER(IntKi), PARAMETER      :: VSP8DynP  =  737
-   INTEGER(IntKi), PARAMETER      :: VSP9DynP  =  738
-   INTEGER(IntKi), PARAMETER      :: VSP1Re    =  739
-   INTEGER(IntKi), PARAMETER      :: VSP2Re    =  740
-   INTEGER(IntKi), PARAMETER      :: VSP3Re    =  741
-   INTEGER(IntKi), PARAMETER      :: VSP4Re    =  742
-   INTEGER(IntKi), PARAMETER      :: VSP5Re    =  743
-   INTEGER(IntKi), PARAMETER      :: VSP6Re    =  744
-   INTEGER(IntKi), PARAMETER      :: VSP7Re    =  745
-   INTEGER(IntKi), PARAMETER      :: VSP8Re    =  746
-   INTEGER(IntKi), PARAMETER      :: VSP9Re    =  747
-   INTEGER(IntKi), PARAMETER      :: VSP1M     =  748
-   INTEGER(IntKi), PARAMETER      :: VSP2M     =  749
-   INTEGER(IntKi), PARAMETER      :: VSP3M     =  750
-   INTEGER(IntKi), PARAMETER      :: VSP4M     =  751
-   INTEGER(IntKi), PARAMETER      :: VSP5M     =  752
-   INTEGER(IntKi), PARAMETER      :: VSP6M     =  753
-   INTEGER(IntKi), PARAMETER      :: VSP7M     =  754
-   INTEGER(IntKi), PARAMETER      :: VSP8M     =  755
-   INTEGER(IntKi), PARAMETER      :: VSP9M     =  756
-   INTEGER(IntKi), PARAMETER      :: VSP1VIndx =  757
-   INTEGER(IntKi), PARAMETER      :: VSP2VIndx =  758
-   INTEGER(IntKi), PARAMETER      :: VSP3VIndx =  759
-   INTEGER(IntKi), PARAMETER      :: VSP4VIndx =  760
-   INTEGER(IntKi), PARAMETER      :: VSP5VIndx =  761
-   INTEGER(IntKi), PARAMETER      :: VSP6VIndx =  762
-   INTEGER(IntKi), PARAMETER      :: VSP7VIndx =  763
-   INTEGER(IntKi), PARAMETER      :: VSP8VIndx =  764
-   INTEGER(IntKi), PARAMETER      :: VSP9VIndx =  765
-   INTEGER(IntKi), PARAMETER      :: VSP1VIndy =  766
-   INTEGER(IntKi), PARAMETER      :: VSP2VIndy =  767
-   INTEGER(IntKi), PARAMETER      :: VSP3VIndy =  768
-   INTEGER(IntKi), PARAMETER      :: VSP4VIndy =  769
-   INTEGER(IntKi), PARAMETER      :: VSP5VIndy =  770
-   INTEGER(IntKi), PARAMETER      :: VSP6VIndy =  771
-   INTEGER(IntKi), PARAMETER      :: VSP7VIndy =  772
-   INTEGER(IntKi), PARAMETER      :: VSP8VIndy =  773
-   INTEGER(IntKi), PARAMETER      :: VSP9VIndy =  774
-   INTEGER(IntKi), PARAMETER      :: VSP1VIndz =  775
-   INTEGER(IntKi), PARAMETER      :: VSP2VIndz =  776
-   INTEGER(IntKi), PARAMETER      :: VSP3VIndz =  777
-   INTEGER(IntKi), PARAMETER      :: VSP4VIndz =  778
-   INTEGER(IntKi), PARAMETER      :: VSP5VIndz =  779
-   INTEGER(IntKi), PARAMETER      :: VSP6VIndz =  780
-   INTEGER(IntKi), PARAMETER      :: VSP7VIndz =  781
-   INTEGER(IntKi), PARAMETER      :: VSP8VIndz =  782
-   INTEGER(IntKi), PARAMETER      :: VSP9VIndz =  783
-   INTEGER(IntKi), PARAMETER      :: VSP1Alpha =  784
-   INTEGER(IntKi), PARAMETER      :: VSP2Alpha =  785
-   INTEGER(IntKi), PARAMETER      :: VSP3Alpha =  786
-   INTEGER(IntKi), PARAMETER      :: VSP4Alpha =  787
-   INTEGER(IntKi), PARAMETER      :: VSP5Alpha =  788
-   INTEGER(IntKi), PARAMETER      :: VSP6Alpha =  789
-   INTEGER(IntKi), PARAMETER      :: VSP7Alpha =  790
-   INTEGER(IntKi), PARAMETER      :: VSP8Alpha =  791
-   INTEGER(IntKi), PARAMETER      :: VSP9Alpha =  792
+   INTEGER(IntKi), PARAMETER      :: VS1VAmbx =  667
+   INTEGER(IntKi), PARAMETER      :: VS2VAmbx =  668
+   INTEGER(IntKi), PARAMETER      :: VS3VAmbx =  669
+   INTEGER(IntKi), PARAMETER      :: VS4VAmbx =  670
+   INTEGER(IntKi), PARAMETER      :: VS5VAmbx =  671
+   INTEGER(IntKi), PARAMETER      :: VS6VAmbx =  672
+   INTEGER(IntKi), PARAMETER      :: VS7VAmbx =  673
+   INTEGER(IntKi), PARAMETER      :: VS8VAmbx =  674
+   INTEGER(IntKi), PARAMETER      :: VS9VAmbx =  675
+   INTEGER(IntKi), PARAMETER      :: VS1VAmby =  676
+   INTEGER(IntKi), PARAMETER      :: VS2VAmby =  677
+   INTEGER(IntKi), PARAMETER      :: VS3VAmby =  678
+   INTEGER(IntKi), PARAMETER      :: VS4VAmby =  679
+   INTEGER(IntKi), PARAMETER      :: VS5VAmby =  680
+   INTEGER(IntKi), PARAMETER      :: VS6VAmby =  681
+   INTEGER(IntKi), PARAMETER      :: VS7VAmby =  682
+   INTEGER(IntKi), PARAMETER      :: VS8VAmby =  683
+   INTEGER(IntKi), PARAMETER      :: VS9VAmby =  684
+   INTEGER(IntKi), PARAMETER      :: VS1VAmbz =  685
+   INTEGER(IntKi), PARAMETER      :: VS2VAmbz =  686
+   INTEGER(IntKi), PARAMETER      :: VS3VAmbz =  687
+   INTEGER(IntKi), PARAMETER      :: VS4VAmbz =  688
+   INTEGER(IntKi), PARAMETER      :: VS5VAmbz =  689
+   INTEGER(IntKi), PARAMETER      :: VS6VAmbz =  690
+   INTEGER(IntKi), PARAMETER      :: VS7VAmbz =  691
+   INTEGER(IntKi), PARAMETER      :: VS8VAmbz =  692
+   INTEGER(IntKi), PARAMETER      :: VS9VAmbz =  693
+   INTEGER(IntKi), PARAMETER      :: VS1STVx  =  694
+   INTEGER(IntKi), PARAMETER      :: VS2STVx  =  695
+   INTEGER(IntKi), PARAMETER      :: VS3STVx  =  696
+   INTEGER(IntKi), PARAMETER      :: VS4STVx  =  697
+   INTEGER(IntKi), PARAMETER      :: VS5STVx  =  698
+   INTEGER(IntKi), PARAMETER      :: VS6STVx  =  699
+   INTEGER(IntKi), PARAMETER      :: VS7STVx  =  700
+   INTEGER(IntKi), PARAMETER      :: VS8STVx  =  701
+   INTEGER(IntKi), PARAMETER      :: VS9STVx  =  702
+   INTEGER(IntKi), PARAMETER      :: VS1STVy  =  703
+   INTEGER(IntKi), PARAMETER      :: VS2STVy  =  704
+   INTEGER(IntKi), PARAMETER      :: VS3STVy  =  705
+   INTEGER(IntKi), PARAMETER      :: VS4STVy  =  706
+   INTEGER(IntKi), PARAMETER      :: VS5STVy  =  707
+   INTEGER(IntKi), PARAMETER      :: VS6STVy  =  708
+   INTEGER(IntKi), PARAMETER      :: VS7STVy  =  709
+   INTEGER(IntKi), PARAMETER      :: VS8STVy  =  710
+   INTEGER(IntKi), PARAMETER      :: VS9STVy  =  711
+   INTEGER(IntKi), PARAMETER      :: VS1STVz  =  712
+   INTEGER(IntKi), PARAMETER      :: VS2STVz  =  713
+   INTEGER(IntKi), PARAMETER      :: VS3STVz  =  714
+   INTEGER(IntKi), PARAMETER      :: VS4STVz  =  715
+   INTEGER(IntKi), PARAMETER      :: VS5STVz  =  716
+   INTEGER(IntKi), PARAMETER      :: VS6STVz  =  717
+   INTEGER(IntKi), PARAMETER      :: VS7STVz  =  718
+   INTEGER(IntKi), PARAMETER      :: VS8STVz  =  719
+   INTEGER(IntKi), PARAMETER      :: VS9STVz  =  720
+   INTEGER(IntKi), PARAMETER      :: VS1VRel  =  721
+   INTEGER(IntKi), PARAMETER      :: VS2VRel  =  722
+   INTEGER(IntKi), PARAMETER      :: VS3VRel  =  723
+   INTEGER(IntKi), PARAMETER      :: VS4VRel  =  724
+   INTEGER(IntKi), PARAMETER      :: VS5VRel  =  725
+   INTEGER(IntKi), PARAMETER      :: VS6VRel  =  726
+   INTEGER(IntKi), PARAMETER      :: VS7VRel  =  727
+   INTEGER(IntKi), PARAMETER      :: VS8VRel  =  728
+   INTEGER(IntKi), PARAMETER      :: VS9VRel  =  729
+   INTEGER(IntKi), PARAMETER      :: VS1DynP  =  730
+   INTEGER(IntKi), PARAMETER      :: VS2DynP  =  731
+   INTEGER(IntKi), PARAMETER      :: VS3DynP  =  732
+   INTEGER(IntKi), PARAMETER      :: VS4DynP  =  733
+   INTEGER(IntKi), PARAMETER      :: VS5DynP  =  734
+   INTEGER(IntKi), PARAMETER      :: VS6DynP  =  735
+   INTEGER(IntKi), PARAMETER      :: VS7DynP  =  736
+   INTEGER(IntKi), PARAMETER      :: VS8DynP  =  737
+   INTEGER(IntKi), PARAMETER      :: VS9DynP  =  738
+   INTEGER(IntKi), PARAMETER      :: VS1Re    =  739
+   INTEGER(IntKi), PARAMETER      :: VS2Re    =  740
+   INTEGER(IntKi), PARAMETER      :: VS3Re    =  741
+   INTEGER(IntKi), PARAMETER      :: VS4Re    =  742
+   INTEGER(IntKi), PARAMETER      :: VS5Re    =  743
+   INTEGER(IntKi), PARAMETER      :: VS6Re    =  744
+   INTEGER(IntKi), PARAMETER      :: VS7Re    =  745
+   INTEGER(IntKi), PARAMETER      :: VS8Re    =  746
+   INTEGER(IntKi), PARAMETER      :: VS9Re    =  747
+   INTEGER(IntKi), PARAMETER      :: VS1M     =  748
+   INTEGER(IntKi), PARAMETER      :: VS2M     =  749
+   INTEGER(IntKi), PARAMETER      :: VS3M     =  750
+   INTEGER(IntKi), PARAMETER      :: VS4M     =  751
+   INTEGER(IntKi), PARAMETER      :: VS5M     =  752
+   INTEGER(IntKi), PARAMETER      :: VS6M     =  753
+   INTEGER(IntKi), PARAMETER      :: VS7M     =  754
+   INTEGER(IntKi), PARAMETER      :: VS8M     =  755
+   INTEGER(IntKi), PARAMETER      :: VS9M     =  756
+   INTEGER(IntKi), PARAMETER      :: VS1VIndx =  757
+   INTEGER(IntKi), PARAMETER      :: VS2VIndx =  758
+   INTEGER(IntKi), PARAMETER      :: VS3VIndx =  759
+   INTEGER(IntKi), PARAMETER      :: VS4VIndx =  760
+   INTEGER(IntKi), PARAMETER      :: VS5VIndx =  761
+   INTEGER(IntKi), PARAMETER      :: VS6VIndx =  762
+   INTEGER(IntKi), PARAMETER      :: VS7VIndx =  763
+   INTEGER(IntKi), PARAMETER      :: VS8VIndx =  764
+   INTEGER(IntKi), PARAMETER      :: VS9VIndx =  765
+   INTEGER(IntKi), PARAMETER      :: VS1VIndy =  766
+   INTEGER(IntKi), PARAMETER      :: VS2VIndy =  767
+   INTEGER(IntKi), PARAMETER      :: VS3VIndy =  768
+   INTEGER(IntKi), PARAMETER      :: VS4VIndy =  769
+   INTEGER(IntKi), PARAMETER      :: VS5VIndy =  770
+   INTEGER(IntKi), PARAMETER      :: VS6VIndy =  771
+   INTEGER(IntKi), PARAMETER      :: VS7VIndy =  772
+   INTEGER(IntKi), PARAMETER      :: VS8VIndy =  773
+   INTEGER(IntKi), PARAMETER      :: VS9VIndy =  774
+   INTEGER(IntKi), PARAMETER      :: VS1VIndz =  775
+   INTEGER(IntKi), PARAMETER      :: VS2VIndz =  776
+   INTEGER(IntKi), PARAMETER      :: VS3VIndz =  777
+   INTEGER(IntKi), PARAMETER      :: VS4VIndz =  778
+   INTEGER(IntKi), PARAMETER      :: VS5VIndz =  779
+   INTEGER(IntKi), PARAMETER      :: VS6VIndz =  780
+   INTEGER(IntKi), PARAMETER      :: VS7VIndz =  781
+   INTEGER(IntKi), PARAMETER      :: VS8VIndz =  782
+   INTEGER(IntKi), PARAMETER      :: VS9VIndz =  783
+   INTEGER(IntKi), PARAMETER      :: VS1Alpha =  784
+   INTEGER(IntKi), PARAMETER      :: VS2Alpha =  785
+   INTEGER(IntKi), PARAMETER      :: VS3Alpha =  786
+   INTEGER(IntKi), PARAMETER      :: VS4Alpha =  787
+   INTEGER(IntKi), PARAMETER      :: VS5Alpha =  788
+   INTEGER(IntKi), PARAMETER      :: VS6Alpha =  789
+   INTEGER(IntKi), PARAMETER      :: VS7Alpha =  790
+   INTEGER(IntKi), PARAMETER      :: VS8Alpha =  791
+   INTEGER(IntKi), PARAMETER      :: VS9Alpha =  792
    INTEGER(IntKi), PARAMETER      :: Rudr1Ctrl =  793
    INTEGER(IntKi), PARAMETER      :: Rudr2Ctrl =  794
    INTEGER(IntKi), PARAMETER      :: Rudr3Ctrl =  795
@@ -866,96 +866,96 @@ module KiteAeroDyn_IO
    INTEGER(IntKi), PARAMETER      :: Rudr7Ctrl =  799
    INTEGER(IntKi), PARAMETER      :: Rudr8Ctrl =  800
    INTEGER(IntKi), PARAMETER      :: Rudr9Ctrl =  801
-   INTEGER(IntKi), PARAMETER      :: VSP1Cl    =  802
-   INTEGER(IntKi), PARAMETER      :: VSP2Cl    =  803
-   INTEGER(IntKi), PARAMETER      :: VSP3Cl    =  804
-   INTEGER(IntKi), PARAMETER      :: VSP4Cl    =  805
-   INTEGER(IntKi), PARAMETER      :: VSP5Cl    =  806
-   INTEGER(IntKi), PARAMETER      :: VSP6Cl    =  807
-   INTEGER(IntKi), PARAMETER      :: VSP7Cl    =  808
-   INTEGER(IntKi), PARAMETER      :: VSP8Cl    =  809
-   INTEGER(IntKi), PARAMETER      :: VSP9Cl    =  810
-   INTEGER(IntKi), PARAMETER      :: VSP1Cd    =  811
-   INTEGER(IntKi), PARAMETER      :: VSP2Cd    =  812
-   INTEGER(IntKi), PARAMETER      :: VSP3Cd    =  813
-   INTEGER(IntKi), PARAMETER      :: VSP4Cd    =  814
-   INTEGER(IntKi), PARAMETER      :: VSP5Cd    =  815
-   INTEGER(IntKi), PARAMETER      :: VSP6Cd    =  816
-   INTEGER(IntKi), PARAMETER      :: VSP7Cd    =  817
-   INTEGER(IntKi), PARAMETER      :: VSP8Cd    =  818
-   INTEGER(IntKi), PARAMETER      :: VSP9Cd    =  819
-   INTEGER(IntKi), PARAMETER      :: VSP1Cm    =  820
-   INTEGER(IntKi), PARAMETER      :: VSP2Cm    =  821
-   INTEGER(IntKi), PARAMETER      :: VSP3Cm    =  822
-   INTEGER(IntKi), PARAMETER      :: VSP4Cm    =  823
-   INTEGER(IntKi), PARAMETER      :: VSP5Cm    =  824
-   INTEGER(IntKi), PARAMETER      :: VSP6Cm    =  825
-   INTEGER(IntKi), PARAMETER      :: VSP7Cm    =  826
-   INTEGER(IntKi), PARAMETER      :: VSP8Cm    =  827
-   INTEGER(IntKi), PARAMETER      :: VSP9Cm    =  828
-   INTEGER(IntKi), PARAMETER      :: VSP1Cn    =  829
-   INTEGER(IntKi), PARAMETER      :: VSP2Cn    =  830
-   INTEGER(IntKi), PARAMETER      :: VSP3Cn    =  831
-   INTEGER(IntKi), PARAMETER      :: VSP4Cn    =  832
-   INTEGER(IntKi), PARAMETER      :: VSP5Cn    =  833
-   INTEGER(IntKi), PARAMETER      :: VSP6Cn    =  834
-   INTEGER(IntKi), PARAMETER      :: VSP7Cn    =  835
-   INTEGER(IntKi), PARAMETER      :: VSP8Cn    =  836
-   INTEGER(IntKi), PARAMETER      :: VSP9Cn    =  837
-   INTEGER(IntKi), PARAMETER      :: VSP1Ct    =  838
-   INTEGER(IntKi), PARAMETER      :: VSP2Ct    =  839
-   INTEGER(IntKi), PARAMETER      :: VSP3Ct    =  840
-   INTEGER(IntKi), PARAMETER      :: VSP4Ct    =  841
-   INTEGER(IntKi), PARAMETER      :: VSP5Ct    =  842
-   INTEGER(IntKi), PARAMETER      :: VSP6Ct    =  843
-   INTEGER(IntKi), PARAMETER      :: VSP7Ct    =  844
-   INTEGER(IntKi), PARAMETER      :: VSP8Ct    =  845
-   INTEGER(IntKi), PARAMETER      :: VSP9Ct    =  846
-   INTEGER(IntKi), PARAMETER      :: VSP1Fl    =  847
-   INTEGER(IntKi), PARAMETER      :: VSP2Fl    =  848
-   INTEGER(IntKi), PARAMETER      :: VSP3Fl    =  849
-   INTEGER(IntKi), PARAMETER      :: VSP4Fl    =  850
-   INTEGER(IntKi), PARAMETER      :: VSP5Fl    =  851
-   INTEGER(IntKi), PARAMETER      :: VSP6Fl    =  852
-   INTEGER(IntKi), PARAMETER      :: VSP7Fl    =  853
-   INTEGER(IntKi), PARAMETER      :: VSP8Fl    =  854
-   INTEGER(IntKi), PARAMETER      :: VSP9Fl    =  855
-   INTEGER(IntKi), PARAMETER      :: VSP1Fd    =  856
-   INTEGER(IntKi), PARAMETER      :: VSP2Fd    =  857
-   INTEGER(IntKi), PARAMETER      :: VSP3Fd    =  858
-   INTEGER(IntKi), PARAMETER      :: VSP4Fd    =  859
-   INTEGER(IntKi), PARAMETER      :: VSP5Fd    =  860
-   INTEGER(IntKi), PARAMETER      :: VSP6Fd    =  861
-   INTEGER(IntKi), PARAMETER      :: VSP7Fd    =  862
-   INTEGER(IntKi), PARAMETER      :: VSP8Fd    =  863
-   INTEGER(IntKi), PARAMETER      :: VSP9Fd    =  864
-   INTEGER(IntKi), PARAMETER      :: VSP1Mm    =  865
-   INTEGER(IntKi), PARAMETER      :: VSP2Mm    =  866
-   INTEGER(IntKi), PARAMETER      :: VSP3Mm    =  867
-   INTEGER(IntKi), PARAMETER      :: VSP4Mm    =  868
-   INTEGER(IntKi), PARAMETER      :: VSP5Mm    =  869
-   INTEGER(IntKi), PARAMETER      :: VSP6Mm    =  870
-   INTEGER(IntKi), PARAMETER      :: VSP7Mm    =  871
-   INTEGER(IntKi), PARAMETER      :: VSP8Mm    =  872
-   INTEGER(IntKi), PARAMETER      :: VSP9Mm    =  873
-   INTEGER(IntKi), PARAMETER      :: VSP1Fn    =  874
-   INTEGER(IntKi), PARAMETER      :: VSP2Fn    =  875
-   INTEGER(IntKi), PARAMETER      :: VSP3Fn    =  876
-   INTEGER(IntKi), PARAMETER      :: VSP4Fn    =  877
-   INTEGER(IntKi), PARAMETER      :: VSP5Fn    =  878
-   INTEGER(IntKi), PARAMETER      :: VSP6Fn    =  879
-   INTEGER(IntKi), PARAMETER      :: VSP7Fn    =  880
-   INTEGER(IntKi), PARAMETER      :: VSP8Fn    =  881
-   INTEGER(IntKi), PARAMETER      :: VSP9Fn    =  882
-   INTEGER(IntKi), PARAMETER      :: VSP1Ft    =  883
-   INTEGER(IntKi), PARAMETER      :: VSP2Ft    =  884
-   INTEGER(IntKi), PARAMETER      :: VSP3Ft    =  885
-   INTEGER(IntKi), PARAMETER      :: VSP4Ft    =  886
-   INTEGER(IntKi), PARAMETER      :: VSP5Ft    =  887
-   INTEGER(IntKi), PARAMETER      :: VSP6Ft    =  888
-   INTEGER(IntKi), PARAMETER      :: VSP7Ft    =  889
-   INTEGER(IntKi), PARAMETER      :: VSP8Ft    =  890
-   INTEGER(IntKi), PARAMETER      :: VSP9Ft    =  891
+   INTEGER(IntKi), PARAMETER      :: VS1Cl    =  802
+   INTEGER(IntKi), PARAMETER      :: VS2Cl    =  803
+   INTEGER(IntKi), PARAMETER      :: VS3Cl    =  804
+   INTEGER(IntKi), PARAMETER      :: VS4Cl    =  805
+   INTEGER(IntKi), PARAMETER      :: VS5Cl    =  806
+   INTEGER(IntKi), PARAMETER      :: VS6Cl    =  807
+   INTEGER(IntKi), PARAMETER      :: VS7Cl    =  808
+   INTEGER(IntKi), PARAMETER      :: VS8Cl    =  809
+   INTEGER(IntKi), PARAMETER      :: VS9Cl    =  810
+   INTEGER(IntKi), PARAMETER      :: VS1Cd    =  811
+   INTEGER(IntKi), PARAMETER      :: VS2Cd    =  812
+   INTEGER(IntKi), PARAMETER      :: VS3Cd    =  813
+   INTEGER(IntKi), PARAMETER      :: VS4Cd    =  814
+   INTEGER(IntKi), PARAMETER      :: VS5Cd    =  815
+   INTEGER(IntKi), PARAMETER      :: VS6Cd    =  816
+   INTEGER(IntKi), PARAMETER      :: VS7Cd    =  817
+   INTEGER(IntKi), PARAMETER      :: VS8Cd    =  818
+   INTEGER(IntKi), PARAMETER      :: VS9Cd    =  819
+   INTEGER(IntKi), PARAMETER      :: VS1Cm    =  820
+   INTEGER(IntKi), PARAMETER      :: VS2Cm    =  821
+   INTEGER(IntKi), PARAMETER      :: VS3Cm    =  822
+   INTEGER(IntKi), PARAMETER      :: VS4Cm    =  823
+   INTEGER(IntKi), PARAMETER      :: VS5Cm    =  824
+   INTEGER(IntKi), PARAMETER      :: VS6Cm    =  825
+   INTEGER(IntKi), PARAMETER      :: VS7Cm    =  826
+   INTEGER(IntKi), PARAMETER      :: VS8Cm    =  827
+   INTEGER(IntKi), PARAMETER      :: VS9Cm    =  828
+   INTEGER(IntKi), PARAMETER      :: VS1Cn    =  829
+   INTEGER(IntKi), PARAMETER      :: VS2Cn    =  830
+   INTEGER(IntKi), PARAMETER      :: VS3Cn    =  831
+   INTEGER(IntKi), PARAMETER      :: VS4Cn    =  832
+   INTEGER(IntKi), PARAMETER      :: VS5Cn    =  833
+   INTEGER(IntKi), PARAMETER      :: VS6Cn    =  834
+   INTEGER(IntKi), PARAMETER      :: VS7Cn    =  835
+   INTEGER(IntKi), PARAMETER      :: VS8Cn    =  836
+   INTEGER(IntKi), PARAMETER      :: VS9Cn    =  837
+   INTEGER(IntKi), PARAMETER      :: VS1Ct    =  838
+   INTEGER(IntKi), PARAMETER      :: VS2Ct    =  839
+   INTEGER(IntKi), PARAMETER      :: VS3Ct    =  840
+   INTEGER(IntKi), PARAMETER      :: VS4Ct    =  841
+   INTEGER(IntKi), PARAMETER      :: VS5Ct    =  842
+   INTEGER(IntKi), PARAMETER      :: VS6Ct    =  843
+   INTEGER(IntKi), PARAMETER      :: VS7Ct    =  844
+   INTEGER(IntKi), PARAMETER      :: VS8Ct    =  845
+   INTEGER(IntKi), PARAMETER      :: VS9Ct    =  846
+   INTEGER(IntKi), PARAMETER      :: VS1Fl    =  847
+   INTEGER(IntKi), PARAMETER      :: VS2Fl    =  848
+   INTEGER(IntKi), PARAMETER      :: VS3Fl    =  849
+   INTEGER(IntKi), PARAMETER      :: VS4Fl    =  850
+   INTEGER(IntKi), PARAMETER      :: VS5Fl    =  851
+   INTEGER(IntKi), PARAMETER      :: VS6Fl    =  852
+   INTEGER(IntKi), PARAMETER      :: VS7Fl    =  853
+   INTEGER(IntKi), PARAMETER      :: VS8Fl    =  854
+   INTEGER(IntKi), PARAMETER      :: VS9Fl    =  855
+   INTEGER(IntKi), PARAMETER      :: VS1Fd    =  856
+   INTEGER(IntKi), PARAMETER      :: VS2Fd    =  857
+   INTEGER(IntKi), PARAMETER      :: VS3Fd    =  858
+   INTEGER(IntKi), PARAMETER      :: VS4Fd    =  859
+   INTEGER(IntKi), PARAMETER      :: VS5Fd    =  860
+   INTEGER(IntKi), PARAMETER      :: VS6Fd    =  861
+   INTEGER(IntKi), PARAMETER      :: VS7Fd    =  862
+   INTEGER(IntKi), PARAMETER      :: VS8Fd    =  863
+   INTEGER(IntKi), PARAMETER      :: VS9Fd    =  864
+   INTEGER(IntKi), PARAMETER      :: VS1Mm    =  865
+   INTEGER(IntKi), PARAMETER      :: VS2Mm    =  866
+   INTEGER(IntKi), PARAMETER      :: VS3Mm    =  867
+   INTEGER(IntKi), PARAMETER      :: VS4Mm    =  868
+   INTEGER(IntKi), PARAMETER      :: VS5Mm    =  869
+   INTEGER(IntKi), PARAMETER      :: VS6Mm    =  870
+   INTEGER(IntKi), PARAMETER      :: VS7Mm    =  871
+   INTEGER(IntKi), PARAMETER      :: VS8Mm    =  872
+   INTEGER(IntKi), PARAMETER      :: VS9Mm    =  873
+   INTEGER(IntKi), PARAMETER      :: VS1Fn    =  874
+   INTEGER(IntKi), PARAMETER      :: VS2Fn    =  875
+   INTEGER(IntKi), PARAMETER      :: VS3Fn    =  876
+   INTEGER(IntKi), PARAMETER      :: VS4Fn    =  877
+   INTEGER(IntKi), PARAMETER      :: VS5Fn    =  878
+   INTEGER(IntKi), PARAMETER      :: VS6Fn    =  879
+   INTEGER(IntKi), PARAMETER      :: VS7Fn    =  880
+   INTEGER(IntKi), PARAMETER      :: VS8Fn    =  881
+   INTEGER(IntKi), PARAMETER      :: VS9Fn    =  882
+   INTEGER(IntKi), PARAMETER      :: VS1Ft    =  883
+   INTEGER(IntKi), PARAMETER      :: VS2Ft    =  884
+   INTEGER(IntKi), PARAMETER      :: VS3Ft    =  885
+   INTEGER(IntKi), PARAMETER      :: VS4Ft    =  886
+   INTEGER(IntKi), PARAMETER      :: VS5Ft    =  887
+   INTEGER(IntKi), PARAMETER      :: VS6Ft    =  888
+   INTEGER(IntKi), PARAMETER      :: VS7Ft    =  889
+   INTEGER(IntKi), PARAMETER      :: VS8Ft    =  890
+   INTEGER(IntKi), PARAMETER      :: VS9Ft    =  891
 
 
      ! Starboard Horizontal Stabilizer Outputs:
@@ -2502,30 +2502,30 @@ module KiteAeroDyn_IO
    INTEGER,  PARAMETER :: PWnFn(9)    = (/PWn1Fn, PWn2Fn, PWn3Fn, PWn4Fn, PWn5Fn, PWn6Fn, PWn7Fn, PWn8Fn, PWn9Fn/)
    INTEGER,  PARAMETER :: PWnFt(9)    = (/PWn1Ft, PWn2Ft, PWn3Ft, PWn4Ft, PWn5Ft, PWn6Ft, PWn7Ft, PWn8Ft, PWn9Ft/)
    
-   INTEGER,  PARAMETER :: VSVAmbx(9) = (/VSP1VAmbx, VSP2VAmbx, VSP3VAmbx, VSP4VAmbx, VSP5VAmbx, VSP6VAmbx, VSP7VAmbx, VSP8VAmbx, VSP9VAmbx/)
-   INTEGER,  PARAMETER :: VSVAmby(9) = (/VSP1VAmby, VSP2VAmby, VSP3VAmby, VSP4VAmby, VSP5VAmby, VSP6VAmby, VSP7VAmby, VSP8VAmby, VSP9VAmby/) 
-   INTEGER,  PARAMETER :: VSVAmbz(9) = (/VSP1VAmbz, VSP2VAmbz, VSP3VAmbz, VSP4VAmbz, VSP5VAmbz, VSP6VAmbz, VSP7VAmbz, VSP8VAmbz, VSP9VAmbz/)
-   INTEGER,  PARAMETER :: VSSTVx(9)  = (/VSP1STVx, VSP2STVx, VSP3STVx, VSP4STVx, VSP5STVx, VSP6STVx, VSP7STVx, VSP8STVx, VSP9STVx/)
-   INTEGER,  PARAMETER :: VSSTVy(9)  = (/VSP1STVy, VSP2STVy, VSP3STVy, VSP4STVy, VSP5STVy, VSP6STVy, VSP7STVy, VSP8STVy, VSP9STVy/) 
-   INTEGER,  PARAMETER :: VSSTVz(9)  = (/VSP1STVz, VSP2STVz, VSP3STVz, VSP4STVz, VSP5STVz, VSP6STVz, VSP7STVz, VSP8STVz, VSP9STVz/)
-   INTEGER,  PARAMETER :: VSVrel(9)  = (/VSP1Vrel, VSP2Vrel, VSP3Vrel, VSP4Vrel, VSP5Vrel, VSP6Vrel, VSP7Vrel, VSP8Vrel, VSP9Vrel/)
-   INTEGER,  PARAMETER :: VSDynP(9)  = (/VSP1DynP, VSP2DynP, VSP3DynP, VSP4DynP, VSP5DynP, VSP6DynP, VSP7DynP, VSP8DynP, VSP9DynP/)
-   INTEGER,  PARAMETER :: VSRe(9)    = (/VSP1Re, VSP2Re, VSP3Re, VSP4Re, VSP5Re, VSP6Re, VSP7Re, VSP8Re, VSP9Re/)
-   INTEGER,  PARAMETER :: VSMa(9)     = (/VSP1M, VSP2M, VSP3M, VSP4M, VSP5M, VSP6M, VSP7M, VSP8M, VSP9M/)
-   INTEGER,  PARAMETER :: VSVIndx(9) = (/VSP1VIndx, VSP2VIndx, VSP3VIndx, VSP4VIndx, VSP5VIndx, VSP6VIndx, VSP7VIndx, VSP8VIndx, VSP9VIndx/)
-   INTEGER,  PARAMETER :: VSVIndy(9) = (/VSP1VIndy, VSP2VIndy, VSP3VIndy, VSP4VIndy, VSP5VIndy, VSP6VIndy, VSP7VIndy, VSP8VIndy, VSP9VIndy/)
-   INTEGER,  PARAMETER :: VSVIndz(9) = (/VSP1VIndz, VSP2VIndz, VSP3VIndz, VSP4VIndz, VSP5VIndz, VSP6VIndz, VSP7VIndz, VSP8VIndz, VSP9VIndz/)
-   INTEGER,  PARAMETER :: VSAlpha(9) = (/VSP1Alpha, VSP2Alpha, VSP3Alpha, VSP4Alpha, VSP5Alpha, VSP6Alpha, VSP7Alpha, VSP8Alpha, VSP9Alpha/) 
-   INTEGER,  PARAMETER :: VSCl(9)    = (/VSP1Cl, VSP2Cl, VSP3Cl, VSP4Cl, VSP5Cl, VSP6Cl, VSP7Cl, VSP8Cl, VSP9Cl/)
-   INTEGER,  PARAMETER :: VSCd(9)    = (/VSP1Cd, VSP2Cd, VSP3Cd, VSP4Cd, VSP5Cd, VSP6Cd, VSP7Cd, VSP8Cd, VSP9Cd/)
-   INTEGER,  PARAMETER :: VSCm(9)    = (/VSP1Cm, VSP2Cm, VSP3Cm, VSP4Cm, VSP5Cm, VSP6Cm, VSP7Cm, VSP8Cm, VSP9Cm/)
-   INTEGER,  PARAMETER :: VSCn(9)    = (/VSP1Cn, VSP2Cn, VSP3Cn, VSP4Cn, VSP5Cn, VSP6Cn, VSP7Cn, VSP8Cn, VSP9Cn/)
-   INTEGER,  PARAMETER :: VSCt(9)    = (/VSP1Ct, VSP2Ct, VSP3Ct, VSP4Ct, VSP5Ct, VSP6Ct, VSP7Ct, VSP8Ct, VSP9Ct/)
-   INTEGER,  PARAMETER :: VSFl(9)    = (/VSP1Fl, VSP2Fl, VSP3Fl, VSP4Fl, VSP5Fl, VSP6Fl, VSP7Fl, VSP8Fl, VSP9Fl/)
-   INTEGER,  PARAMETER :: VSFd(9)    = (/VSP1Fd, VSP2Fd, VSP3Fd, VSP4Fd, VSP5Fd, VSP6Fd, VSP7Fd, VSP8Fd, VSP9Fd/)
-   INTEGER,  PARAMETER :: VSMm(9)    = (/VSP1Mm, VSP2Mm, VSP3Mm, VSP4Mm, VSP5Mm, VSP6Mm, VSP7Mm, VSP8Mm, VSP9Mm/)
-   INTEGER,  PARAMETER :: VSFn(9)    = (/VSP1Fn, VSP2Fn, VSP3Fn, VSP4Fn, VSP5Fn, VSP6Fn, VSP7Fn, VSP8Fn, VSP9Fn/)
-   INTEGER,  PARAMETER :: VSFt(9)    = (/VSP1Ft, VSP2Ft, VSP3Ft, VSP4Ft, VSP5Ft, VSP6Ft, VSP7Ft, VSP8Ft, VSP9Ft/)
+   INTEGER,  PARAMETER :: VSVAmbx(9) = (/VS1VAmbx, VS2VAmbx, VS3VAmbx, VS4VAmbx, VS5VAmbx, VS6VAmbx, VS7VAmbx, VS8VAmbx, VS9VAmbx/)
+   INTEGER,  PARAMETER :: VSVAmby(9) = (/VS1VAmby, VS2VAmby, VS3VAmby, VS4VAmby, VS5VAmby, VS6VAmby, VS7VAmby, VS8VAmby, VS9VAmby/) 
+   INTEGER,  PARAMETER :: VSVAmbz(9) = (/VS1VAmbz, VS2VAmbz, VS3VAmbz, VS4VAmbz, VS5VAmbz, VS6VAmbz, VS7VAmbz, VS8VAmbz, VS9VAmbz/)
+   INTEGER,  PARAMETER :: VSSTVx(9)  = (/VS1STVx, VS2STVx, VS3STVx, VS4STVx, VS5STVx, VS6STVx, VS7STVx, VS8STVx, VS9STVx/)
+   INTEGER,  PARAMETER :: VSSTVy(9)  = (/VS1STVy, VS2STVy, VS3STVy, VS4STVy, VS5STVy, VS6STVy, VS7STVy, VS8STVy, VS9STVy/) 
+   INTEGER,  PARAMETER :: VSSTVz(9)  = (/VS1STVz, VS2STVz, VS3STVz, VS4STVz, VS5STVz, VS6STVz, VS7STVz, VS8STVz, VS9STVz/)
+   INTEGER,  PARAMETER :: VSVrel(9)  = (/VS1Vrel, VS2Vrel, VS3Vrel, VS4Vrel, VS5Vrel, VS6Vrel, VS7Vrel, VS8Vrel, VS9Vrel/)
+   INTEGER,  PARAMETER :: VSDynP(9)  = (/VS1DynP, VS2DynP, VS3DynP, VS4DynP, VS5DynP, VS6DynP, VS7DynP, VS8DynP, VS9DynP/)
+   INTEGER,  PARAMETER :: VSRe(9)    = (/VS1Re, VS2Re, VS3Re, VS4Re, VS5Re, VS6Re, VS7Re, VS8Re, VS9Re/)
+   INTEGER,  PARAMETER :: VSMa(9)     = (/VS1M, VS2M, VS3M, VS4M, VS5M, VS6M, VS7M, VS8M, VS9M/)
+   INTEGER,  PARAMETER :: VSVIndx(9) = (/VS1VIndx, VS2VIndx, VS3VIndx, VS4VIndx, VS5VIndx, VS6VIndx, VS7VIndx, VS8VIndx, VS9VIndx/)
+   INTEGER,  PARAMETER :: VSVIndy(9) = (/VS1VIndy, VS2VIndy, VS3VIndy, VS4VIndy, VS5VIndy, VS6VIndy, VS7VIndy, VS8VIndy, VS9VIndy/)
+   INTEGER,  PARAMETER :: VSVIndz(9) = (/VS1VIndz, VS2VIndz, VS3VIndz, VS4VIndz, VS5VIndz, VS6VIndz, VS7VIndz, VS8VIndz, VS9VIndz/)
+   INTEGER,  PARAMETER :: VSAlpha(9) = (/VS1Alpha, VS2Alpha, VS3Alpha, VS4Alpha, VS5Alpha, VS6Alpha, VS7Alpha, VS8Alpha, VS9Alpha/) 
+   INTEGER,  PARAMETER :: VSCl(9)    = (/VS1Cl, VS2Cl, VS3Cl, VS4Cl, VS5Cl, VS6Cl, VS7Cl, VS8Cl, VS9Cl/)
+   INTEGER,  PARAMETER :: VSCd(9)    = (/VS1Cd, VS2Cd, VS3Cd, VS4Cd, VS5Cd, VS6Cd, VS7Cd, VS8Cd, VS9Cd/)
+   INTEGER,  PARAMETER :: VSCm(9)    = (/VS1Cm, VS2Cm, VS3Cm, VS4Cm, VS5Cm, VS6Cm, VS7Cm, VS8Cm, VS9Cm/)
+   INTEGER,  PARAMETER :: VSCn(9)    = (/VS1Cn, VS2Cn, VS3Cn, VS4Cn, VS5Cn, VS6Cn, VS7Cn, VS8Cn, VS9Cn/)
+   INTEGER,  PARAMETER :: VSCt(9)    = (/VS1Ct, VS2Ct, VS3Ct, VS4Ct, VS5Ct, VS6Ct, VS7Ct, VS8Ct, VS9Ct/)
+   INTEGER,  PARAMETER :: VSFl(9)    = (/VS1Fl, VS2Fl, VS3Fl, VS4Fl, VS5Fl, VS6Fl, VS7Fl, VS8Fl, VS9Fl/)
+   INTEGER,  PARAMETER :: VSFd(9)    = (/VS1Fd, VS2Fd, VS3Fd, VS4Fd, VS5Fd, VS6Fd, VS7Fd, VS8Fd, VS9Fd/)
+   INTEGER,  PARAMETER :: VSMm(9)    = (/VS1Mm, VS2Mm, VS3Mm, VS4Mm, VS5Mm, VS6Mm, VS7Mm, VS8Mm, VS9Mm/)
+   INTEGER,  PARAMETER :: VSFn(9)    = (/VS1Fn, VS2Fn, VS3Fn, VS4Fn, VS5Fn, VS6Fn, VS7Fn, VS8Fn, VS9Fn/)
+   INTEGER,  PARAMETER :: VSFt(9)    = (/VS1Ft, VS2Ft, VS3Ft, VS4Ft, VS5Ft, VS6Ft, VS7Ft, VS8Ft, VS9Ft/)
    
    INTEGER,  PARAMETER :: SHSVAmbx(9) = (/SHS1VAmbx, SHS2VAmbx, SHS3VAmbx, SHS4VAmbx, SHS5VAmbx, SHS6VAmbx, SHS7VAmbx, SHS8VAmbx, SHS9VAmbx/)
    INTEGER,  PARAMETER :: SHSVAmby(9) = (/SHS1VAmby, SHS2VAmby, SHS3VAmby, SHS4VAmby, SHS5VAmby, SHS6VAmby, SHS7VAmby, SHS8VAmby, SHS9VAmby/) 
@@ -3019,37 +3019,37 @@ SUBROUTINE KAD_SetOutParam(OutList, p, ErrStat, ErrMsg )
                                "SWN9CL   ","SWN9CM   ","SWN9CN   ","SWN9CT   ","SWN9DYNP ","SWN9FD   ","SWN9FL   ", &
                                "SWN9FN   ","SWN9FT   ","SWN9M    ","SWN9MM   ","SWN9RE   ","SWN9STVX ","SWN9STVY ", &
                                "SWN9STVZ ","SWN9VAMBX","SWN9VAMBY","SWN9VAMBZ","SWN9VINDX","SWN9VINDY","SWN9VINDZ", &
-                               "SWN9VREL ","VSP1ALPHA","VSP1CD   ","VSP1CL   ","VSP1CM   ","VSP1CN   ","VSP1CT   ", &
-                               "VSP1DYNP ","VSP1FD   ","VSP1FL   ","VSP1FN   ","VSP1FT   ","VSP1M    ","VSP1MM   ", &
-                               "VSP1RE   ","VSP1STVX ","VSP1STVY ","VSP1STVZ ","VSP1VAMBX","VSP1VAMBY","VSP1VAMBZ", &
-                               "VSP1VINDX","VSP1VINDY","VSP1VINDZ","VSP1VREL ","VSP2ALPHA","VSP2CD   ","VSP2CL   ", &
-                               "VSP2CM   ","VSP2CN   ","VSP2CT   ","VSP2DYNP ","VSP2FD   ","VSP2FL   ","VSP2FN   ", &
-                               "VSP2FT   ","VSP2M    ","VSP2MM   ","VSP2RE   ","VSP2STVX ","VSP2STVY ","VSP2STVZ ", &
-                               "VSP2VAMBX","VSP2VAMBY","VSP2VAMBZ","VSP2VINDX","VSP2VINDY","VSP2VINDZ","VSP2VREL ", &
-                               "VSP3ALPHA","VSP3CD   ","VSP3CL   ","VSP3CM   ","VSP3CN   ","VSP3CT   ","VSP3DYNP ", &
-                               "VSP3FD   ","VSP3FL   ","VSP3FN   ","VSP3FT   ","VSP3M    ","VSP3MM   ","VSP3RE   ", &
-                               "VSP3STVX ","VSP3STVY ","VSP3STVZ ","VSP3VAMBX","VSP3VAMBY","VSP3VAMBZ","VSP3VINDX", &
-                               "VSP3VINDY","VSP3VINDZ","VSP3VREL ","VSP4ALPHA","VSP4CD   ","VSP4CL   ","VSP4CM   ", &
-                               "VSP4CN   ","VSP4CT   ","VSP4DYNP ","VSP4FD   ","VSP4FL   ","VSP4FN   ","VSP4FT   ", &
-                               "VSP4M    ","VSP4MM   ","VSP4RE   ","VSP4STVX ","VSP4STVY ","VSP4STVZ ","VSP4VAMBX", &
-                               "VSP4VAMBY","VSP4VAMBZ","VSP4VINDX","VSP4VINDY","VSP4VINDZ","VSP4VREL ","VSP5ALPHA", &
-                               "VSP5CD   ","VSP5CL   ","VSP5CM   ","VSP5CN   ","VSP5CT   ","VSP5DYNP ","VSP5FD   ", &
-                               "VSP5FL   ","VSP5FN   ","VSP5FT   ","VSP5M    ","VSP5MM   ","VSP5RE   ","VSP5STVX ", &
-                               "VSP5STVY ","VSP5STVZ ","VSP5VAMBX","VSP5VAMBY","VSP5VAMBZ","VSP5VINDX","VSP5VINDY", &
-                               "VSP5VINDZ","VSP5VREL ","VSP6ALPHA","VSP6CD   ","VSP6CL   ","VSP6CM   ","VSP6CN   ", &
-                               "VSP6CT   ","VSP6DYNP ","VSP6FD   ","VSP6FL   ","VSP6FN   ","VSP6FT   ","VSP6M    ", &
-                               "VSP6MM   ","VSP6RE   ","VSP6STVX ","VSP6STVY ","VSP6STVZ ","VSP6VAMBX","VSP6VAMBY", &
-                               "VSP6VAMBZ","VSP6VINDX","VSP6VINDY","VSP6VINDZ","VSP6VREL ","VSP7ALPHA","VSP7CD   ", &
-                               "VSP7CL   ","VSP7CM   ","VSP7CN   ","VSP7CT   ","VSP7DYNP ","VSP7FD   ","VSP7FL   ", &
-                               "VSP7FN   ","VSP7FT   ","VSP7M    ","VSP7MM   ","VSP7RE   ","VSP7STVX ","VSP7STVY ", &
-                               "VSP7STVZ ","VSP7VAMBX","VSP7VAMBY","VSP7VAMBZ","VSP7VINDX","VSP7VINDY","VSP7VINDZ", &
-                               "VSP7VREL ","VSP8ALPHA","VSP8CD   ","VSP8CL   ","VSP8CM   ","VSP8CN   ","VSP8CT   ", &
-                               "VSP8DYNP ","VSP8FD   ","VSP8FL   ","VSP8FN   ","VSP8FT   ","VSP8M    ","VSP8MM   ", &
-                               "VSP8RE   ","VSP8STVX ","VSP8STVY ","VSP8STVZ ","VSP8VAMBX","VSP8VAMBY","VSP8VAMBZ", &
-                               "VSP8VINDX","VSP8VINDY","VSP8VINDZ","VSP8VREL ","VSP9ALPHA","VSP9CD   ","VSP9CL   ", &
-                               "VSP9CM   ","VSP9CN   ","VSP9CT   ","VSP9DYNP ","VSP9FD   ","VSP9FL   ","VSP9FN   ", &
-                               "VSP9FT   ","VSP9M    ","VSP9MM   ","VSP9RE   ","VSP9STVX ","VSP9STVY ","VSP9STVZ ", &
-                               "VSP9VAMBX","VSP9VAMBY","VSP9VAMBZ","VSP9VINDX","VSP9VINDY","VSP9VINDZ","VSP9VREL "/)
+                               "SWN9VREL ","VS1ALPHA","VS1CD   ","VS1CL   ","VS1CM   ","VS1CN   ","VS1CT   ", &
+                               "VS1DYNP ","VS1FD   ","VS1FL   ","VS1FN   ","VS1FT   ","VS1M    ","VS1MM   ", &
+                               "VS1RE   ","VS1STVX ","VS1STVY ","VS1STVZ ","VS1VAMBX","VS1VAMBY","VS1VAMBZ", &
+                               "VS1VINDX","VS1VINDY","VS1VINDZ","VS1VREL ","VS2ALPHA","VS2CD   ","VS2CL   ", &
+                               "VS2CM   ","VS2CN   ","VS2CT   ","VS2DYNP ","VS2FD   ","VS2FL   ","VS2FN   ", &
+                               "VS2FT   ","VS2M    ","VS2MM   ","VS2RE   ","VS2STVX ","VS2STVY ","VS2STVZ ", &
+                               "VS2VAMBX","VS2VAMBY","VS2VAMBZ","VS2VINDX","VS2VINDY","VS2VINDZ","VS2VREL ", &
+                               "VS3ALPHA","VS3CD   ","VS3CL   ","VS3CM   ","VS3CN   ","VS3CT   ","VS3DYNP ", &
+                               "VS3FD   ","VS3FL   ","VS3FN   ","VS3FT   ","VS3M    ","VS3MM   ","VS3RE   ", &
+                               "VS3STVX ","VS3STVY ","VS3STVZ ","VS3VAMBX","VS3VAMBY","VS3VAMBZ","VS3VINDX", &
+                               "VS3VINDY","VS3VINDZ","VS3VREL ","VS4ALPHA","VS4CD   ","VS4CL   ","VS4CM   ", &
+                               "VS4CN   ","VS4CT   ","VS4DYNP ","VS4FD   ","VS4FL   ","VS4FN   ","VS4FT   ", &
+                               "VS4M    ","VS4MM   ","VS4RE   ","VS4STVX ","VS4STVY ","VS4STVZ ","VS4VAMBX", &
+                               "VS4VAMBY","VS4VAMBZ","VS4VINDX","VS4VINDY","VS4VINDZ","VS4VREL ","VS5ALPHA", &
+                               "VS5CD   ","VS5CL   ","VS5CM   ","VS5CN   ","VS5CT   ","VS5DYNP ","VS5FD   ", &
+                               "VS5FL   ","VS5FN   ","VS5FT   ","VS5M    ","VS5MM   ","VS5RE   ","VS5STVX ", &
+                               "VS5STVY ","VS5STVZ ","VS5VAMBX","VS5VAMBY","VS5VAMBZ","VS5VINDX","VS5VINDY", &
+                               "VS5VINDZ","VS5VREL ","VS6ALPHA","VS6CD   ","VS6CL   ","VS6CM   ","VS6CN   ", &
+                               "VS6CT   ","VS6DYNP ","VS6FD   ","VS6FL   ","VS6FN   ","VS6FT   ","VS6M    ", &
+                               "VS6MM   ","VS6RE   ","VS6STVX ","VS6STVY ","VS6STVZ ","VS6VAMBX","VS6VAMBY", &
+                               "VS6VAMBZ","VS6VINDX","VS6VINDY","VS6VINDZ","VS6VREL ","VS7ALPHA","VS7CD   ", &
+                               "VS7CL   ","VS7CM   ","VS7CN   ","VS7CT   ","VS7DYNP ","VS7FD   ","VS7FL   ", &
+                               "VS7FN   ","VS7FT   ","VS7M    ","VS7MM   ","VS7RE   ","VS7STVX ","VS7STVY ", &
+                               "VS7STVZ ","VS7VAMBX","VS7VAMBY","VS7VAMBZ","VS7VINDX","VS7VINDY","VS7VINDZ", &
+                               "VS7VREL ","VS8ALPHA","VS8CD   ","VS8CL   ","VS8CM   ","VS8CN   ","VS8CT   ", &
+                               "VS8DYNP ","VS8FD   ","VS8FL   ","VS8FN   ","VS8FT   ","VS8M    ","VS8MM   ", &
+                               "VS8RE   ","VS8STVX ","VS8STVY ","VS8STVZ ","VS8VAMBX","VS8VAMBY","VS8VAMBZ", &
+                               "VS8VINDX","VS8VINDY","VS8VINDZ","VS8VREL ","VS9ALPHA","VS9CD   ","VS9CL   ", &
+                               "VS9CM   ","VS9CN   ","VS9CT   ","VS9DYNP ","VS9FD   ","VS9FL   ","VS9FN   ", &
+                               "VS9FT   ","VS9M    ","VS9MM   ","VS9RE   ","VS9STVX ","VS9STVY ","VS9STVZ ", &
+                               "VS9VAMBX","VS9VAMBY","VS9VAMBZ","VS9VINDX","VS9VINDY","VS9VINDZ","VS9VREL "/)
    INTEGER(IntKi), PARAMETER :: ParamIndxAry(2324) =  (/ &                            ! This lists the index into AllOuts(:) of the allowed parameters ValidParamAry(:)
                                 Fus1Alpha ,    Fus1Cd ,    Fus1Cl ,    Fus1Cm ,    Fus1Cn ,    Fus1Ct ,  Fus1DynP , &
                                    Fus1Fd ,    Fus1Fl ,    Fus1Fn ,    Fus1Ft ,     Fus1M ,    Fus1Mm ,    Fus1Re , &
@@ -3352,37 +3352,37 @@ SUBROUTINE KAD_SetOutParam(OutList, p, ErrStat, ErrMsg )
                                    SWn9Cl ,    SWn9Cm ,    SWn9Cn ,    SWn9Ct ,  SWn9DynP ,    SWn9Fd ,    SWn9Fl , &
                                    SWn9Fn ,    SWn9Ft ,     SWn9M ,    SWn9Mm ,    SWn9Re ,  SWn9STVx ,  SWn9STVy , &
                                  SWn9STVz , SWn9VAmbx , SWn9VAmby , SWn9VAmbz , SWn9VIndx , SWn9VIndy , SWn9VIndz , &
-                                 SWn9VRel , VSP1Alpha ,    VSP1Cd ,    VSP1Cl ,    VSP1Cm ,    VSP1Cn ,    VSP1Ct , &
-                                 VSP1DynP ,    VSP1Fd ,    VSP1Fl ,    VSP1Fn ,    VSP1Ft ,     VSP1M ,    VSP1Mm , &
-                                   VSP1Re ,  VSP1STVx ,  VSP1STVy ,  VSP1STVz , VSP1VAmbx , VSP1VAmby , VSP1VAmbz , &
-                                VSP1VIndx , VSP1VIndy , VSP1VIndz ,  VSP1VRel , VSP2Alpha ,    VSP2Cd ,    VSP2Cl , &
-                                   VSP2Cm ,    VSP2Cn ,    VSP2Ct ,  VSP2DynP ,    VSP2Fd ,    VSP2Fl ,    VSP2Fn , &
-                                   VSP2Ft ,     VSP2M ,    VSP2Mm ,    VSP2Re ,  VSP2STVx ,  VSP2STVy ,  VSP2STVz , &
-                                VSP2VAmbx , VSP2VAmby , VSP2VAmbz , VSP2VIndx , VSP2VIndy , VSP2VIndz ,  VSP2VRel , &
-                                VSP3Alpha ,    VSP3Cd ,    VSP3Cl ,    VSP3Cm ,    VSP3Cn ,    VSP3Ct ,  VSP3DynP , &
-                                   VSP3Fd ,    VSP3Fl ,    VSP3Fn ,    VSP3Ft ,     VSP3M ,    VSP3Mm ,    VSP3Re , &
-                                 VSP3STVx ,  VSP3STVy ,  VSP3STVz , VSP3VAmbx , VSP3VAmby , VSP3VAmbz , VSP3VIndx , &
-                                VSP3VIndy , VSP3VIndz ,  VSP3VRel , VSP4Alpha ,    VSP4Cd ,    VSP4Cl ,    VSP4Cm , &
-                                   VSP4Cn ,    VSP4Ct ,  VSP4DynP ,    VSP4Fd ,    VSP4Fl ,    VSP4Fn ,    VSP4Ft , &
-                                    VSP4M ,    VSP4Mm ,    VSP4Re ,  VSP4STVx ,  VSP4STVy ,  VSP4STVz , VSP4VAmbx , &
-                                VSP4VAmby , VSP4VAmbz , VSP4VIndx , VSP4VIndy , VSP4VIndz ,  VSP4VRel , VSP5Alpha , &
-                                   VSP5Cd ,    VSP5Cl ,    VSP5Cm ,    VSP5Cn ,    VSP5Ct ,  VSP5DynP ,    VSP5Fd , &
-                                   VSP5Fl ,    VSP5Fn ,    VSP5Ft ,     VSP5M ,    VSP5Mm ,    VSP5Re ,  VSP5STVx , &
-                                 VSP5STVy ,  VSP5STVz , VSP5VAmbx , VSP5VAmby , VSP5VAmbz , VSP5VIndx , VSP5VIndy , &
-                                VSP5VIndz ,  VSP5VRel , VSP6Alpha ,    VSP6Cd ,    VSP6Cl ,    VSP6Cm ,    VSP6Cn , &
-                                   VSP6Ct ,  VSP6DynP ,    VSP6Fd ,    VSP6Fl ,    VSP6Fn ,    VSP6Ft ,     VSP6M , &
-                                   VSP6Mm ,    VSP6Re ,  VSP6STVx ,  VSP6STVy ,  VSP6STVz , VSP6VAmbx , VSP6VAmby , &
-                                VSP6VAmbz , VSP6VIndx , VSP6VIndy , VSP6VIndz ,  VSP6VRel , VSP7Alpha ,    VSP7Cd , &
-                                   VSP7Cl ,    VSP7Cm ,    VSP7Cn ,    VSP7Ct ,  VSP7DynP ,    VSP7Fd ,    VSP7Fl , &
-                                   VSP7Fn ,    VSP7Ft ,     VSP7M ,    VSP7Mm ,    VSP7Re ,  VSP7STVx ,  VSP7STVy , &
-                                 VSP7STVz , VSP7VAmbx , VSP7VAmby , VSP7VAmbz , VSP7VIndx , VSP7VIndy , VSP7VIndz , &
-                                 VSP7VRel , VSP8Alpha ,    VSP8Cd ,    VSP8Cl ,    VSP8Cm ,    VSP8Cn ,    VSP8Ct , &
-                                 VSP8DynP ,    VSP8Fd ,    VSP8Fl ,    VSP8Fn ,    VSP8Ft ,     VSP8M ,    VSP8Mm , &
-                                   VSP8Re ,  VSP8STVx ,  VSP8STVy ,  VSP8STVz , VSP8VAmbx , VSP8VAmby , VSP8VAmbz , &
-                                VSP8VIndx , VSP8VIndy , VSP8VIndz ,  VSP8VRel , VSP9Alpha ,    VSP9Cd ,    VSP9Cl , &
-                                   VSP9Cm ,    VSP9Cn ,    VSP9Ct ,  VSP9DynP ,    VSP9Fd ,    VSP9Fl ,    VSP9Fn , &
-                                   VSP9Ft ,     VSP9M ,    VSP9Mm ,    VSP9Re ,  VSP9STVx ,  VSP9STVy ,  VSP9STVz , &
-                                VSP9VAmbx , VSP9VAmby , VSP9VAmbz , VSP9VIndx , VSP9VIndy , VSP9VIndz ,  VSP9VRel /)
+                                 SWn9VRel , VS1Alpha ,    VS1Cd ,    VS1Cl ,    VS1Cm ,    VS1Cn ,    VS1Ct , &
+                                 VS1DynP ,    VS1Fd ,    VS1Fl ,    VS1Fn ,    VS1Ft ,     VS1M ,    VS1Mm , &
+                                   VS1Re ,  VS1STVx ,  VS1STVy ,  VS1STVz , VS1VAmbx , VS1VAmby , VS1VAmbz , &
+                                VS1VIndx , VS1VIndy , VS1VIndz ,  VS1VRel , VS2Alpha ,    VS2Cd ,    VS2Cl , &
+                                   VS2Cm ,    VS2Cn ,    VS2Ct ,  VS2DynP ,    VS2Fd ,    VS2Fl ,    VS2Fn , &
+                                   VS2Ft ,     VS2M ,    VS2Mm ,    VS2Re ,  VS2STVx ,  VS2STVy ,  VS2STVz , &
+                                VS2VAmbx , VS2VAmby , VS2VAmbz , VS2VIndx , VS2VIndy , VS2VIndz ,  VS2VRel , &
+                                VS3Alpha ,    VS3Cd ,    VS3Cl ,    VS3Cm ,    VS3Cn ,    VS3Ct ,  VS3DynP , &
+                                   VS3Fd ,    VS3Fl ,    VS3Fn ,    VS3Ft ,     VS3M ,    VS3Mm ,    VS3Re , &
+                                 VS3STVx ,  VS3STVy ,  VS3STVz , VS3VAmbx , VS3VAmby , VS3VAmbz , VS3VIndx , &
+                                VS3VIndy , VS3VIndz ,  VS3VRel , VS4Alpha ,    VS4Cd ,    VS4Cl ,    VS4Cm , &
+                                   VS4Cn ,    VS4Ct ,  VS4DynP ,    VS4Fd ,    VS4Fl ,    VS4Fn ,    VS4Ft , &
+                                    VS4M ,    VS4Mm ,    VS4Re ,  VS4STVx ,  VS4STVy ,  VS4STVz , VS4VAmbx , &
+                                VS4VAmby , VS4VAmbz , VS4VIndx , VS4VIndy , VS4VIndz ,  VS4VRel , VS5Alpha , &
+                                   VS5Cd ,    VS5Cl ,    VS5Cm ,    VS5Cn ,    VS5Ct ,  VS5DynP ,    VS5Fd , &
+                                   VS5Fl ,    VS5Fn ,    VS5Ft ,     VS5M ,    VS5Mm ,    VS5Re ,  VS5STVx , &
+                                 VS5STVy ,  VS5STVz , VS5VAmbx , VS5VAmby , VS5VAmbz , VS5VIndx , VS5VIndy , &
+                                VS5VIndz ,  VS5VRel , VS6Alpha ,    VS6Cd ,    VS6Cl ,    VS6Cm ,    VS6Cn , &
+                                   VS6Ct ,  VS6DynP ,    VS6Fd ,    VS6Fl ,    VS6Fn ,    VS6Ft ,     VS6M , &
+                                   VS6Mm ,    VS6Re ,  VS6STVx ,  VS6STVy ,  VS6STVz , VS6VAmbx , VS6VAmby , &
+                                VS6VAmbz , VS6VIndx , VS6VIndy , VS6VIndz ,  VS6VRel , VS7Alpha ,    VS7Cd , &
+                                   VS7Cl ,    VS7Cm ,    VS7Cn ,    VS7Ct ,  VS7DynP ,    VS7Fd ,    VS7Fl , &
+                                   VS7Fn ,    VS7Ft ,     VS7M ,    VS7Mm ,    VS7Re ,  VS7STVx ,  VS7STVy , &
+                                 VS7STVz , VS7VAmbx , VS7VAmby , VS7VAmbz , VS7VIndx , VS7VIndy , VS7VIndz , &
+                                 VS7VRel , VS8Alpha ,    VS8Cd ,    VS8Cl ,    VS8Cm ,    VS8Cn ,    VS8Ct , &
+                                 VS8DynP ,    VS8Fd ,    VS8Fl ,    VS8Fn ,    VS8Ft ,     VS8M ,    VS8Mm , &
+                                   VS8Re ,  VS8STVx ,  VS8STVy ,  VS8STVz , VS8VAmbx , VS8VAmby , VS8VAmbz , &
+                                VS8VIndx , VS8VIndy , VS8VIndz ,  VS8VRel , VS9Alpha ,    VS9Cd ,    VS9Cl , &
+                                   VS9Cm ,    VS9Cn ,    VS9Ct ,  VS9DynP ,    VS9Fd ,    VS9Fl ,    VS9Fn , &
+                                   VS9Ft ,     VS9M ,    VS9Mm ,    VS9Re ,  VS9STVx ,  VS9STVy ,  VS9STVz , &
+                                VS9VAmbx , VS9VAmby , VS9VAmbz , VS9VIndx , VS9VIndy , VS9VIndz ,  VS9VRel /)
    CHARACTER(ChanLen), PARAMETER :: ParamUnitsAry(2324) =  (/ &                     ! This lists the units corresponding to the allowed parameters
                                "(deg)     ","(-)       ","(-)       ","(-)       ","(-)       ","(-)       ","(Pa)      ", &
                                "(N)       ","(N)       ","(N)       ","(N)       ","(-)       ","(Nm)      ","(-)       ", &

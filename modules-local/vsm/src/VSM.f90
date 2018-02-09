@@ -334,6 +334,7 @@ subroutine VSM_Compute_Influence(KinVisc,  numVolElem, numElem, inPtA, inPtB, U_
          !errStat2 = ErrID_Fatal
          !call SetErrStat(errStat2,errMsg2,errStat,errMsg,RoutineName)  
          !return
+         !write(*,*) "Needed to reorder element #"//trim(num2lstr(i))
          PtA(:,i) = inPtB(:,i)
          PtB(:,i) = inPtA(:,i)
       else

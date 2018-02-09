@@ -35,7 +35,7 @@ private
       type(MeshMapType)	:: FusO_P_2_Fus_L
       type(MeshMapType)	:: FusO_P_2_SWn_L
       type(MeshMapType)	:: FusO_P_2_PWn_L
-      type(MeshMapType)	:: FusO_P_2_VSP_L
+      type(MeshMapType)	:: FusO_P_2_VS_L
       type(MeshMapType)	:: FusO_P_2_SHS_L
       type(MeshMapType)	:: FusO_P_2_PHS_L
       type(MeshMapType)	:: FusO_P_2_SPy_L(4)
@@ -115,8 +115,8 @@ subroutine KAD_Dvr_CreateMeshMappings( numPylons, u, MeshMapData, errStat, errMs
    call MeshMapCreate( u%FusOMotions, u%PWnMotions, MeshMapData%FusO_P_2_PWn_L, errStat2, errMsg2 )
       call SetErrStat( errStat2, errMsg2, errStat, errMsg, ' KAD_Dvr_CreateMeshMappings: FusO_P_2_PWn_L' )     
    
-   call MeshMapCreate( u%FusOMotions, u%VSPMotions, MeshMapData%FusO_P_2_VSP_L, errStat2, errMsg2 )
-      call SetErrStat( errStat2, errMsg2, errStat, errMsg, ' KAD_Dvr_CreateMeshMappings: FusO_P_2_VSP_L' )     
+   call MeshMapCreate( u%FusOMotions, u%VSMotions, MeshMapData%FusO_P_2_VS_L, errStat2, errMsg2 )
+      call SetErrStat( errStat2, errMsg2, errStat, errMsg, ' KAD_Dvr_CreateMeshMappings: FusO_P_2_VS_L' )     
       
    call MeshMapCreate( u%FusOMotions, u%SHSMotions, MeshMapData%FusO_P_2_SHS_L, errStat2, errMsg2 )
       call SetErrStat( errStat2, errMsg2, errStat, errMsg, ' KAD_Dvr_CreateMeshMappings: FusO_P_2_SHS_L' )     
@@ -262,12 +262,12 @@ subroutine Set_u( t, numTimes, numPylons, numFlaps, lastInd, Motions, HWindSpd, 
    end do
    
 ! Vertical Stabilizer
-   call Transfer_Point_to_Line2( u%FusOMotions, u%VSPMotions, MeshMapData%FusO_P_2_VSP_L, errStat2, errMsg2 )
-         call SetErrStat(errStat2, errMsg2, errStat, ErrMsg,' Set_u: Transfer_FusO_to_VSP' )   
+   call Transfer_Point_to_Line2( u%FusOMotions, u%VSMotions, MeshMapData%FusO_P_2_VS_L, errStat2, errMsg2 )
+         call SetErrStat(errStat2, errMsg2, errStat, ErrMsg,' Set_u: Transfer_FusO_to_VS' )   
       ! Undisturbed wind velocities
-   do i=1,u%VSPMotions%nNodes
-      ptZ = u%VSPMotions%Position(3,i)+u%VSPMotions%TranslationDisp(3,i)
-      call GetWindSpeed( HWindSpd, ptZ, RefHt, PLexp, HWindDir, u%V_VSP(:,i), errStat2, errMsg2 )
+   do i=1,u%VSMotions%nNodes
+      ptZ = u%VSMotions%Position(3,i)+u%VSMotions%TranslationDisp(3,i)
+      call GetWindSpeed( HWindSpd, ptZ, RefHt, PLexp, HWindDir, u%V_VS(:,i), errStat2, errMsg2 )
    end do   
 ! Starboard Horizontal Stabilizer
    call Transfer_Point_to_Line2( u%FusOMotions, u%SHSMotions, MeshMapData%FusO_P_2_SHS_L, errStat2, errMsg2 )
@@ -635,7 +635,7 @@ subroutine KAD_Dvr_Read_InputFile( inputFile, InitInp, errStat, errMsg )
       call SetErrStat( errStat2, errMsg2, errStat, errMsg, RoutineName )
    call ReadAry ( UnIn, fileName, InitInp%KAD_InitInp%PWnOR, 3, 'PWnOR', 'Origin of Port Wing (most inboard node) in body-fixed coordinate system (m)', errStat2, errMsg2, UnEc )
       call SetErrStat( errStat2, errMsg2, errStat, errMsg, RoutineName )
-   call ReadAry ( UnIn, fileName, InitInp%KAD_InitInp%VSPOR, 3, 'VSPOR', 'Origin of Vertical Stabilizer in body-fixed coordinate system (m)', errStat2, errMsg2, UnEc )
+   call ReadAry ( UnIn, fileName, InitInp%KAD_InitInp%VSOR, 3, 'VSOR', 'Origin of Vertical Stabilizer in body-fixed coordinate system (m)', errStat2, errMsg2, UnEc )
       call SetErrStat( errStat2, errMsg2, errStat, errMsg, RoutineName )
    call ReadAry ( UnIn, fileName, InitInp%KAD_InitInp%SHSOR, 3, 'SHSOR', 'Origin of Starboard Horizontal Stabilizer in body-fixed coordinate system (m)', errStat2, errMsg2, UnEc )
       call SetErrStat( errStat2, errMsg2, errStat, errMsg, RoutineName )

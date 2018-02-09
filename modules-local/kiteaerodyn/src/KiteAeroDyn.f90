@@ -651,11 +651,11 @@ subroutine CreateMeshMappings( u, y, p, m, errStat, errMsg )
       call SetErrStat( errStat2, errMsg2, errStat, errMsg, ' CreateMeshMappings: PWn_L_2_P' )     
          if (ErrStat>=AbortErrLev) return
          
-   call MeshCopy( y%VSPLoads, m%VSPLoads, MESH_NEWCOPY, ErrStat2, ErrMsg2 )
+   call MeshCopy( y%VSLoads, m%VSLoads, MESH_NEWCOPY, ErrStat2, ErrMsg2 )
       call SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
          if (ErrStat>=AbortErrLev) return         
-   call MeshMapCreate( u%VSPMotions, m%VSPLoads, m%VSP_L_2_P, errStat2, errMsg2 )
-      call SetErrStat( errStat2, errMsg2, errStat, errMsg, ' CreateMeshMappings: VSP_L_2_P' )     
+   call MeshMapCreate( u%VSMotions, m%VSLoads, m%VS_L_2_P, errStat2, errMsg2 )
+      call SetErrStat( errStat2, errMsg2, errStat, errMsg, ' CreateMeshMappings: VS_L_2_P' )     
          if (ErrStat>=AbortErrLev) return
          
    call MeshCopy( y%SHSLoads, m%SHSLoads, MESH_NEWCOPY, ErrStat2, ErrMsg2 )
@@ -878,7 +878,7 @@ subroutine Init_y(y, u, InitInp, p, errStat, errMsg)
    
       ! Vertical Stabilizer Mesh
    alignDCM = reshape( (/0.0, -1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0/), (/3,3/) )  
-   call CreatePtLoadsMesh(InitInp%VSPOR, InitInp%InpFileData%VSPProps%NumNds-1, InitInp%InpFileData%VSPProps%Pos, alignDCM, InitInp%InpFileData%VSPProps%Twist, 3, y%VSPLoads, p%VSPElemLen, errStat2, errMsg2)
+   call CreatePtLoadsMesh(InitInp%VSOR, InitInp%InpFileData%VSProps%NumNds-1, InitInp%InpFileData%VSProps%Pos, alignDCM, InitInp%InpFileData%VSProps%Twist, 3, y%VSLoads, p%VSElemLen, errStat2, errMsg2)
       call SetErrStat( errStat2, errMsg2, errStat, errMsg, RoutineName )
       if (errStat >= AbortErrLev) return
 
@@ -982,9 +982,9 @@ subroutine Init_u( u, p, InitInp, nIfWPts, errStat, errMsg )
       call SetErrStat( errStat2, errMsg2, errStat, errMsg, RoutineName )
       
       ! Vertical stabilizer nodes
-   n = InitInp%InpFileData%VSPProps%NumNds
+   n = InitInp%InpFileData%VSProps%NumNds
    nIfWPts = nIfWPts + n
-   call AllocAry( u%V_VSP, 3_IntKi, n, 'u%V_VSP', errStat2, errMsg2 )
+   call AllocAry( u%V_VS, 3_IntKi, n, 'u%V_VS', errStat2, errMsg2 )
       call SetErrStat( errStat2, errMsg2, errStat, errMsg, RoutineName )
       
       ! Starboard horizontal stabilizer nodes
@@ -1046,7 +1046,7 @@ subroutine Init_u( u, p, InitInp, nIfWPts, errStat, errMsg )
    u%V_Fus    = 0.0_ReKi
    u%V_SWn    = 0.0_ReKi
    u%V_PWn    = 0.0_ReKi
-   u%V_VSP    = 0.0_ReKi
+   u%V_VS    = 0.0_ReKi
    u%V_SHS    = 0.0_ReKi
    u%V_PHS    = 0.0_ReKi
    u%V_SPy    = 0.0_ReKi
@@ -1182,7 +1182,7 @@ subroutine Init_u( u, p, InitInp, nIfWPts, errStat, errMsg )
    
       ! Line2 Vertical Stabilizer Mesh
    alignDCM = reshape( (/0.0, -1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0/), (/3,3/) )   
-   call CreateL2MotionsMesh(InitInp%VSPOR, InitInp%InpFileData%VSPProps%NumNds, InitInp%InpFileData%VSPProps%Pos, alignDCM, InitInp%InpFileData%VSPProps%Twist, 3, u%VSPMotions, errStat2, errMsg2)
+   call CreateL2MotionsMesh(InitInp%VSOR, InitInp%InpFileData%VSProps%NumNds, InitInp%InpFileData%VSProps%Pos, alignDCM, InitInp%InpFileData%VSProps%Twist, 3, u%VSMotions, errStat2, errMsg2)
       call SetErrStat( errStat2, errMsg2, errStat, errMsg, RoutineName )
       if (errStat >= AbortErrLev) return
 
@@ -1556,6 +1556,10 @@ subroutine ReadKADFile(InitInp, interval, errStat, errMsg)
       ! Kinematic air viscosity
    call ReadVar ( UnIn, fileName, InitInp%InpFileData%KinVisc, 'KinVisc', 'Kinematic air viscosity', errStat2, errMsg2, UnEc )
       call SetErrStat( errStat2, errMsg2, errStat, errMsg, RoutineName )
+      
+         ! Speed of Sound
+   call ReadVar ( UnIn, fileName, InitInp%InpFileData%SpdSound, 'SpdSound', 'Speed of Sound', errStat2, errMsg2, UnEc )
+      call SetErrStat( errStat2, errMsg2, errStat, errMsg, RoutineName )
 
    !-------------------------- LIFTING LINE VORTEX METHOD OPTIONS ------------------------
 
@@ -1626,7 +1630,7 @@ subroutine ReadKADFile(InitInp, interval, errStat, errMsg)
       call SetErrStat( errStat2, errMsg2, errStat, errMsg, RoutineName )    
      
    !-------------------------- VERTICAL STABILIZER PROPERTIES ------------------------   
-   call ReadProps( UnIn, fileName, InitInp%InpFileData%VSPProps%NumNds, InitInp%InpFileData%VSPProps, 7, 'Vertical Stabilizer', errStat2, errMsg2, UnEc )
+   call ReadProps( UnIn, fileName, InitInp%InpFileData%VSProps%NumNds, InitInp%InpFileData%VSProps, 7, 'Vertical Stabilizer', errStat2, errMsg2, UnEc )
       call SetErrStat( errStat2, errMsg2, errStat, errMsg, RoutineName )    
 
    !-------------------------- STARBOARD HORIZONTAL STABILIER PROPERTIES ------------------------   
@@ -2602,9 +2606,9 @@ subroutine Set_VSM_Inputs(u, m, p, u_VSM, errStat, errMsg)
   ! call Transfer_Orientation( u%PWnMotions, m%PWnLoads, m%PWn_L_2_P, errStat2, errMsg2 )
    call Transfer_Motions_Line2_to_Point( u%PWnMotions, m%PWnLoads, m%PWn_L_2_P, errStat2, errMsg2 )
       call SetErrStat(errStat2, errMsg2, errStat, errMsg,' Set_VSM_Inputs: Transfer_PWn_L_2_P' )      
-  ! call Transfer_Orientation( u%VSPMotions, m%VSPLoads, m%VSP_L_2_P, errStat2, errMsg2 )
-   call Transfer_Motions_Line2_to_Point( u%VSPMotions, m%VSPLoads, m%VSP_L_2_P, errStat2, errMsg2 )
-      call SetErrStat(errStat2, errMsg2, errStat, errMsg,' Set_VSM_Inputs: Transfer_VSP_L_2_P' )      
+  ! call Transfer_Orientation( u%VSMotions, m%VSLoads, m%VS_L_2_P, errStat2, errMsg2 )
+   call Transfer_Motions_Line2_to_Point( u%VSMotions, m%VSLoads, m%VS_L_2_P, errStat2, errMsg2 )
+      call SetErrStat(errStat2, errMsg2, errStat, errMsg,' Set_VSM_Inputs: Transfer_VS_L_2_P' )      
    !call Transfer_Orientation( u%SHSMotions, m%SHSLoads, m%SHS_L_2_P, errStat2, errMsg2 )
    call Transfer_Motions_Line2_to_Point( u%SHSMotions, m%SHSLoads, m%SHS_L_2_P, errStat2, errMsg2 )
       call SetErrStat(errStat2, errMsg2, errStat, errMsg,' Set_VSM_Inputs: Transfer_SHS_L_2_P' )      
@@ -2671,17 +2675,17 @@ subroutine Set_VSM_Inputs(u, m, p, u_VSM, errStat, errMsg)
       count = count + 1
    end do
    
-   do i = 1, u%VSPMotions%NElemList
-      n1 = u%VSPMotions%ELEMLIST(i)%ELEMENT%ELEMNODES(1)
-      n2 = u%VSPMotions%ELEMLIST(i)%ELEMENT%ELEMNODES(2)     
-      u_VSM%PtA    (:,count) = u%VSPMotions%Position(:,n1) + u%VSPMotions%TranslationDisp(:,n1)
-      u_VSM%PtB    (:,count) = u%VSPMotions%Position(:,n2) + u%VSPMotions%TranslationDisp(:,n2)
-      u_VSM%U_Inf_v(:,count) = ( u%V_VSP(:,n1) + u%V_VSP(:,n2) ) / 2.0   -  ( u%VSPMotions%TranslationVel(:,n1  ) + u%VSPMotions%TranslationVel(:,n2) ) / 2.0
-      u_VSM%x_hat  (:,count) = u%VSPMotions%Orientation(1,:,n1)
-      u_VSM%y_hat  (:,count) = u%VSPMotions%Orientation(2,:,n1)
-      u_VSM%z_hat  (:,count) = u%VSPMotions%Orientation(3,:,n1)
-      if ( p%VSPCtrlID(i) > 0 ) then
-         u_VSM%Deltaf (  count) = u%Ctrl_Rudr(p%VSPCtrlID(i))
+   do i = 1, u%VSMotions%NElemList
+      n1 = u%VSMotions%ELEMLIST(i)%ELEMENT%ELEMNODES(1)
+      n2 = u%VSMotions%ELEMLIST(i)%ELEMENT%ELEMNODES(2)     
+      u_VSM%PtA    (:,count) = u%VSMotions%Position(:,n1) + u%VSMotions%TranslationDisp(:,n1)
+      u_VSM%PtB    (:,count) = u%VSMotions%Position(:,n2) + u%VSMotions%TranslationDisp(:,n2)
+      u_VSM%U_Inf_v(:,count) = ( u%V_VS(:,n1) + u%V_VS(:,n2) ) / 2.0   -  ( u%VSMotions%TranslationVel(:,n1  ) + u%VSMotions%TranslationVel(:,n2) ) / 2.0
+      u_VSM%x_hat  (:,count) = u%VSMotions%Orientation(1,:,n1)
+      u_VSM%y_hat  (:,count) = u%VSMotions%Orientation(2,:,n1)
+      u_VSM%z_hat  (:,count) = u%VSMotions%Orientation(3,:,n1)
+      if ( p%VSCtrlID(i) > 0 ) then
+         u_VSM%Deltaf (  count) = u%Ctrl_Rudr(p%VSCtrlID(i))
       else   
          u_VSM%Deltaf (  count) = 0.0_ReKi
       end if
@@ -2782,7 +2786,6 @@ subroutine KAD_MapOutputs(p, u, u_VSM, y, y_VSM, m, z, errStat, errMsg)
    real   (ReKi)               :: DynP  
    integer(IntKi)              :: VSMoffset
    integer(IntKi)              :: i, j
-   real   (ReKi)               :: SpeedOfSound
    real   (ReKi)               :: chord
    real   (ReKi), allocatable  :: Vinfs_v(:,:)
    real   (ReKi), allocatable  :: chords(:)
@@ -2794,7 +2797,6 @@ subroutine KAD_MapOutputs(p, u, u_VSM, y, y_VSM, m, z, errStat, errMsg)
    errStat = ErrID_None
    errMsg  = ''
    
-   SpeedOfSound = 343.0  ! m/s   ! TODO: This should be a parameter 
    VSMoffset    = 0
    
    n = size(u%V_SPy,2)
@@ -2812,7 +2814,7 @@ subroutine KAD_MapOutputs(p, u, u_VSM, y, y_VSM, m, z, errStat, errMsg)
    do i = 1, p%NFusOuts
       
       call ComputeAeroOnMotionNodes(i, p%FusOutNd, u%FusMotions, VSMoffset, u_VSM, y_VSM, u%V_Fus, &
-                                     p%FusChord, p%FusElemLen, p%AirDens, p%KinVisc, speedOfSound, &
+                                     p%FusChord, p%FusElemLen, p%AirDens, p%KinVisc, p%SpdSound, &
                                      Vinf_v, Vstruct_v, Vind_v, Vrel, DynP, Re, XM, AoA, Cl, Cd, Cm, &
                                      Fl, Fd, Mm, Cn, Ct, Fn, Ft, errStat, errMsg )
          if (errStat >= AbortErrLev) then
@@ -2854,7 +2856,7 @@ subroutine KAD_MapOutputs(p, u, u_VSM, y, y_VSM, m, z, errStat, errMsg)
    do i = 1, p%NSWnOuts
       
       call ComputeAeroOnMotionNodes(i, p%SWnOutNd, u%SWnMotions, VSMoffset, u_VSM, y_VSM, u%V_SWn, p%SWnChord, &
-                                      p%SWnElemLen, p%AirDens, p%KinVisc, speedOfSound, Vinf_v, Vstruct_v, Vind_v, &
+                                      p%SWnElemLen, p%AirDens, p%KinVisc, p%SpdSound, Vinf_v, Vstruct_v, Vind_v, &
                                       Vrel, DynP, Re, XM, AoA, Cl, Cd, Cm, Fl, Fd, Mm, Cn, Ct, Fn, Ft, errStat, errMsg )
          if (errStat >= AbortErrLev) then
             call SetErrStat( ErrID_Fatal, 'The starboard wing ', errStat, errMsg, RoutineName )
@@ -2895,7 +2897,7 @@ subroutine KAD_MapOutputs(p, u, u_VSM, y, y_VSM, m, z, errStat, errMsg)
    do i = 1, p%NPWnOuts
          
       call ComputeAeroOnMotionNodes(i, p%PWnOutNd, u%PWnMotions, VSMoffset, u_VSM, y_VSM, u%V_PWn, p%PWnChord, &
-                                    p%PWnElemLen, p%AirDens, p%KinVisc, speedOfSound, Vinf_v, Vstruct_v, Vind_v, &
+                                    p%PWnElemLen, p%AirDens, p%KinVisc, p%SpdSound, Vinf_v, Vstruct_v, Vind_v, &
                                     Vrel, DynP, Re, XM, AoA, Cl, Cd, Cm, Fl, Fd, Mm, Cn, Ct, Fn, Ft, errStat, errMsg )
          if (errStat >= AbortErrLev) then
             call SetErrStat( ErrID_Fatal, 'The port wing ', errStat, errMsg, RoutineName )
@@ -2935,8 +2937,8 @@ subroutine KAD_MapOutputs(p, u, u_VSM, y, y_VSM, m, z, errStat, errMsg)
    !=======================================   
    do i = 1, p%NVSOuts
          
-      call ComputeAeroOnMotionNodes(i, p%VSOutNd, u%VSPMotions, VSMoffset, u_VSM, y_VSM, u%V_VSP, p%VSPChord, p%VSPElemLen, &
-                                    p%AirDens, p%KinVisc, speedOfSound, Vinf_v, Vstruct_v, Vind_v, Vrel, DynP, Re, XM, AoA, &
+      call ComputeAeroOnMotionNodes(i, p%VSOutNd, u%VSMotions, VSMoffset, u_VSM, y_VSM, u%V_VS, p%VSChord, p%VSElemLen, &
+                                    p%AirDens, p%KinVisc, p%SpdSound, Vinf_v, Vstruct_v, Vind_v, Vrel, DynP, Re, XM, AoA, &
                                     Cl, Cd, Cm, Fl, Fd, Mm, Cn, Ct, Fn, Ft, errStat, errMsg )
          if (errStat >= AbortErrLev) then
             call SetErrStat( ErrID_Fatal, 'The vertical stabilizer ', errStat, errMsg, RoutineName )
@@ -2969,7 +2971,7 @@ subroutine KAD_MapOutputs(p, u, u_VSM, y, y_VSM, m, z, errStat, errMsg)
       m%AllOuts( VSFt   (i) ) = Ft
 
    end do
-   VSMoffset = VSMoffset + u%VSPMotions%NElemList
+   VSMoffset = VSMoffset + u%VSMotions%NElemList
    
    !=======================================
    ! Starboard horizontal stabilizer-related outputs
@@ -2977,7 +2979,7 @@ subroutine KAD_MapOutputs(p, u, u_VSM, y, y_VSM, m, z, errStat, errMsg)
    do i = 1, p%NSHSOuts
          
       call ComputeAeroOnMotionNodes(i, p%SHSOutNd, u%SHSMotions, VSMoffset, u_VSM, y_VSM, u%V_SHS, p%SHSChord, p%SHSElemLen, & 
-                                    p%AirDens, p%KinVisc, speedOfSound, Vinf_v, Vstruct_v, Vind_v, Vrel, DynP, Re, XM, AoA, &
+                                    p%AirDens, p%KinVisc, p%SpdSound, Vinf_v, Vstruct_v, Vind_v, Vrel, DynP, Re, XM, AoA, &
                                     Cl, Cd, Cm, Fl, Fd, Mm, Cn, Ct, Fn, Ft, errStat, errMsg )
          if (errStat >= AbortErrLev) then
             call SetErrStat( ErrID_Fatal, 'The starboard horizontal stabilizer ', errStat, errMsg, RoutineName )
@@ -3018,7 +3020,7 @@ subroutine KAD_MapOutputs(p, u, u_VSM, y, y_VSM, m, z, errStat, errMsg)
    do i = 1, p%NPHSOuts
       
       call ComputeAeroOnMotionNodes(i, p%PHSOutNd, u%PHSMotions, VSMoffset, u_VSM, y_VSM, u%V_PHS, p%PHSChord, p%PHSElemLen, &
-                                    p%AirDens, p%KinVisc, speedOfSound, Vinf_v, Vstruct_v, Vind_v, Vrel, DynP, Re, XM, AoA, &
+                                    p%AirDens, p%KinVisc, p%SpdSound, Vinf_v, Vstruct_v, Vind_v, Vrel, DynP, Re, XM, AoA, &
                                     Cl, Cd, Cm, Fl, Fd, Mm, Cn, Ct, Fn, Ft, errStat, errMsg )
          if (errStat >= AbortErrLev) then
             call SetErrStat( ErrID_Fatal, 'The port horizontal stabilizer ', errStat, errMsg, RoutineName )
@@ -3063,7 +3065,7 @@ subroutine KAD_MapOutputs(p, u, u_VSM, y, y_VSM, m, z, errStat, errMsg)
          chords  = p%SPyChord(:,j) 
          elemLens = p%SPyElemLen(:,j)
          call ComputeAeroOnMotionNodes(i, p%PylOutNd, u%SPyMotions(j), VSMoffset, u_VSM, y_VSM, Vinfs_v, chords, elemLens, &
-                                       p%AirDens, p%KinVisc, speedOfSound, Vinf_v, Vstruct_v, Vind_v, Vrel, DynP, Re, XM, AoA, &
+                                       p%AirDens, p%KinVisc, p%SpdSound, Vinf_v, Vstruct_v, Vind_v, Vrel, DynP, Re, XM, AoA, &
                                        Cl, Cd, Cm, Fl, Fd, Mm, Cn, Ct, Fn, Ft, errStat, errMsg )
          if (errStat >= AbortErrLev) then
             call SetErrStat( ErrID_Fatal, 'The starboard pylon ', errStat, errMsg, RoutineName )
@@ -3109,7 +3111,7 @@ subroutine KAD_MapOutputs(p, u, u_VSM, y, y_VSM, m, z, errStat, errMsg)
          chords  = p%PPyChord(:,j) 
          elemLens = p%PPyElemLen(:,j)
          call ComputeAeroOnMotionNodes(i, p%PylOutNd, u%PPyMotions(j), VSMoffset, u_VSM, y_VSM, Vinfs_v, chords, elemLens, &
-                                       p%AirDens, p%KinVisc, speedOfSound, Vinf_v, Vstruct_v, Vind_v, Vrel, DynP, Re, XM, AoA, &
+                                       p%AirDens, p%KinVisc, p%SpdSound, Vinf_v, Vstruct_v, Vind_v, Vrel, DynP, Re, XM, AoA, &
                                         Cl, Cd, Cm, Fl, Fd, Mm, Cn, Ct, Fn, Ft, errStat, errMsg )
          if (errStat >= AbortErrLev) then
             call SetErrStat( ErrID_Fatal, 'The port pylon ', errStat, errMsg, RoutineName )
@@ -3374,7 +3376,7 @@ subroutine KAD_Init( InitInp, u, p, y, interval, m, InitOut, errStat, errMsg )
    p%DTAero    = InitInp%InpFileData%DTAero
    p%AirDens   = InitInp%InpFileData%AirDens
    p%KinVisc   = InitInp%InpFileData%KinVisc
-   
+   p%SpdSound  = InitInp%InpFileData%SpdSound
       ! Override the driver-requested timestep and send the module timestep back to driver
    interval    = p%DTAero
    
@@ -3406,14 +3408,14 @@ subroutine KAD_Init( InitInp, u, p, y, interval, m, InitOut, errStat, errMsg )
       p%PWnCtrlID(i) = InitInp%InpFileData%PWnProps%CntrlID(i)
    end do
    
-   n = InitInp%InpFileData%VSPProps%NumNds
-   call AllocAry( p%VSPCtrlID, n, 'p%VSPCtrlID', errStat2, errMsg2 )
+   n = InitInp%InpFileData%VSProps%NumNds
+   call AllocAry( p%VSCtrlID, n, 'p%VSCtrlID', errStat2, errMsg2 )
       call SetErrStat( errStat2, errMsg2, errStat, errMsg, RoutineName )
-   call AllocAry( p%VSPChord, n, 'p%VSPChord', errStat2, errMsg2 )
+   call AllocAry( p%VSChord, n, 'p%VSChord', errStat2, errMsg2 )
       call SetErrStat( errStat2, errMsg2, errStat, errMsg, RoutineName )
    do i=1,n
-      p%VSPChord (i) = InitInp%InpFileData%VSPProps%Chord(i)
-      p%VSPCtrlID(i) = InitInp%InpFileData%VSPProps%CntrlID(i)
+      p%VSChord (i) = InitInp%InpFileData%VSProps%Chord(i)
+      p%VSCtrlID(i) = InitInp%InpFileData%VSProps%CntrlID(i)
    end do
    
    n = InitInp%InpFileData%SHSProps%NumNds
@@ -3582,11 +3584,11 @@ subroutine KAD_Init( InitInp, u, p, y, interval, m, InitOut, errStat, errMsg )
    VSM_numCompElems(1) = u%FusMotions%NElemList  
    VSM_numCompElems(2) = u%SWnMotions%NElemList
    VSM_numCompElems(3) = u%PWnMotions%NElemList
-   VSM_numCompElems(4) = u%VSPMotions%NElemList
+   VSM_numCompElems(4) = u%VSMotions%NElemList
    VSM_numCompElems(5) = u%SHSMotions%NElemList
    VSM_numCompElems(6) = u%PHSMotions%NElemList
    c = 7
-   numElem = u%FusMotions%NElemList + u%SWnMotions%NElemList + u%PWnMotions%NElemList + u%VSPMotions%NElemList + u%SHSMotions%NElemList + u%PHSMotions%NElemList
+   numElem = u%FusMotions%NElemList + u%SWnMotions%NElemList + u%PWnMotions%NElemList + u%VSMotions%NElemList + u%SHSMotions%NElemList + u%PHSMotions%NElemList
    do i = 1, + p%NumPylons
       VSM_numCompElems(c) = u%SPyMotions(i)%NElemList
       c = c + 1
@@ -3640,13 +3642,13 @@ subroutine KAD_Init( InitInp, u, p, y, interval, m, InitOut, errStat, errMsg )
       VSM_InitInp%AFIDs(count)  = InitInp%InpFileData%PWnProps%AFID(n1)
       count = count + 1
    end do
-   do i = 1, u%VSPMotions%NElemList
-      n1 = u%VSPMotions%ELEMLIST(i)%ELEMENT%ELEMNODES(1)
-      n2 = u%VSPMotions%ELEMLIST(i)%ELEMENT%ELEMNODES(2)     
-      VSM_ElemPts(:,1,count)    = u%VSPMotions%Position(:,n1)
-      VSM_ElemPts(:,2,count)    = u%VSPMotions%Position(:,n2)
-      VSM_InitInp%Chords(count) = (InitInp%InpFileData%VSPProps%Chord(n1) + InitInp%InpFileData%VSPProps%Chord(n2)) / 2.0
-      VSM_InitInp%AFIDs(count)  = InitInp%InpFileData%VSPProps%AFID(n1)
+   do i = 1, u%VSMotions%NElemList
+      n1 = u%VSMotions%ELEMLIST(i)%ELEMENT%ELEMNODES(1)
+      n2 = u%VSMotions%ELEMLIST(i)%ELEMENT%ELEMNODES(2)     
+      VSM_ElemPts(:,1,count)    = u%VSMotions%Position(:,n1)
+      VSM_ElemPts(:,2,count)    = u%VSMotions%Position(:,n2)
+      VSM_InitInp%Chords(count) = (InitInp%InpFileData%VSProps%Chord(n1) + InitInp%InpFileData%VSProps%Chord(n2)) / 2.0
+      VSM_InitInp%AFIDs(count)  = InitInp%InpFileData%VSProps%AFID(n1)
       count = count + 1
    end do
    do i = 1, u%SHSMotions%NElemList
@@ -3696,7 +3698,7 @@ subroutine KAD_Init( InitInp, u, p, y, interval, m, InitOut, errStat, errMsg )
    InitOut%AirDens = p%AirDens
    InitOut%nIfWPts = nIfWPts   
    
-   call KAD_WriteSummary( p%OutFileRoot, VSM_ElemPts, VSM_numCompElems, m%VSM, errStat, errMsg )
+   if ( InitInp%InpFileData%SumPrint ) call KAD_WriteSummary( p%OutFileRoot, VSM_ElemPts, VSM_numCompElems, m%VSM, errStat, errMsg )
    
 end subroutine KAD_Init
         
@@ -3799,9 +3801,9 @@ subroutine KAD_CalcOutput( Time, u, p, x, xd, z, OtherState, y, m, errStat, errM
       y%PWnLoads%Moment(:,i) = m%VSM%y%Loads(4:6,c)
       c = c + 1
    end do
-   do i = 1, y%VSPLoads%nNodes
-      y%VSPLoads%Force(:,i)  = m%VSM%y%Loads(1:3,c)
-      y%VSPLoads%Moment(:,i) = m%VSM%y%Loads(4:6,c)
+   do i = 1, y%VSLoads%nNodes
+      y%VSLoads%Force(:,i)  = m%VSM%y%Loads(1:3,c)
+      y%VSLoads%Moment(:,i) = m%VSM%y%Loads(4:6,c)
       c = c + 1
    end do
    do i = 1, y%SHSLoads%nNodes

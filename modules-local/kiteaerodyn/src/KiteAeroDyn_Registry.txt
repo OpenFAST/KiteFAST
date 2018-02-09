@@ -43,6 +43,7 @@ typedef    ^    KAD_InputFile    IntKi              RotorMod        -    -    - 
 typedef    ^    KAD_InputFile    LOGICAL            UseCm           -    -    -    "Include aerodynamic pitching moment in calculations?"    flag
 typedef    ^    KAD_InputFile    ReKi               AirDens         -    -    -    "Air density"    kg/m^3
 typedef    ^    KAD_InputFile    ReKi               KinVisc         -    -    -    "Kinematic air viscosity"    m^2/s
+typedef    ^    ^                ReKi               SpdSound        -    -    -    "Speed of sound" m/s
 typedef    ^    KAD_InputFile    IntKi              VSMMod          -    -    -    "Trailing vortices alignment model (switch) {1:chord, 2: local free stream}" -
 typedef    ^    KAD_InputFile    ReKi               VSMToler        -    -    -    "Tolerance in the Newton iterations or DEFAULT"    m^2/s
 typedef    ^    KAD_InputFile    IntKi              VSMMaxIter      -    -    -    "Maximum number of Newton iterations or DEFAULT"   -
@@ -57,7 +58,7 @@ typedef    ^    KAD_InputFile    CHARACTER(1024)    AFNames        {:}   -    - 
 typedef    ^    KAD_InputFile    KAD_MbrPropsType   FusProps       -    -    -    "fuselage property information"    -
 typedef    ^    KAD_InputFile    KAD_MbrPropsType   SWnProps        -    -    -    "Starboard wing property information"    -
 typedef    ^    KAD_InputFile    KAD_MbrPropsType   PWnProps        -    -    -    "Port wing property information"    -
-typedef    ^    KAD_InputFile    KAD_MbrPropsType   VSPProps        -    -    -    "Vertical stabilizer property information"    -
+typedef    ^    KAD_InputFile    KAD_MbrPropsType   VSProps        -    -    -    "Vertical stabilizer property information"    -
 typedef    ^    KAD_InputFile    KAD_MbrPropsType   SHSProps        -    -    -    "Starboard horizontal stabilizer property information"    -
 typedef    ^    KAD_InputFile    KAD_MbrPropsType   PHSProps        -    -    -    "Port horizontal stabilizer property information"    -
 typedef    ^    KAD_InputFile    KAD_MbrPropsType   SPyProps       {:}   -    -    "Starboard Pylon property information"    -
@@ -91,7 +92,7 @@ typedef    ^    ^                IntKi              NumFlaps        -    -    - 
 typedef    ^    ^                IntKi              NumPylons       -    -    -  "Supplied by Driver:  Number of pylons per wing" -
 typedef    ^    ^                ReKi               SWnOR          {3}   -    -  "Supplied by Driver:  " -
 typedef    ^    ^                ReKi               PWnOR          {3}   -    -  "Supplied by Driver:  " -
-typedef    ^    ^                ReKi               VSPOR          {3}   -    -  "Supplied by Driver:  " -
+typedef    ^    ^                ReKi               VSOR          {3}   -    -  "Supplied by Driver:  " -
 typedef    ^    ^                ReKi               SHSOR          {3}   -    -  "Supplied by Driver:  " -
 typedef    ^    ^                ReKi               PHSOR          {3}   -    -  "Supplied by Driver:  " -
 typedef    ^    ^                ReKi               SPyOR        {:}{:}   -    -  "Supplied by Driver:  " -
@@ -135,7 +136,7 @@ typedef  ^      InputType        MeshType           FusMotions      -    -    - 
 typedef  ^      InputType        MeshType           FusOMotions     -    -    -  "Fuselage Origin Point motions (a single node)" -
 typedef	^	    ^                MeshType           SWnMotions      -    -    -  "Starboard wing motions" -                                                                                                                                    
 typedef	^	    ^                MeshType           PWnMotions      -    -    -  "Port wing motions" -                                                                                                                                    
-typedef	^	    ^                MeshType           VSPMotions      -    -    -  "Vertical stabilizer motions" -                                                                                                                                    
+typedef	^	    ^                MeshType           VSMotions      -    -    -  "Vertical stabilizer motions" -                                                                                                                                    
 typedef	^	    ^                MeshType           SHSMotions      -    -    -  "Starboard horizontal stabilizer motions" -                                                                                                                                    
 typedef	^	    ^                MeshType           PHSMotions      -    -    -  "Port horizontal stabilizer motions" -                                                                                                                                    
 typedef	^	    ^                MeshType           SPyMotions     {:}   -    -  "Starboard pylon motions" -                                                                                                                                    
@@ -145,7 +146,7 @@ typedef	^	    ^                MeshType           PPyRtrMotions  {:}   -    -  "
 typedef	^	    ^                ReKi               V_Fus          {:}{:}   -    -  "Undisturbed wind speed on fuselage" m/s                                                                                                                                    
 typedef	^	    ^                ReKi               V_SWn          {:}{:}   -    -  "Undisturbed wind speed on starboard wing" m/s        
 typedef	^	    ^                ReKi               V_PWn          {:}{:}   -    -  "Undisturbed wind speed on port wing" m/s        
-typedef	^	    ^                ReKi               V_VSP          {:}{:}   -    -  "Undisturbed wind speed on vertical stabilizer" m/s        
+typedef	^	    ^                ReKi               V_VS          {:}{:}   -    -  "Undisturbed wind speed on vertical stabilizer" m/s        
 typedef	^	    ^                ReKi               V_SHS          {:}{:}   -    -  "Undisturbed wind speed on starboard horizontal stabilizer" m/s        
 typedef	^	    ^                ReKi               V_PHS          {:}{:}   -    -  "Undisturbed wind speed on port horizontal stabilizer" m/s        
 typedef	^	    ^                ReKi               V_SPy       {:}{:}{:}   -    -  "Undisturbed wind speed on starboard pylons" m/s        
@@ -169,7 +170,7 @@ typedef   ^    MiscVarType    KAD_VSM_Data             VSM           -     -   -
 typedef   ^    MiscVarType    MeshMapType              Fus_L_2_P     -     -   -  "Mesh mapping between the Fuselage line2 mesh and the Fuselage point mesh"
 typedef   ^    MiscVarType    MeshMapType              SWn_L_2_P     -     -   -  "Mesh mapping between the Starboard wing line2 mesh and the Starboard wing point mesh"
 typedef   ^    MiscVarType    MeshMapType              PWn_L_2_P     -     -   -  "Mesh mapping between the Port wing line2 mesh and the Port wing point mesh"
-typedef   ^    MiscVarType    MeshMapType              VSP_L_2_P     -     -   -  "Mesh mapping between the Vertical stabilizer line2 mesh and the Vertical stabilizer point mesh"
+typedef   ^    MiscVarType    MeshMapType              VS_L_2_P     -     -   -  "Mesh mapping between the Vertical stabilizer line2 mesh and the Vertical stabilizer point mesh"
 typedef   ^    MiscVarType    MeshMapType              SHS_L_2_P     -     -   -  "Mesh mapping between the Starboard horizontal stabilizer line2 mesh and the Starboard horizontal stabilizer point mesh"
 typedef   ^    MiscVarType    MeshMapType              PHS_L_2_P     -     -   -  "Mesh mapping between the Port horizontal stabilizer line2 mesh and the Port horizontal stabilizer point mesh"
 typedef   ^    MiscVarType    MeshMapType              SPy_L_2_P    {:}    -   -  "Mesh mapping between the Starboard Pylon line2 mesh(es) and the Starboard Pylon point mesh(es)"
@@ -177,7 +178,7 @@ typedef   ^    MiscVarType    MeshMapType              PPy_L_2_P    {:}    -   -
 typedef   ^     ^             MeshType                 FusLoads      -    -    -  "Fuselage loads" -
 typedef	 ^	    ^             MeshType                 SWnLoads      -    -    -  "Starboard wing loads" -                                                                                                                                    
 typedef	 ^	    ^             MeshType                 PWnLoads      -    -    -  "Port wing loads" -                                                                                                                                    
-typedef	 ^	    ^             MeshType                 VSPLoads       -    -    -  "Vertical stabilizer loads" -                                                                                                                                    
+typedef	 ^	    ^             MeshType                 VSLoads       -    -    -  "Vertical stabilizer loads" -                                                                                                                                    
 typedef	 ^	    ^             MeshType                 SHSLoads      -    -    -  "Starboard horizontal stabilizer loads" -                                                                                                                                    
 typedef	 ^	    ^             MeshType                 PHSLoads      -    -    -  "Port horizontal stabilizer loads" -                                                                                                                                    
 typedef	 ^	    ^             MeshType                 SPyLoads     {:}   -    -  "Starboard pylon loads" -                                                                                                                                    
@@ -193,19 +194,20 @@ typedef   ^  ParameterType  IntKi            NumFlaps    -  -  -  "Number of fla
 typedef   ^  ^              IntKi            NumPylons   -  -  -  "Number of pylons per wing" -
 typedef   ^  ^              ReKi             AirDens     -  -  -  "Air density"    kg/m^3
 typedef   ^  ^              ReKi             KinVisc     -  -  -  "Kinematic air viscosity"    m^2/s
+typedef   ^  ^              ReKi             SpdSound    -  -  -  "Speed of sound" m/s
 typedef   ^  ^              DbKi             DTAero      -  -  -  "Time interval for aerodynamic calculations" s
 typedef   ^  ^              IntKi            SWnCtrlID  {:} -  -  "Starboard wing control surface ID" -
 typedef   ^  ^              IntKi            PWnCtrlID  {:} -  -  "Port wing control surface ID" -
 typedef   ^  ^              IntKi            SHSCtrlID  {:} -  -  "Starboard horizontal stabilizer control surface ID" -
 typedef   ^  ^              IntKi            PHSCtrlID  {:} -  -  "Port horizontal stabilizer control surface ID" -
-typedef   ^  ^              IntKi            VSPCtrlID  {:} -  -  "vertical stabilizer control surface ID" -
+typedef   ^  ^              IntKi            VSCtrlID  {:} -  -  "vertical stabilizer control surface ID" -
 typedef   ^  ^              ReKi             FusChord   {:} -  -  "Fuselage chord" m
 #typedef  ^  ^              ReKi             Fus_AFIDs  {:} -  -  "Fuselage airfoil IDs" m
 typedef   ^  ^              ReKi             SWnChord   {:} -  -  "Starboard wing chord" m
 typedef   ^  ^              ReKi             PWnChord   {:} -  -  "Port wing chord" m
 typedef   ^  ^              ReKi             SHSChord   {:} -  -  "Starboard horizontal stabilizer chord" m
 typedef   ^  ^              ReKi             PHSChord   {:} -  -  "Port horizontal stabilizer chord" m
-typedef   ^  ^              ReKi             VSPChord   {:} -  -  "vertical stabilizer chord" m
+typedef   ^  ^              ReKi             VSChord   {:} -  -  "vertical stabilizer chord" m
 typedef   ^  ^              ReKi             SPyChord   {:}{:} -  -  "Starboard pylon chord" m
 typedef   ^  ^              ReKi             PPyChord   {:}{:} -  -  "Port pylon chord" m
 typedef   ^  ^              ReKi             FusElemLen {:} -  -  "Fuselage element length" m
@@ -213,7 +215,7 @@ typedef   ^  ^              ReKi             SWnElemLen {:} -  -  "Starboard win
 typedef   ^  ^              ReKi             PWnElemLen {:} -  -  "Port wing element length" m
 typedef   ^  ^              ReKi             SHSElemLen {:} -  -  "Starboard horizontal stabilizer element length" m
 typedef   ^  ^              ReKi             PHSElemLen {:} -  -  "Port horizontal stabilizer element length" m
-typedef   ^  ^              ReKi             VSPElemLen {:} -  -  "vertical stabilizer element length" m
+typedef   ^  ^              ReKi             VSElemLen {:} -  -  "vertical stabilizer element length" m
 typedef   ^  ^              ReKi             SPyElemLen {:}{:} -  -  "Starboard pylon element length" m
 typedef   ^  ^              ReKi             PPyElemLen {:}{:} -  -  "Port pylon element length" m
 
@@ -250,7 +252,7 @@ typedef  ^      OutputType        MeshType          FusLoads      -    -    -  "
 typedef  ^      ^                MeshType           FusOLoads     -    -    -  "Fuselage Origin Point loads (a single node)" -
 typedef	^	    ^                MeshType           SWnLoads      -    -    -  "Starboard wing loads" -                                                                                                                                    
 typedef	^	    ^                MeshType           PWnLoads      -    -    -  "Port wing loads" -                                                                                                                                    
-typedef	^	    ^                MeshType           VSPLoads       -    -    -  "Vertical stabilizer loads" -                                                                                                                                    
+typedef	^	    ^                MeshType           VSLoads       -    -    -  "Vertical stabilizer loads" -                                                                                                                                    
 typedef	^	    ^                MeshType           SHSLoads      -    -    -  "Starboard horizontal stabilizer loads" -                                                                                                                                    
 typedef	^	    ^                MeshType           PHSLoads      -    -    -  "Port horizontal stabilizer loads" -                                                                                                                                    
 typedef	^	    ^                MeshType           SPyLoads     {:}   -    -  "Starboard pylon loads" -                                                                                                                                    
