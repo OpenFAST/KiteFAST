@@ -319,8 +319,13 @@ subroutine VSM_Compute_Influence(KinVisc,  numVolElem, numElem, inPtA, inPtB, U_
       PtC(:,i) = (inPtA(:,i) + inPtB(:,i)) / 2.0_ReKi
       
       PtP(:,i) = PtC(:,i) + 0.5*chord(i)*y_hat(:,i)
-      
-      U_Inf_hat = U_Inf_v(:,i) / TwoNorm(U_Inf_v(:,i))
+      U_Inf = TwoNorm(U_Inf_v(:,i))
+      if ( EqualRealNos(U_Inf, 0.0_ReKi) ) then
+         U_Inf_hat = U_Inf_v(:,i)
+      else     
+         U_Inf_hat = U_Inf_v(:,i) / TwoNorm(U_Inf_v(:,i))
+      end if
+      ! TODO: Implement freestream vs chord alignment
          ! Rotate 3/4 chord onto the free stream vector, using C as stationary point
       PtP(:,i) = PtC(:,i) + 0.5*chord(i)*U_Inf_hat
          ! Set control Point, PtP location
@@ -354,14 +359,16 @@ subroutine VSM_Compute_Influence(KinVisc,  numVolElem, numElem, inPtA, inPtB, U_
       r3_v  = PtP(:,j) - PtC(:,j)
       tmp2D_v  = cross_product(r0_v,r3_v)
       Factor2D = dot_product(tmp2D_v,tmp2D_v)
-      if ( EqualRealNos(Factor2D,0.0_ReKi) ) then       
-         Phi_AB2D_v(:,j) = 0.0_ReKi
+      Phi_AB2D_v(:,j) = 0.0_ReKi
+      
+      if ( .not. EqualRealNos(Factor2D,0.0_ReKi) ) then       
+         
          !! error
          !errMsg2 = 'Cross products of r0 and r3 produce a zero length vector which creates a divide by zero error'
          !errStat2 = ErrID_Fatal
          !call SetErrStat(errStat2,errMsg2,errStat,errMsg,RoutineName)  
          !return
-      else
+         
          Phi_AB2D_v(:,j) = ( r0 / (2.0*Pi*Factor2D))*tmp2D_v  
       end if   
    
@@ -371,90 +378,76 @@ subroutine VSM_Compute_Influence(KinVisc,  numVolElem, numElem, inPtA, inPtB, U_
          r1_v  = PtP(:,j) - PtA(:,i)
          r2_v  = PtP(:,j) - PtB(:,i)
          r3_v  = PtP(:,j) - PtC(:,i)
-   
+         tmp2D_v  = cross_product(r0_v,r3_v)
+         Factor2D = dot_product(tmp2D_v,tmp2D_v)
          r1   = TwoNorm(r1_v)
          r2   = TwoNorm(r2_v)
+         U_Inf = TwoNorm(U_Inf_v(:,i))
          ! TODO: Check that r1 > 0 and r2>0
-         if ( EqualRealNos(r1,0.0_ReKi) .or. EqualRealNos(r2,0.0_ReKi)  ) then
+         
+         if ( EqualRealNos(r1,0.0_ReKi) .or. EqualRealNos(r2,0.0_ReKi) .or. EqualRealNos(U_Inf,0.0_ReKi) .or. EqualRealNos(Factor2D,0.0_ReKi)) then
             Phi_v(:,i,j) = 0.0_ReKi
          else
-            if ( EqualRealNos(r1,0.0_ReKi) ) then
-               errMsg2 = 'r1 is a zero length vector which creates a divide by zero error'
-               errStat2 = ErrID_Fatal
-               call SetErrStat(errStat2,errMsg2,errStat,errMsg,RoutineName)  
-               return
-            end if
-         
-            if ( EqualRealNos(r2,0.0_ReKi) ) then
-               errMsg2 = 'r2 is a zero length vector which creates a divide by zero error'
-               errStat2 = ErrID_Fatal
-               call SetErrStat(errStat2,errMsg2,errStat,errMsg,RoutineName)  
-               return
-            end if
+
             r1_hat = r1_v / r1
             r2_hat = r2_v / r2
    
-            U_Inf = TwoNorm(U_Inf_v(:,i))
+            
          
                ! TODO: Compute zeta_hat per element when we determine PtP for each element.
             tmp_v = PtP(:,i) - PtC(:,i)
             tmp   = TwoNorm(tmp_v)
             if ( EqualRealNos(tmp,0.0_ReKi) ) then
-               errMsg2 = 'zeta is a zero length vector which creates a divide by zero error'
-               errStat2 = ErrID_Fatal
-               call SetErrStat(errStat2,errMsg2,errStat,errMsg,RoutineName)  
-               return
-            end if
-            zeta_hat = tmp_v / tmp
-            e2 = 0.05*r0
-      
-            if ( EqualRealNos(U_Inf,0.0_ReKi) ) then
-               errMsg2 = 'U_Inf is a zero length vector which creates a divide by zero error'
-               errStat2 = ErrID_Fatal
-               call SetErrStat(errStat2,errMsg2,errStat,errMsg,RoutineName)  
-               return
-            end if
-         
-   
+               !errMsg2 = 'zeta is a zero length vector which creates a divide by zero error'
+               !errStat2 = ErrID_Fatal
+               !call SetErrStat(errStat2,errMsg2,errStat,errMsg,RoutineName)  
+               !return
+               ! This implies chord length is zero for this element
+               Phi_Ainf_v = 0.0_ReKi
+            else
+            
+               zeta_hat = tmp_v / tmp
+               e2 = 0.05*r0
+
       
          ! Calculate U_Ainf(i,j)
       
-            r1p_v      = dot_product(r1_v,zeta_hat)*zeta_hat  
-            r1p        = TwoNorm(r1p_v)
-            e11        = sqrt(4*alpha0*kinvisc*r1p/U_Inf)   
+               r1p_v      = dot_product(r1_v,zeta_hat)*zeta_hat  
+               r1p        = TwoNorm(r1p_v)
+               e11        = sqrt(4*alpha0*kinvisc*r1p/U_Inf)   
 
-            tmp1cZeta_v = cross_product(r1_v,zeta_hat)
-            tmp1cZeta = TwoNorm(tmp1cZeta_v)
+               tmp1cZeta_v = cross_product(r1_v,zeta_hat)
+               tmp1cZeta = TwoNorm(tmp1cZeta_v)
                  
-            if ( tmp1cZeta > e11 ) then 
-               Factor1   = tmp1cZeta*tmp1cZeta
-               Phi_Ainf_v = (( 1.0_ReKi + dot_product(r1_v,zeta_hat)/r1 ) / (4.0_ReKi*Pi*Factor1) ) * tmp1cZeta_v
-            else if ( EqualRealNos(tmp1cZeta, 0.0_ReKi) ) then
-               Phi_Ainf_v = 0.0_ReKi
-            else
-               eta11_v    = r1_hat - zeta_hat  
-               eta11_hat  = eta11_v / TwoNorm(eta11_v)
-               r1_prime_v = r1p_v + e11*eta11_hat
-               r1_prime   = TwoNorm(r1_prime_v)
-               if ( EqualRealNos(r1_prime,0.0_ReKi) ) then
-                  errMsg2 = 'r1_prime is equal to zero which creates a divide by zero error'
-                  errStat2 = ErrID_Fatal
-                  call SetErrStat(errStat2,errMsg2,errStat,errMsg,RoutineName)  
-                  return
-               end if
+               if ( tmp1cZeta > e11 ) then 
+                  Factor1   = tmp1cZeta*tmp1cZeta
+                  Phi_Ainf_v = (( 1.0_ReKi + dot_product(r1_v,zeta_hat)/r1 ) / (4.0_ReKi*Pi*Factor1) ) * tmp1cZeta_v
+               else if ( EqualRealNos(tmp1cZeta, 0.0_ReKi) ) then
+                  Phi_Ainf_v = 0.0_ReKi
+               else
+                  eta11_v    = r1_hat - zeta_hat  
+                  eta11_hat  = eta11_v / TwoNorm(eta11_v)
+                  r1_prime_v = r1p_v + e11*eta11_hat
+                  r1_prime   = TwoNorm(r1_prime_v)
+                  if ( EqualRealNos(r1_prime,0.0_ReKi) ) then
+                     errMsg2 = 'r1_prime is equal to zero which creates a divide by zero error'
+                     errStat2 = ErrID_Fatal
+                     call SetErrStat(errStat2,errMsg2,errStat,errMsg,RoutineName)  
+                     return
+                  end if
       
-               tmp1_v = cross_product(r1_prime_v,zeta_hat)
-               Factor1 = dot_product(tmp1_v,tmp1_v)
-               if ( EqualRealNos(Factor1,0.0_ReKi) ) then
-                  errMsg2 = 'Cross products of r1_prime and zeta produce a zero length vector which creates a divide by zero error'
-                  errStat2 = ErrID_Fatal
-                  call SetErrStat(errStat2,errMsg2,errStat,errMsg,RoutineName)  
-                  return
-               end if
+                  tmp1_v = cross_product(r1_prime_v,zeta_hat)
+                  Factor1 = dot_product(tmp1_v,tmp1_v)
+                  if ( EqualRealNos(Factor1,0.0_ReKi) ) then
+                     errMsg2 = 'Cross products of r1_prime and zeta produce a zero length vector which creates a divide by zero error'
+                     errStat2 = ErrID_Fatal
+                     call SetErrStat(errStat2,errMsg2,errStat,errMsg,RoutineName)  
+                     return
+                  end if
    
-               Phi_Ainf_v = ( ( 1.0_ReKi + dot_product(r1_prime_v,zeta_hat)/r1_prime ) / (4.0_ReKi*Pi*Factor1) ) * tmp1_v
-               Phi_Ainf_v = Phi_Ainf_v * tmp1cZeta / e11
-            
+                  Phi_Ainf_v = ( ( 1.0_ReKi + dot_product(r1_prime_v,zeta_hat)/r1_prime ) / (4.0_ReKi*Pi*Factor1) ) * tmp1_v
+                  Phi_Ainf_v = Phi_Ainf_v * tmp1cZeta / e11
+               end if
             end if
       
          ! Calculate U_Binf(j,i)
@@ -617,7 +610,7 @@ subroutine VSM_Compute( AirDens, numVolElem, numElem, PtA, PtB, U_Inf_v, x_hat, 
       U_Infx =  dot_product( U_Inf_v(:,j), x_hat(:,j))
       U_Infy  = dot_product( U_Inf_v(:,j), y_hat(:,j))
       U_Inf_2D = sqrt(U_Infx**2 + U_Infy**2)
-      Factor = TwoNorm(PtB(:,j) - PtA(:,j))  ! TODO: This should be using a static fixed length (p%r0)
+      Factor = TwoNorm(PtB(:,j) - PtA(:,j))  ! TODO: This should be using a static fixed length
       Factor = 0.5*AirDens*U_2D*Factor*chord(j)
       
          ! These are in the local airfoil frame 
