@@ -463,6 +463,14 @@ end subroutine KADTest_SetBaseInitInpData
       type(KAD_InputType)                    :: u                    ! System inputs
       type(KAD_OutputType)                   :: y                    ! System outputs     
       type(KAD_MiscVarType)                  :: m                    ! miscvars
+      type(KAD_ContinuousStateType)          :: x           !< Input: Continuous states at t;
+                                                                       !!   Output: Continuous states at t + Interval
+      type(KAD_DiscreteStateType)            :: xd          !< Input: Discrete states at t;
+                                                                          !!   Output: Discrete states at t + Interval
+      type(KAD_ConstraintStateType)          :: z           !< Input: Constraint states at t;
+                                                                          !!   Output: Constraint states at t + Interval
+      type(KAD_OtherStateType)               :: OtherState  !< Other states: Other states at t;
+                                                                          !!   Output: Other states at t + Interval
       integer(IntKi)                            :: errStat2        ! Status of error message
       character(1024)                           :: errMsg2         ! Error message if errStat /= ErrID_None
       character(*), parameter                   :: routineName = 'KADTest_Basic'
@@ -481,7 +489,8 @@ end subroutine KADTest_SetBaseInitInpData
         end if
       
          ! Initialize the KiteAeroDyn module
-      call KAD_Init( InitInData, u, p, y, interval, m, InitOutData, errStat, errMsg )
+
+      call KAD_Init( InitInData, u, p, y, interval, x, xd, z, OtherState, m, InitOutData, errStat, errMsg )
          if ( errStat >= AbortErrLev ) then
             call Cleanup()
             stop

@@ -143,7 +143,7 @@ module KiteAeroDyn_IO
    INTEGER(IntKi), PARAMETER      :: Fus7M     =   88
    INTEGER(IntKi), PARAMETER      :: Fus8M     =   89
    INTEGER(IntKi), PARAMETER      :: Fus9M     =   90
-   INTEGER(IntKi), PARAMETER      :: Fus1VIndx =   91
+   INTEGER(IntKi), PARAMETER      :: Fus1VIndx =   91   !TODO: Change x to n, y to c, and z to s everywhere and t becomes -c
    INTEGER(IntKi), PARAMETER      :: Fus2VIndx =   92
    INTEGER(IntKi), PARAMETER      :: Fus3VIndx =   93
    INTEGER(IntKi), PARAMETER      :: Fus4VIndx =   94

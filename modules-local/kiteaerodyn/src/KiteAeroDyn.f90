@@ -1350,7 +1350,7 @@ subroutine ComputeAeroOnMotionNodes(i, outNds, motionMesh, VSMoffset, u_VSM, y_V
    call FindVSMElemBasedOnMotionNode( outNds(i), motionMesh, VSMoffset, VSMElemIndx)
    
    if ( VSMElemIndx == 0 ) then
-      errMsg  = 'node '//trim(num2lstr(outNds(i)))//'cannot be related to a VSM element.  You cannot output data for the last node in a component list.'
+      errMsg  = 'node '//trim(num2lstr(outNds(i)))//' cannot be related to a VSM element.  You cannot output data for the last node in a component list, or the first of two co-located nodes.'
       errStat = ErrID_Fatal
       return
    end if
@@ -2627,7 +2627,7 @@ subroutine Set_VSM_Inputs(u, m, p, u_VSM, errStat, errMsg)
       ! Loop over kite components to set these values
    count = 1
    
-   do i = 1, u%FusMotions%Nnodes - 1
+   do i = 1, u%FusMotions%NElemList
       n1 = u%FusMotions%ELEMLIST(i)%ELEMENT%ELEMNODES(1)
       n2 = u%FusMotions%ELEMLIST(i)%ELEMENT%ELEMNODES(2)     
       u_VSM%PtA    (:,count) = u%FusMotions%Position(:,n1) + u%FusMotions%TranslationDisp(:,n1)
@@ -3299,7 +3299,7 @@ end subroutine KAD_MapOutputs
 !< This routine is called at the start of the simulation to perform initialization steps.
 !! The parameters are set here and not changed during the simulation.
 !! The initial states and initial guess for the input are defined.
-subroutine KAD_Init( InitInp, u, p, y, interval, m, InitOut, errStat, errMsg )
+subroutine KAD_Init( InitInp, u, p, y, interval, x, xd, z, OtherState, m, InitOut, errStat, errMsg )
 
    type(KAD_InitInputType),       intent(inout)  :: InitInp     !< Input data for initialization routine, needs to be inout because there is a copy of some data in InitInp in BEMT_SetParameters()
    type(KAD_InputType),           intent(inout)  :: u           !< An initial guess for the input; input mesh must be defined
@@ -3307,10 +3307,19 @@ subroutine KAD_Init( InitInp, u, p, y, interval, m, InitOut, errStat, errMsg )
    type(KAD_OutputType),          intent(  out)  :: y           !< Initial system outputs (outputs are not calculated;
                                                                    !<   only the output mesh is initialized)
    real(DbKi),                    intent(inout)  :: interval    !< Coupling interval in seconds: 
-                                                                   !<   Input is the suggested time from the glue code;
-                                                                   !<   Output is the actual coupling interval that will be used
-                                                                   !<   by the glue code.
+                                                                !<   Input is the suggested time from the glue code;
+                                                                !<   Output is the actual coupling interval that will be used
+                                                                !<   by the glue code.
+   type(KAD_ContinuousStateType), intent(inout)  :: x           !< Input: Continuous states at t;
+                                                                       !!   Output: Continuous states at t + Interval
+   type(KAD_DiscreteStateType),   intent(inout)  :: xd          !< Input: Discrete states at t;
+                                                                       !!   Output: Discrete states at t + Interval
+   type(KAD_ConstraintStateType), intent(inout)  :: z           !< Input: Constraint states at t;
+                                                                       !!   Output: Constraint states at t + Interval
+   type(KAD_OtherStateType),      intent(inout)  :: OtherState  !< Other states: Other states at t;
+                                                                       !!   Output: Other states at t + Interval
    type(KAD_MiscVarType),          intent(  out)  :: m           !< MiscVars for the module
+   
    type(KAD_InitOutputType),      intent(  out)  :: InitOut     !< Output for initialization routine
    integer(IntKi),                intent(  out)  :: errStat     !< Error status of the operation
    character(*),                  intent(  out)  :: errMsg      !< Error message if errStat /= ErrID_None
@@ -3692,7 +3701,7 @@ subroutine KAD_Init( InitInp, u, p, y, interval, m, InitOut, errStat, errMsg )
       end do
    end do
 
-   call VSM_Init( VSM_InitInp, m%VSM%u, m%VSM%p, m%VSM%z, m%VSM%m, m%VSM%y, interval, VSM_InitOut, errStat, errMsg )
+   call VSM_Init( VSM_InitInp, m%VSM%u, m%VSM%p, z%VSM, m%VSM%m, m%VSM%y, interval, VSM_InitOut, errStat, errMsg )
       if ( errStat >= AbortErrLev ) return
       
    InitOut%AirDens = p%AirDens
@@ -3743,7 +3752,7 @@ subroutine KAD_UpdateStates( t, n, Inputs, InputTimes, p, x, xd, z, OtherState, 
    call Set_VSM_Inputs(m%u_Interp, m, p, m%VSM%u, errStat, errMsg)
       if ( errStat >= AbortErrLev ) return
         
-   call VSM_UpdateStates( t, n, m%VSM%u, m%VSM%p, m%VSM%z, m%VSM%m, errStat, errMsg )
+   call VSM_UpdateStates( t, n, m%VSM%u, m%VSM%p, z%VSM, m%VSM%m, errStat, errMsg )
    
    
 end subroutine KAD_UpdateStates
@@ -3781,7 +3790,7 @@ subroutine KAD_CalcOutput( Time, u, p, x, xd, z, OtherState, y, m, errStat, errM
       ! Now that we have the KAD inputs at t + dt, construct the VSM inputs
    call Set_VSM_Inputs(u, m, p, m%VSM%u, errStat, errMsg)
       if ( errStat >= AbortErrLev ) return
-   call VSM_CalcOutput( Time, n, m%VSM%u, m%VSM%p, m%VSM%z, m%VSM%m, m%VSM%y, errStat, errMsg )   
+   call VSM_CalcOutput( Time, n, m%VSM%u, m%VSM%p, z%VSM, m%VSM%m, m%VSM%y, errStat, errMsg )   
       if ( errStat >= AbortErrLev ) return
       
       ! Transfer the VSM loads to the output meshes as point loads
@@ -3883,8 +3892,55 @@ subroutine KAD_CalcOutput( Time, u, p, x, xd, z, OtherState, y, m, errStat, errM
 
    ENDDO             ! I - All selected output channels
 
-   call KAD_WrOutputLine(Time, p, y%WriteOutput, ErrStat, ErrMsg)
+   call KAD_WrOutputLine(Time, p, y%WriteOutput, errStat, errMsg)
    
 end subroutine KAD_CalcOutput
+
+subroutine KAD_End(u, p, x, xd, z, other, y, m, errStat , errMsg)
+   type(KAD_InputType) ,            intent(inout) :: u
+   type(KAD_ParameterType) ,        intent(inout) :: p
+   type(KAD_ContinuousStateType) ,  intent(inout) :: x
+   type(KAD_DiscreteStateType) ,    intent(inout) :: xd
+   type(KAD_ConstraintStateType) ,  intent(inout) :: z
+   type(KAD_OtherStateType) ,       intent(inout) :: other
+   type(KAD_OutputType) ,           intent(inout) :: y
+   type(KAD_MiscVarType),           intent(inout) :: m      
+   integer(IntKi),                  intent(  out) :: errStat
+   character(*),                    intent(  out) :: errMsg
+
+!      integer(IntKi)                                :: i=0
+
+   integer(IntKi)                               :: errStat2      ! Error status of the operation
+   character(ErrMsgLen)                         :: errMsg2       ! Error message if ErrStat2 /= ErrID_None
+   character(*), parameter                      :: routineName = 'KAD_End'
+   ErrStat = ErrID_None
+   ErrMsg  = ""
+
+      ! End the VSM module
+   call VSM_End( m%VSM%u, m%VSM%p, m%VSM%z, m%VSM%y, m%VSM%m, errStat2, errMsg2 )
+      call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
+      
+      ! deallocate data structures
+   call KAD_DestroyInput(u, ErrStat2, ErrMsg2)
+      call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
+   call KAD_DestroyParam(p, ErrStat2, ErrMsg2)
+      call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
+   call KAD_DestroyContState(x, ErrStat2, ErrMsg2)  
+      call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
+   call KAD_DestroyDiscState(xd, ErrStat2, ErrMsg2)
+      call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
+   call KAD_DestroyConstrState(z, ErrStat2, ErrMsg2)
+      call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
+   call KAD_DestroyOtherState(other,ErrStat2,ErrMsg2) 
+      call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
+   call KAD_DestroyOutput(y, ErrStat2, ErrMsg2)
+      call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
+   call KAD_DestroyMisc(m, ErrStat2, ErrMsg2)
+      call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
+      
+      ! close output file
+      
+      
+end subroutine KAD_End
 
 end module KiteAeroDyn

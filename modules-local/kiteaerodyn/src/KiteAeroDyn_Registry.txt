@@ -123,7 +123,7 @@ typedef   ^                            DiscreteStateType             ReKi       
 #
 # Define constraint states here:
 #
-typedef   ^                            ConstraintStateType           ReKi                     DummyConstraintState            -             -         -        "Remove this variable if you have contraint states" -
+typedef   ^   ConstraintStateType    VSM_ConstraintStateType  VSM    -  -  -        "VSM-module contraint states" -
 #
 #
 # Define any other states, including integer or logical states here:
@@ -153,6 +153,7 @@ typedef	^	    ^                ReKi               V_SPy       {:}{:}{:}   -    -
 typedef	^	    ^                ReKi               V_PPy       {:}{:}{:}   -    -  "Undisturbed wind speed on port pylons" m/s        
 typedef	^	    ^                ReKi               V_SPyRtr    {:}{:}{:}   -    -  "Undisturbed wind speed on starboard pylon rotors" m/s        
 typedef	^	    ^                ReKi               V_PPyRtr    {:}{:}{:}   -    -  "Undisturbed wind speed on port pylon rotors" m/s       
+typedef  ^	    ^                MeshType           FusO            -      -   -    "Only needs TranslationDisp field" -
 typedef	^	    ^                ReKi               Omega_SPyRtr {:}{:}   -    -  "Undisturbed wind speed on starboard pylon rotors" m/s                                                                                                                     
 typedef	^	    ^                ReKi               Omega_PPyRtr {:}{:}   -    -  "Undisturbed wind speed on port pylon rotors" m/s                                                                                                                     
 typedef	^	    ^                ReKi               Pitch_SPyRtr {:}{:}   -    -  "Undisturbed wind speed on starboard pylon rotors" m/s                                                                                                                     

@@ -843,7 +843,7 @@ subroutine KAD_Dvr_Simulate( dvrInitInp, errStat, errMsg )
    type(KAD_ContinuousStateType)    :: KAD_x           ! Continuous states at Time
    type(KAD_DiscreteStateType)      :: KAD_xd          ! Discrete states at Time
    type(KAD_ConstraintStateType)    :: KAD_z           ! Constraint states at Time
-   type(KAD_OtherStateType)         :: KAD_OtherState  ! Other states at Time
+   type(KAD_OtherStateType)         :: KAD_OtherSt     ! Other states at Time
    type(KAD_OutputType)             :: KAD_y           ! Outputs computed at Time (Input only so that mesh connectivity information does not have to be recalculated)
    type(KAD_MiscVarType)            :: KAD_m           ! Initial misc/optimization variables           
    integer(IntKi)                   :: n               ! Time step counter
@@ -866,8 +866,8 @@ subroutine KAD_Dvr_Simulate( dvrInitInp, errStat, errMsg )
       ! Set the driver suggested time step, but KiteAeroDyn may change this in KAD_Init()
    KAD_DT    = dvrInitInp%DTAero
    
-   ! Initialize KiteAeroDyn and all sub-modules   
-   call KAD_Init( dvrInitInp%KAD_InitInp, Inputs(1), KAD_p, KAD_y, KAD_DT,  KAD_m, KAD_InitOut, errStat2, errMsg2 )
+   ! Initialize KiteAeroDyn and all sub-modules  
+   call KAD_Init( dvrInitInp%KAD_InitInp, Inputs(1), KAD_p, KAD_y, KAD_DT,  KAD_x, KAD_xd, KAD_z, KAD_OtherSt, KAD_m, KAD_InitOut, errStat2, errMsg2 )
       if ( errStat2 >= AbortErrLev ) then
             write(*,*) trim(errMsg2)
             return
@@ -901,7 +901,7 @@ subroutine KAD_Dvr_Simulate( dvrInitInp, errStat, errMsg )
          end if
       
       ! Calculate outputs at first time step
-   call KAD_CalcOutput( InputTimes(1), Inputs(1), KAD_p, KAD_x, KAD_xd, KAD_z, KAD_OtherState, KAD_y, KAD_m, errStat2, errMsg2 )   
+   call KAD_CalcOutput( InputTimes(1), Inputs(1), KAD_p, KAD_x, KAD_xd, KAD_z, KAD_OtherSt, KAD_y, KAD_m, errStat2, errMsg2 )   
       call SetErrStat(errStat2,errMsg2,errStat,errMsg,RoutineName)
       if ( errStat >= AbortErrLev ) then
             call WrScr(trim(errMsg))
@@ -925,7 +925,7 @@ subroutine KAD_Dvr_Simulate( dvrInitInp, errStat, errMsg )
             return
          end if
          ! compute states for time, n+1, using extrapolated inputs at n+1, parameters, and the states at n
-      call KAD_UpdateStates( InputTimes(1), n, Inputs, InputTimes, KAD_p, KAD_x, KAD_xd, KAD_z, KAD_OtherState, KAD_m, errStat2, errMsg2 )
+      call KAD_UpdateStates( InputTimes(1), n, Inputs, InputTimes, KAD_p, KAD_x, KAD_xd, KAD_z, KAD_OtherSt, KAD_m, errStat2, errMsg2 )
          call SetErrStat(errStat2,errMsg2,errStat,errMsg,RoutineName) 
          if ( errStat >= AbortErrLev ) then
             write(*,*) trim(errMsg)
@@ -943,7 +943,7 @@ subroutine KAD_Dvr_Simulate( dvrInitInp, errStat, errMsg )
          end if
       
          ! Calculate outputs at time t
-      call KAD_CalcOutput( InputTimes(1), Inputs(1), KAD_p, KAD_x, KAD_xd, KAD_z, KAD_OtherState, KAD_y, KAD_m, errStat2, errMsg2 )   
+      call KAD_CalcOutput( InputTimes(1), Inputs(1), KAD_p, KAD_x, KAD_xd, KAD_z, KAD_OtherSt, KAD_y, KAD_m, errStat2, errMsg2 )   
          call SetErrStat(errStat2,errMsg2,errStat,errMsg,RoutineName)
          if ( errStat >= AbortErrLev ) then
             write(*,*) trim(errMsg)
