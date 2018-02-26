@@ -286,8 +286,9 @@ subroutine VSM_WriteOutput( Un, numElem, Gamma, U_Inf_v, U_Ind_v, AoA, Fx, Fy, M
    
 end subroutine VSM_WriteOutput
 
-subroutine VSM_Compute_Influence(KinVisc,  numVolElem, numElem, inPtA, inPtB, U_Inf_v, x_hat, y_hat, chord, Phi_v, Phi_AB2D_v, errStat, errMsg)
+subroutine VSM_Compute_Influence(CtrlPtMod, KinVisc,  numVolElem, numElem, inPtA, inPtB, U_Inf_v, x_hat, y_hat, chord, Phi_v, Phi_AB2D_v, errStat, errMsg)
 
+   integer(IntKi),          intent(in   ) :: CtrlPtMod
    real(ReKi),              intent(in   ) :: KinVisc
    integer(IntKi),          intent(in   ) :: numVolElem
    integer(IntKi),          intent(in   ) :: numElem
@@ -318,19 +319,23 @@ subroutine VSM_Compute_Influence(KinVisc,  numVolElem, numElem, inPtA, inPtB, U_
       
       PtC(:,i) = (inPtA(:,i) + inPtB(:,i)) / 2.0_ReKi
       
-      PtP(:,i) = PtC(:,i) + 0.5*chord(i)*y_hat(:,i)
+      
       U_Inf = TwoNorm(U_Inf_v(:,i))
       if ( EqualRealNos(U_Inf, 0.0_ReKi) ) then
          U_Inf_hat = U_Inf_v(:,i)
       else     
          U_Inf_hat = U_Inf_v(:,i) / TwoNorm(U_Inf_v(:,i))
       end if
-      ! TODO: Implement freestream vs chord alignment
-         ! Rotate 3/4 chord onto the free stream vector, using C as stationary point
-      PtP(:,i) = PtC(:,i) + 0.5*chord(i)*U_Inf_hat
-         ! Set control Point, PtP location
- !     call LocateControlPt( u%PtA(:,i), u%PtB(:,i), u%U_Inf_v, u%x_hat(:,i), u%y_hat(:,i), u%z_hat(:,i), p%CtrlPtMod, m%PtP(:,i), m%zeta(:,i), errStat, errMsg )
- !        if ( errStat >= AbortErrLev ) return
+      
+         
+      if (CtrlPtMod == 1) then
+         PtP(:,i) = PtC(:,i) + 0.5*chord(i)*y_hat(:,i)
+      else
+            ! Along the freestream direction
+            ! Rotate 3/4 chord onto the free stream vector, using C as stationary point
+         PtP(:,i) = PtC(:,i) + 0.5*chord(i)*U_Inf_hat
+      end if
+      
       r0_hat = (inPtB(:,i) - inPtA(:,i)) / TwoNorm(inPtB(:,i) - inPtA(:,i))
       
       tmp2_v = cross_product(U_Inf_hat,r0_hat)
@@ -360,8 +365,8 @@ subroutine VSM_Compute_Influence(KinVisc,  numVolElem, numElem, inPtA, inPtB, U_
       tmp2D_v  = cross_product(r0_v,r3_v)
       Factor2D = dot_product(tmp2D_v,tmp2D_v)
       Phi_AB2D_v(:,j) = 0.0_ReKi
-      
-      if ( .not. EqualRealNos(Factor2D,0.0_ReKi) ) then       
+      U_Inf = TwoNorm(U_Inf_v(:,j))
+      if ( (.not. EqualRealNos(Factor2D,0.0_ReKi) ) .and. (.not. EqualRealNos(U_Inf,0.0_ReKi) ) ) then       
          
          !! error
          !errMsg2 = 'Cross products of r0 and r3 produce a zero length vector which creates a divide by zero error'
@@ -561,12 +566,12 @@ subroutine VSM_Compute_Influence(KinVisc,  numVolElem, numElem, inPtA, inPtB, U_
 
 end subroutine VSM_Compute_Influence
 
-subroutine VSM_Compute( AirDens, numVolElem, numElem, PtA, PtB, U_Inf_v, x_hat, y_hat, p_AFI, AFIDs, deltaf, chord, Gammas, Phi_v, Phi_AB2D_v, U_Ind_v, alpha, Fx, Fy, Mz, Cl, Cd, Cm, residual, errStat, errMsg)
+subroutine VSM_Compute( AirDens, numVolElem, numElem, elemLens, PtA, PtB, U_Inf_v, x_hat, y_hat, p_AFI, AFIDs, deltaf, chord, Gammas, Phi_v, Phi_AB2D_v, U_Ind_v, alpha, Fx, Fy, Mz, Cl, Cd, Cm, residual, errStat, errMsg)
 
    real(ReKi),              intent(in   ) :: AirDens
    integer(IntKi),          intent(in   ) :: numVolElem
    integer(IntKi),          intent(in   ) :: numElem
-   real(ReKi),              intent(in   ) :: PtA(3,numElem), PtB(3,numElem), U_Inf_v(3,numElem), x_hat(3,numElem), y_hat(3,numElem)
+   real(ReKi),              intent(in   ) :: elemLens(numElem), PtA(3,numElem), PtB(3,numElem), U_Inf_v(3,numElem), x_hat(3,numElem), y_hat(3,numElem)
    type(AFI_ParameterType), intent(in   ) :: p_AFI(:)
    integer(IntKi),          intent(in   ) :: AFIDs(numElem)
    real(ReKi),              intent(in   ) :: deltaf(numElem)
@@ -579,7 +584,7 @@ subroutine VSM_Compute( AirDens, numVolElem, numElem, PtA, PtB, U_Inf_v, x_hat, 
   
    integer(IntKi)   :: i,j
    real(ReKi)  :: U_rel_v(3)
-   real(ReKi)  :: Ux, Uy, Cpmin, U_2D, U_Infx, U_Infy, U_Inf_2D , Factor
+   real(ReKi)  :: Ux, Uy, Cpmin, U_2D, U_Infx, U_Infy, U_Inf_2D , Factor, elemLen, diff(3)
    character(*), parameter                  :: routineName = 'VSM_Compute'
    
    
@@ -610,8 +615,9 @@ subroutine VSM_Compute( AirDens, numVolElem, numElem, PtA, PtB, U_Inf_v, x_hat, 
       U_Infx =  dot_product( U_Inf_v(:,j), x_hat(:,j))
       U_Infy  = dot_product( U_Inf_v(:,j), y_hat(:,j))
       U_Inf_2D = sqrt(U_Infx**2 + U_Infy**2)
-      Factor = TwoNorm(PtB(:,j) - PtA(:,j))  ! TODO: This should be using a static fixed length
-      Factor = 0.5*AirDens*U_2D*Factor*chord(j)
+      !diff = PtA(:,j) - PtB(:,j)
+      !elemLen = TwoNorm(diff)   ! Use dynamic length instead of the initial length (found in elemLens array)
+      Factor = 0.5*AirDens*U_2D*elemLens(j)*chord(j)
       
          ! These are in the local airfoil frame 
       Fx(j) = Factor*(  Cl(j)*cos(alpha(j)) + Cd(j)*sin(alpha(j)) ) ! N
@@ -691,16 +697,10 @@ subroutine Init_AFIparams( InitInp, p_AFI, UnEc, errStat, errMsg )
 
 end subroutine Init_AFIparams
 
-!==============================================================================
-! Framework Routines                                                          !
-!==============================================================================                               
- 
-!----------------------------------------------------------------------------------------------------------------------------------
-subroutine VSM_UpdateStates( t, n, u, p, z, m, errStat, errMsg )
-! Loose coupling routine for solving for constraint states, integrating continuous states, and updating discrete states
-! Continuous, constraint, discrete, and other states are updated for t + Interval
+subroutine VSM_Solve( t, n, u, p, z, NoStates, m, errStat, errMsg )
+! Loose coupling routine for solving for constraint states
 !
-! NOTE:  This is a non-standard framework interface.
+! NOTE:  This is not framework interface.
 !..................................................................................................................................
 
    real(DbKi),                         intent(in   ) :: t          ! Current simulation time in seconds
@@ -709,6 +709,7 @@ subroutine VSM_UpdateStates( t, n, u, p, z, m, errStat, errMsg )
    type(VSM_ParameterType),            intent(in   ) :: p          ! Parameters   
    type(VSM_ConstraintStateType),      intent(inout) :: z          ! Input: Constraint states at t;
                                                                     !   Output: Constraint states at t + Interval
+   logical,                            intent(in   ) :: NoStates   ! Are there valid states to start from?
    type(VSM_MiscVarType),              intent(inout) :: m          ! Misc/optimization variables
    integer(IntKi),                     intent(  out) :: errStat    ! Error status of the operation
    character(*),                       intent(  out) :: errMsg     ! Error message if ErrStat /= ErrID_None
@@ -717,13 +718,21 @@ subroutine VSM_UpdateStates( t, n, u, p, z, m, errStat, errMsg )
    integer(IntKi)   :: i, k
    real(ReKi)       :: dz
    type(VSM_ConstraintStateType)  :: zPerturb, z_residual, z_resPerturb
-   real(ReKi)       :: deltazMag, deltaz(p%numGammas)
-   real(ReKi)       :: dZdz(p%numGammas,p%numGammas), dZdz_factor(p%numGammas,p%numGammas)
-   integer          :: dZdz_pivot(p%numGammas)
+   real(ReKi)       :: deltazMag
+   real(ReKi), allocatable      :: deltaz(:)
+   real(ReKi), allocatable      :: dZdz(:,:), dZdz_factor(:,:)
+   integer(IntKi), allocatable  :: dZdz_pivot(:)
+   
+   errStat = ErrID_None
+   errMsg  = ''
    
    if ( p%LiftMod == 1 ) return ! no real states: z%Gammas were set to zero at initialization
    
-   if ( m%NoStates ) z%Gammas = 0.6
+   call AllocAry(dZdz, p%numGammas,p%numGammas, 'dZdz', errStat, errMsg)
+   call AllocAry(dZdz_factor, p%numGammas,p%numGammas, 'dZdz_factor', errStat, errMsg)
+   call AllocAry(deltaz, p%numGammas, 'deltaz', errStat, errMsg)
+   call AllocAry(dZdz_pivot, p%numGammas, 'dZdz_pivot', errStat, errMsg)
+   if (  NoStates ) z%Gammas = 0.6
    
    call VSM_CopyConstrState( z, zPerturb, 0, errStat, errMsg )
    call VSM_CopyConstrState( z, z_residual, 0, errStat, errMsg )
@@ -731,8 +740,8 @@ subroutine VSM_UpdateStates( t, n, u, p, z, m, errStat, errMsg )
    
    k  = 0
    dz = p%VSMPerturb
-
-   call VSM_Compute_Influence(p%KinVisc, p%NumVolElem, p%numElem, u%PtA, u%PtB, u%U_Inf_v, u%x_hat, u%y_hat, p%Chords, m%Phi_v, m%Phi_AB2D_v, errStat, errMsg)
+   
+   call VSM_Compute_Influence(p%CtrlPtMod, p%KinVisc, p%NumVolElem, p%numElem, u%PtA, u%PtB, u%U_Inf_v, u%x_hat, u%y_hat, p%Chords, m%Phi_v, m%Phi_AB2D_v, errStat, errMsg)
       if ( errStat >= AbortErrLev ) return
    do 
       if ( k == p%VSMMaxIter ) then
@@ -745,6 +754,19 @@ subroutine VSM_UpdateStates( t, n, u, p, z, m, errStat, errMsg )
          ! Compute Z(z,u,t) for k
       call VSM_CalcConstrStateResidual( t, u, p, z, m, z_residual, errStat, errMsg )
          if ( errStat >= AbortErrLev ) return
+         
+         ! If the residual is already zero, then we need to simply return the current states as the new states
+         ! Currently this can happen in the degenerate case where there is zero inflow, and zero structural motion, everywhere
+         ! In this case, Gammas can be anything, but the residuals will be zero.  So this is still currently a bug in that
+         ! the Gammas are not set to zero
+         
+      deltazMag = TwoNorm(z_residual%Gammas)
+      if ( EqualRealNos(deltazMag, 0.0_ReKi) ) then
+         z%Gammas = 0.0_ReKi
+         call WrScr('Residual was zero before Newton solve')
+         exit
+      end if
+      
          ! Compute the gradient matrix dZdz(n,n) when perturbing z
       zPerturb%Gammas = z%Gammas
       do i = 1, p%NumGammas
@@ -756,28 +778,57 @@ subroutine VSM_UpdateStates( t, n, u, p, z, m, errStat, errMsg )
       end do
       
          ! Solve the equations Ax = b
-
+   
       dZdz_factor = dZdz
       deltaz      = -z_residual%Gammas
- 
-      deltazMag = TwoNorm(deltaz)
-      if ( deltazMag < p%VSMToler ) exit
-      
-      
+   
       call LAPACK_getrf( M=p%NumGammas, N=p%NumGammas, A=dZdz_factor, IPIV=dZdz_pivot, ErrStat=errStat, ErrMsg=errMsg )  
          if ( errStat >= AbortErrLev ) return
       
       call LAPACK_getrs( TRANS='N',N=p%NumGammas, A=dZdz_factor,IPIV=dZdz_pivot, B=deltaz, ErrStat=ErrStat, ErrMsg=ErrMsg)
          if ( ErrStat >= AbortErrLev ) return
-
-     
+   
+      deltazMag = TwoNorm(deltaz)
+      if ( deltazMag < p%VSMToler ) exit
+      
       z%Gammas = z%Gammas + deltaz
       
       k = k+1
       
    end do
    
-   m%NoStates = .false.
+end subroutine VSM_Solve
+
+
+!==============================================================================
+! Framework Routines                                                          !
+!==============================================================================                               
+ 
+!----------------------------------------------------------------------------------------------------------------------------------
+subroutine VSM_UpdateStates( t, n, u, p, z, OtherState, m, errStat, errMsg )
+! Loose coupling routine for solving for constraint states, integrating continuous states, and updating discrete states
+! Continuous, constraint, discrete, and other states are updated for t + Interval
+!
+! NOTE:  This is a non-standard framework interface.
+!..................................................................................................................................
+
+   real(DbKi),                         intent(in   ) :: t          ! Current simulation time in seconds
+   integer(IntKi),                     intent(in   ) :: n          ! Current simulation time step n = 0,1,...
+   type(VSM_InputType),                intent(in   ) :: u          ! Input at t+ Interval 
+   type(VSM_ParameterType),            intent(in   ) :: p          ! Parameters   
+   type(VSM_ConstraintStateType),      intent(inout) :: z          ! Input: Constraint states at t;
+                                                                    !   Output: Constraint states at t + Interval
+   type(VSM_OtherStateType),           intent(inout) :: OtherState !< Other States
+   type(VSM_MiscVarType),              intent(inout) :: m          ! Misc/optimization variables
+   integer(IntKi),                     intent(  out) :: errStat    ! Error status of the operation
+   character(*),                       intent(  out) :: errMsg     ! Error message if ErrStat /= ErrID_None
+      
+   errStat = ErrID_None
+   errMsg  = ''
+   
+   call VSM_Solve( t, n, u, p, z, OtherState%NoStates, m, errStat, errMsg )
+   
+   if (p%LiftMod == 2) OtherState%NoStates = .false.
    
 end subroutine VSM_UpdateStates
 
@@ -810,14 +861,14 @@ subroutine VSM_CalcConstrStateResidual( Time, u, p, z, m, z_residual, errStat, e
    if ( p%LiftMod == 1 ) then
       z_residual%Gammas = 0.0_ReKi
    else   
-      call VSM_Compute( p%AirDens, p%NumVolElem, p%numElem, u%PtA, u%PtB, u%U_Inf_v, u%x_hat, u%y_hat, p%AFInfo, p%AFIDs, u%deltaf, p%Chords, z%Gammas, m%Phi_v, m%Phi_AB2D_v, U_Ind_v, alpha, Fx, Fy, Mz, Cl, Cd, Cm, z_residual%Gammas, errStat, errMsg)
+      call VSM_Compute( p%AirDens, p%NumVolElem, p%numElem, p%ElemLens, u%PtA, u%PtB, u%U_Inf_v, u%x_hat, u%y_hat, p%AFInfo, p%AFIDs, u%deltaf, p%Chords, z%Gammas, m%Phi_v, m%Phi_AB2D_v, U_Ind_v, alpha, Fx, Fy, Mz, Cl, Cd, Cm, z_residual%Gammas, errStat, errMsg)
    end if
    
 end subroutine VSM_CalcConstrStateResidual
 
 
 !==============================================================================
-subroutine VSM_Init( InitInp, u, p, z, m, y, interval, InitOut, errStat, errMsg )
+subroutine VSM_Init( InitInp, u, p, z, Otherstate, m, y, interval, InitOut, errStat, errMsg )
 ! This routine is called at the start of the simulation to perform initialization steps.
 ! The parameters are set here and not changed during the simulation.
 ! The initial states and initial guess for the input are defined.
@@ -828,6 +879,7 @@ subroutine VSM_Init( InitInp, u, p, z, m, y, interval, InitOut, errStat, errMsg 
    type(VSM_ParameterType),       intent(  out)  :: p           !< Parameters
    type(VSM_ConstraintStateType), intent(inout)  :: z           !< Input: Constraint states at t;
                                                                     !<  Output: Constraint states at t + Interval
+   type(VSM_OtherStateType),      intent(inout)  :: OtherState  !< Other States
    type(VSM_MiscVarType),         intent(inout)  :: m           !< Misc Vars
    type(VSM_OutputType),          intent(  out)  :: y           !< Initial system outputs (outputs are not calculated;
                                                                    !<   only the output mesh is initialized)
@@ -867,9 +919,10 @@ subroutine VSM_Init( InitInp, u, p, z, m, y, interval, InitOut, errStat, errMsg 
    p%VSMPerturb    = InitInp%VSMPerturb
    p%VSMToler      = InitInp%VSMToler  
    p%AFTabMod      = InitInp%AFTabMod
-   p%NumVolElem = InitInp%NumVolElem
+   p%NumVolElem    = InitInp%NumVolElem
    p%NumElem       = InitInp%NumElem         ! This includes the Volume elements (NumVolElem)
    p%NumGammas     = p%NumElem - p%NumVolElem
+   p%ElemLens      = InitInp%ElemLens
       ! Allocate arrays
    call AllocAry( p%Chords, p%NumElem, 'p%Chords', errStat2, errMsg2 )
       call SetErrStat( errStat2, errMsg2, errStat, errMsg, RoutineName )
@@ -928,7 +981,10 @@ subroutine VSM_Init( InitInp, u, p, z, m, y, interval, InitOut, errStat, errMsg 
 
    call Init_AFIparams( InitInp, p%AFInfo, UnEc, errStat, errMsg )
       if ( errStat >= AbortErrLev ) return
-   m%NoStates = .true.
+      
+      ! Set the Other State, indicating whether we have computed valid states in accordance withe the FAST framework
+      ! (NOTE: the first call to CalcOutput() will not have valid states)
+   OtherState%NoStates = .true.
    
 
    ! Set up Output Handling
@@ -1003,7 +1059,7 @@ end subroutine VSM_Init
 !==============================================================================                                  
 
 !============================================================================== 
-subroutine VSM_CalcOutput( t, n, u, p, z, m, y, errStat, errMsg )   
+subroutine VSM_CalcOutput( t, n, u, p, z, OtherState, m, y, errStat, errMsg )   
 ! Routine for computing outputs, used in both loose and tight coupling.
 ! Called by : Driver/Glue-code
 ! Calls  to : SetErrStat
@@ -1014,6 +1070,7 @@ subroutine VSM_CalcOutput( t, n, u, p, z, m, y, errStat, errMsg )
    type(VSM_ParameterType),       intent(in   )  :: p           !< Parameters
    type(VSM_ConstraintStateType), intent(in   )  :: z           !< Input: Constraint states at t;
                                                                     !<  Output: Constraint states at t + Interval
+   type(VSM_OtherStateType),      intent(in   )  :: OtherState  !< Other States
    type(VSM_MiscVarType),         intent(inout)  :: m           !< Misc Vars
    type(VSM_OutputType),          intent(inout)  :: y           !< Outputs computed at Time
    integer(IntKi),                intent(  out)  :: errStat     !< Error status of the operation
@@ -1028,33 +1085,29 @@ subroutine VSM_CalcOutput( t, n, u, p, z, m, y, errStat, errMsg )
    
    errStat   = ErrID_None           ! no error has occurred
    errMsg    = ""
-   forces    = 0.0_ReKi
-   moments   = 0.0_ReKi
    
    
    if ( p%LiftMod == 2 ) then
-      if ( m%NoStates ) then
-         ! UpdateStates has never been called, so no real states exist, we need to 'solve for the states' before generating the outputs
+      if ( OtherState%NoStates ) then
+            ! UpdateStates has never been called, so no real states exist, we need to 'solve for the states' before generating the outputs
          call VSM_CopyConstrState( z, zTmp, 0, errStat, errMsg )
          call VSM_CopyConstrState( z, z_residual, 0, errStat, errMsg )
-         call VSM_UpdateStates( t, n, u, p, zTmp, m, errStat, errMsg )
+         call VSM_Solve( t, n, u, p, zTmp, OtherState%NoStates, m, errStat, errMsg )
             if ( errStat >= AbortErrLev ) return
-         m%NoStates = .true.
-         call VSM_Compute( p%AirDens, p%NumVolElem, p%numElem, u%PtA, u%PtB, u%U_Inf_v, u%x_hat, u%y_hat, p%AFInfo, p%AFIDs, u%deltaf, p%Chords, zTmp%Gammas, m%Phi_v, m%Phi_AB2D_v, y%Vind, y%AoA, Fx, Fy,Mz, y%Cl, y%Cd, y%Cm, z_residual%Gammas, errStat, errMsg)     
+         call VSM_Compute( p%AirDens, p%NumVolElem, p%numElem, p%ElemLens, u%PtA, u%PtB, u%U_Inf_v, u%x_hat, u%y_hat, p%AFInfo, p%AFIDs, u%deltaf, p%Chords, zTmp%Gammas, m%Phi_v, m%Phi_AB2D_v, y%Vind, y%AoA, Fx, Fy,Mz, y%Cl, y%Cd, y%Cm, z_residual%Gammas, errStat, errMsg)     
             if ( errStat >= AbortErrLev ) return
       else
             ! TODO: may want to store this z_residual as a miscvar to avoid the copy here
          call VSM_CopyConstrState( z, z_residual, 0, errStat, errMsg )
-         call VSM_Compute_Influence(p%KinVisc, p%NumVolElem, p%numElem, u%PtA, u%PtB, u%U_Inf_v, u%x_hat, u%y_hat, p%Chords, m%Phi_v, m%Phi_AB2D_v, errStat, errMsg)
+         call VSM_Compute_Influence(p%CtrlPtMod, p%KinVisc, p%NumVolElem, p%numElem, u%PtA, u%PtB, u%U_Inf_v, u%x_hat, u%y_hat, p%Chords, m%Phi_v, m%Phi_AB2D_v, errStat, errMsg)
             if ( errStat >= AbortErrLev ) return
-         call VSM_Compute( p%AirDens, p%NumVolElem, p%numElem, u%PtA, u%PtB, u%U_Inf_v, u%x_hat, u%y_hat, p%AFInfo, p%AFIDs, u%deltaf, p%Chords, z%Gammas, m%Phi_v, m%Phi_AB2D_v, y%Vind, y%AoA, Fx, Fy, Mz, y%Cl, y%Cd, y%Cm, z_residual%Gammas, errStat, errMsg)
+         call VSM_Compute( p%AirDens, p%NumVolElem, p%numElem, p%ElemLens, u%PtA, u%PtB, u%U_Inf_v, u%x_hat, u%y_hat, p%AFInfo, p%AFIDs, u%deltaf, p%Chords, z%Gammas, m%Phi_v, m%Phi_AB2D_v, y%Vind, y%AoA, Fx, Fy, Mz, y%Cl, y%Cd, y%Cm, z_residual%Gammas, errStat, errMsg)
             if ( errStat >= AbortErrLev ) return
       end if
    else
          ! Compute Loads without induction, all states (Gammas are zero)
-      m%NoStates = .false.
       call VSM_CopyConstrState( z, z_residual, 0, errStat, errMsg )
-      call VSM_Compute( p%AirDens, p%NumVolElem, p%numElem, u%PtA, u%PtB, u%U_Inf_v, u%x_hat, u%y_hat, p%AFInfo, p%AFIDs, u%deltaf, p%Chords, z%Gammas, m%Phi_v, m%Phi_AB2D_v, y%Vind, y%AoA, Fx, Fy, Mz, y%Cl, y%Cd, y%Cm, z_residual%Gammas, errStat, errMsg)
+      call VSM_Compute( p%AirDens, p%NumVolElem, p%numElem, p%ElemLens, u%PtA, u%PtB, u%U_Inf_v, u%x_hat, u%y_hat, p%AFInfo, p%AFIDs, u%deltaf, p%Chords, z%Gammas, m%Phi_v, m%Phi_AB2D_v, y%Vind, y%AoA, Fx, Fy, Mz, y%Cl, y%Cd, y%Cm, z_residual%Gammas, errStat, errMsg)
          if ( errStat >= AbortErrLev ) return
 
    end if
@@ -1083,8 +1136,8 @@ subroutine VSM_CalcOutput( t, n, u, p, z, m, y, errStat, errMsg )
       y%Writeoutput(count) = y%Cm(i)
       count = count + 1
       if ( i > p%NumVolElem ) then
-         if ( m%NoStates ) then
-            y%Writeoutput(count) = zTmp%Gammas(i-p%NumVolElem)
+         if ( OtherState%NoStates .and. (p%LiftMod == 2) ) then
+            y%Writeoutput(count) = zTmp%Gammas(i-p%NumVolElem)   ! Only do this for the first call to CalcOutput when using vortex method
          else
             y%Writeoutput(count) = z%Gammas(i-p%NumVolElem)       
          end if
@@ -1107,15 +1160,14 @@ subroutine VSM_CalcOutput( t, n, u, p, z, m, y, errStat, errMsg )
       count = count + 1
       
       ! Transform loads to global from local
-      forces(1) = Fx(i)
-      forces(2) = Fy(i)
-      moments(3) = Mz(i)
-      y%Loads(1,:) =  dot_product(u%x_hat(:,i),forces)
-      y%Loads(2,:) =  dot_product(u%y_hat(:,i),forces)
-      y%Loads(3,:) =  dot_product(u%z_hat(:,i),forces)
-      y%Loads(4,:) =  dot_product(u%x_hat(:,i),moments)
-      y%Loads(5,:) =  dot_product(u%y_hat(:,i),moments)
-      y%Loads(6,:) =  dot_product(u%z_hat(:,i),moments)
+      forces = u%x_hat(:,i)*Fx(i) + u%y_hat(:,i)*Fy(i)
+      y%Loads(1,i) =  forces(1)
+      y%Loads(2,i) =  forces(2)
+      y%Loads(3,i) =  forces(3)
+      moments = u%z_hat(:,i)*Mz(i)
+      y%Loads(4,i) =  moments(1)
+      y%Loads(5,i) =  moments(2)
+      y%Loads(6,i) =  moments(3)
 
    end do
 
@@ -1124,16 +1176,17 @@ subroutine VSM_CalcOutput( t, n, u, p, z, m, y, errStat, errMsg )
 end subroutine VSM_CalcOutput
 !----------------------------------------------------------------------------------------------------------------------------------
 !> This routine is called at the end of the simulation.
-SUBROUTINE VSM_End( u, p, z, y, m, ErrStat, ErrMsg )
+subroutine VSM_End( u, p, z, y, OtherState, m, ErrStat, ErrMsg )
 !..................................................................................................................................
 
-      TYPE(VSM_InputType),           INTENT(INOUT)  :: u           !< System inputs
-      TYPE(VSM_ParameterType),       INTENT(INOUT)  :: p           !< Parameters     
-      TYPE(VSM_ConstraintStateType), INTENT(INOUT)  :: z           !< Constraint states
-      TYPE(VSM_OutputType),          INTENT(INOUT)  :: y           !< System outputs
-      TYPE(VSM_MiscVarType),         INTENT(INOUT)  :: m           !< Misc/optimization variables            
-      INTEGER(IntKi),                    INTENT(  OUT)  :: ErrStat     !< Error status of the operation
-      CHARACTER(*),                      INTENT(  OUT)  :: ErrMsg      !< Error message if ErrStat /= ErrID_None
+      type(VSM_InputType),           intent(inout)  :: u           !< System inputs
+      type(VSM_ParameterType),       intent(inout)  :: p           !< Parameters     
+      type(VSM_ConstraintStateType), intent(inout)  :: z           !< Constraint states
+      type(VSM_OutputType),          intent(inout)  :: y           !< System outputs
+      type(VSM_OtherStateType),      intent(inout)  :: OtherState  !< Other States
+      type(VSM_MiscVarType),         intent(inout)  :: m           !< Misc/optimization variables            
+      integer(IntKi),                intent(  out)  :: ErrStat     !< Error status of the operation
+      character(*),                  intent(  out)  :: ErrMsg      !< Error message if ErrStat /= ErrID_None
 
 
 
@@ -1145,33 +1198,27 @@ SUBROUTINE VSM_End( u, p, z, y, m, ErrStat, ErrMsg )
       
          ! Destroy the input data:
          
-      CALL VSM_DestroyInput( u, ErrStat, ErrMsg )
+      call VSM_DestroyInput( u, ErrStat, ErrMsg )
 
 
          ! Determine if we need to close the output file
          
-      IF ( p%OutSwtch == 1 .OR. p%OutSwtch == 3 ) THEN   
-         CALL VSM_CloseOutput( p%UnOutFile, ErrStat, ErrMsg )         
-      END IF 
+      if ( p%OutSwtch == 1 .OR. p%OutSwtch == 3 ) then   
+         call VSM_CloseOutput( p%UnOutFile, ErrStat, ErrMsg )         
+      end if 
          
-         ! Destroy the parameter data:
-         
-      
-      CALL VSM_DestroyParam( p, ErrStat, ErrMsg )
+         ! Destroy the parameter data:              
+      call VSM_DestroyParam( p, ErrStat, ErrMsg )
 
 
-         ! Destroy the state data:
-         
-      CALL VSM_DestroyConstrState( z,           ErrStat, ErrMsg )
-         
-      CALL VSM_DestroyMisc( m, ErrStat, ErrMsg )
+         ! Destroy the state data:       
+      call VSM_DestroyConstrState( z,           ErrStat, ErrMsg )         
+      call VSM_DestroyMisc( m, ErrStat, ErrMsg )
+      call VSM_DestroyOtherState( OtherState, ErrStat, ErrMsg )
 
-         ! Destroy the output data:
-         
-      CALL VSM_DestroyOutput( y, ErrStat, ErrMsg )
+         ! Destroy the output data:         
+      call VSM_DestroyOutput( y, ErrStat, ErrMsg )
 
+end subroutine VSM_End
 
-      
-
-END SUBROUTINE VSM_End
 end module VSM
