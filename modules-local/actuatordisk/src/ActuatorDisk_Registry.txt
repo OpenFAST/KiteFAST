@@ -30,6 +30,7 @@ typedef   ^                            InitInputType                 CHARACTER(1
 typedef   ^                            ^                             ReKi                     AirDens                         -             -         -        "Air density" kg/m^3
 typedef   ^                            ^                             ReKi                     R                               -             -         -        "Supplied by Driver:  Rotor radius" m
 typedef   ^                            ^                             ActDsk_InitData          InitInpFile                     -             -         -        "Initialization input data read from input file" -
+typedef   ^                            ^                             IntKi                    RotorMod                        -             -         -        "Rotor calculation model (-) (switch) {0:none, 1:actuator disk}"    -
 #                                                                                                                                         
 #                                                                                                                                         
 # Define outputs from the initialization routine here:                                                                                    
@@ -70,6 +71,7 @@ typedef   ^                            MiscVarType                   ReKi       
 # Time step for integration of continuous states (if a fixed-step integrator is used) and update of discrete states:
 #
 typedef   ^                            ParameterType                 ReKi                     R                               -             -         -        "Rotor radius" m
+typedef   ^                            ^                             IntKi                    RotorMod                        -             -         -        "Rotor calculation model (-) (switch) {0:none, 1:actuator disk}"    -
 typedef   ^                            ^                             ReKi                     halfRhoA                        -             -         -        "One half air density times rotor swept area" kg/m
 typedef   ^                            ^                             INTEGER                  numRtSpd                        -             -         -        "Number of rotor speeds in tables " -
 typedef   ^                            ^                             INTEGER                  numSkew                         -             -         -        "Number of rotor inflow-skew angles in tables" -

@@ -589,24 +589,31 @@ subroutine ActDsk_Init( InitInp, u, p, y, interval, &
       ! Display the module information
    call DispNVD( ActDsk_Ver )
 
-      ! Read Input file, otherwise the caller must have fully populated the Initialization inputs
-   if ( trim(InitInp%Filename) /= '' ) then
-      call ReadActDskFile(InitInp, errStat, errMsg)
-         if ( errStat > ErrID_None ) return
-   endif
+   p%RotorMod = InitInp%RotorMod
    
-      ! Validate the input file data and issue errors as needed
-   call ValidateInitData(InitInp, errStat, errMsg)
-      if ( errStat > ErrID_None ) return
+   if ( p%RotorMod == 1 ) then
+         ! Read Input file, otherwise the caller must have fully populated the Initialization inputs
+      if ( trim(InitInp%Filename) /= '' ) then
+         call ReadActDskFile(InitInp, errStat, errMsg)
+            if ( errStat > ErrID_None ) return
+      endif
+         ! Validate the input file data and issue errors as needed
+      call ValidateInitData(InitInp, errStat, errMsg)
+         if ( errStat > ErrID_None ) return
+         
+      p%numRtSpd = InitInp%InitInpFile%numRtSpd
+      p%numPitch = InitInp%InitInpFile%numPitch
+      p%numSkew  = InitInp%InitInpFile%numSkew
+      p%numVrel  = InitInp%InitInpFile%numVrel
+   
+   end if
+   
+   
    
       ! Set parameters based on initialization inputs
    p%R        = InitInp%R
    p%halfRhoA = 0.5_ReKi*InitInp%AirDens*pi*p%R*p%R
-   p%numRtSpd = InitInp%InitInpFile%numRtSpd
-   p%numPitch = InitInp%InitInpFile%numPitch
-   p%numSkew  = InitInp%InitInpFile%numSkew
-   p%numVrel  = InitInp%InitInpFile%numVrel
-   
+ 
       ! Move RtSpd and Skew angles to parameters
    if (allocated(InitInp%InitInpFile%RtSpds )) call Move_Alloc( InitInp%InitInpFile%RtSpds ,  p%RtSpds  )
    if (allocated(InitInp%InitInpFile%Pitches)) call Move_Alloc( InitInp%InitInpFile%Pitches,  p%Pitches )
@@ -650,28 +657,38 @@ subroutine ActDsk_CalcOutput( u, p, m, y, errStat, errMsg )
       m%TSR = abs( u%RtSpd*p%R / m%DiskAve_Vx_Rel ) 
    end if
 
-      ! Use quadlinear interpolation to determine the disk coefficients associated with this operating condition
-   coefs = CoefInterp(u%RtSpd, u%pitch, u%DiskAve_Vrel, u%skew, p, errStat2, errMsg2)
-      call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName ) 
+   if (p%RotorMod == 1) then
+         ! Use quadlinear interpolation to determine the disk coefficients associated with this operating condition
+      coefs = CoefInterp(u%RtSpd, u%pitch, u%DiskAve_Vrel, u%skew, p, errStat2, errMsg2)
+         call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName ) 
       
-   velsqrd  = m%DiskAve_Vx_Rel*m%DiskAve_Vx_Rel
-   factorF  = p%halfRhoA*velsqrd 
-   factorM  = factorF*p%R
+      velsqrd  = m%DiskAve_Vx_Rel*m%DiskAve_Vx_Rel
+      factorF  = p%halfRhoA*velsqrd 
+      factorM  = factorF*p%R
    
-   y%Fx = factorF*coefs(1)
-   y%Fy = factorF*coefs(2)
-   y%Fz = factorF*coefs(3)
-   y%Mx = factorM*coefs(4)
-   y%My = factorM*coefs(5)  
-   y%Mz = factorM*coefs(6)
-   y%P  = factorF*m%DiskAve_Vx_Rel*coefs(7)
-   m%Cp = coefs(7)
-   m%Cq = coefs(4)
-   m%Ct = -coefs(1)
-   
-               
-   
-   
+      y%Fx = factorF*coefs(1)
+      y%Fy = factorF*coefs(2)
+      y%Fz = factorF*coefs(3)
+      y%Mx = factorM*coefs(4)
+      y%My = factorM*coefs(5)  
+      y%Mz = factorM*coefs(6)
+      y%P  = factorF*m%DiskAve_Vx_Rel*coefs(7)
+      m%Cp = coefs(7)
+      m%Cq = coefs(4)
+      m%Ct = -coefs(1)
+   else
+      y%Fx = 0.0_ReKi
+      y%Fy = 0.0_ReKi
+      y%Fz = 0.0_ReKi
+      y%Mx = 0.0_ReKi
+      y%My = 0.0_ReKi
+      y%Mz = 0.0_ReKi
+      y%P  = 0.0_ReKi
+      m%Cp = 0.0_ReKi
+      m%Cq = 0.0_ReKi
+      m%Ct = 0.0_ReKi
+   end if
+ 
 end subroutine ActDsk_CalcOutput
 
 subroutine ActDsk_End(u, p, y, m, errStat, errMsg)
