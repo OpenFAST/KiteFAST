@@ -286,7 +286,7 @@ subroutine VSM_WriteOutput( Un, numElem, Gamma, U_Inf_v, U_Ind_v, AoA, Fx, Fy, M
    
 end subroutine VSM_WriteOutput
 
-subroutine VSM_Compute_Influence(CtrlPtMod, KinVisc,  numVolElem, numElem, inPtA, inPtB, U_Inf_v, x_hat, y_hat, chord, Phi_v, Phi_AB2D_v, errStat, errMsg)
+subroutine VSM_Compute_Influence(CtrlPtMod, KinVisc,  numVolElem, numElem, inPtA, inPtB, U_Inf_v, x_hat, y_hat, chord, noInflow, Phi_v, Phi_AB2D_v, errStat, errMsg)
 
    integer(IntKi),          intent(in   ) :: CtrlPtMod
    real(ReKi),              intent(in   ) :: KinVisc
@@ -294,13 +294,14 @@ subroutine VSM_Compute_Influence(CtrlPtMod, KinVisc,  numVolElem, numElem, inPtA
    integer(IntKi),          intent(in   ) :: numElem
    real(ReKi),              intent(in   ) :: inPtA(:,:), inPtB(:,:), U_Inf_v(:,:), x_hat(:,:), y_hat(:,:)
    real(ReKi),              intent(in   ) :: chord(:)
+   logical,                 intent(  out) :: noInflow
    real(ReKi),              intent(inout) :: Phi_v(3,numElem, numElem), Phi_AB2D_v(3,numElem)
    integer(IntKi),          intent(  out) :: errStat    !< Error status
    character(*),            intent(  out) :: errMsg     !< Error message
   
    integer(IntKi)   :: i,j
    real(ReKi)  :: PtC(3,numElem), PtP(3,numElem), PtA(3,numElem), PtB(3,numElem)
-   real(ReKi)       :: r0, r0_v(3), zeta_hat(3), tmp_v(3), tmp, U_Inf, e2, r0_hat(3)
+   real(ReKi)  :: r0, r0_v(3), zeta_hat(3), tmp_v(3), tmp, U_Inf, U_InfTotal, e2, r0_hat(3)
    real(ReKi)  :: r1_v(3), r2_v(3), r3_v(3), r1_hat(3), r2_hat(3), r1_primeprime_v(3), r2_primeprime_v(3)
    real(ReKi)  :: r1p_v(3), r2p_v(3), r1_prime_v(3), r2_prime_v(3), Phi_Ainf_v(3), Phi_Binf_v(3), eta11_v(3), eta12_v(3), eta11_hat(3), eta12_hat(3), eta2_v(3)
    real(ReKi)  :: r1p_prime_v(3), r2p_prime_v(3), cp_v(3), tmp1cZeta_v(3), tmp2cZeta_v(3), tmp1c0_v(3),tmp1c2_v(3)
@@ -313,6 +314,9 @@ subroutine VSM_Compute_Influence(CtrlPtMod, KinVisc,  numVolElem, numElem, inPtA
 
    
    Phi_v = 0.0_ReKi
+   Phi_AB2D_v = 0.0_ReKi
+   U_InfTotal = 0.0_ReKi
+   noInflow = .false.
    
    do i = 1+numVolElem, numElem
       
@@ -321,6 +325,8 @@ subroutine VSM_Compute_Influence(CtrlPtMod, KinVisc,  numVolElem, numElem, inPtA
       
       
       U_Inf = TwoNorm(U_Inf_v(:,i))
+      U_InfTotal = U_InfTotal + U_Inf
+      
       if ( EqualRealNos(U_Inf, 0.0_ReKi) ) then
          U_Inf_hat = U_Inf_v(:,i)
       else     
@@ -353,6 +359,15 @@ subroutine VSM_Compute_Influence(CtrlPtMod, KinVisc,  numVolElem, numElem, inPtA
       end if
       
    end do
+   
+   if ( EqualRealNos(U_InfTotal, 0.0_ReKi) ) then
+      
+      ! Degenerate case, no inflow anywhere
+      noInflow = .true.
+      return
+      
+   end if
+   
    
    do j = 1+numVolElem, numElem
 
@@ -544,14 +559,17 @@ subroutine VSM_Compute_Influence(CtrlPtMod, KinVisc,  numVolElem, numElem, inPtA
 
                if ( EqualRealNos(4.0*Pi*FactorAB,0.0_ReKi) ) then
                   
-                  errMsg2 = 'Cross products of r1_primeprime and r2_primeprime produce a zero length vector which creates a divide by zero error'
-                  errStat2 = ErrID_Fatal
-                  call SetErrStat(errStat2,errMsg2,errStat,errMsg,RoutineName)  
-                  return
+                  !errMsg2 = 'Cross products of r1_primeprime and r2_primeprime produce a zero length vector which creates a divide by zero error'
+                  !errStat2 = ErrID_Fatal
+                  !call SetErrStat(errStat2,errMsg2,errStat,errMsg,RoutineName)  
+                  !return
+                  Phi_AB_v = 0.0_ReKi  
+               else
+                  Phi_AB_v = ( dot_product(r0_v, r1_primeprime_hat - r2_primeprime_hat  ) / (4.0*Pi*FactorAB) ) * tmpAB_v
+                  Phi_AB_v = tmp1c0 * Phi_AB_v / (e2*r0)
                end if
                
-               Phi_AB_v = ( dot_product(r0_v, r1_primeprime_hat - r2_primeprime_hat  ) / (4.0*Pi*FactorAB) ) * tmpAB_v
-               Phi_AB_v = tmp1c0 * Phi_AB_v / (e2*r0)
+               
                
             end if
          
@@ -697,7 +715,7 @@ subroutine Init_AFIparams( InitInp, p_AFI, UnEc, errStat, errMsg )
 
 end subroutine Init_AFIparams
 
-subroutine VSM_Solve( t, n, u, p, z, NoStates, m, errStat, errMsg )
+subroutine VSM_Solve( t, n, u, p, z, OtherState, m, errStat, errMsg )
 ! Loose coupling routine for solving for constraint states
 !
 ! NOTE:  This is not framework interface.
@@ -709,7 +727,8 @@ subroutine VSM_Solve( t, n, u, p, z, NoStates, m, errStat, errMsg )
    type(VSM_ParameterType),            intent(in   ) :: p          ! Parameters   
    type(VSM_ConstraintStateType),      intent(inout) :: z          ! Input: Constraint states at t;
                                                                     !   Output: Constraint states at t + Interval
-   logical,                            intent(in   ) :: NoStates   ! Are there valid states to start from?
+   type(VSM_OtherStateType),           intent(in   ) :: OtherState ! Other States
+
    type(VSM_MiscVarType),              intent(inout) :: m          ! Misc/optimization variables
    integer(IntKi),                     intent(  out) :: errStat    ! Error status of the operation
    character(*),                       intent(  out) :: errMsg     ! Error message if ErrStat /= ErrID_None
@@ -732,7 +751,7 @@ subroutine VSM_Solve( t, n, u, p, z, NoStates, m, errStat, errMsg )
    call AllocAry(dZdz_factor, p%numGammas,p%numGammas, 'dZdz_factor', errStat, errMsg)
    call AllocAry(deltaz, p%numGammas, 'deltaz', errStat, errMsg)
    call AllocAry(dZdz_pivot, p%numGammas, 'dZdz_pivot', errStat, errMsg)
-   if (  NoStates ) z%Gammas = 0.6
+   if (  OtherState%NoStates ) z%Gammas = 0.6
    
    call VSM_CopyConstrState( z, zPerturb, 0, errStat, errMsg )
    call VSM_CopyConstrState( z, z_residual, 0, errStat, errMsg )
@@ -741,8 +760,14 @@ subroutine VSM_Solve( t, n, u, p, z, NoStates, m, errStat, errMsg )
    k  = 0
    dz = p%VSMPerturb
    
-   call VSM_Compute_Influence(p%CtrlPtMod, p%KinVisc, p%NumVolElem, p%numElem, u%PtA, u%PtB, u%U_Inf_v, u%x_hat, u%y_hat, p%Chords, m%Phi_v, m%Phi_AB2D_v, errStat, errMsg)
+   call VSM_Compute_Influence(p%CtrlPtMod, p%KinVisc, p%NumVolElem, p%numElem, u%PtA, u%PtB, u%U_Inf_v, u%x_hat, u%y_hat, p%Chords, m%NoInflow, m%Phi_v, m%Phi_AB2D_v, errStat, errMsg)
       if ( errStat >= AbortErrLev ) return
+      
+   if ( m%NoInflow ) then
+      z%Gammas = 0.0_ReKi
+      return
+   end if
+   
    do 
       if ( k == p%VSMMaxIter ) then
          ErrStat = ErrID_Warn
@@ -755,18 +780,6 @@ subroutine VSM_Solve( t, n, u, p, z, NoStates, m, errStat, errMsg )
       call VSM_CalcConstrStateResidual( t, u, p, z, m, z_residual, errStat, errMsg )
          if ( errStat >= AbortErrLev ) return
          
-         ! If the residual is already zero, then we need to simply return the current states as the new states
-         ! Currently this can happen in the degenerate case where there is zero inflow, and zero structural motion, everywhere
-         ! In this case, Gammas can be anything, but the residuals will be zero.  So this is still currently a bug in that
-         ! the Gammas are not set to zero
-         
-      deltazMag = TwoNorm(z_residual%Gammas)
-      if ( EqualRealNos(deltazMag, 0.0_ReKi) ) then
-         z%Gammas = 0.0_ReKi
-         call WrScr('Residual was zero before Newton solve')
-         exit
-      end if
-      
          ! Compute the gradient matrix dZdz(n,n) when perturbing z
       zPerturb%Gammas = z%Gammas
       do i = 1, p%NumGammas
@@ -826,7 +839,7 @@ subroutine VSM_UpdateStates( t, n, u, p, z, OtherState, m, errStat, errMsg )
    errStat = ErrID_None
    errMsg  = ''
    
-   call VSM_Solve( t, n, u, p, z, OtherState%NoStates, m, errStat, errMsg )
+   call VSM_Solve( t, n, u, p, z, OtherState, m, errStat, errMsg )
    
    if (p%LiftMod == 2) OtherState%NoStates = .false.
    
@@ -1092,14 +1105,14 @@ subroutine VSM_CalcOutput( t, n, u, p, z, OtherState, m, y, errStat, errMsg )
             ! UpdateStates has never been called, so no real states exist, we need to 'solve for the states' before generating the outputs
          call VSM_CopyConstrState( z, zTmp, 0, errStat, errMsg )
          call VSM_CopyConstrState( z, z_residual, 0, errStat, errMsg )
-         call VSM_Solve( t, n, u, p, zTmp, OtherState%NoStates, m, errStat, errMsg )
+         call VSM_Solve( t, n, u, p, zTmp, OtherState, m, errStat, errMsg )
             if ( errStat >= AbortErrLev ) return
          call VSM_Compute( p%AirDens, p%NumVolElem, p%numElem, p%ElemLens, u%PtA, u%PtB, u%U_Inf_v, u%x_hat, u%y_hat, p%AFInfo, p%AFIDs, u%deltaf, p%Chords, zTmp%Gammas, m%Phi_v, m%Phi_AB2D_v, y%Vind, y%AoA, Fx, Fy,Mz, y%Cl, y%Cd, y%Cm, z_residual%Gammas, errStat, errMsg)     
             if ( errStat >= AbortErrLev ) return
       else
             ! TODO: may want to store this z_residual as a miscvar to avoid the copy here
          call VSM_CopyConstrState( z, z_residual, 0, errStat, errMsg )
-         call VSM_Compute_Influence(p%CtrlPtMod, p%KinVisc, p%NumVolElem, p%numElem, u%PtA, u%PtB, u%U_Inf_v, u%x_hat, u%y_hat, p%Chords, m%Phi_v, m%Phi_AB2D_v, errStat, errMsg)
+         call VSM_Compute_Influence(p%CtrlPtMod, p%KinVisc, p%NumVolElem, p%numElem, u%PtA, u%PtB, u%U_Inf_v, u%x_hat, u%y_hat, p%Chords, m%NoInflow, m%Phi_v, m%Phi_AB2D_v, errStat, errMsg)
             if ( errStat >= AbortErrLev ) return
          call VSM_Compute( p%AirDens, p%NumVolElem, p%numElem, p%ElemLens, u%PtA, u%PtB, u%U_Inf_v, u%x_hat, u%y_hat, p%AFInfo, p%AFIDs, u%deltaf, p%Chords, z%Gammas, m%Phi_v, m%Phi_AB2D_v, y%Vind, y%AoA, Fx, Fy, Mz, y%Cl, y%Cd, y%Cm, z_residual%Gammas, errStat, errMsg)
             if ( errStat >= AbortErrLev ) return

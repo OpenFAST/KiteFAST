@@ -87,6 +87,7 @@ typedef   ^    MiscVarType                   ReKi                     PtP       
 typedef   ^    ^                             ReKi                     PtC                             {:}{:}           -         -        "Location of the mid-point between PtA and PtB" m
 typedef   ^    ^                             ReKi                     Phi_v                           {:}{:}{:}        -         -        "Influence factor for each element" 1/m
 typedef   ^    ^                             ReKi                     Phi_AB2D_v                      {:}{:}           -         -        "Influence factor for each element" 1/m
+typedef   ^    ^                             Logical                  NoInflow                           -             -         -        "Flag to indicate if the current operating conditions create a degenerate case for the solver" -
 #
 # ..... Parameters ................................................................................................................
 # Define parameters here:
