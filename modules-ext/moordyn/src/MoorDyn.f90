@@ -246,16 +246,13 @@ CONTAINS
          IF (ErrStat >= AbortErrLev) RETURN
 
 
-         ! set offset position of each node to according to initial platform position
-         CALL SmllRotTrans('initial fairlead positions due to platform rotation', InitInp%PtfmInit(4),InitInp%PtfmInit(5),InitInp%PtfmInit(6), TransMat, '', ErrStat2, ErrMsg2)  ! account for possible platform rotation
-
          CALL CheckError( ErrStat2, ErrMsg2 )
          IF (ErrStat >= AbortErrLev) RETURN
 
          ! Apply initial platform rotations and translations (fixed Jun 19, 2015)
-         u%PtFairleadDisplacement%TranslationDisp(1,i) = InitInp%PtfmInit(1) + Transmat(1,1)*Pos(1) + Transmat(2,1)*Pos(2) + TransMat(3,1)*Pos(3) - Pos(1)
-         u%PtFairleadDisplacement%TranslationDisp(2,i) = InitInp%PtfmInit(2) + Transmat(1,2)*Pos(1) + Transmat(2,2)*Pos(2) + TransMat(3,2)*Pos(3) - Pos(2)
-         u%PtFairleadDisplacement%TranslationDisp(3,i) = InitInp%PtfmInit(3) + Transmat(1,3)*Pos(1) + Transmat(2,3)*Pos(2) + TransMat(3,3)*Pos(3) - Pos(3)
+         u%PtFairleadDisplacement%TranslationDisp(1,i) = InitInp%PtfmPos(1) + InitInp%PtfmDCM(1,1)*Pos(1) + InitInp%PtfmDCM(2,1)*Pos(2) + InitInp%PtfmDCM(3,1)*Pos(3) - Pos(1)
+         u%PtFairleadDisplacement%TranslationDisp(2,i) = InitInp%PtfmPos(2) + InitInp%PtfmDCM(1,2)*Pos(1) + InitInp%PtfmDCM(2,2)*Pos(2) + InitInp%PtfmDCM(3,2)*Pos(3) - Pos(2)
+         u%PtFairleadDisplacement%TranslationDisp(3,i) = InitInp%PtfmPos(3) + InitInp%PtfmDCM(1,3)*Pos(1) + InitInp%PtfmDCM(2,3)*Pos(2) + InitInp%PtfmDCM(3,3)*Pos(3) - Pos(3)
 
          ! set velocity of each node to zero
          u%PtFairleadDisplacement%TranslationVel(1,i) = 0.0_ReKi
@@ -449,7 +446,23 @@ CONTAINS
          m%LineTypeList(I)%Cdt = m%LineTypeList(I)%Cdt / InitInp%CdScaleIC
       END DO
 
-
+      InitOut%NAnchs = p%NAnchs
+      call AllocAry(InitOut%Anchs, 3, p%NAnchs, 'InitOut%Anchs', ErrStat2, ErrMsg2)
+      
+      ! cycle through Connects and identify Connect types
+      J = 1
+      DO I = 1, p%NConnects
+         TempString = m%ConnectList(I)%type
+         CALL Conv2UC(TempString)
+         IF (TempString == 'FIXED') THEN
+            InitOut%Anchs(1,J) = m%ConnectList(I)%conx
+            InitOut%Anchs(2,J) = m%ConnectList(I)%cony
+            InitOut%Anchs(3,J) = m%ConnectList(I)%conz
+            J = J + 1        
+         END IF
+      END DO
+      
+      
       p%dtCoupling = DTcoupling  ! store coupling time step for use in updatestates
 
       other%dummy = 0

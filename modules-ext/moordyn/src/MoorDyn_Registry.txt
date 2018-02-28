@@ -18,7 +18,8 @@ include Registry_NWTC_Library.txt
 typedef   MoorDyn/MD  InitInputType    ReKi               g              -   -999.9 -   "gravity constant"   "[m/s^2]"
 typedef   ^           ^                ReKi               rhoW           -   -999.9 -   "sea density"        "[kg/m^3]"
 typedef   ^           ^                ReKi               WtrDepth       -   -999.9 -   "depth of water"     "[m]"
-typedef   ^           ^                ReKi               PtfmInit      {6}  -      -   "initial position of platform"     -
+typedef   ^           ^                ReKi               PtfmPos      {3}  -      -   "initial position of platform"     -
+typedef   ^           ^                ReKi               PtfmDCM      {3}{3}  -      -   "initial dcm of platform"     -
 typedef   ^           ^                CHARACTER(1024)    FileName       -   ""     -   "MoorDyn input file"
 typedef   ^           ^                CHARACTER(1024)    RootName       -   -      -   "RootName for writing output files"              -
 typedef   ^           ^                LOGICAL            Echo           -   ""     -   "echo parameter - do we want to echo the header line describing the input file?"
@@ -110,7 +111,8 @@ typedef  ^            ^                IntKi              ObjID         -       
 typedef   ^            InitOutputType  CHARACTER(ChanLen)  writeOutputHdr  {:} ""  -   "first line output file contents: output variable names"
 typedef   ^            ^               CHARACTER(ChanLen)  writeOutputUnt  {:} ""  -   "second line of output file contents: units"
 typedef   ^            ^               ProgDesc            Ver              -  ""  -   "this module's name, version, and date"
-
+typedef   ^            ^               IntKi               NAnchs           -  -   -   "number of Anchor type Connections"  -
+typedef   ^            ^               ReKi                Anchs        {:}{:} -   -   "Anchor type Connection positions"  -
 
 ## ============================== Define Continuous states here: =====================================================================================================================================
 typedef   ^       ContinuousStateType  ReKi                states          {:} ""  -   "full list of node coordinates and velocities"   "[m] or [m/s]"
