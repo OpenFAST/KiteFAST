@@ -13,9 +13,9 @@ include	Registry_NWTC_Library.txt
 usefrom	KiteAeroDyn_Registry.txt
 usefrom	InflowWind.txt
 usefrom	MoorDyn_Registry.txt
+usefrom	KiteFastController_Registry.txt
 usefrom	ActuatorDisk_Registry.txt
 usefrom  VSM_Registry.txt
-
 #
 #
 # ..... Initialization data .......................................................................................................
@@ -25,29 +25,41 @@ usefrom  VSM_Registry.txt
 typedef    KiteFAST/KFAST    KAD_Data          KAD_ParameterType  p  - - - "Parameter data for KiteAeroDyn module" -
 typedef    ^                   ^               KAD_InputType      u  - - - "Input data for KiteAeroDyn module" -
 typedef    ^                   ^               KAD_MiscVarType    m  - - - "Misc vars for KiteAeroDyn module" -
+typedef    ^                   ^               KAD_ContinuousStateType x  - - - "Continuous states for KiteAeroDyn module" -
+typedef    ^                   ^               KAD_DiscreteStateType   xd  - - - "Discrete states for KiteAeroDyn module" -
+typedef    ^                   ^               KAD_ConstraintStateType z  - - - "Constraint states for KiteAeroDyn module" -
+typedef    ^                   ^               KAD_ConstraintStateType z_copy  - - - "Constraint states copy for KiteAeroDyn module" -
+typedef    ^                   ^               KAD_OtherStateType      OtherSt  - - - "Other states for KiteAeroDyn module" -
 typedef    ^                   ^               KAD_OutputType     y  - - - "Output data for KiteAeroDyn module" -    
-typedef    KiteFAST/KFAST    IfW_Data          InflowWind_ParameterType  p  - - - "Parameter data for InflowWind module" -
-typedef    ^                   ^               InflowWind_InputType      u  - - - "Input data for InflowWind module" -
-typedef    ^                   ^               InflowWind_MiscVarType    m  - - - "Misc vars for InflowWind module" -
-typedef    ^                   ^               InflowWind_ContinuousStateType    x  - - - "Misc vars for InflowWind module" -
-typedef    ^                   ^               InflowWind_DiscreteStateType    xd  - - - "Misc vars for InflowWind module" -
-typedef    ^                   ^               InflowWind_ConstraintStateType    z  - - - "Misc vars for InflowWind module" -
-typedef    ^                   ^               InflowWind_OtherStateType    OtherSt  - - - "Misc vars for InflowWind module" -
-typedef    ^                   ^               InflowWind_OutputType     y  - - - "Output data for InflowWind module" -    
-typedef    KiteFAST/KFAST    MD_Data           MD_ParameterType  p  - - - "Parameter data for MoorDyn module" -
-typedef    ^                   ^               MD_InputType      u  - - - "Input data for MoorDyn module" -
-typedef    ^                   ^               MD_MiscVarType    m  - - - "Misc vars for MoorDyn module" -
-typedef    ^                   ^               MD_ContinuousStateType    x  - - - "Misc vars for MoorDyn module" -
-typedef    ^                   ^               MD_DiscreteStateType    xd  - - - "Misc vars for MoorDyn module" -
-typedef    ^                   ^               MD_ConstraintStateType    z  - - - "Misc vars for MoorDyn module" -
-typedef    ^                   ^               MD_OtherStateType    OtherSt  - - - "Misc vars for MoorDyn module" -
-typedef    ^                   ^               MD_OutputType     y  - - - "Output data for MoorDyn module" -    
+typedef    KiteFAST/KFAST    IfW_Data          InflowWind_ParameterType       p  - - - "Parameter data for InflowWind module" -
+typedef    ^                   ^               InflowWind_InputType           u  - - - "Input data for InflowWind module" -
+typedef    ^                   ^               InflowWind_MiscVarType         m  - - - "Misc vars for InflowWind module" -
+typedef    ^                   ^               InflowWind_ContinuousStateType x  - - - "Continuous states for InflowWind module" -
+typedef    ^                   ^               InflowWind_DiscreteStateType   xd  - - - "Discrete states for InflowWind module" -
+typedef    ^                   ^               InflowWind_ConstraintStateType z  - - - "Constraint states for InflowWind module" -
+typedef    ^                   ^               InflowWind_OtherStateType      OtherSt  - - - "Other states for InflowWind module" -
+typedef    ^                   ^               InflowWind_OutputType          y  - - - "Output data for InflowWind module" -    
+typedef    KiteFAST/KFAST    MD_Data           MD_ParameterType        p  - - - "Parameter data for MoorDyn module" -
+typedef    ^                   ^               MD_InputType            u  {2} - - "Input data for MoorDyn module" -
+typedef    ^                   ^               MD_MiscVarType          m  - - - "Misc vars for MoorDyn module" -
+typedef    ^                   ^               MD_ContinuousStateType  x  - - - "Continuous states for MoorDyn module" -
+typedef    ^                   ^               MD_ContinuousStateType  x_copy  - - - "Continuous states copy for MoorDyn module" -
+typedef    ^                   ^               MD_DiscreteStateType    xd - - - "Discrete states for MoorDyn module" -
+typedef    ^                   ^               MD_ConstraintStateType  z  - - - "Constraint states for MoorDyn module" -
+typedef    ^                   ^               MD_OtherStateType       OtherSt  - - - "Other states for MoorDyn module" -
+typedef    ^                   ^               MD_OutputType           y  - - - "Output data for MoorDyn module" -   
+typedef    KiteFAST/KFAST   KFC_Data           KFC_ParameterType   p  - - - "Parameter data for KiteFAST controller module" -
+typedef    ^                   ^               KFC_InputType       u  - - - "Input data for KiteFAST controller module" -
+typedef    ^                   ^               KFC_OutputType      y  - - - "Output data for KiteFAST controller module" -
+ 
 # ..... Misc/Optimization variables.................................................................................................
 # Define any data that are used only for efficiency purposes (these variables are not associated with time):
 #   e.g. indices for searching in an array, large arrays that are local variables in any routine called multiple times, etc.
 typedef   ^    MiscVarType    KAD_Data         KAD           -    -   -  "KiteAeroDyn framework data" -
 typedef   ^    MiscVarType    IfW_Data         IfW           -    -   -  "InflowWind framework data" -
 typedef   ^    MiscVarType    MD_Data          MD            -    -   -  "MoorDyn framework data" -
+typedef   ^    MiscVarType    KFC_Data         KFC           -    -   -  "KiteFAST Controller framework data" -
+typedef   ^    MiscVarType    logical          NewTime       -    -   -  "" -
 typedef   ^    MiscVarType    MeshType         mbdFusMotions -    -   -  "" -
 typedef   ^    MiscVarType    MeshType         mbdSWnMotions -    -   -  "" -
 typedef   ^    MiscVarType    MeshType         mbdPWnMotions -    -   -  "" -
@@ -80,6 +92,41 @@ typedef   ^    MiscVarType    MeshMapType      SHS_P_P    -   -   -  "" -
 typedef   ^    MiscVarType    MeshMapType      PHS_P_P    -   -   -  "" - 
 typedef   ^    MiscVarType    MeshMapType      SPy_P_P   {:}  -   -  "" - 
 typedef   ^    MiscVarType    MeshMapType      PPy_P_P   {:}  -   -  "" - 
+typedef   ^    MiscVarType    ReKi             FusPts {:}{:} - - "" m
+typedef   ^    MiscVarType    ReKi             SWnPts {:}{:} - - "" m
+typedef   ^    MiscVarType    ReKi             PWnPts {:}{:} - - "" m
+typedef   ^    MiscVarType    ReKi             VSPts  {:}{:} - - "" m
+typedef   ^    MiscVarType    ReKi             SHSPts {:}{:} - - "" m
+typedef   ^    MiscVarType    ReKi             PHSPts {:}{:} - - "" m
+typedef   ^    MiscVarType    ReKi             SPyPts {:}{:}{:} - - "" m
+typedef   ^    MiscVarType    ReKi             PPyPts {:}{:}{:} - - "" m
+typedef   ^    MiscVarType    ReKi             FusVels {:}{:} - - "" m
+typedef   ^    MiscVarType    ReKi             SWnVels {:}{:} - - "" m
+typedef   ^    MiscVarType    ReKi             PWnVels {:}{:} - - "" m
+typedef   ^    MiscVarType    ReKi             VSVels  {:}{:} - - "" m
+typedef   ^    MiscVarType    ReKi             SHSVels {:}{:} - - "" m
+typedef   ^    MiscVarType    ReKi             PHSVels {:}{:} - - "" m
+typedef   ^    MiscVarType    ReKi             SPyVels {:}{:}{:} - - "" m
+typedef   ^    MiscVarType    ReKi             PPyVels {:}{:}{:} - - "" m
+typedef   ^    MiscVarType    ReKi             FusOmegas {:}{:} - - "" m
+typedef   ^    MiscVarType    ReKi             SWnOmegas {:}{:} - - "" m
+typedef   ^    MiscVarType    ReKi             PWnOmegas {:}{:} - - "" m
+typedef   ^    MiscVarType    ReKi             VSOmegas  {:}{:} - - "" m
+typedef   ^    MiscVarType    ReKi             SHSOmegas {:}{:} - - "" m
+typedef   ^    MiscVarType    ReKi             PHSOmegas {:}{:} - - "" m
+typedef   ^    MiscVarType    ReKi             SPyOmegas {:}{:}{:} - - "" m
+typedef   ^    MiscVarType    ReKi             PPyOmegas {:}{:}{:} - - "" m
+typedef   ^    MiscVarType    ReKi             SPyRtrO {:}{:}{:} - - "" m
+typedef   ^    MiscVarType    ReKi             PPyRtrO {:}{:}{:} - - "" m
+typedef   ^    MiscVarType    R8Ki             FusODCM {:}{:}  - - "" -
+typedef   ^    MiscVarType    R8Ki             FusNdDCMs {:}{:}{:} - - "" -
+typedef   ^    MiscVarType    R8Ki             SWnNdDCMs {:}{:}{:} - - "" -
+typedef   ^    MiscVarType    R8Ki             PWnNdDCMs {:}{:}{:} - - "" -
+typedef   ^    MiscVarType    R8Ki             VsNdDCMs  {:}{:}{:} - - "" -
+typedef   ^    MiscVarType    R8Ki             SHSNdDCMs {:}{:}{:} - - "" -
+typedef   ^    MiscVarType    R8Ki             PHSNdDCMs {:}{:}{:} - - "" -
+typedef   ^    MiscVarType    R8Ki             SPyNdDCMs {:}{:}{:}{:} - - "" -
+typedef   ^    MiscVarType    R8Ki             PPyNdDCMs {:}{:}{:}{:} - - "" -
 
 #
 # ..... Parameters ................................................................................................................
@@ -89,6 +136,7 @@ typedef   ^    MiscVarType    MeshMapType      PPy_P_P   {:}  -   -  "" -
 typedef   ^  ParameterType  IntKi            numFlaps    -  -  -  "Number of flaps per wing" -
 typedef   ^  ^              IntKi            numPylons   -  -  -  "Number of pylons per wing" -
 typedef   ^  ^              DbKi             dt          -  -  -  "Time interval for calculations" s
+typedef	 ^	 ^              ReKi             AirDens     -  -  -  "Air density" kg/m^3
 typedef   ^  ^              IntKi            numFusNds   -  -  -  "Number of fuselage structural nodes" -
 typedef   ^  ^              IntKi            numSwnNds   -  -  -  "Number of starboard wing structural nodes" -
 typedef   ^  ^              IntKi            numPWnNds   -  -  -  "Number of port wing structural nodes" -
@@ -97,11 +145,6 @@ typedef   ^  ^              IntKi            numSHSNds   -  -  -  "Number of sta
 typedef   ^  ^              IntKi            numPHSNds   -  -  -  "Number of port horizontal stabilizer structural nodes" -
 typedef   ^  ^              IntKi            numSPyNds  {:} -  -  "Number of starboard pylon structural nodes" -
 typedef   ^  ^              IntKi            numPPyNds  {:} -  -  "Number of port pylon structural nodes" -
-
-
-
-
-
-
-
+typedef   ^  ^              ReKi             anchorPt   {3} -  -  "Anchor point for the kite tether" m
+typedef   ^  ^              ReKi             DCM_Fast2Ctrl {3}{3} - - "DCM between FAST inertial and the Controller's reference frame" -
 typedef	 ^	 ^	             CHARACTER(1024)	outFileRoot -	-	-	"Rootname of the KiteFAST output file(s)"	-
