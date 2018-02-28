@@ -326,8 +326,8 @@ subroutine Set_u( t, numTimes, numPylons, numFlaps, lastInd, Motions, HWindSpd, 
          ptZ = u%PPyRtrMotions(index)%Position(3,1)+u%PPyRtrMotions(index)%TranslationDisp(3,1)
          call GetWindSpeed( HWindSpd, ptZ, RefHt, PLexp, HWindDir, u%V_PPyRtr(:,i,j+1), errStat2, errMsg2 )
          
-         u%Omega_SPyRtr(i,j+1) = InterpStp ( real(t, ReKi), Motions%Times, Motions%SRtSpd  (:,i,j+1), lastInd, numTimes )  
-         u%Omega_PPyRtr(i,j+1) = InterpStp ( real(t, ReKi), Motions%Times, Motions%PRtSpd  (:,i,j+1), lastInd, numTimes ) 
+         u%RtSpd_SPyRtr(i,j+1) = InterpStp ( real(t, ReKi), Motions%Times, Motions%SRtSpd  (:,i,j+1), lastInd, numTimes )  
+         u%RtSpd_PPyRtr(i,j+1) = InterpStp ( real(t, ReKi), Motions%Times, Motions%PRtSpd  (:,i,j+1), lastInd, numTimes ) 
          u%Pitch_SPyRtr(i,j+1) = InterpStp ( real(t, ReKi), Motions%Times, Motions%SRtPitch(:,i,j+1), lastInd, numTimes )  
          u%Pitch_PPyRtr(i,j+1) = InterpStp ( real(t, ReKi), Motions%Times, Motions%PRtPitch(:,i,j+1), lastInd, numTimes ) 
       end do
@@ -433,7 +433,7 @@ subroutine ReadMotions( UnIn, fileName, NumTimes, NumFlaps, NumPylons, Motions, 
       call ReadAry( UnIn, fileName, vals, NumVals, 'Values','Table row', errStat2, errMsg2, UnEc )
          call SetErrStat( errStat2, errMsg2, errStat, errMsg, RoutineName )
          
-      Motions%Times(i)      = vals(1)
+      Motions%Times(i)     = vals(1)
       Motions%KitePXi(i)   = vals(2)
       Motions%KitePYi(i)   = vals(3)
       Motions%KitePZi(i)   = vals(4)
@@ -614,6 +614,12 @@ subroutine KAD_Dvr_Read_InputFile( inputFile, InitInp, errStat, errMsg )
       call SetErrStat( errStat2, errMsg2, errStat, errMsg, RoutineName )
    InitInp%KAD_InitInp%NumPylons = NumPylons
    
+      ! Since we are about to allocate arrays, we need to check that NumFlaps and NumPylons >= 1
+   if ( (NumFlaps < 1) .or. (NumPylons < 1) ) then
+      call SetErrStat( ErrID_FATAL, 'NumFlaps and NumPylons must be greater than zero', errStat, errMsg, RoutineName )
+      return
+   end if
+   
    ! Even though we will validate the bulk of the input 
       ! Table header
    call ReadCom( UnIn, fileName, ' KiteX   KiteY   KiteZ ', errStat2, errMsg2, UnEc  ) 
@@ -760,12 +766,10 @@ subroutine KAD_Dvr_ValidateInitData( dvrInitInp, errStat, errMsg )
    errStat  = ErrID_None
    errMsg   = ""
 
-   if ( dvrInitInp%DTAero   <= 0.0_ReKi ) call SetErrStat( ErrID_Fatal, 'Simulation timestep must be greater than zero', errStat, errMsg, routineName )
+   if ( dvrInitInp%DTAero   <= 0.0_DbKi ) call SetErrStat( ErrID_Fatal, 'Simulation timestep must be greater than zero', errStat, errMsg, routineName )
    if ( dvrInitInp%HWindSpd <  0.0_ReKi ) call SetErrStat( ErrID_Fatal, 'The horizontal reference wind speed must be greater than or equal to zero', errStat, errMsg, routineName )
    if ( dvrInitInp%RefHt    <= 0.0_ReKi ) call SetErrStat( ErrID_Fatal, 'The height for the reference wind speed must be greater than zero', errStat, errMsg, routineName )
-   if ( dvrInitInp%PLexp    <  0.0_ReKi ) call SetErrStat( ErrID_Fatal, 'The vertical wind shear power-law exponent must be greater than or equal to zero', errStat, errMsg, routineName )
    if ( dvrInitInp%NumTimes <  2        ) call SetErrStat( ErrID_Fatal, 'The number of kite time series time steps must be greater than 1', errStat, errMsg, routineName )
-   if ( ( dvrInitInp%HWindDir  < -PI ) .or.  ( dvrInitInp%HWindDir  > PI ) ) call SetErrStat( ErrID_Fatal, 'The reference wind direction must be between [-180,180]', errStat, errMsg, routineName )
  
    ! Validate time series data
    if ( .not. EqualRealNos(dvrInitInp%Motions%Times(1), 0.0_ReKi) ) call SetErrStat( ErrID_Fatal, 'The first time stamp in the time-series data must be 0.0', errStat, errMsg, routineName )
@@ -781,40 +785,7 @@ subroutine KAD_Dvr_ValidateInitData( dvrInitInp, errStat, errMsg )
       end if
       maxTime = dvrInitInp%Motions%Times(i)
       
-         ! Verify Kite motion angles are in the range [-180,180]
-      if ( ( dvrInitInp%Motions%Roll(i)  < -PI ) .or.  ( dvrInitInp%Motions%Roll(i)  > PI ) ) then
-         call SetErrStat( ErrID_Fatal, 'The Roll angle of time series row '//trim(num2lstr(i))//' must be between [-180,180]', errStat, errMsg, routineName )
-         return
-      end if
-      if ( ( dvrInitInp%Motions%Pitch(i)  < -PI ) .or.  ( dvrInitInp%Motions%Pitch(i)  > PI ) ) then
-         call SetErrStat( ErrID_Fatal, 'The Pitch angle of time series row '//trim(num2lstr(i))//' must be between [-180,180]', errStat, errMsg, routineName )
-         return
-      end if
-      if ( ( dvrInitInp%Motions%Yaw(i)  < -PI ) .or.  ( dvrInitInp%Motions%Yaw(i)  > PI ) ) then
-         call SetErrStat( ErrID_Fatal, 'The Yaw angle of time series row '//trim(num2lstr(i))//' must be between [-180,180]', errStat, errMsg, routineName )
-         return
-      end if
-      
-         ! Verify Rotor pitch angles are in the range [-180,180] 
-      do j = 1, dvrInitInp%KAD_InitInp%NumPylons
-
-         if ( ( dvrInitInp%Motions%SRtPitch(i,1,j)  < -PI ) .or.  ( dvrInitInp%Motions%SRtPitch(i,1,j)  > PI ) ) then
-            call SetErrStat( ErrID_Fatal, 'The starboard, pylon #'//trim(num2lstr(j))//', top rotor, has an invalid blade pitch angle on time series row '//trim(num2lstr(i))//' must be between [-180,180]', errStat, errMsg, routineName )
-            return
-         end if
-         if ( ( dvrInitInp%Motions%SRtPitch(i,2,j)  < -PI ) .or.  ( dvrInitInp%Motions%SRtPitch(i,2,j)  > PI ) ) then
-            call SetErrStat( ErrID_Fatal, 'The starboard, pylon #'//trim(num2lstr(j))//', bottom rotor, has an invalid blade pitch angle on time series row '//trim(num2lstr(i))//' must be between [-180,180]', errStat, errMsg, routineName )
-            return
-         end if
-         if ( ( dvrInitInp%Motions%PRtPitch(i,1,j)  < -PI ) .or.  ( dvrInitInp%Motions%PRtPitch(i,1,j)  > PI ) ) then
-            call SetErrStat( ErrID_Fatal, 'The port, pylon #'//trim(num2lstr(j))//', top rotor, has an invalid blade pitch angle on time series row '//trim(num2lstr(i))//' must be between [-180,180]', errStat, errMsg, routineName )
-            return
-         end if
-         if ( ( dvrInitInp%Motions%PRtPitch(i,2,j)  < -PI ) .or.  ( dvrInitInp%Motions%PRtPitch(i,2,j)  > PI ) ) then
-            call SetErrStat( ErrID_Fatal, 'The port, pylon #'//trim(num2lstr(j))//', bottom rotor, has an invalid blade pitch angle on time series row '//trim(num2lstr(i))//' must be between [-180,180]', errStat, errMsg, routineName )
-            return
-         end if
-      end do
+         ! Assumption that Kite motion angles are continuous with no modulo 2pi jumps
       
    end do
    
@@ -869,21 +840,21 @@ subroutine KAD_Dvr_Simulate( dvrInitInp, errStat, errMsg )
    ! Initialize KiteAeroDyn and all sub-modules  
    call KAD_Init( dvrInitInp%KAD_InitInp, Inputs(1), KAD_p, KAD_y, KAD_DT,  KAD_x, KAD_xd, KAD_z, KAD_OtherSt, KAD_m, KAD_InitOut, errStat2, errMsg2 )
       if ( errStat2 >= AbortErrLev ) then
-            write(*,*) trim(errMsg2)
+            call WrScr( trim(errMsg2) )
             return
          end if
    
    ! Create mesh mappings
    call KAD_Dvr_CreateMeshMappings(numPylons, Inputs(1), MeshMapData, errStat2, errMsg2)
       if ( errStat2 >= AbortErrLev ) then
-            write(*,*) trim(errMsg2)
+            call WrScr( trim(errMsg2) )
             return
          end if
    
       ! Copy inputs to input array
    call KAD_CopyInput( Inputs(1), Inputs(2), MESH_NEWCOPY, errStat2, errMsg2 )   
       if ( errStat2 >= AbortErrLev ) then
-            write(*,*) trim(errMsg2)
+            call WrScr( trim(errMsg2) )
             return
          end if
    
@@ -896,7 +867,7 @@ subroutine KAD_Dvr_Simulate( dvrInitInp, errStat, errMsg )
                  dvrInitInp%HWindDir, dvrInitInp%RefHt, dvrInitInp%PLexp, MeshMapData, Inputs(1), KAD_p, KAD_z,  errStat2, errMsg2 ) 
       call SetErrStat(errStat2,errMsg2,errStat,errMsg,RoutineName)  
       if ( errStat >= AbortErrLev ) then
-            write(*,*) trim(errMsg)
+            call WrScr( trim(errMsg) )
             return
          end if
       
@@ -909,9 +880,10 @@ subroutine KAD_Dvr_Simulate( dvrInitInp, errStat, errMsg )
          end if
       
    ! Write output to file
-   write(*,*) ' Finished KAD_CalcOutput for time = '//trim(num2lstr(InputTimes(1)))
+   call WrScr( ' Finished KAD_CalcOutput for time = '//trim(num2lstr(InputTimes(1))) )
    
-   lastTimeInc =  ( dvrInitInp%Motions%Times(dvrInitInp%NumTimes) - dvrInitInp%Motions%Times(1) ) / KAD_DT
+   lastTimeInc =  floor( ( dvrInitInp%Motions%Times(dvrInitInp%NumTimes) - dvrInitInp%Motions%Times(1) ) / KAD_DT )
+   
    ! Time marching loop
    do i = 1, lastTimeInc
                
@@ -921,14 +893,15 @@ subroutine KAD_Dvr_Simulate( dvrInitInp, errStat, errMsg )
                  dvrInitInp%HWindDir, dvrInitInp%RefHt, dvrInitInp%PLexp, MeshMapData, Inputs(2), KAD_p, KAD_z,  errStat2, errMsg2 ) 
          call SetErrStat(errStat2,errMsg2,errStat,errMsg,RoutineName)    
          if ( errStat >= AbortErrLev ) then
-            write(*,*) trim(errMsg)
+            call WrScr( trim(errMsg) )
             return
          end if
+         
          ! compute states for time, n+1, using extrapolated inputs at n+1, parameters, and the states at n
       call KAD_UpdateStates( InputTimes(1), n, Inputs, InputTimes, KAD_p, KAD_x, KAD_xd, KAD_z, KAD_OtherSt, KAD_m, errStat2, errMsg2 )
          call SetErrStat(errStat2,errMsg2,errStat,errMsg,RoutineName) 
          if ( errStat >= AbortErrLev ) then
-            write(*,*) trim(errMsg)
+            call WrScr( trim(errMsg) )
             return
          end if
          
@@ -938,7 +911,7 @@ subroutine KAD_Dvr_Simulate( dvrInitInp, errStat, errMsg )
       call KAD_CopyInput( Inputs(2), Inputs(1), MESH_UPDATECOPY, ErrStat2, ErrMsg2 )   
          call SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,RoutineName)
          if ( errStat >= AbortErrLev ) then
-            write(*,*) trim(errMsg)
+            call WrScr( trim(errMsg) )
             return
          end if
       
@@ -946,15 +919,23 @@ subroutine KAD_Dvr_Simulate( dvrInitInp, errStat, errMsg )
       call KAD_CalcOutput( InputTimes(1), Inputs(1), KAD_p, KAD_x, KAD_xd, KAD_z, KAD_OtherSt, KAD_y, KAD_m, errStat2, errMsg2 )   
          call SetErrStat(errStat2,errMsg2,errStat,errMsg,RoutineName)
          if ( errStat >= AbortErrLev ) then
-            write(*,*) trim(errMsg)
+            call WrScr( trim(errMsg) )
             return
          end if
          
          ! Write output to file
-      write(*,*) ' Finished KAD_CalcOutput for time = '//trim(num2lstr(InputTimes(1)))
+      call WrScr( ' Finished KAD_CalcOutput for time = '//trim(num2lstr(InputTimes(1))) )
 
    end do
 
+   call KAD_End(Inputs(1), KAD_p, KAD_x, KAD_xd, KAD_z, KAD_OtherSt, KAD_y, KAD_m, errStat2 , errMsg2)
+      call SetErrStat(errStat2,errMsg2,errStat,errMsg,RoutineName)
+    
+   call KAD_DestroyInput(Inputs(2), errStat2, errMsg2)
+      call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
+      
+   if ( errStat >= ErrID_None ) call WrScr( trim(errMsg) )
+            
 end subroutine KAD_Dvr_Simulate
 
 end module KAD_Dvr_Subs
