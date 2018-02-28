@@ -23,8 +23,10 @@ int _tmain(int argc, _TCHAR* argv[])
     char KAD_FileName[INTERFACE_STRING_LENGTH];
     char IfW_FileName[INTERFACE_STRING_LENGTH];
     char MD_FileName[INTERFACE_STRING_LENGTH];
+    char KFC_FileName[INTERFACE_STRING_LENGTH];
     char outFileRoot[INTERFACE_STRING_LENGTH];
     double gravity = 9.81;
+    double *pWindPt;
     double *pFusODCM;
     int numRtrPtsElem;
     double *pRtrPts;
@@ -41,6 +43,7 @@ int _tmain(int argc, _TCHAR* argv[])
     strcpy(KAD_FileName, "C:\\Dev\\makani\\nrel_kite_fast\\config\\kite_aerodyn\\kad_m600_001.inp");
     strcpy(IfW_FileName, "steady-wind.inp");
     strcpy(MD_FileName , "Kite-tethers.inp");
+    strcpy(KFC_FileName, "Kite-controller.dll");
     strcpy(outFileRoot , "KiteTest");
 
 
@@ -56,6 +59,12 @@ int _tmain(int argc, _TCHAR* argv[])
     pNumCompNds[7] = 6; //  starboard outboard pylon nodes
     pNumCompNds[8] = 6; //  port inboard pylon nodes
     pNumCompNds[9] = 6; //  port outboard pylon nodes
+
+    // Set the ground station point where the wind is measured
+    pWindPt = (double *)malloc(3 * sizeof(double));
+    pWindPt[0] = 0.0;
+    pWindPt[1] = 0.0;
+    pWindPt[2] = 10.0;
 
     //Test the FusODCM as a 1D array instead of a 2D array
     pFusODCM = (double *)malloc(9*sizeof(double));
@@ -127,7 +136,10 @@ int _tmain(int argc, _TCHAR* argv[])
     pRefPts[7] = 98.0;
     pRefPts[8] = 100.0;
     // Vertical Stabilizer
-
+    // Starboard Horizontal Stabilizer
+    // Port Horizontal Stabilizer
+    // Starboard Pylons
+    // Port Pylons
 
     // nodal DCMs
     numDCMElem = 0;
@@ -147,9 +159,9 @@ int _tmain(int argc, _TCHAR* argv[])
     {
         pNodePts[i] = 1.0;
     }
-    KFAST_Init(&dt, &numFlaps, &numPylons, &numComp, pNumCompNds, KAD_FileName, IfW_FileName, MD_FileName, outFileRoot, &gravity,
+    KFAST_Init(&dt, &numFlaps, &numPylons, &numComp, pNumCompNds, KAD_FileName, IfW_FileName, MD_FileName, KFC_FileName, outFileRoot, &gravity, pWindPt,
         pFusODCM, &numRtrPtsElem, pRtrPts, &numRefPtElem, pRefPts, &numNodePtElem, pNodePts, &numDCMElem, pNodeDCMs, &errStat, errMsg);
-
+    
     free(pNumCompNds);
     free(pFusODCM);
     free(pRtrPts);
