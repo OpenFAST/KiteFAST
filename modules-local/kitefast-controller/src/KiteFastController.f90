@@ -115,10 +115,11 @@ module KiteFastController
   
    end subroutine KFC_End
 
-   subroutine KFC_Init(InitInp, p, InitOut, errStat, errMsg )
+   subroutine KFC_Init(InitInp, p, InitOut, interval, errStat, errMsg )
       type(KFC_InitInputType),      intent(in   )  :: InitInp     !< Input data for initialization routine
       type(KFC_ParameterType),      intent(  out)  :: p           !< Parameters
       type(KFC_InitOutputType),     intent(  out)  :: InitOut     !< Initialization output data
+      real(DbKi),                   intent(inout)  :: interval    !< Timestep size requested by caller, returned is the Controller's required timestep
       integer(IntKi),               intent(  out)  :: errStat     !< Error status of the operation
       character(1024),              intent(  out)  :: errMsg      !< Error message if ErrStat /= ErrID_None
 
@@ -140,12 +141,12 @@ module KiteFastController
          ! Check that key Kite model components match the requirements of this controller interface.
       if (InitInp%numFlaps /= 3) call SetErrStat( ErrID_Fatal, 'The current KiteFAST controller interface requires numFlaps = 3', errStat, errMsg, routineName )
       if (InitInp%numPylons /= 2) call SetErrStat( ErrID_Fatal, 'The current KiteFAST controller interface requires numPylons = 2', errStat, errMsg, routineName )
-      if (.not. EqualRealNos(InitInp%DT, 0.01_DbKi)) call SetErrStat( ErrID_Fatal, 'The current KiteFAST controller interface requires DT = 0.01 seconds', errStat, errMsg, routineName )
+      if (.not. EqualRealNos(interval, 0.01_DbKi)) call SetErrStat( ErrID_Fatal, 'The current KiteFAST controller interface requires DT = 0.01 seconds', errStat, errMsg, routineName )
          if (errStat >= AbortErrLev ) return
          
       p%numFlaps  = InitInp%numFlaps
       p%numPylons = InitInp%numPylons
-      p%DT        = InitInp%DT
+      p%DT        = interval
       
       
      

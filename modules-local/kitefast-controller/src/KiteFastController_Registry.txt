@@ -13,14 +13,13 @@
 # ...... Include files (definitions from NWTC Library) ............................................................................
 include Registry_NWTC_Library.txt
 # ..... InitInput  ................................................................................................................
-typedef  KiteFastController/KFC InitInputType         DbKi           DT       -    -       - "Simulation timestep [controller expects 0.01]" s
-typedef  ^                  InitInputType          CHARACTER(1024) DLL_FileName    -    -       - "Name of the shared library which the super controller logic" -
+typedef  KiteFastController/KFC InitInputType      CHARACTER(1024) DLL_FileName    -    -       - "Name of the shared library which the super controller logic" -
 typedef  ^                  ^                      IntKi           numPylons       -    -       - "Number of pylons per wing [controller expects 2]" -
 typedef  ^                  ^                      IntKi           numFlaps        -    -       - "Number of flaps per wing [controller expects 2]" -
 # ..... InitOutput ................................................................................................................
 typedef  ^                  InitOutputType         ProgDesc        Ver             -    -       - "This module's name, version, and date"	-                                        
 # ..... Parameters ................................................................................................................
-typedef	^	                ParameterType	        DbKi	         DT	             -	   -	     - "Time step for continuous state integration & discrete state update"	secondstypedef  ^                  ParameterType         IntKi           NumTurbines     -    -       - "Number of turbines in the simulation" -
+typedef	^	                ParameterType	        DbKi	         DT	             -	   -	     - "Time step for continuous state integration & discrete state update [controller expects 0.01]" s
 typedef  ^                  ParameterType         IntKi           numPylons       -    -       - "Number of pylons per wing" - 
 typedef  ^                  ParameterType         IntKi           numFlaps        -    -       - "Number of flaps per wing" - 
 typedef	^                  ParameterType         DLL_Type        DLL_Trgt        -    -       - "The addresses and names of the super controller shared library and its procedures"	-
