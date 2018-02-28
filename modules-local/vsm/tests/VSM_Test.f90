@@ -68,6 +68,7 @@ subroutine VSMTest_FlatPlate_8deg(errStat, errMsg)
       type(VSM_InputType)                       :: u               ! System inputs
       type(VSM_MiscVarType)                     :: m               ! Misc Vars
       type(VSM_OutputType)                      :: y               ! System outputs   
+      type(VSM_OtherStateType)                  :: OtherState      ! other states
       type(VSM_ConstraintStateType)             :: z               ! Constraint states at t;
       integer(IntKi)                            :: errStat2        ! Status of error message
       character(1024)                           :: errMsg2         ! Error message if errStat /= ErrID_None
@@ -78,15 +79,19 @@ subroutine VSMTest_FlatPlate_8deg(errStat, errMsg)
       integer(IntKi)                            :: nSteps
       integer(IntKi)                            :: i
       integer(IntKi)                            :: n
-      real(ReKi)                                :: alpha, inc, span, Uinf
+      real(ReKi)                                :: alpha, inc, span, Uinf, PtA(3), PtB(3)
       
          ! Initialize error handling variables
       errMsg   = ''
       errStat  = ErrID_None
+      
+      
       nSteps   = 1
       interval = 1.0_DbKi 
+      
       InitInData%OutRootName='..\..\build\testoutput\VSM\VSMTest_FlatPlate_8deg'
       write(*,*) NewLine//"Running test VSMTest_FlatPlate_8deg"
+      
       call VSMTest_SetBaseInitInpData(InitInData, errStat, errMsg)
         if ( errStat >= AbortErrLev ) then
             call Cleanup()
@@ -96,6 +101,8 @@ subroutine VSMTest_FlatPlate_8deg(errStat, errMsg)
       InitInData%CtrlPtMod  = 2
       InitInData%NumAFfiles = 1
       InitInData%NumElem    = 20
+      InitInData%NumVolElem = 0
+      
       allocate(InitInData%AFNames(1), stat = errStat2)
       if (errStat2 /= 0) then
          call SetErrStat( ErrID_Fatal, 'Could not allocate memory for InitInData%AFNames', errStat, errMsg, routineName ) 
@@ -111,12 +118,27 @@ subroutine VSMTest_FlatPlate_8deg(errStat, errMsg)
          call SetErrStat( ErrID_Fatal, 'Could not allocate memory for InitInData%AFIDs', errStat, errMsg, routineName ) 
          return
       end if
+      allocate(InitInData%elemLens(InitInData%NumElem), stat = errStat2)
+      if (errStat2 /= 0) then
+         call SetErrStat( ErrID_Fatal, 'Could not allocate memory for InitInData%elemLens', errStat, errMsg, routineName ) 
+         return
+      end if
       InitInData%AFNames(1)    = '..\..\modules-local\vsm\tests\Airfoils\FlatPlate.dat'
       InitInData%AFIDs = 1
       InitInData%Chords = 2.7_ReKi
       
+      span = 20.0 ! meters
+      inc = span / InitInData%NumElem
+      PtA = 0.0_ReKi
+      PtB = 0.0_ReKi
+      do i = 1, InitInData%NumElem
+         PtA(2) = (i-1)*inc - span / 2.0
+         PtB(2) = PtA(2) + inc
+         InitInData%elemLens(i) = TwoNorm(PtB - PtA )
+      end do
+      
          ! Initialize the VSM module
-      call VSM_Init( InitInData, u, p, z, m, y, interval, InitOutData, errStat, errMsg )
+      call VSM_Init( InitInData, u, p, z, OtherState, m, y, interval, InitOutData, errStat, errMsg )
 
 
          if ( errStat >= AbortErrLev ) then
@@ -127,8 +149,7 @@ subroutine VSMTest_FlatPlate_8deg(errStat, errMsg)
 
 
          ! Set Inputs
-      span = 20.0 ! meters
-      inc = span / p%NumElem
+      
       alpha = 8.0*Pi/180.
       Uinf  = 1.0_ReKi
       u%U_Inf_v(2:3,:) = 0.0_ReKi
@@ -140,12 +161,13 @@ subroutine VSMTest_FlatPlate_8deg(errStat, errMsg)
       u%x_hat(3,:)   = 1.0_ReKi  ! in the global Z direction
       u%y_hat(1,:)   = 1.0_ReKi  ! in the global X direction
       u%z_hat(2,:)   = 1.0_ReKi  ! in the global Y direction
-      u%PtA = 0.0_ReKi
-      u%PtB = 0.0_ReKi
+      
       u%deltaf = 0.0_ReKi
       z%Gammas = 0.6
      
-      do i = 1, p%NumElem
+      u%PtA = 0.0_ReKi
+      u%PtB = 0.0_ReKi
+      do i = 1, InitInData%NumElem
          u%PtA(2,i) = (i-1)*inc - span / 2.0
          u%PtB(2,i) = u%PtA(2,i) + inc
       end do
@@ -154,14 +176,14 @@ subroutine VSMTest_FlatPlate_8deg(errStat, errMsg)
          ! Obtain outputs from VSM module for t = 0.  Since we do not have states, yet, we will use an elliptical distribution of circulations as the
 
       t = 0.0_DbKi
-      call VSM_CalcOutput( t, n, u, p, z, m, y, errStat, errMsg ) 
+      call VSM_CalcOutput( t, n, u, p, z, OtherState, m, y, errStat, errMsg ) 
            
          if ( errStat >= AbortErrLev ) then
             call Cleanup()
             stop
          end if
 
-      call VSM_End( u, p, z, y, m, errStat, errMsg )
+      call VSM_End( u, p, z, y, OtherState, m, errStat, errMsg )
       
       call Cleanup()
       write(*,*) "Ending test VSMTest_FlatPlate_8deg"
@@ -188,7 +210,8 @@ subroutine VSMTest_NACA_12deg(errStat, errMsg)
       type(VSM_ParameterType)                   :: p               ! Parameters
       type(VSM_InputType)                       :: u               ! System inputs
       type(VSM_MiscVarType)                     :: m               ! Misc Vars
-      type(VSM_OutputType)                      :: y               ! System outputs   
+      type(VSM_OutputType)                      :: y               ! System outputs 
+      type(VSM_OtherStateType)                  :: OtherState      ! other states
       type(VSM_ConstraintStateType)             :: z               ! Constraint states at t;
       integer(IntKi)                            :: errStat2        ! Status of error message
       character(1024)                           :: errMsg2         ! Error message if errStat /= ErrID_None
@@ -199,7 +222,7 @@ subroutine VSMTest_NACA_12deg(errStat, errMsg)
       integer(IntKi)                            :: nSteps
       integer(IntKi)                            :: i
       integer(IntKi)                            :: n
-      real(ReKi)                                :: alpha, inc, span, Uinf
+      real(ReKi)                                :: alpha, inc, span, Uinf, PtA(3), PtB(3)
       
          ! Initialize error handling variables
       errMsg   = ''
@@ -217,6 +240,8 @@ subroutine VSMTest_NACA_12deg(errStat, errMsg)
       InitInData%CtrlPtMod  = 2
       InitInData%NumAFfiles = 1
       InitInData%NumElem    = 20
+      InitInData%NumVolElem = 0
+      
       allocate(InitInData%AFNames(1), stat = errStat2)
       if (errStat2 /= 0) then
          call SetErrStat( ErrID_Fatal, 'Could not allocate memory for InitInData%AFNames', errStat, errMsg, routineName ) 
@@ -232,20 +257,35 @@ subroutine VSMTest_NACA_12deg(errStat, errMsg)
          call SetErrStat( ErrID_Fatal, 'Could not allocate memory for InitInData%AFIDs', errStat, errMsg, routineName ) 
          return
       end if
+      allocate(InitInData%elemLens(InitInData%NumElem), stat = errStat2)
+      if (errStat2 /= 0) then
+         call SetErrStat( ErrID_Fatal, 'Could not allocate memory for InitInData%elemLens', errStat, errMsg, routineName ) 
+         return
+      end if
+      
       InitInData%AFNames(1)    = '..\..\modules-local\vsm\tests\Airfoils\NACA1410FW.dat'
       InitInData%AFIDs = 1
       InitInData%Chords = 2.7_ReKi
       
+      span = 20.0 ! meters
+      inc = span / InitInData%NumElem
+      PtA = 0.0_ReKi
+      PtB = 0.0_ReKi
+      do i = 1, InitInData%NumElem
+         PtA(2) = (i-1)*inc - span / 2.0
+         PtB(2) = PtA(2) + inc
+         InitInData%elemLens(i) = TwoNorm(PtB - PtA )
+      end do
+      
          ! Initialize the VSM module
-      call VSM_Init( InitInData, u, p, z, m, y, interval, InitOutData, errStat, errMsg )
+      call VSM_Init( InitInData, u, p, z, OtherState, m, y, interval, InitOutData, errStat, errMsg )
          if ( errStat >= AbortErrLev ) then
             call Cleanup()
             stop
          end if
          
          ! Set Inputs
-      span = 20.0 ! meters
-      inc = span / p%NumElem
+      
       alpha = 12.0*Pi/180.
       Uinf  = 1.0_ReKi
       u%U_Inf_v(2:3,:) = 0.0_ReKi
@@ -271,13 +311,13 @@ subroutine VSMTest_NACA_12deg(errStat, errMsg)
          ! Obtain outputs from VSM module for t = 0.  Since we do not have states, yet, we will use an elliptical distribution of circulations as the
 
       t = 0.0_DbKi
-      call VSM_CalcOutput( t, n, u, p, z, m, y, errStat, errMsg ) 
+      call VSM_CalcOutput( t, n, u, p, z, OtherState, m, y, errStat, errMsg ) 
          if ( errStat >= AbortErrLev ) then
             call Cleanup()
             stop
          end if
 
-      call VSM_End( u, p, z, y, m, errStat, errMsg )
+      call VSM_End( u, p, z, y, OtherState, m, errStat, errMsg )
       
       call Cleanup()
       write(*,*) "Ending test VSMTest_NACA_12deg"
@@ -306,6 +346,7 @@ subroutine VSMTest_NACA_0deg(errStat, errMsg)
       type(VSM_InputType)                       :: u               ! System inputs
       type(VSM_MiscVarType)                     :: m               ! Misc Vars
       type(VSM_OutputType)                      :: y               ! System outputs   
+      type(VSM_OtherStateType)                  :: OtherState      ! other states
       type(VSM_ConstraintStateType)             :: z               ! Constraint states at t;
       integer(IntKi)                            :: errStat2        ! Status of error message
       character(1024)                           :: errMsg2         ! Error message if errStat /= ErrID_None
@@ -316,7 +357,7 @@ subroutine VSMTest_NACA_0deg(errStat, errMsg)
       integer(IntKi)                            :: nSteps
       integer(IntKi)                            :: i
       integer(IntKi)                            :: n
-      real(ReKi)                                :: alpha, inc, span, Uinf
+      real(ReKi)                                :: alpha, inc, span, Uinf, PtA(3), PtB(3)
       
          ! Initialize error handling variables
       errMsg   = ''
@@ -335,6 +376,7 @@ subroutine VSMTest_NACA_0deg(errStat, errMsg)
       InitInData%CtrlPtMod  = 2
       InitInData%NumAFfiles = 1
       InitInData%NumElem    = 20
+      InitInData%NumVolElem = 0
       allocate(InitInData%AFNames(1), stat = errStat2)
       if (errStat2 /= 0) then
          call SetErrStat( ErrID_Fatal, 'Could not allocate memory for InitInData%AFNames', errStat, errMsg, routineName ) 
@@ -350,20 +392,35 @@ subroutine VSMTest_NACA_0deg(errStat, errMsg)
          call SetErrStat( ErrID_Fatal, 'Could not allocate memory for InitInData%AFIDs', errStat, errMsg, routineName ) 
          return
       end if
+      allocate(InitInData%elemLens(InitInData%NumElem), stat = errStat2)
+      if (errStat2 /= 0) then
+         call SetErrStat( ErrID_Fatal, 'Could not allocate memory for InitInData%elemLens', errStat, errMsg, routineName ) 
+         return
+      end if
+      
       InitInData%AFNames(1)    = '..\..\modules-local\vsm\tests\Airfoils\NACA1410FW.dat'
       InitInData%AFIDs = 1
       InitInData%Chords = 2.7_ReKi
       
+      span = 20.0 ! meters
+      inc = span / InitInData%NumElem
+      PtA = 0.0_ReKi
+      PtB = 0.0_ReKi
+      do i = 1, InitInData%NumElem
+         PtA(2) = (i-1)*inc - span / 2.0
+         PtB(2) = PtA(2) + inc
+         InitInData%elemLens(i) = TwoNorm(PtB - PtA )
+      end do
+      
          ! Initialize the VSM module
-      call VSM_Init( InitInData, u, p, z, m, y, interval, InitOutData, errStat, errMsg )
+      call VSM_Init( InitInData, u, p, z, OtherState, m, y, interval, InitOutData, errStat, errMsg )
          if ( errStat >= AbortErrLev ) then
             call Cleanup()
             stop
          end if
          
          ! Set Inputs
-      span = 20.0 ! meters
-      inc = span / p%NumElem
+      
       alpha = 0.0*Pi/180.
       Uinf  = 1.0_ReKi
       u%U_Inf_v(2:3,:) = 0.0_ReKi
@@ -389,13 +446,13 @@ subroutine VSMTest_NACA_0deg(errStat, errMsg)
          ! Obtain outputs from VSM module for t = 0.  Since we do not have states, yet, we will use an elliptical distribution of circulations as the
 
       t = 0.0_DbKi
-      call VSM_CalcOutput( t, n, u, p, z, m, y, errStat, errMsg ) 
+      call VSM_CalcOutput( t, n, u, p, z, OtherState, m, y, errStat, errMsg ) 
          if ( errStat >= AbortErrLev ) then
             call Cleanup()
             stop
          end if
 
-      call VSM_End( u, p, z, y, m, errStat, errMsg )
+      call VSM_End( u, p, z, y, OtherState, m, errStat, errMsg )
       
       call Cleanup()
       write(*,*) "Ending test VSMTest_NACA_0deg"
@@ -423,7 +480,8 @@ subroutine VSMTest_NACA_0deg(errStat, errMsg)
       type(VSM_ParameterType)                   :: p               ! Parameters
       type(VSM_InputType)                       :: u               ! System inputs
       type(VSM_MiscVarType)                     :: m               ! Misc Vars
-      type(VSM_OutputType)                      :: y               ! System outputs   
+      type(VSM_OutputType)                      :: y               ! System outputs 
+      type(VSM_OtherStateType)                  :: OtherState      ! other states
       type(VSM_ConstraintStateType)             :: z               ! Constraint states at t;
       integer(IntKi)                            :: errStat2        ! Status of error message
       character(1024)                           :: errMsg2         ! Error message if errStat /= ErrID_None
@@ -434,7 +492,7 @@ subroutine VSMTest_NACA_0deg(errStat, errMsg)
       integer(IntKi)                            :: nSteps
       integer(IntKi)                            :: i
       integer(IntKi)                            :: n
-      real(ReKi)                                :: alpha, inc, span, Uinf
+      real(ReKi)                                :: alpha, inc, span, Uinf, PtA(3), PtB(3)
       
          ! Initialize error handling variables
       errMsg   = ''
@@ -453,6 +511,7 @@ subroutine VSMTest_NACA_0deg(errStat, errMsg)
       InitInData%CtrlPtMod  = 2
       InitInData%NumAFfiles = 1
       InitInData%NumElem    = 14
+      InitInData%NumVolElem = 0
       allocate(InitInData%AFNames(1), stat = errStat2)
       if (errStat2 /= 0) then
          call SetErrStat( ErrID_Fatal, 'Could not allocate memory for InitInData%AFNames', errStat, errMsg, routineName ) 
@@ -468,20 +527,32 @@ subroutine VSMTest_NACA_0deg(errStat, errMsg)
          call SetErrStat( ErrID_Fatal, 'Could not allocate memory for InitInData%AFIDs', errStat, errMsg, routineName ) 
          return
       end if
+      allocate(InitInData%elemLens(InitInData%NumElem), stat = errStat2)
+      if (errStat2 /= 0) then
+         call SetErrStat( ErrID_Fatal, 'Could not allocate memory for InitInData%elemLens', errStat, errMsg, routineName ) 
+         return
+      end if
+      
       InitInData%AFNames(1)    = '..\..\modules-local\vsm\tests\Airfoils\NACA1410FW.dat'
       InitInData%AFIDs = 1
       InitInData%Chords = 1.0_ReKi
       
+      span = 20.0 ! meters
+      inc = span / InitInData%NumElem
+
+      do i = 1, InitInData%NumElem
+         InitInData%elemLens(i) = 1.0_ReKi
+      end do
+      
          ! Initialize the VSM module
-      call VSM_Init( InitInData, u, p, z, m, y, interval, InitOutData, errStat, errMsg )
+      call VSM_Init( InitInData, u, p, z, OtherState, m, y, interval, InitOutData, errStat, errMsg )
          if ( errStat >= AbortErrLev ) then
             call Cleanup()
             stop
          end if
          
          ! Set Inputs
-      span = 20.0 ! meters
-      inc = span / p%NumElem
+      
       alpha = 0.0*Pi/180.
       u%deltaf = 0.0_ReKi
       z%Gammas = 0.0
@@ -722,13 +793,13 @@ subroutine VSMTest_NACA_0deg(errStat, errMsg)
          ! Obtain outputs from VSM module for t = 0.  Since we do not have states, yet, we will use an elliptical distribution of circulations as the
 
       t = 0.0_DbKi
-      call VSM_CalcOutput( t, n, u, p, z, m, y, errStat, errMsg ) 
+      call VSM_CalcOutput( t, n, u, p, z, OtherState, m, y, errStat, errMsg ) 
          if ( errStat >= AbortErrLev ) then
             call Cleanup()
             stop
          end if
 
-      call VSM_End( u, p, z, y, m, errStat, errMsg )
+      call VSM_End( u, p, z, y, OtherState, m, errStat, errMsg )
       
       call Cleanup()
       write(*,*) "Ending test VSMTest_NACA_KiteWing"
@@ -756,6 +827,7 @@ subroutine VSMTest_NACA_8deg_10deg_sweep(errStat, errMsg)
       type(VSM_InputType)                       :: u               ! System inputs
       type(VSM_MiscVarType)                     :: m               ! Misc Vars
       type(VSM_OutputType)                      :: y               ! System outputs   
+      type(VSM_OtherStateType)                  :: OtherState      ! other states
       type(VSM_ConstraintStateType)             :: z               ! Constraint states at t;
       integer(IntKi)                            :: errStat2        ! Status of error message
       character(1024)                           :: errMsg2         ! Error message if errStat /= ErrID_None
@@ -766,7 +838,7 @@ subroutine VSMTest_NACA_8deg_10deg_sweep(errStat, errMsg)
       integer(IntKi)                            :: nSteps
       integer(IntKi)                            :: i
       integer(IntKi)                            :: n
-      real(ReKi)                                :: alpha, inc, span, Uinf, sweep
+      real(ReKi)                                :: alpha, inc, span, Uinf, sweep, PtA(3), PtB(3)
       
          ! Initialize error handling variables
       errMsg   = ''
@@ -785,6 +857,7 @@ subroutine VSMTest_NACA_8deg_10deg_sweep(errStat, errMsg)
       InitInData%CtrlPtMod  = 2
       InitInData%NumAFfiles = 1
       InitInData%NumElem    = 20
+      InitInData%NumVolElem = 0
       allocate(InitInData%AFNames(1), stat = errStat2)
       if (errStat2 /= 0) then
          call SetErrStat( ErrID_Fatal, 'Could not allocate memory for InitInData%AFNames', errStat, errMsg, routineName ) 
@@ -800,21 +873,39 @@ subroutine VSMTest_NACA_8deg_10deg_sweep(errStat, errMsg)
          call SetErrStat( ErrID_Fatal, 'Could not allocate memory for InitInData%AFIDs', errStat, errMsg, routineName ) 
          return
       end if
+      allocate(InitInData%elemLens(InitInData%NumElem), stat = errStat2)
+      if (errStat2 /= 0) then
+         call SetErrStat( ErrID_Fatal, 'Could not allocate memory for InitInData%elemLens', errStat, errMsg, routineName ) 
+         return
+      end if
+      
       InitInData%AFNames(1)    = '..\..\modules-local\vsm\tests\Airfoils\NACA1410FW.dat'
       InitInData%AFIDs = 1
       InitInData%Chords = 2.7_ReKi
       
+      span = 20.0 ! meters
+      sweep = 10.0*D2R      !  sweep angle
+      inc = span / InitInData%NumElem
+      PtA = 0.0_ReKi
+      PtB = 0.0_ReKi
+      do i = 1, InitInData%NumElem
+         PtA(2) = (i-1)*inc - span / 2.0
+         PtA(1) = abs(PtA(2)*tan(sweep))
+         PtB(2) = PtA(2) + inc
+         PtB(1) = abs(PtB(2)*tan(sweep))
+         InitInData%elemLens(i) = TwoNorm(PtB - PtA )
+      end do
+     
+      
          ! Initialize the VSM module
-      call VSM_Init( InitInData, u, p, z, m, y, interval, InitOutData, errStat, errMsg )
+      call VSM_Init( InitInData, u, p, z, OtherState, m, y, interval, InitOutData, errStat, errMsg )
          if ( errStat >= AbortErrLev ) then
             call Cleanup()
             stop
          end if
          
          ! Set Inputs
-      span = 20.0 ! meters
-      sweep = 10.0*D2R      !  sweep angle
-      inc = span / p%NumElem
+      
       alpha = 8.0*Pi/180.
       Uinf  = 1.0_ReKi
       u%U_Inf_v(2:3,:) = 0.0_ReKi
@@ -842,13 +933,13 @@ subroutine VSMTest_NACA_8deg_10deg_sweep(errStat, errMsg)
          ! Obtain outputs from VSM module for t = 0.  Since we do not have states, yet, we will use an elliptical distribution of circulations as the
 
       t = 0.0_DbKi
-      call VSM_CalcOutput( t, n, u, p, z, m, y, errStat, errMsg ) 
+      call VSM_CalcOutput( t, n, u, p, z, OtherState, m, y, errStat, errMsg ) 
          if ( errStat >= AbortErrLev ) then
             call Cleanup()
             stop
          end if
 
-      call VSM_End( u, p, z, y, m, errStat, errMsg )
+      call VSM_End( u, p, z, y, OtherState, m, errStat, errMsg )
       
       call Cleanup()
       write(*,*) "Ending test VSMTest_NACA_8deg_10deg_sweep"
@@ -875,7 +966,8 @@ subroutine VSMTest_NACA_10deg_w_flaps(errStat, errMsg)
       type(VSM_ParameterType)                   :: p               ! Parameters
       type(VSM_InputType)                       :: u               ! System inputs
       type(VSM_MiscVarType)                     :: m               ! Misc Vars
-      type(VSM_OutputType)                      :: y               ! System outputs   
+      type(VSM_OutputType)                      :: y               ! System outputs 
+      type(VSM_OtherStateType)                  :: OtherState      ! other states
       type(VSM_ConstraintStateType)             :: z               ! Constraint states at t;
       integer(IntKi)                            :: errStat2        ! Status of error message
       character(1024)                           :: errMsg2         ! Error message if errStat /= ErrID_None
@@ -886,7 +978,7 @@ subroutine VSMTest_NACA_10deg_w_flaps(errStat, errMsg)
       integer(IntKi)                            :: nSteps
       integer(IntKi)                            :: i
       integer(IntKi)                            :: n
-      real(ReKi)                                :: alpha, inc, span, Uinf
+      real(ReKi)                                :: alpha, inc, span, Uinf, PtA(3), PtB(3)
       
          ! Initialize error handling variables
       errMsg   = ''
@@ -905,6 +997,7 @@ subroutine VSMTest_NACA_10deg_w_flaps(errStat, errMsg)
       InitInData%CtrlPtMod  = 2
       InitInData%NumAFfiles = 1
       InitInData%NumElem    = 80
+      InitInData%NumVolElem = 0
       allocate(InitInData%AFNames(1), stat = errStat2)
       if (errStat2 /= 0) then
          call SetErrStat( ErrID_Fatal, 'Could not allocate memory for InitInData%AFNames', errStat, errMsg, routineName ) 
@@ -920,20 +1013,33 @@ subroutine VSMTest_NACA_10deg_w_flaps(errStat, errMsg)
          call SetErrStat( ErrID_Fatal, 'Could not allocate memory for InitInData%AFIDs', errStat, errMsg, routineName ) 
          return
       end if
+      allocate(InitInData%elemLens(InitInData%NumElem), stat = errStat2)
+      if (errStat2 /= 0) then
+         call SetErrStat( ErrID_Fatal, 'Could not allocate memory for InitInData%elemLens', errStat, errMsg, routineName ) 
+         return
+      end if
+      
       InitInData%AFNames(1)    = '..\..\modules-local\vsm\tests\Airfoils\NACA1410FW.dat'
       InitInData%AFIDs = 1
       InitInData%Chords = 2.7_ReKi
       
+      span = 20.0 ! meters
+      inc = span / InitInData%NumElem
+      do i = 1, p%NumElem
+         PtA(2) = (i-1)*inc - span / 2.0
+         PtB(2) = PtA(2) + inc
+         InitInData%elemLens(i) = TwoNorm(PtB - PtA )
+      end do
+      
          ! Initialize the VSM module
-      call VSM_Init( InitInData, u, p, z, m, y, interval, InitOutData, errStat, errMsg )
+      call VSM_Init( InitInData, u, p, z, OtherState, m, y, interval, InitOutData, errStat, errMsg )
          if ( errStat >= AbortErrLev ) then
             call Cleanup()
             stop
          end if
          
          ! Set Inputs
-      span = 20.0 ! meters
-      inc = span / p%NumElem
+
       alpha = 10.0*Pi/180.
       Uinf  = 1.0_ReKi
       u%U_Inf_v(2:3,:) = 0.0_ReKi
@@ -961,13 +1067,13 @@ subroutine VSMTest_NACA_10deg_w_flaps(errStat, errMsg)
          ! Obtain outputs from VSM module for t = 0.  Since we do not have states, yet, we will use an elliptical distribution of circulations as the
 
       t = 0.0_DbKi
-      call VSM_CalcOutput( t, n, u, p, z, m, y, errStat, errMsg ) 
+      call VSM_CalcOutput( t, n, u, p, z, OtherState, m, y, errStat, errMsg ) 
          if ( errStat >= AbortErrLev ) then
             call Cleanup()
             stop
          end if
 
-      call VSM_End( u, p, z, y, m, errStat, errMsg )
+      call VSM_End( u, p, z, y, OtherState, m, errStat, errMsg )
       
       call Cleanup()
       write(*,*) "Ending test VSMTest_NACA_10deg_w_flaps"
@@ -995,18 +1101,19 @@ subroutine VSMTest_NACA_10deg_w_flaps(errStat, errMsg)
       type(VSM_ParameterType)                   :: p               ! Parameters
       type(VSM_InputType)                       :: u               ! System inputs
       type(VSM_MiscVarType)                     :: m               ! Misc Vars
-      type(VSM_OutputType)                      :: y               ! System outputs   
+      type(VSM_OutputType)                      :: y               ! System outputs  
+      type(VSM_OtherStateType)                  :: OtherState      ! other states
       type(VSM_ConstraintStateType)             :: z               ! Constraint states at t;
       integer(IntKi)                            :: errStat2        ! Status of error message
       character(1024)                           :: errMsg2         ! Error message if errStat /= ErrID_None
       character(*), parameter                   :: routineName = 'VSMTest_FlatPlate_2wing_twists'
       character(1024)                           :: tmpValues
       real(DbKi)                                :: interval
-      real(DbKi)                              :: t
+      real(DbKi)                                :: t
       integer(IntKi)                            :: nSteps
       integer(IntKi)                            :: i
       integer(IntKi)                            :: n, nWingElem
-      real(ReKi)                                :: alpha, inc, span, Uinf, midspan, twist, twist1
+      real(ReKi)                                :: alpha, inc, span, Uinf, midspan, twist, twist1, PtA(3), PtB(3)
       
          ! Initialize error handling variables
       errMsg   = ''
@@ -1025,6 +1132,7 @@ subroutine VSMTest_NACA_10deg_w_flaps(errStat, errMsg)
       InitInData%CtrlPtMod  = 2
       InitInData%NumAFfiles = 1
       InitInData%NumElem    = 120
+      InitInData%NumVolElem = 0
       allocate(InitInData%AFNames(1), stat = errStat2)
       if (errStat2 /= 0) then
          call SetErrStat( ErrID_Fatal, 'Could not allocate memory for InitInData%AFNames', errStat, errMsg, routineName ) 
@@ -1040,19 +1148,34 @@ subroutine VSMTest_NACA_10deg_w_flaps(errStat, errMsg)
          call SetErrStat( ErrID_Fatal, 'Could not allocate memory for InitInData%AFIDs', errStat, errMsg, routineName ) 
          return
       end if
+      allocate(InitInData%elemLens(InitInData%NumElem), stat = errStat2)
+      if (errStat2 /= 0) then
+         call SetErrStat( ErrID_Fatal, 'Could not allocate memory for InitInData%elemLens', errStat, errMsg, routineName ) 
+         return
+      end if
+      
       InitInData%AFNames(1)    = '..\..\modules-local\vsm\tests\Airfoils\FlatPlate.dat'
       InitInData%AFIDs = 1
       InitInData%Chords = 2.7_ReKi
       
+      nWingElem = InitInData%NumElem / 3
+      span = 10.0 ! meters
+      inc = span / nWingElem
+      
+      do i = 1, nWingElem
+         PtA(2) = (i-1)*inc - span / 2.0
+         PtB(2) = PtA(2) + inc
+         InitInData%elemLens(i) = TwoNorm(PtB - PtA )
+      end do
+      
          ! Initialize the VSM module
-      call VSM_Init( InitInData, u, p, z, m, y, interval, InitOutData, errStat, errMsg )
+      call VSM_Init( InitInData, u, p, z, OtherState, m, y, interval, InitOutData, errStat, errMsg )
          if ( errStat >= AbortErrLev ) then
             call Cleanup()
             stop
          end if
          
          ! Set Inputs
-      nWingElem = p%NumElem / 3
         
       u%x_hat        = 0.0_ReKi
       u%y_hat        = 0.0_ReKi
@@ -1110,13 +1233,13 @@ subroutine VSMTest_NACA_10deg_w_flaps(errStat, errMsg)
          ! Obtain outputs from VSM module for t = 0.  Since we do not have states, yet, we will use an elliptical distribution of circulations as the
 
       t = 0.0_DbKi
-      call VSM_CalcOutput( t, n, u, p, z, m, y, errStat, errMsg ) 
+      call VSM_CalcOutput( t, n, u, p, z, OtherState, m, y, errStat, errMsg ) 
          if ( errStat >= AbortErrLev ) then
             call Cleanup()
             stop
          end if
 
-      call VSM_End( u, p, z, y, m, errStat, errMsg )
+      call VSM_End( u, p, z, y, OtherState, m, errStat, errMsg )
       
       call Cleanup()
       write(*,*) "Ending test VSMTest_FlatPlate_2wing_twists"
@@ -1144,7 +1267,8 @@ subroutine VSMTest_FlatPlate_2wing_8and4deg(errStat, errMsg)
       type(VSM_ParameterType)                   :: p               ! Parameters
       type(VSM_InputType)                       :: u               ! System inputs
       type(VSM_MiscVarType)                     :: m               ! Misc Vars
-      type(VSM_OutputType)                      :: y               ! System outputs   
+      type(VSM_OutputType)                      :: y               ! System outputs 
+      type(VSM_OtherStateType)                  :: OtherState      ! other states
       type(VSM_ConstraintStateType)             :: z               ! Constraint states at t;
       integer(IntKi)                            :: errStat2        ! Status of error message
       character(1024)                           :: errMsg2         ! Error message if errStat /= ErrID_None
@@ -1155,7 +1279,7 @@ subroutine VSMTest_FlatPlate_2wing_8and4deg(errStat, errMsg)
       integer(IntKi)                            :: nSteps
       integer(IntKi)                            :: i
       integer(IntKi)                            :: n, nWingElem
-      real(ReKi)                                :: alpha, inc, span, Uinf
+      real(ReKi)                                :: alpha, inc, span, Uinf, PtA(3), PtB(3)
       
          ! Initialize error handling variables
       errMsg   = ''
@@ -1189,20 +1313,48 @@ subroutine VSMTest_FlatPlate_2wing_8and4deg(errStat, errMsg)
          call SetErrStat( ErrID_Fatal, 'Could not allocate memory for InitInData%AFIDs', errStat, errMsg, routineName ) 
          return
       end if
+      allocate(InitInData%elemLens(InitInData%NumElem), stat = errStat2)
+      if (errStat2 /= 0) then
+         call SetErrStat( ErrID_Fatal, 'Could not allocate memory for InitInData%elemLens', errStat, errMsg, routineName ) 
+         return
+      end if
+      
       InitInData%AFNames(1)    = '..\..\modules-local\vsm\tests\Airfoils\FlatPlate.dat'
       InitInData%AFIDs = 1
       InitInData%Chords = 2.7_ReKi
-      
+      ! Wing 1
+      nWingElem = InitInData%NumElem / 3
+      span = 10.0 ! meters
+      inc = span / nWingElem
+      PtA = 0.0
+      PtB = 0.0
+      do i = 1, nWingElem
+         PtA(2) = (i-1)*inc - span / 2.0
+         PtA(1) = 4.0
+         PtB(2) = PtA(2) + inc
+         PtB(1) = 4.0
+         InitInData%elemLens(i) = TwoNorm(PtB - PtA )
+      end do
+      ! Wing 2
+      span = 20.0 ! meters
+      inc = span / (2*nWingElem)
+      do i = 1, 2*nWingElem
+         PtA(2) = (i-1)*inc - span / 2.0
+         PtA(1) = 4.0
+         PtB(2) = PtA(2) + inc
+         PtB(1) = 4.0
+         InitInData%elemLens(i+nWingElem) = TwoNorm(PtB - PtA )
+      end do
          ! Initialize the VSM module
-      call VSM_Init( InitInData, u, p, z, m, y, interval, InitOutData, errStat, errMsg )
+      call VSM_Init( InitInData, u, p, z, OtherState, m, y, interval, InitOutData, errStat, errMsg )
          if ( errStat >= AbortErrLev ) then
             call Cleanup()
             stop
          end if
          
          ! Set Inputs
-      nWingElem = p%NumElem / 3
-        
+      
+      
       u%x_hat        = 0.0_ReKi
       u%y_hat        = 0.0_ReKi
       u%z_hat        = 0.0_ReKi
@@ -1216,7 +1368,7 @@ subroutine VSMTest_FlatPlate_2wing_8and4deg(errStat, errMsg)
      
       ! Wing 1 - smaller span in front
       span = 10.0 ! meters
-      inc = span / nWingElem
+      inc = span / nWingElem  
       alpha = 8.0*Pi/180.
       Uinf  = 1.0_ReKi
       u%U_Inf_v(2:3,1:nWingElem) = 0.0_ReKi
@@ -1245,13 +1397,13 @@ subroutine VSMTest_FlatPlate_2wing_8and4deg(errStat, errMsg)
          ! Obtain outputs from VSM module for t = 0.  Since we do not have states, yet, we will use an elliptical distribution of circulations as the
 
       t = 0.0_DbKi
-      call VSM_CalcOutput( t, n, u, p, z, m, y, errStat, errMsg ) 
+      call VSM_CalcOutput( t, n, u, p, z, OtherState, m, y, errStat, errMsg ) 
          if ( errStat >= AbortErrLev ) then
             call Cleanup()
             stop
          end if
 
-      call VSM_End( u, p, z, y, m, errStat, errMsg )
+      call VSM_End( u, p, z, y, OtherState, m, errStat, errMsg )
       
       call Cleanup()
       write(*,*) "Ending test VSMTest_FlatPlate_2wing_8and4deg"
@@ -1280,6 +1432,7 @@ subroutine VSMTest_NACA_2wing_8and4deg(errStat, errMsg)
       type(VSM_InputType)                       :: u               ! System inputs
       type(VSM_MiscVarType)                     :: m               ! Misc Vars
       type(VSM_OutputType)                      :: y               ! System outputs   
+      type(VSM_OtherStateType)                  :: OtherState      ! other states
       type(VSM_ConstraintStateType)             :: z               ! Constraint states at t;
       integer(IntKi)                            :: errStat2        ! Status of error message
       character(1024)                           :: errMsg2         ! Error message if errStat /= ErrID_None
@@ -1290,7 +1443,7 @@ subroutine VSMTest_NACA_2wing_8and4deg(errStat, errMsg)
       integer(IntKi)                            :: nSteps
       integer(IntKi)                            :: i
       integer(IntKi)                            :: n, nWingElem
-      real(ReKi)                                :: alpha, inc, span, Uinf
+      real(ReKi)                                :: alpha, inc, span, Uinf, PtA(3), PtB(3)
       
          ! Initialize error handling variables
       errMsg   = ''
@@ -1309,6 +1462,7 @@ subroutine VSMTest_NACA_2wing_8and4deg(errStat, errMsg)
       InitInData%CtrlPtMod  = 2
       InitInData%NumAFfiles = 1
       InitInData%NumElem    = 80
+      InitInData%NumVolElem = 0
       allocate(InitInData%AFNames(1), stat = errStat2)
       if (errStat2 /= 0) then
          call SetErrStat( ErrID_Fatal, 'Could not allocate memory for InitInData%AFNames', errStat, errMsg, routineName ) 
@@ -1324,12 +1478,41 @@ subroutine VSMTest_NACA_2wing_8and4deg(errStat, errMsg)
          call SetErrStat( ErrID_Fatal, 'Could not allocate memory for InitInData%AFIDs', errStat, errMsg, routineName ) 
          return
       end if
+      allocate(InitInData%elemLens(InitInData%NumElem), stat = errStat2)
+      if (errStat2 /= 0) then
+         call SetErrStat( ErrID_Fatal, 'Could not allocate memory for InitInData%elemLens', errStat, errMsg, routineName ) 
+         return
+      end if
+      
+      
       InitInData%AFNames(1)    = '..\..\modules-local\vsm\tests\Airfoils\NACA1410FW.dat'
       InitInData%AFIDs = 1
       InitInData%Chords = 2.7_ReKi
       
+      ! Wing 1
+      nWingElem = InitInData%NumElem / 2 
+      span = 10.0 ! meters
+      inc = span / nWingElem
+      do i = 1, nWingElem
+         PtA(2) = (i-1)*inc - span / 2.0
+         PtB(2) = PtA(2) + inc
+         InitInData%elemLens(i) = TwoNorm(PtB - PtA )
+      end do
+      
+      ! Wing 2
+      span = 20.0 ! meters
+      !inc = span / (2*nWingElem)
+      inc = span / (nWingElem)
+      do i = 1, nWingElem
+         PtA(2) = (i-1)*inc - span / 2.0
+         PtA(1) = 4.0
+         PtB(2) = PtA(2) + inc
+         PtB(1) = 4.0
+         InitInData%elemLens(i+nWingElem) = TwoNorm(PtB - PtA )
+      end do
+      
          ! Initialize the VSM module
-      call VSM_Init( InitInData, u, p, z, m, y, interval, InitOutData, errStat, errMsg )
+      call VSM_Init( InitInData, u, p, z, OtherState, m, y, interval, InitOutData, errStat, errMsg )
          if ( errStat >= AbortErrLev ) then
             call Cleanup()
             stop
@@ -1382,13 +1565,13 @@ subroutine VSMTest_NACA_2wing_8and4deg(errStat, errMsg)
          ! Obtain outputs from VSM module for t = 0.  Since we do not have states, yet, we will use an elliptical distribution of circulations as the
 
       t = 0.0_DbKi
-      call VSM_CalcOutput( t, n, u, p, z, m, y, errStat, errMsg ) 
+      call VSM_CalcOutput( t, n, u, p, z, OtherState, m, y, errStat, errMsg ) 
          if ( errStat >= AbortErrLev ) then
             call Cleanup()
             stop
          end if
 
-      call VSM_End( u, p, z, y, m, errStat, errMsg )
+      call VSM_End( u, p, z, y, OtherState, m, errStat, errMsg )
       
       call Cleanup()
       write(*,*) "Ending test VSMTest_NACA_2wing_8and4deg"
@@ -1415,7 +1598,8 @@ subroutine VSMTest_ReverseDir(errStat, errMsg)
       type(VSM_ParameterType)                   :: p               ! Parameters
       type(VSM_InputType)                       :: u               ! System inputs
       type(VSM_MiscVarType)                     :: m               ! Misc Vars
-      type(VSM_OutputType)                      :: y               ! System outputs   
+      type(VSM_OutputType)                      :: y               ! System outputs 
+      type(VSM_OtherStateType)                  :: OtherState      ! other states
       type(VSM_ConstraintStateType)             :: z               ! Constraint states at t;
       integer(IntKi)                            :: errStat2        ! Status of error message
       character(1024)                           :: errMsg2         ! Error message if errStat /= ErrID_None
@@ -1426,7 +1610,7 @@ subroutine VSMTest_ReverseDir(errStat, errMsg)
       integer(IntKi)                            :: nSteps
       integer(IntKi)                            :: i
       integer(IntKi)                            :: n
-      real(ReKi)                                :: alpha, inc, span
+      real(ReKi)                                :: alpha, inc, span, PtA(3), PtB(3)
       
          ! Initialize error handling variables
       errMsg   = ''
@@ -1444,6 +1628,7 @@ subroutine VSMTest_ReverseDir(errStat, errMsg)
       InitInData%CtrlPtMod  = 2
       InitInData%NumAFfiles = 1
       InitInData%NumElem    = 20
+      InitInData%NumVolElem = 0
       allocate(InitInData%AFNames(1), stat = errStat2)
       if (errStat2 /= 0) then
          call SetErrStat( ErrID_Fatal, 'Could not allocate memory for InitInData%AFNames', errStat, errMsg, routineName ) 
@@ -1459,12 +1644,31 @@ subroutine VSMTest_ReverseDir(errStat, errMsg)
          call SetErrStat( ErrID_Fatal, 'Could not allocate memory for InitInData%AFIDs', errStat, errMsg, routineName ) 
          return
       end if
+      allocate(InitInData%ElemLens(InitInData%NumElem), stat = errStat2)
+      if (errStat2 /= 0) then
+         call SetErrStat( ErrID_Fatal, 'Could not allocate memory for InitInData%ElemLens', errStat, errMsg, routineName ) 
+         return
+      end if
+      
       InitInData%AFNames(1)    = '..\..\modules-local\vsm\tests\Airfoils\FlatPlate.dat'
       InitInData%AFIDs = 1
       InitInData%Chords = 1.0_ReKi
       
+      span = 20.0
+      inc = span / InitInData%NumElem
+      do i = 1, InitInData%NumElem/2
+         PtB(2) = (i-1)*inc - span / 2.0
+         PtA(2) = PtB(2) + inc
+         InitInData%ElemLens(i) = TwoNorm(PtB-PtA)
+      end do
+      do i = InitInData%NumElem/2 + 1, InitInData%NumElem
+         PtA(2) = (i-1)*inc - span / 2.0
+         PtB(2) = PtA(2) + inc
+         InitInData%ElemLens(i) = TwoNorm(PtB-PtA)
+      end do
+         
          ! Initialize the VSM module
-      call VSM_Init( InitInData, u, p, z, m, y, interval, InitOutData, errStat, errMsg )
+      call VSM_Init( InitInData, u, p, z, OtherState, m, y, interval, InitOutData, errStat, errMsg )
          if ( errStat >= AbortErrLev ) then
             call Cleanup()
             stop
@@ -1486,8 +1690,7 @@ subroutine VSMTest_ReverseDir(errStat, errMsg)
          u%deltaf = 0.0_ReKi
          z%Gammas = 0.6
 
-         span = 20.0
-         inc = span / p%NumElem
+         
          do i = 1, p%NumElem/2
             u%PtB(2,i) = (i-1)*inc - span / 2.0
             u%PtA(2,i) = u%PtB(2,i) + inc
@@ -1500,13 +1703,13 @@ subroutine VSMTest_ReverseDir(errStat, errMsg)
          ! Obtain outputs from VSM module for t = 0.  Since we do not have states, yet, we will use an elliptical distribution of circulations as the
 
       t = 0.0_DbKi
-      call VSM_CalcOutput( t, n, u, p, z, m, y, errStat, errMsg ) 
+      call VSM_CalcOutput( t, n, u, p, z, OtherState, m, y, errStat, errMsg ) 
          if ( errStat >= AbortErrLev ) then
             call Cleanup()
             stop
          end if
 
-      call VSM_End( u, p, z, y, m, errStat, errMsg )
+      call VSM_End( u, p, z, y, OtherState, m, errStat, errMsg )
       
       call Cleanup()
       write(*,*)
@@ -1534,7 +1737,8 @@ subroutine VSMTest_ReverseDir(errStat, errMsg)
       type(VSM_ParameterType)                   :: p               ! Parameters
       type(VSM_InputType)                       :: u               ! System inputs
       type(VSM_MiscVarType)                     :: m               ! Misc Vars
-      type(VSM_OutputType)                      :: y               ! System outputs   
+      type(VSM_OutputType)                      :: y               ! System outputs 
+      type(VSM_OtherStateType)                  :: OtherState      ! other states
       type(VSM_ConstraintStateType)             :: z               ! Constraint states at t;
       integer(IntKi)                            :: errStat2        ! Status of error message
       character(1024)                           :: errMsg2         ! Error message if errStat /= ErrID_None
@@ -1545,7 +1749,7 @@ subroutine VSMTest_ReverseDir(errStat, errMsg)
       integer(IntKi)                            :: nSteps
       integer(IntKi)                            :: i
       integer(IntKi)                            :: n
-      real(ReKi)                                :: alpha, inc, span
+      real(ReKi)                                :: alpha, inc, span, PtA(3), PtB(3)
       
          ! Initialize error handling variables
       errMsg   = ''
@@ -1563,6 +1767,7 @@ subroutine VSMTest_ReverseDir(errStat, errMsg)
       InitInData%CtrlPtMod  = 2
       InitInData%NumAFfiles = 1
       InitInData%NumElem    = 20
+      InitInData%NumVolElem = 0
       allocate(InitInData%AFNames(1), stat = errStat2)
       if (errStat2 /= 0) then
          call SetErrStat( ErrID_Fatal, 'Could not allocate memory for InitInData%AFNames', errStat, errMsg, routineName ) 
@@ -1578,12 +1783,25 @@ subroutine VSMTest_ReverseDir(errStat, errMsg)
          call SetErrStat( ErrID_Fatal, 'Could not allocate memory for InitInData%AFIDs', errStat, errMsg, routineName ) 
          return
       end if
+      allocate(InitInData%ElemLens(InitInData%NumElem), stat = errStat2)
+      if (errStat2 /= 0) then
+         call SetErrStat( ErrID_Fatal, 'Could not allocate memory for InitInData%ElemLens', errStat, errMsg, routineName ) 
+         return
+      end if
       InitInData%AFNames(1)    = '..\..\modules-local\vsm\tests\Airfoils\FlatPlate.dat'
       InitInData%AFIDs = 1
       InitInData%Chords = 1.0_ReKi
 
+      span = 20.0
+      inc = span / p%NumElem
+      do i = 1, p%NumElem
+         u%PtA(2,i) = (i-1)*inc - span / 2.0
+         u%PtB(2,i) = u%PtA(2,i) + inc
+         InitInData%ElemLens(i) = TwoNorm(u%PtB(:,i)-u%PtA(:,i))
+      end do
+         
          ! Initialize the VSM module
-      call VSM_Init( InitInData, u, p, z, m, y, interval, InitOutData, errStat, errMsg )
+      call VSM_Init( InitInData, u, p, z, OtherState, m, y, interval, InitOutData, errStat, errMsg )
          if ( errStat >= AbortErrLev ) then
             call Cleanup()
             stop
@@ -1606,8 +1824,7 @@ subroutine VSMTest_ReverseDir(errStat, errMsg)
          z%Gammas = 0.6!2.0/pi
          !z%Gammas(1) = 0.01
          !z%Gammas(p%NumElem) = 0.01
-         span = 20.0
-         inc = span / p%NumElem
+
          do i = 1, p%NumElem
             u%PtA(2,i) = (i-1)*inc - span / 2.0
             u%PtB(2,i) = u%PtA(2,i) + inc
@@ -1643,7 +1860,7 @@ subroutine VSMTest_ReverseDir(errStat, errMsg)
       
       
       t = 0.0_DbKi
-      call VSM_CalcOutput( t, n, u, p, z, m, y, errStat, errMsg ) 
+      call VSM_CalcOutput( t, n, u, p, z, OtherState, m, y, errStat, errMsg ) 
          if ( errStat >= AbortErrLev ) then
             call Cleanup()
             stop
@@ -1666,7 +1883,7 @@ subroutine VSMTest_ReverseDir(errStat, errMsg)
       !call WrScr('      Fx      ,      Fy      ,      Fz      ,      Mx      ,      My      ,      Mz      ,      P      ')   
       !write(tmpValues,*) y%Fx, y%Fy, y%Fz, y%Mx, y%My, y%Mz, y%P  
       !call WrScr(TRIM(tmpValues))
-      call VSM_End( u, p, z, y, m, errStat, errMsg )
+      call VSM_End( u, p, z, y, OtherState, m, errStat, errMsg )
 
                
       call Cleanup()

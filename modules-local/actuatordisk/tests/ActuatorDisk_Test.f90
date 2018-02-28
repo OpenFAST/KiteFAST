@@ -43,23 +43,23 @@ contains
          ! Initialize error handling variables
       errMsg  = ''
       errStat = ErrID_None
-      
+      InitInData%RotorMod = 1
       InitInData%R        = 2.0_ReKi
       InitInData%AirDens  = 1024.0_ReKi
-      InitInData%InitInpFile%numOmega = 2
-      InitInData%InitInpFile%numVinf  = 3
+      InitInData%InitInpFile%numRtSpd = 2
+      InitInData%InitInpFile%numVrel  = 3
       InitInData%InitInpFile%numPitch = 2
       InitInData%InitInpFile%numSkew  = 2
 
       InitInData%FileName = ''
-      allocate(InitInData%InitInpFile%Omegas(InitInData%InitInpFile%numOmega), stat = errStat2)
+      allocate(InitInData%InitInpFile%RtSpds(InitInData%InitInpFile%numRtSpd), stat = errStat2)
       if (errStat2 /= 0) then
-         call SetErrStat( ErrID_Fatal, 'Could not allocate memory for InitInData%InitInpFile%Omegas', errStat, errMsg, routineName ) 
+         call SetErrStat( ErrID_Fatal, 'Could not allocate memory for InitInData%InitInpFile%RtSpds', errStat, errMsg, routineName ) 
          return
       end if
-      allocate(InitInData%InitInpFile%Vinfs(InitInData%InitInpFile%numVinf), stat = errStat2)
+      allocate(InitInData%InitInpFile%Vrels(InitInData%InitInpFile%numVrel), stat = errStat2)
       if (errStat2 /= 0) then
-         call SetErrStat( ErrID_Fatal, 'Could not allocate memory for InitInData%InitInpFile%Vinfs', errStat, errMsg, routineName ) 
+         call SetErrStat( ErrID_Fatal, 'Could not allocate memory for InitInData%InitInpFile%Vrels', errStat, errMsg, routineName ) 
          return
       end if
       allocate(InitInData%InitInpFile%Skews(InitInData%InitInpFile%numSkew), stat = errStat2)
@@ -72,18 +72,18 @@ contains
          call SetErrStat( ErrID_Fatal, 'Could not allocate memory for InitInData%InitInpFile%Pitches', errStat, errMsg, routineName ) 
          return
       end if
-      allocate(InitInData%InitInpFile%Omega_Ptch_Vinf_Skw_Table(7,InitInData%InitInpFile%numOmega, InitInData%InitInpFile%numVinf, InitInData%InitInpFile%numSkew, InitInData%InitInpFile%numPitch), stat = errStat2)
+      allocate(InitInData%InitInpFile%RtSpd_Ptch_Vrel_Skw_Table(7,InitInData%InitInpFile%numRtSpd, InitInData%InitInpFile%numVrel, InitInData%InitInpFile%numSkew, InitInData%InitInpFile%numPitch), stat = errStat2)
       if (errStat2 /= 0) then
-         call SetErrStat( ErrID_Fatal, 'Could not allocate memory for InitInData%InitInpFile%Omega_Ptch_Vinf_Skw_Table', errStat, errMsg, routineName ) 
+         call SetErrStat( ErrID_Fatal, 'Could not allocate memory for InitInData%InitInpFile%RtSpd_Ptch_Vrel_Skw_Table', errStat, errMsg, routineName ) 
          return
       end if
       
-      InitInData%InitInpFile%Omegas   = (/3.0_ReKi, 15.0_ReKi/) ! rad/s
-      InitInData%InitInpFile%Vinfs    = (/0.0_ReKi, 8.0_ReKi, 15.0_ReKi/) ! m/s
+      InitInData%InitInpFile%RtSpds   = (/3.0_ReKi, 15.0_ReKi/) ! rad/s
+      InitInData%InitInpFile%Vrels    = (/0.0_ReKi, 8.0_ReKi, 15.0_ReKi/) ! m/s
       InitInData%InitInpFile%Skews    = (/0.0_ReKi, 0.5_ReKi/)  ! these are in rad, even though the input file data would be deg
       InitInData%InitInpFile%Pitches  = (/0.0_ReKi, 0.3_ReKi/)  ! these are in rad, even though the input file data would be deg
       
-      InitInData%InitInpFile%Omega_Ptch_Vinf_Skw_Table = RESHAPE( (/ &  !  C_Fx       C_Fy       C_Fz       C_Mx   C_My     C_Mz     C_P
+      InitInData%InitInpFile%RtSpd_Ptch_Vrel_Skw_Table = RESHAPE( (/ &  !  C_Fx       C_Fy       C_Fz       C_Mx   C_My     C_Mz     C_P
                                                  1.0_ReKi,1.0_ReKi,1.0_ReKi,1.0_ReKi,1.0_ReKi,1.0_ReKi,1.0_ReKi, &
                                                  1.0_ReKi,1.0_ReKi,1.0_ReKi,1.0_ReKi,1.0_ReKi,1.0_ReKi,1.0_ReKi, &
                                                  1.0_ReKi,1.0_ReKi,1.0_ReKi,1.0_ReKi,1.0_ReKi,1.0_ReKi,1.0_ReKi, &
@@ -119,7 +119,8 @@ contains
       type(ActDsk_InitOutputType)               :: InitOutData          ! Output data from initialization
       type(ActDsk_ParameterType)                :: p                    ! Parameters
       type(ActDsk_InputType)                    :: u                    ! System inputs
-      type(ActDsk_OutputType)                   :: y                    ! System outputs      
+      type(ActDsk_OutputType)                   :: y                    ! System outputs  
+      type(ActDsk_MiscVarType)                  :: m                    ! Misc Vars
       integer(IntKi)                            :: errStat2        ! Status of error message
       character(1024)                           :: errMsg2         ! Error message if errStat /= ErrID_None
       character(*), parameter                   :: routineName = 'ActDskTest_Basic'
@@ -145,14 +146,13 @@ contains
          ! Time marching loop
       do i = 1,3
             ! Set Inputs
-         u%DiskAve_Vx_Rel  = 10.0_ReKi
-         u%omega   = 4.0_ReKi
+         u%RtSpd   = 4.0_ReKi
          u%pitch   = i*0.1_ReKi
          u%skew    = i*pi/5.0_ReKi
-         u%DiskAve_Vinf_Rel = 8.0_ReKi
+         u%DiskAve_Vrel = 8.0_ReKi
          
             ! Obtain outputs from ActuatorDisk module
-         call ActDsk_CalcOutput( u, p, y, errStat, errMsg )
+         call ActDsk_CalcOutput( u, p, m, y, errStat, errMsg )
             if ( errStat >= AbortErrLev ) then
                call Cleanup()
                stop
@@ -187,6 +187,7 @@ contains
       type(ActDsk_InitOutputType)               :: InitOutData          ! Output data from initialization
       type(ActDsk_ParameterType)                :: p                    ! Parameters
       type(ActDsk_InputType)                    :: u                    ! System inputs
+      type(ActDsk_MiscVarType)                  :: m                    ! System inputs
       type(ActDsk_OutputType)                   :: y                    ! System outputs      
       integer(IntKi)                            :: errStat2        ! Status of error message
       character(1024)                           :: errMsg2         ! Error message if errStat /= ErrID_None
@@ -214,13 +215,13 @@ contains
          end if
          
          ! Set Inputs
-      u%DiskAve_Vx_Rel  = 10.0_ReKi
-      u%omega   = 10.0_ReKi
+      
+      u%RtSpd   = 10.0_ReKi
       u%skew = 0.0_ReKi
-      u%DiskAve_Vinf_Rel = 10.0_ReKi
+      u%DiskAve_Vrel = 10.0_ReKi
       
          ! Obtain outputs from ActuatorDisk module
-      call ActDsk_CalcOutput( u, p, y, errStat, errMsg )
+      call ActDsk_CalcOutput( u, p, m, y, errStat, errMsg )
          if ( errStat >= AbortErrLev ) then
             call Cleanup()
             stop
