@@ -89,8 +89,8 @@
 		<Filter Name="Resource Files" Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe"/>
 		<Filter Name="Source Files" Filter="f90;for;f;fpp;ftn;def;odl;idl">
 		<Filter Name="AirfoilInfo">
-		<File RelativePath="..\..\modules-local\aerodyn\src\AirfoilInfo.f90"/>
-		<File RelativePath="..\..\modules-local\aerodyn\src\AirfoilInfo_Registry.txt">
+		<File RelativePath="..\..\modules-local\airfoilinfo\src\AirfoilInfo.f90"/>
+		<File RelativePath="..\..\modules-local\airfoilinfo\src\AirfoilInfo_Registry.txt">
 			<FileConfiguration Name="Debug_Double|Win32">
 				<Tool Name="VFCustomBuildTool" CommandLine="CALL ..\RunRegistry.bat AFI" Description="Running Registry for AirfoilInfo" Outputs="..\..\build\types-files\AirfoilInfo_Types.f90"/></FileConfiguration>
 			<FileConfiguration Name="Release_Double|Win32">

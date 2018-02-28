@@ -10,6 +10,15 @@
       <Platform>Win32</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\modules-local\kitefast-library\src\KFAST_Lib.h" />
+    <ClInclude Include="..\..\modules-local\kitefast-library\src\stdafx.h" />
+    <ClInclude Include="..\..\modules-local\kitefast-library\src\targetver.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\modules-local\kitefast-library\src\KiteFAST_Driver.cpp" />
+    <ClCompile Include="..\..\modules-local\kitefast-library\src\stdafx.cpp" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{2E7A6A21-EB3C-4363-9721-1AE80EE3B406}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
@@ -81,15 +90,6 @@
       <AdditionalDependencies>KiteFASTlib.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
-  <ItemGroup>
-    <ClInclude Include="..\..\glue-codes\kitefast\src\KFAST_Lib.h" />
-    <ClInclude Include="..\..\glue-codes\kitefast\src\stdafx.h" />
-    <ClInclude Include="..\..\glue-codes\kitefast\src\targetver.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="..\..\glue-codes\kitefast\src\KiteFAST_Driver.cpp" />
-    <ClCompile Include="..\..\glue-codes\kitefast\src\stdafx.cpp" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

@@ -47,7 +47,7 @@ SET BD_Loc=%Local_Modules_Loc%\beamdyn\src
 SET SC_Loc=%Local_Modules_Loc%\supercontroller\src
 SET ActDsk_Loc=%Local_Modules_Loc%\actuatordisk\src
 SET KAD_Loc=%Local_Modules_Loc%\kiteaerodyn\src
-SET KFAST_Loc=%Root_Loc%\glue-codes\kitefast\src
+SET KFAST_Loc=%Local_Modules_Loc%\kitefast-library\src
 SET VSM_Loc=%Local_Modules_Loc%\vsm\src
 SET KFC_Loc=%Local_Modules_Loc%\kitefast-controller\src
 SET MAP_Loc_R=%MAP_Loc%\src
@@ -57,7 +57,7 @@ SET ALL_FAST_Includes=-I "%FAST_Loc%" -I "%NWTC_Lib_Loc%" -I "%ED_Loc%" -I "%Srv
  "%IfW_Loc%" -I "%SD_Loc%" -I "%HD_Loc%" -I "%MAP_Loc_R%" -I "%FEAM_Loc%"  -I^
  "%IceF_Loc%" -I "%IceD_Loc%" -I "%MD_Loc%" -I "%OpFM_Loc%" -I "%Orca_Loc%" -I "%ExtPtfm_Loc%"
 
-SET ALL_KFAST_Includes=-I "%KFAST_Loc%" -I "%NWTC_Lib_Loc%" -I "%KAD_Loc%" -I "%VSM_Loc%" -I "%ActDsk_Loc%" -I "%AFI_Loc%" -I "%MD_Loc%" -I "%IfW_Loc%"
+SET ALL_KFAST_Includes=-I "%KFAST_Loc%" -I "%NWTC_Lib_Loc%" -I "%KAD_Loc%" -I "%VSM_Loc%" -I "%ActDsk_Loc%" -I "%AFI_Loc%" -I "%MD_Loc%" -I "%KFC_Loc%" -I "%IfW_Loc%"
 
 SET ModuleName=%1
 
