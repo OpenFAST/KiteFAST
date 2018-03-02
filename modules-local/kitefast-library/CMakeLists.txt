@@ -26,6 +26,7 @@ target_link_libraries(kitefast_prelib
   airfoilinfolib
   ifwlib
   kiteaerodynlib
+  kitefastcontrollerlib
   moordynlib
   )
 
