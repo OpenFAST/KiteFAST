@@ -135,6 +135,10 @@ typedef   ^    MiscVarType    R8Ki             PPyNdDCMs {:}{:}{:}{:} - - "" -
 #
 typedef   ^  ParameterType  IntKi            numFlaps    -  -  -  "Number of flaps per wing" -
 typedef   ^  ^              IntKi            numPylons   -  -  -  "Number of pylons per wing" -
+typedef   ^  ^              Logical          useKAD      -  -  -  "Using KiteAeroDyn module?" -
+typedef   ^  ^              Logical          useIfW      -  -  -  "Using InflowWind module?" -
+typedef   ^  ^              Logical          useMD       -  -  -  "Using MoorDyn module?" -
+typedef   ^  ^              Logical          useKFC      -  -  -  "Using KiteFAST Controller module?" -
 typedef   ^  ^              DbKi             dt          -  -  -  "Time interval for calculations" s
 typedef	 ^	 ^              ReKi             AirDens     -  -  -  "Air density" kg/m^3
 typedef   ^  ^              IntKi            numFusNds   -  -  -  "Number of fuselage structural nodes" -
