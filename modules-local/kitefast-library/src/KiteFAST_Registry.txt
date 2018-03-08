@@ -23,7 +23,7 @@ usefrom  VSM_Registry.txt
 #   e.g.,  the name of the input file,  the file root name,etc.
 #
 typedef    KiteFAST/KFAST    KAD_Data          KAD_ParameterType  p  - - - "Parameter data for KiteAeroDyn module" -
-typedef    ^                   ^               KAD_InputType      u  - - - "Input data for KiteAeroDyn module" -
+typedef    ^                   ^               KAD_InputType      u  {2} - - "Input data for KiteAeroDyn module" -
 typedef    ^                   ^               KAD_MiscVarType    m  - - - "Misc vars for KiteAeroDyn module" -
 typedef    ^                   ^               KAD_ContinuousStateType x  - - - "Continuous states for KiteAeroDyn module" -
 typedef    ^                   ^               KAD_DiscreteStateType   xd  - - - "Discrete states for KiteAeroDyn module" -
@@ -59,10 +59,13 @@ typedef   ^    MiscVarType    KAD_Data         KAD           -    -   -  "KiteAe
 typedef   ^    MiscVarType    IfW_Data         IfW           -    -   -  "InflowWind framework data" -
 typedef   ^    MiscVarType    MD_Data          MD            -    -   -  "MoorDyn framework data" -
 typedef   ^    MiscVarType    KFC_Data         KFC           -    -   -  "KiteFAST Controller framework data" -
+typedef   ^    MiscVarType    ReKi             IfW_ground_prev {3} - - "Previous timestep inflow at ground station" m/s
+typedef   ^    MiscVarType    ReKi             IfW_FusO_prev  {3} - - "Previous timestep inflow at fuselage reference point" m/s
 typedef   ^    MiscVarType    logical          NewTime       -    -   -  "" -
 typedef   ^    MiscVarType    MeshType         mbdFusMotions -    -   -  "" -
 typedef   ^    MiscVarType    MeshType         mbdSWnMotions -    -   -  "" -
 typedef   ^    MiscVarType    MeshType         mbdPWnMotions -    -   -  "" -
+typedef   ^    MiscVarType    MeshType         mbdWngMotions -    -   -  "" -
 typedef   ^    MiscVarType    MeshType         mbdVSMotions -    -   -  "" -
 typedef   ^    MiscVarType    MeshType         mbdSHSMotions -    -   -  "" -
 typedef   ^    MiscVarType    MeshType         mbdPHSMotions -    -   -  "" -
@@ -71,6 +74,7 @@ typedef   ^    MiscVarType    MeshType         mbdPPyMotions {:}  -   -  "" -
 typedef   ^    MiscVarType    MeshType         mbdFusLoads -    -   -  "" -
 typedef   ^    MiscVarType    MeshType         mbdSWnLoads -    -   -  "" -
 typedef   ^    MiscVarType    MeshType         mbdPWnLoads -    -   -  "" -
+typedef   ^    MiscVarType    MeshType         mbdWngLoads -    -   -  "" -
 typedef   ^    MiscVarType    MeshType         mbdVSLoads -    -   -  "" -
 typedef   ^    MiscVarType    MeshType         mbdSHSLoads -    -   -  "" -
 typedef   ^    MiscVarType    MeshType         mbdPHSLoads -    -   -  "" -
@@ -92,6 +96,8 @@ typedef   ^    MiscVarType    MeshMapType      SHS_P_P    -   -   -  "" -
 typedef   ^    MiscVarType    MeshMapType      PHS_P_P    -   -   -  "" - 
 typedef   ^    MiscVarType    MeshMapType      SPy_P_P   {:}  -   -  "" - 
 typedef   ^    MiscVarType    MeshMapType      PPy_P_P   {:}  -   -  "" - 
+typedef   ^    MiscVarType    MeshMapType      MD_L2_2_P -  -  - "" -
+typedef   ^    MiscVarType    MeshMapType      MD_P_2_P -  -  - "" -
 typedef   ^    MiscVarType    ReKi             FusPts {:}{:} - - "" m
 typedef   ^    MiscVarType    ReKi             SWnPts {:}{:} - - "" m
 typedef   ^    MiscVarType    ReKi             PWnPts {:}{:} - - "" m
@@ -118,6 +124,10 @@ typedef   ^    MiscVarType    ReKi             SPyOmegas {:}{:}{:} - - "" m
 typedef   ^    MiscVarType    ReKi             PPyOmegas {:}{:}{:} - - "" m
 typedef   ^    MiscVarType    ReKi             SPyRtrO {:}{:}{:} - - "" m
 typedef   ^    MiscVarType    ReKi             PPyRtrO {:}{:}{:} - - "" m
+typedef   ^    MiscVarType    ReKi             SPyRtrVels {:}{:}{:} - - "" m/s
+typedef   ^    MiscVarType    ReKi             PPyRtrVels {:}{:}{:} - - "" m/s
+typedef   ^    MiscVarType    ReKi             SPyRtrDCMs {:}{:}{:}{:} - - "" -
+typedef   ^    MiscVarType    ReKi             PPyRtrDCMs {:}{:}{:}{:} - - "" -
 typedef   ^    MiscVarType    R8Ki             FusODCM {:}{:}  - - "" -
 typedef   ^    MiscVarType    R8Ki             FusNdDCMs {:}{:}{:} - - "" -
 typedef   ^    MiscVarType    R8Ki             SWnNdDCMs {:}{:}{:} - - "" -
