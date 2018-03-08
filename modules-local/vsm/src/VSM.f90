@@ -450,23 +450,27 @@ subroutine VSM_Compute_Influence(CtrlPtMod, KinVisc,  numVolElem, numElem, inPtA
                   r1_prime_v = r1p_v + e11*eta11_hat
                   r1_prime   = TwoNorm(r1_prime_v)
                   if ( EqualRealNos(r1_prime,0.0_ReKi) ) then
-                     errMsg2 = 'r1_prime is equal to zero which creates a divide by zero error'
-                     errStat2 = ErrID_Fatal
-                     call SetErrStat(errStat2,errMsg2,errStat,errMsg,RoutineName)  
-                     return
-                  end if
+                     !errMsg2 = 'r1_prime is equal to zero which creates a divide by zero error'
+                     !errStat2 = ErrID_Fatal
+                     !call SetErrStat(errStat2,errMsg2,errStat,errMsg,RoutineName)  
+                     !return
+                     Phi_Ainf_v = 0.0_ReKi
+                  else
       
-                  tmp1_v = cross_product(r1_prime_v,zeta_hat)
-                  Factor1 = dot_product(tmp1_v,tmp1_v)
-                  if ( EqualRealNos(Factor1,0.0_ReKi) ) then
-                     errMsg2 = 'Cross products of r1_prime and zeta produce a zero length vector which creates a divide by zero error'
-                     errStat2 = ErrID_Fatal
-                     call SetErrStat(errStat2,errMsg2,errStat,errMsg,RoutineName)  
-                     return
-                  end if
+                     tmp1_v = cross_product(r1_prime_v,zeta_hat) / (4.0_ReKi*Pi)
+                     Factor1 = dot_product(tmp1_v,tmp1_v)
+                     if ( EqualRealNos(Factor1,0.0_ReKi) ) then
+                        !errMsg2 = 'Cross products of r1_prime and zeta produce a zero length vector which creates a divide by zero error'
+                        !errStat2 = ErrID_Fatal
+                        !call SetErrStat(errStat2,errMsg2,errStat,errMsg,RoutineName)  
+                        !return
+                        Phi_Ainf_v = 0.0_ReKi
+                     else
    
-                  Phi_Ainf_v = ( ( 1.0_ReKi + dot_product(r1_prime_v,zeta_hat)/r1_prime ) / (4.0_ReKi*Pi*Factor1) ) * tmp1_v
-                  Phi_Ainf_v = Phi_Ainf_v * tmp1cZeta / e11
+                        Phi_Ainf_v = ( ( 1.0_ReKi + dot_product(r1_prime_v,zeta_hat)/r1_prime ) / (Factor1) ) * tmp1_v
+                        Phi_Ainf_v = Phi_Ainf_v * tmp1cZeta / e11
+                     end if
+                  end if
                end if
             end if
       
@@ -490,23 +494,26 @@ subroutine VSM_Compute_Influence(CtrlPtMod, KinVisc,  numVolElem, numElem, inPtA
                r2_prime_v = r2p_v + e12*eta12_hat
                r2_prime   = TwoNorm(r2_prime_v)
                if ( EqualRealNos(r2_prime,0.0_ReKi) ) then
-                  errMsg2 = 'r2_prime is equal to zero which creates a divide by zero error'
-                  errStat2 = ErrID_Fatal
-                  call SetErrStat(errStat2,errMsg2,errStat,errMsg,RoutineName)  
-                  return
-               end if
+                  !errMsg2 = 'r2_prime is equal to zero which creates a divide by zero error'
+                  !errStat2 = ErrID_Fatal
+                  !call SetErrStat(errStat2,errMsg2,errStat,errMsg,RoutineName)  
+                  !return
+                  Phi_Binf_v = 0.0_ReKi
+               else
       
-               tmp2_v = cross_product(r2_prime_v,zeta_hat)
-               Factor2 = dot_product(tmp2_v,tmp2_v)
-               if ( EqualRealNos(Factor2,0.0_ReKi) ) then
-                  errMsg2 = 'Cross products of r2_prime_v and zeta produce a zero length vector which creates a divide by zero error'
-                  errStat2 = ErrID_Fatal
-                  call SetErrStat(errStat2,errMsg2,errStat,errMsg,RoutineName)  
-                  return
+                  tmp2_v = cross_product(r2_prime_v,zeta_hat) / (4.0_ReKi*Pi)
+                  Factor2 = dot_product(tmp2_v,tmp2_v)
+                  if ( EqualRealNos(Factor2,0.0_ReKi) ) then
+                     !errMsg2 = 'Cross products of r2_prime_v and zeta produce a zero length vector which creates a divide by zero error'
+                     !errStat2 = ErrID_Fatal
+                     !call SetErrStat(errStat2,errMsg2,errStat,errMsg,RoutineName)  
+                     !return
+                     Phi_Binf_v = 0.0_ReKi
+                  else
+                     Phi_Binf_v = ( -( 1.0_ReKi + dot_product(r2_prime_v,zeta_hat)/r2_prime ) / (Factor2) ) * tmp2_v
+                     Phi_Binf_v = Phi_Binf_v * tmp2cZeta / e12
+                  end if
                end if
-   
-               Phi_Binf_v = ( -( 1.0_ReKi + dot_product(r2_prime_v,zeta_hat)/r2_prime ) / (4.0_ReKi*Pi*Factor2) ) * tmp2_v
-               Phi_Binf_v = Phi_Binf_v * tmp2cZeta / e12
             end if
    
          ! Calculate U_AB
