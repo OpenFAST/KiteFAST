@@ -15,7 +15,10 @@ int _tmain(int argc, _TCHAR* argv[])
 //    KFAST_INITPROC ProcInit;
 //    BOOL fFreeResult, fRunTimeLinkSuccess = FALSE;
     int i;
+    int c;
     double dt = 0.01;
+    int doUpdateStates;
+    int nFinal = 5;   // Last time increment for this simulation
     int numFlaps = 3;
     int numPylons = 2;
     int numComp = 10;
@@ -28,6 +31,7 @@ int _tmain(int argc, _TCHAR* argv[])
     double gravity = 9.81;
     double *pWindPt;
     double *pFusODCM;
+    double *pFusODCM_prev;
     int numRtrPtsElem;
     double *pRtrPts;
     int numRefPtElem;
@@ -43,18 +47,27 @@ int _tmain(int argc, _TCHAR* argv[])
     int numRtSpdRtrElem;
     double *pRtSpd_PyRtr;
     double *pFusO;
-    double *pFusOv;
-    double *pFusOomegas;
-    double *pFusOacc;
+    double *pFusO_prev;
+    double *pFusOv_prev;
+    double *pFusOomegas_prev;
+    double *pFusOacc_prev;
     double *pNodeVels;
     double *pNodeOmegas;
     int    *pModFlags;
+    double *pRtrVels;
+    double *pRtrDCMs;
+    int numNodeLoadsElem;
+    double *pNodeLoads;
+    int numRtrLoadsElem;
+    double *pRtrLoads;
+
+
 
    // Set module flags 0 = off, 1=on
     pModFlags = (int *)malloc(4*sizeof(int));
     pModFlags[0] = 1;  // use KAD module
     pModFlags[1] = 1;  // use InflowWind module
-    pModFlags[2] = 1;  // use MoorDyn module
+    pModFlags[2] = 0;  // use MoorDyn module
     pModFlags[3] = 0;  // no KiteFAST controller
 
     // Set input file names
@@ -67,7 +80,7 @@ int _tmain(int argc, _TCHAR* argv[])
 
     // Set up the number of nodes per kite component
     pNumCompNds = (int *)malloc(numComp*sizeof(int));
-    pNumCompNds[0] = 2; // Fuselage nodes
+    pNumCompNds[0] = 3; // Fuselage nodes
     pNumCompNds[1] = 2; //  Starboard wing nodes
     pNumCompNds[2] = 2; //  Port wing nodes
     pNumCompNds[3] = 2; //  vertical stabilizer nodes
@@ -100,6 +113,12 @@ int _tmain(int argc, _TCHAR* argv[])
     // Rotor points
     numRtrPtsElem = numPylons * 4 * 3;
     pRtrPts = (double *)malloc(numRtrPtsElem * sizeof(double));
+    pRtrVels = (double *)malloc(numRtrPtsElem * sizeof(double));
+    pRtrDCMs = (double *)malloc(numRtrPtsElem * 3 * sizeof(double));
+    
+    numRtrLoadsElem = numRtrPtsElem*2;
+    pRtrLoads = (double *)malloc(numRtrLoadsElem * sizeof(double));
+
     // Starboard inner top
     pRtrPts[0] = -1.861;
     pRtrPts[1] = 1.213;
@@ -138,6 +157,7 @@ int _tmain(int argc, _TCHAR* argv[])
     // Reference points
     numRefPtElem = numComp * 3;
     pRefPts = (double *)malloc(numRefPtElem * sizeof(double));
+    
     for (i = 0; i < numRefPtElem; i++)
     {
         pRefPts[i] = 0.0;
@@ -195,6 +215,8 @@ int _tmain(int argc, _TCHAR* argv[])
     }
     pNodeDCMs = (double *)malloc(numDCMElem * sizeof(double));
     pNodePts  = (double *)malloc(numNodePtElem * sizeof(double));
+    numNodeLoadsElem = numNodePtElem*2;
+    pNodeLoads = (double *)malloc(numNodeLoadsElem * sizeof(double));
 
     // Set all DCMs to Identity
     for (i = 0; i < numDCMElem; i=i+9)
@@ -209,121 +231,139 @@ int _tmain(int argc, _TCHAR* argv[])
         pNodeDCMs[i+7] = 0.0;
         pNodeDCMs[i+8] = 1.0;
     }
-    pNumCompNds[0] = 2; // Fuselage nodes
-    pNumCompNds[1] = 2; //  Starboard wing nodes
-    pNumCompNds[2] = 2; //  Port wing nodes
-    pNumCompNds[3] = 2; //  vertical stabilizer nodes
-    pNumCompNds[4] = 2; //  starboard horizontal stabilizer nodes
-    pNumCompNds[5] = 2; //  port horizontal stabilizer nodes
-    pNumCompNds[6] = 2; //  starboard inboard pylon nodes
-    pNumCompNds[7] = 2; //  starboard outboard pylon nodes
-    pNumCompNds[8] = 2; //  port inboard pylon nodes
-    pNumCompNds[9] = 2; //  port outboard pylon nodes
+   
     // Fuselage node positions
     pNodePts[0] = 0.027;
     pNodePts[1] = 0.000;
     pNodePts[2] = -0.170;
-    pNodePts[3] = 6.917;
+    pNodePts[3] = 3.400;
     pNodePts[4] = 0.000;
-    pNodePts[5] = -0.039;
-    //  Starboard wing nodes
-    pNodePts[6] = 0.000;
+    pNodePts[5] = 0.00;
+    pNodePts[6] = 6.917;
     pNodePts[7] = 0.000;
-    pNodePts[8] = 0.000;
-    pNodePts[9] = 0.000;
-    pNodePts[10] = 12.831;
-    pNodePts[11] = 0.384;
+    pNodePts[8] = -0.039;
+    c = 9;
+    //  Starboard wing nodes
+    pNodePts[c + 0] = 0.000;
+    pNodePts[c + 1] = 0.000;
+    pNodePts[c + 2] = 0.000;
+    pNodePts[c + 3] = 0.000;
+    pNodePts[c + 4] = 12.831;
+    pNodePts[c + 5] = 0.384;
+    c = c + 6;
     //  Port wing nodes
-    pNodePts[12] = 0.000;
-    pNodePts[13] = 0.000;
-    pNodePts[14] = 0.000;
-    pNodePts[15] = 0.000;
-    pNodePts[16] = -12.831;
-    pNodePts[17] = 0.384;
+    pNodePts[c + 0] = 0.000;
+    pNodePts[c + 1] = 0.000;
+    pNodePts[c + 2] = 0.000;
+    pNodePts[c + 3] = 0.000;
+    pNodePts[c + 4] = -12.831;
+    pNodePts[c + 5] = 0.384;
+    c = c + 6;
     //  vertical stabilizer nodes
-    pNodePts[18] =  0.123 + pRefPts[6];
-    pNodePts[19] =  0.000 + pRefPts[7];
-    pNodePts[20] =  2.850 + pRefPts[8];
-    pNodePts[21] =  0.044 + pRefPts[6];
-    pNodePts[22] =  0.000 + pRefPts[7];
-    pNodePts[23] = -0.712 + pRefPts[8];
+    pNodePts[c + 0] = 0.123 + pRefPts[6];
+    pNodePts[c + 1] = 0.000 + pRefPts[7];
+    pNodePts[c + 2] = 2.850 + pRefPts[8];
+    pNodePts[c + 3] = 0.044 + pRefPts[6];
+    pNodePts[c + 4] = 0.000 + pRefPts[7];
+    pNodePts[c + 5] = -0.712 + pRefPts[8];
+    c = c + 6;
     //  starboard horizontal stabilizer nodes
-    pNodePts[24] = 0.000 + pRefPts[9];
-    pNodePts[25] = 0.000 + pRefPts[10];
-    pNodePts[26] = 0.000 + pRefPts[11];
-    pNodePts[27] = 0.417 + pRefPts[9];
-    pNodePts[28] = 2.447 + pRefPts[10];
-    pNodePts[29] = 0.000 + pRefPts[11];
+    pNodePts[c + 0] = 0.000 + pRefPts[9];
+    pNodePts[c + 1] = 0.000 + pRefPts[10];
+    pNodePts[c + 2] = 0.000 + pRefPts[11];
+    pNodePts[c + 3] = 0.417 + pRefPts[9];
+    pNodePts[c + 4] = 2.447 + pRefPts[10];
+    pNodePts[c + 5] = 0.000 + pRefPts[11];
+    c = c + 6;
     //  port horizontal stabilizer nodes
-    pNodePts[30] =  0.000 + pRefPts[12];
-    pNodePts[31] =  0.000 + pRefPts[13];
-    pNodePts[32] =  0.000 + pRefPts[14];
-    pNodePts[33] =  0.417 + pRefPts[12];
-    pNodePts[34] = -2.447 + pRefPts[13];
-    pNodePts[35] =  0.000 + pRefPts[14];
+    pNodePts[c + 0] = 0.000 + pRefPts[12];
+    pNodePts[c + 1] = 0.000 + pRefPts[13];
+    pNodePts[c + 2] = 0.000 + pRefPts[14];
+    pNodePts[c + 3] = 0.417 + pRefPts[12];
+    pNodePts[c + 4] = -2.447 + pRefPts[13];
+    pNodePts[c + 5] = 0.000 + pRefPts[14];
+    c = c + 6;
     //  starboard inboard pylon nodes
-    pNodePts[36] = -0.729 + pRefPts[15];
-    pNodePts[37] =  0.000 + pRefPts[16];
-    pNodePts[38] =  1.470 + pRefPts[17];
-    pNodePts[39] = -0.510 + pRefPts[15];
-    pNodePts[40] =  0.000 + pRefPts[16];
-    pNodePts[41] = -1.832 + pRefPts[17];
+    pNodePts[c + 0] = -0.729 + pRefPts[15];
+    pNodePts[c + 1] = 0.000 + pRefPts[16];
+    pNodePts[c + 2] = 1.470 + pRefPts[17];
+    pNodePts[c + 3] = -0.510 + pRefPts[15];
+    pNodePts[c + 4] = 0.000 + pRefPts[16];
+    pNodePts[c + 5] = -1.832 + pRefPts[17];
+    c = c + 6;
     //  starboard outboard pylon nodes
-    pNodePts[42] = -0.729 + pRefPts[18];
-    pNodePts[43] = 0.000 + pRefPts[19];
-    pNodePts[44] = 1.470 + pRefPts[20];
-    pNodePts[45] = -0.510 + pRefPts[18];
-    pNodePts[46] = 0.000 + pRefPts[19];
-    pNodePts[47] = -1.832 + pRefPts[20];
+    pNodePts[c + 0] = -0.729 + pRefPts[18];
+    pNodePts[c + 1] = 0.000 + pRefPts[19];
+    pNodePts[c + 2] = 1.470 + pRefPts[20];
+    pNodePts[c + 3] = -0.510 + pRefPts[18];
+    pNodePts[c + 4] = 0.000 + pRefPts[19];
+    pNodePts[c + 5] = -1.832 + pRefPts[20];
+    c = c + 6;
     //  port inboard pylon nodes
-    pNodePts[48] = -0.729  + pRefPts[21];;
-    pNodePts[49] = 0.000  + pRefPts[22];;
-    pNodePts[50] = 1.470  + pRefPts[23];;
-    pNodePts[51] = -0.510  + pRefPts[21];;
-    pNodePts[52] = 0.000  + pRefPts[22];;
-    pNodePts[53] = -1.832  + pRefPts[23];;
+    pNodePts[c + 0] = -0.729 + pRefPts[21];
+    pNodePts[c + 1] = 0.000 + pRefPts[22];
+    pNodePts[c + 2] = 1.470 + pRefPts[23];
+    pNodePts[c + 3] = -0.510 + pRefPts[21];
+    pNodePts[c + 4] = 0.000 + pRefPts[22];
+    pNodePts[c + 5] = -1.832 + pRefPts[23];
+    c = c + 6;
 
     //  port outboard pylon nodes
-    pNodePts[54] = -0.729  + pRefPts[24];;
-    pNodePts[55] = 0.000  + pRefPts[25];;
-    pNodePts[56] = 1.470 + pRefPts[26];;
-    pNodePts[57] = -0.510  + pRefPts[24];;
-    pNodePts[58] = 0.000  + pRefPts[25];;
-    pNodePts[59] = -1.832  + pRefPts[26];;
+    pNodePts[c + 0] = -0.729 + pRefPts[24];
+    pNodePts[c + 1] = 0.000 + pRefPts[25];
+    pNodePts[c + 2] = 1.470 + pRefPts[26];
+    pNodePts[c + 3] = -0.510 + pRefPts[24];
+    pNodePts[c + 4] = 0.000 + pRefPts[25];
+    pNodePts[c + 5] = -1.832 + pRefPts[26];
 
+
+    // This is called as part of the user module constructor
     KFAST_Init(&dt, &numFlaps, &numPylons, &numComp, pNumCompNds, pModFlags, KAD_FileName, IfW_FileName, MD_FileName, KFC_FileName, outFileRoot, &gravity, pWindPt,
         pFusODCM, &numRtrPtsElem, pRtrPts, &numRefPtElem, pRefPts, &numNodePtElem, pNodePts, &numDCMElem, pNodeDCMs, &errStat, errMsg);
     
-    
+    if (errStat != 0)
+    {
+        printf("%s\n", errMsg);
+        return errStat;
+    }
 
 
-    // AssRes() 
-    t = 1.0;
+    // The outputs for the first timestep need to be obtained
+    // TODO: Is call part of the user module constructor or part of InitialAssRes??? GJH
+
+    t = 0.0; // initial time
     numRtSpdRtrElem = 8;
+    pFusODCM_prev = pFusODCM;
     pRtSpd_PyRtr = (double *)malloc(numRtSpdRtrElem*sizeof(double));   
     for (i = 0; i < numRtSpdRtrElem; i++)
     {
         pRtSpd_PyRtr[i] = 0.0;
     }
     pFusO        = (double *)malloc(3*sizeof(double));
-    pFusO[0] = pRefPts[0];
+    pFusO[0] = pRefPts[0]-50.0;
     pFusO[1] = pRefPts[1];
     pFusO[2] = pRefPts[2];
 
-    pFusOv       = (double *)malloc(3*sizeof(double));
-    pFusOv[0] = -50.0;
-    pFusOv[1] =  0.0;
-    pFusOv[2] =  0.0;
+    pFusO_prev = (double *)malloc(3 * sizeof(double));
+    pFusO_prev[0] = pRefPts[0];
+    pFusO_prev[1] = pRefPts[1];
+    pFusO_prev[2] = pRefPts[2];
 
-    pFusOomegas  = (double *)malloc(3*sizeof(double));
-    pFusOomegas[0] = 0.0;
-    pFusOomegas[1] = 0.0;
-    pFusOomegas[2] = 0.0;
 
-    pFusOacc    = (double *)malloc(3*sizeof(double));
-    pFusOacc[0] = 0.0;
-    pFusOacc[1] = 0.0;
-    pFusOacc[2] = 0.0;
+    pFusOv_prev = (double *)malloc(3 * sizeof(double));
+    pFusOv_prev[0] = -50.0;
+    pFusOv_prev[1] =  0.0;
+    pFusOv_prev[2] =  0.0;
+
+    pFusOomegas_prev = (double *)malloc(3 * sizeof(double));
+    pFusOomegas_prev[0] = 0.0;
+    pFusOomegas_prev[1] = 0.0;
+    pFusOomegas_prev[2] = 0.0;
+
+    pFusOacc_prev    = (double *)malloc(3*sizeof(double));
+    pFusOacc_prev[0] = 0.0;
+    pFusOacc_prev[1] = 0.0;
+    pFusOacc_prev[2] = 0.0;
 
     pNodeVels   = (double *)malloc(numNodePtElem * sizeof(double));
     pNodeOmegas = (double *)malloc(numNodePtElem * sizeof(double));
@@ -338,21 +378,95 @@ int _tmain(int argc, _TCHAR* argv[])
         pNodeOmegas[n * 3 + 2] = 0.0;
     }
     
+    // Need to set rotor point velocities and orientations
+    for (n = 0; n < numRtrPtsElem; n++)
+    {
+        pRtrVels[n] = 0.0;
+    }
 
+    for (n = 0; n < numRtrPtsElem; n++)
+    {
+        pRtrVels[n] = 0.0;
+    }
+    for (n = 0; n < numRtrPtsElem*3; n++)
+    {
+        pRtrDCMs[n] = 0.0;
+    }
+    for (n = 0; n < numRtrPtsElem * 3; n=n+9)
+    {
+        pRtrDCMs[n] = 1.0;
+    }
+    for (n = 4; n < numRtrPtsElem * 3; n = n + 9)
+    {
+        pRtrDCMs[n] = 1.0;
+    }
+    for (n = 8; n < numRtrPtsElem * 3; n = n + 9)
+    {
+        pRtrDCMs[n] = 1.0;
+    }
 
-    KFAST_AssRes( &t, &numRtSpdRtrElem, pRtSpd_PyRtr, pWindPt, pFusO, pFusODCM, pFusOv,
-                    pFusOomegas, pFusOacc, &numNodePtElem, pNodePts,
+    // This returns the loads from KiteFAST at the initial time
+    doUpdateStates = 0;  // we do not advance the states for the first call to KFAST_AssRes(), we only want to compute the output loads
+    KFAST_AssRes(&t, &doUpdateStates, &numRtSpdRtrElem, pRtSpd_PyRtr, pWindPt, pFusO_prev, pFusO, pFusODCM_prev, pFusOv_prev,
+                    pFusOomegas_prev, pFusOacc_prev, &numNodePtElem, pNodePts,
                     &numNodePtElem, pNodeVels, &numNodePtElem, pNodeOmegas,
-                    &numDCMElem, pNodeDCMs, &numRtrPtsElem, pRtrPts, &errStat, errMsg);
+                    &numDCMElem, pNodeDCMs, &numRtrPtsElem, pRtrPts, pRtrVels, pRtrDCMs, 
+                    &numNodeLoadsElem, pNodeLoads, &numRtrLoadsElem, pRtrLoads, & errStat, errMsg);
+    if (errStat != 0)
+    {
+        printf("%s\n", errMsg);
+        return errStat;
+    }
 
-    // AfterPredict()
-    KFAST_AfterPredict(&errStat, errMsg);
+    //Now we begin calls associated with the time marching loop of MBDyn
+    doUpdateStates = 1;  // Now we do advance the states for the each call to KFAST_AssRes()
 
-    // Output()
-    KFAST_Output(&errStat, errMsg);
+    for (n = 1; n < nFinal; n++) 
+    {
+        t = t + dt;
+
+        // Modify positions and velocities and accelerations
+
+        // For now we will simulate constant positions, velocities, and accelerations
+
+        // AssRes()
+        KFAST_AssRes(&t, &doUpdateStates, &numRtSpdRtrElem, pRtSpd_PyRtr, pWindPt, pFusO_prev, pFusO, pFusODCM_prev, pFusOv_prev,
+            pFusOomegas_prev, pFusOacc_prev, &numNodePtElem, pNodePts,
+            &numNodePtElem, pNodeVels, &numNodePtElem, pNodeOmegas,
+            &numDCMElem, pNodeDCMs, &numRtrPtsElem, pRtrPts, pRtrVels, pRtrDCMs, 
+            &numNodeLoadsElem, pNodeLoads, &numRtrLoadsElem, pRtrLoads, &errStat, errMsg);
+        if (errStat != 0)
+        {
+            printf("%s\n", errMsg);
+            return errStat;
+        }
+
+        // AfterPredict()
+        KFAST_AfterPredict(&errStat, errMsg);
+        if (errStat != 0)
+        {
+            printf("%s\n", errMsg);
+            return errStat;
+        }
+
+        // Output()
+        KFAST_Output(&errStat, errMsg);
+        if (errStat != 0)
+        {
+            printf("%s\n", errMsg);
+            return errStat;
+        }
+
+    }
+
 
     // End()
     KFAST_End(&errStat, errMsg);
+    if (errStat != 0)
+    {
+        printf("%s\n", errMsg);
+        return errStat;
+    }
 
 
     free(pNumCompNds);
@@ -364,7 +478,7 @@ int _tmain(int argc, _TCHAR* argv[])
 
     free(pRtSpd_PyRtr);
     free(pFusO);
-    free(pFusOv);
+    free(pFusOv_prev);
     free(pNodeDCMs);
 
 
