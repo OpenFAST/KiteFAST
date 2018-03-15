@@ -26,6 +26,7 @@ target_link_libraries(kitefast_prelib
   airfoilinfolib
   ifwlib
   kiteaerodynlib
+  kitefastcontrollerlib
   moordynlib
   )
 
@@ -38,6 +39,11 @@ install(TARGETS kitefastlib kitefast_prelib
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib)
 
-# install(FILES
-#   src/FAST_Library.h
-#   DESTINATION include)
+add_executable(kitefast_driver src/KiteFAST_Driver.cpp)
+target_link_libraries(kitefast_driver kitefastlib)
+
+install(TARGETS kitefast_driver
+  EXPORT "${CMAKE_PROJECT_NAME}Libraries"
+  RUNTIME DESTINATION bin
+  LIBRARY DESTINATION lib
+  ARCHIVE DESTINATION lib)

@@ -4,7 +4,8 @@
 void kfc_dll_init(int *errStat, char *errMsg) {
     *errStat = 1;
     char tmp[] = "this is a message from dll\'s init";
-    for (int i = 0; i < sizeof(tmp); i++)
+    int i;
+    for (i = 0; i < sizeof(tmp); i++)
     {
         errMsg[i] = tmp[i];
     }
@@ -14,7 +15,8 @@ void kfc_dll_init(int *errStat, char *errMsg) {
 void kfc_dll_end(int *errStat, char *errMsg) {
     *errStat = 3;
     char tmp[] = "this is a message from from dll\'s end";
-    for (int i = 0; i < sizeof(tmp); i++)
+    int i;
+    for (i = 0; i < sizeof(tmp); i++)
     {
         errMsg[i] = tmp[i];
     }
@@ -30,19 +32,20 @@ void kfc_dll_step(double dcm_g2b_c[], double pqr_c[], double acc_norm_c[],
                   double GenPPyRtr_c[], int *errStat, char *errMsg) {
     *errStat = 2;
     char tmp[] = "this is a message from from dll\'s step";
-    for (int i = 0; i < sizeof(tmp); i++)
+    int i;
+    for (i = 0; i < sizeof(tmp); i++)
     {
         errMsg[i] = tmp[i];
     }
 
     printf(" KiteFastController_Controller in kfc_dll_step: these are the values in dcm_g2b_c\n");
-    for (int i = 0; i < 9; i++)
+    for (i = 0; i < 9; i++)
     {
         printf("%f\n", dcm_g2b_c[i]);
     }
 
     printf(" KiteFastController_Controller in kfc_dll_step: these are the values in GenSPyRtr_c - GenPPyRtr_c\n");
-    for (int i = 0; i < 4; i++)
+    for (i = 0; i < 4; i++)
     {
         printf("%f - %f\n", GenSPyRtr_c[i], GenPPyRtr_c[i]);
     }
