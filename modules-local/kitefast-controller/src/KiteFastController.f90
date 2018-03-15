@@ -82,7 +82,7 @@ module KiteFastController
 
    public :: KFC_Init                     ! Initialization routine
    public :: KFC_End                      ! Ending routine (includes clean up)
-   public :: KFC_CalcOutput               ! Routine for computing outputs and internally updating states
+   public :: KFC_Step                     ! Routine for computing outputs and internally updating states
   
    contains   
    
@@ -179,7 +179,7 @@ module KiteFastController
     
    end subroutine KFC_Init
 
-   subroutine KFC_CalcOutput(t, u, p, y, errStat, errMsg )
+   subroutine KFC_Step(t, u, p, y, errStat, errMsg )
       real(DbKi),                    intent(in   )  :: t           !< Current simulation time in seconds
       type(KFC_InputType),           intent(in   )  :: u           !< Inputs at Time t
       type(KFC_ParameterType),       intent(in   )  :: p           !< Parameters
@@ -189,7 +189,7 @@ module KiteFastController
       character(*),                  intent(  out)  :: errMsg      !< Error message if ErrStat /= ErrID_None
    
       
-      character(*), parameter                       :: routineName = 'KFC_CalcOutput'
+      character(*), parameter                       :: routineName = 'KFC_Step'
       integer(IntKi)                                :: errStat2       ! The error status code
       character(ErrMsgLen)                          :: errMsg2        ! The error message, if an error occurred     
       procedure(KFC_DLL_Step_PROC),pointer          :: DLL_KFC_Step_Subroutine              ! The address of the supercontroller sc_calcoutputs procedure in the DLL
@@ -249,7 +249,7 @@ module KiteFastController
       
          ! TODO Error checking
     
-   end subroutine KFC_CalcOutput
+   end subroutine KFC_Step
    
    subroutine c_to_fortran_string(input, output)
       character(kind=C_CHAR), intent(in) :: input(IntfStrLen)
