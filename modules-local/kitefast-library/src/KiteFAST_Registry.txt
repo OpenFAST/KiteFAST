@@ -55,86 +55,85 @@ typedef    ^                   ^               KFC_OutputType      y  - - - "Out
 # ..... Misc/Optimization variables.................................................................................................
 # Define any data that are used only for efficiency purposes (these variables are not associated with time):
 #   e.g. indices for searching in an array, large arrays that are local variables in any routine called multiple times, etc.
-typedef   ^    MiscVarType    KAD_Data         KAD           -    -   -  "KiteAeroDyn framework data" -
-typedef   ^    MiscVarType    IfW_Data         IfW           -    -   -  "InflowWind framework data" -
-typedef   ^    MiscVarType    MD_Data          MD            -    -   -  "MoorDyn framework data" -
-typedef   ^    MiscVarType    KFC_Data         KFC           -    -   -  "KiteFAST Controller framework data" -
-typedef   ^    MiscVarType    ReKi             IfW_ground_prev {3} - - "Previous timestep inflow at ground station" m/s
-typedef   ^    MiscVarType    ReKi             IfW_FusO_prev  {3} - - "Previous timestep inflow at fuselage reference point" m/s
-typedef   ^    MiscVarType    logical          NewTime       -    -   -  "" -
-typedef   ^    MiscVarType    MeshType         mbdFusMotions -    -   -  "" -
-typedef   ^    MiscVarType    MeshType         mbdSWnMotions -    -   -  "" -
-typedef   ^    MiscVarType    MeshType         mbdPWnMotions -    -   -  "" -
-typedef   ^    MiscVarType    MeshType         mbdWngMotions -    -   -  "" -
-typedef   ^    MiscVarType    MeshType         mbdVSMotions -    -   -  "" -
-typedef   ^    MiscVarType    MeshType         mbdSHSMotions -    -   -  "" -
-typedef   ^    MiscVarType    MeshType         mbdPHSMotions -    -   -  "" -
-typedef   ^    MiscVarType    MeshType         mbdSPyMotions {:}  -   -  "" -
-typedef   ^    MiscVarType    MeshType         mbdPPyMotions {:}  -   -  "" -
-typedef   ^    MiscVarType    MeshType         mbdFusLoads -    -   -  "" -
-typedef   ^    MiscVarType    MeshType         mbdSWnLoads -    -   -  "" -
-typedef   ^    MiscVarType    MeshType         mbdPWnLoads -    -   -  "" -
-typedef   ^    MiscVarType    MeshType         mbdWngLoads -    -   -  "" -
-typedef   ^    MiscVarType    MeshType         mbdVSLoads -    -   -  "" -
-typedef   ^    MiscVarType    MeshType         mbdSHSLoads -    -   -  "" -
-typedef   ^    MiscVarType    MeshType         mbdPHSLoads -    -   -  "" -
-typedef   ^    MiscVarType    MeshType         mbdSPyLoads {:}  -   -  "" -
-typedef   ^    MiscVarType    MeshType         mbdPPyLoads {:}  -   -  "" -
-typedef   ^    MiscVarType    MeshMapType      Fus_L2_L2    -   -   -  "" - 
-typedef   ^    MiscVarType    MeshMapType      SWn_L2_L2    -   -   -  "" - 
-typedef   ^    MiscVarType    MeshMapType      PWn_L2_L2    -   -   -  "" - 
-typedef   ^    MiscVarType    MeshMapType      VS_L2_L2    -   -   -  "" - 
-typedef   ^    MiscVarType    MeshMapType      SHS_L2_L2    -   -   -  "" - 
-typedef   ^    MiscVarType    MeshMapType      PHS_L2_L2    -   -   -  "" - 
-typedef   ^    MiscVarType    MeshMapType      SPy_L2_L2   {:}  -   -  "" - 
-typedef   ^    MiscVarType    MeshMapType      PPy_L2_L2   {:}  -   -  "" - 
-typedef   ^    MiscVarType    MeshMapType      Fus_P_P    -   -   -  "" - 
-typedef   ^    MiscVarType    MeshMapType      SWn_P_P    -   -   -  "" - 
-typedef   ^    MiscVarType    MeshMapType      PWn_P_P    -   -   -  "" - 
-typedef   ^    MiscVarType    MeshMapType      VS_P_P    -   -   -  "" - 
-typedef   ^    MiscVarType    MeshMapType      SHS_P_P    -   -   -  "" - 
-typedef   ^    MiscVarType    MeshMapType      PHS_P_P    -   -   -  "" - 
-typedef   ^    MiscVarType    MeshMapType      SPy_P_P   {:}  -   -  "" - 
-typedef   ^    MiscVarType    MeshMapType      PPy_P_P   {:}  -   -  "" - 
-typedef   ^    MiscVarType    MeshMapType      MD_L2_2_P -  -  - "" -
-typedef   ^    MiscVarType    MeshMapType      MD_P_2_P -  -  - "" -
-typedef   ^    MiscVarType    ReKi             FusPts {:}{:} - - "" m
-typedef   ^    MiscVarType    ReKi             SWnPts {:}{:} - - "" m
-typedef   ^    MiscVarType    ReKi             PWnPts {:}{:} - - "" m
-typedef   ^    MiscVarType    ReKi             VSPts  {:}{:} - - "" m
-typedef   ^    MiscVarType    ReKi             SHSPts {:}{:} - - "" m
-typedef   ^    MiscVarType    ReKi             PHSPts {:}{:} - - "" m
-typedef   ^    MiscVarType    ReKi             SPyPts {:}{:}{:} - - "" m
-typedef   ^    MiscVarType    ReKi             PPyPts {:}{:}{:} - - "" m
-typedef   ^    MiscVarType    ReKi             FusVels {:}{:} - - "" m
-typedef   ^    MiscVarType    ReKi             SWnVels {:}{:} - - "" m
-typedef   ^    MiscVarType    ReKi             PWnVels {:}{:} - - "" m
-typedef   ^    MiscVarType    ReKi             VSVels  {:}{:} - - "" m
-typedef   ^    MiscVarType    ReKi             SHSVels {:}{:} - - "" m
-typedef   ^    MiscVarType    ReKi             PHSVels {:}{:} - - "" m
-typedef   ^    MiscVarType    ReKi             SPyVels {:}{:}{:} - - "" m
-typedef   ^    MiscVarType    ReKi             PPyVels {:}{:}{:} - - "" m
-typedef   ^    MiscVarType    ReKi             FusOmegas {:}{:} - - "" m
-typedef   ^    MiscVarType    ReKi             SWnOmegas {:}{:} - - "" m
-typedef   ^    MiscVarType    ReKi             PWnOmegas {:}{:} - - "" m
-typedef   ^    MiscVarType    ReKi             VSOmegas  {:}{:} - - "" m
-typedef   ^    MiscVarType    ReKi             SHSOmegas {:}{:} - - "" m
-typedef   ^    MiscVarType    ReKi             PHSOmegas {:}{:} - - "" m
-typedef   ^    MiscVarType    ReKi             SPyOmegas {:}{:}{:} - - "" m
-typedef   ^    MiscVarType    ReKi             PPyOmegas {:}{:}{:} - - "" m
-typedef   ^    MiscVarType    ReKi             SPyRtrO {:}{:}{:} - - "" m
-typedef   ^    MiscVarType    ReKi             PPyRtrO {:}{:}{:} - - "" m
-typedef   ^    MiscVarType    ReKi             SPyRtrVels {:}{:}{:} - - "" m/s
-typedef   ^    MiscVarType    ReKi             PPyRtrVels {:}{:}{:} - - "" m/s
+typedef   ^    MiscVarType    KAD_Data         KAD              -    -   -  "KiteAeroDyn framework data" -
+typedef   ^    MiscVarType    IfW_Data         IfW              -    -   -  "InflowWind framework data" -
+typedef   ^    MiscVarType    MD_Data          MD               -    -   -  "MoorDyn framework data" -
+typedef   ^    MiscVarType    KFC_Data         KFC              -    -   -  "KiteFAST Controller framework data" -
+typedef   ^    MiscVarType    ReKi             IfW_ground_prev {3}   -   -  "Previous timestep inflow at ground station" m/s
+typedef   ^    MiscVarType    ReKi             IfW_FusO_prev   {3}   -   -  "Previous timestep inflow at fuselage reference point" m/s
+typedef   ^    MiscVarType    MeshType         mbdFusMotions    -    -   -  "" -
+typedef   ^    MiscVarType    MeshType         mbdSWnMotions    -    -   -  "" -
+typedef   ^    MiscVarType    MeshType         mbdPWnMotions    -    -   -  "" -
+typedef   ^    MiscVarType    MeshType         mbdWngMotions    -    -   -  "" -
+typedef   ^    MiscVarType    MeshType         mbdVSMotions     -    -   -  "" -
+typedef   ^    MiscVarType    MeshType         mbdSHSMotions    -    -   -  "" -
+typedef   ^    MiscVarType    MeshType         mbdPHSMotions    -    -   -  "" -
+typedef   ^    MiscVarType    MeshType         mbdSPyMotions   {:}   -   -  "" -
+typedef   ^    MiscVarType    MeshType         mbdPPyMotions   {:}   -   -  "" -
+typedef   ^    MiscVarType    MeshType         mbdFusLoads      -    -   -  "" -
+typedef   ^    MiscVarType    MeshType         mbdSWnLoads      -    -   -  "" -
+typedef   ^    MiscVarType    MeshType         mbdPWnLoads      -    -   -  "" -
+typedef   ^    MiscVarType    MeshType         mbdWngLoads      -    -   -  "" -
+typedef   ^    MiscVarType    MeshType         mbdVSLoads       -    -   -  "" -
+typedef   ^    MiscVarType    MeshType         mbdSHSLoads      -    -   -  "" -
+typedef   ^    MiscVarType    MeshType         mbdPHSLoads      -    -   -  "" -
+typedef   ^    MiscVarType    MeshType         mbdSPyLoads     {:}   -   -  "" -
+typedef   ^    MiscVarType    MeshType         mbdPPyLoads     {:}   -   -  "" -
+typedef   ^    MiscVarType    MeshMapType      Fus_L2_L2        -    -   -  "" - 
+typedef   ^    MiscVarType    MeshMapType      SWn_L2_L2        -    -   -  "" - 
+typedef   ^    MiscVarType    MeshMapType      PWn_L2_L2        -    -   -  "" - 
+typedef   ^    MiscVarType    MeshMapType      VS_L2_L2         -    -   -  "" - 
+typedef   ^    MiscVarType    MeshMapType      SHS_L2_L2        -    -   -  "" - 
+typedef   ^    MiscVarType    MeshMapType      PHS_L2_L2        -    -   -  "" - 
+typedef   ^    MiscVarType    MeshMapType      SPy_L2_L2       {:}   -   -  "" - 
+typedef   ^    MiscVarType    MeshMapType      PPy_L2_L2       {:}   -   -  "" - 
+typedef   ^    MiscVarType    MeshMapType      Fus_P_P          -    -   -  "" - 
+typedef   ^    MiscVarType    MeshMapType      SWn_P_P          -    -   -  "" - 
+typedef   ^    MiscVarType    MeshMapType      PWn_P_P          -    -   -  "" - 
+typedef   ^    MiscVarType    MeshMapType      VS_P_P           -    -   -  "" - 
+typedef   ^    MiscVarType    MeshMapType      SHS_P_P          -    -   -  "" - 
+typedef   ^    MiscVarType    MeshMapType      PHS_P_P          -    -   -  "" - 
+typedef   ^    MiscVarType    MeshMapType      SPy_P_P         {:}   -   -  "" - 
+typedef   ^    MiscVarType    MeshMapType      PPy_P_P         {:}   -   -  "" - 
+typedef   ^    MiscVarType    MeshMapType      MD_L2_2_P        -    -  - "" -
+typedef   ^    MiscVarType    MeshMapType      MD_P_2_P         -    -  - "" -
+typedef   ^    MiscVarType    ReKi             FusPts        {:}{:}  -  - "" m
+typedef   ^    MiscVarType    ReKi             SWnPts        {:}{:}  -  - "" m
+typedef   ^    MiscVarType    ReKi             PWnPts        {:}{:}  -  - "" m
+typedef   ^    MiscVarType    ReKi             VSPts         {:}{:}  -  - "" m
+typedef   ^    MiscVarType    ReKi             SHSPts        {:}{:}  -  - "" m
+typedef   ^    MiscVarType    ReKi             PHSPts        {:}{:}  -  - "" m
+typedef   ^    MiscVarType    ReKi             SPyPts      {:}{:}{:} -  - "" m
+typedef   ^    MiscVarType    ReKi             PPyPts      {:}{:}{:} -  - "" m
+typedef   ^    MiscVarType    ReKi             FusVels       {:}{:}  -  - "" m/s
+typedef   ^    MiscVarType    ReKi             SWnVels       {:}{:}  -  - "" m/s
+typedef   ^    MiscVarType    ReKi             PWnVels       {:}{:}  -  - "" m/s
+typedef   ^    MiscVarType    ReKi             VSVels        {:}{:}  -  - "" m/s
+typedef   ^    MiscVarType    ReKi             SHSVels       {:}{:}  -  - "" m/s
+typedef   ^    MiscVarType    ReKi             PHSVels       {:}{:}  -  - "" m/s
+typedef   ^    MiscVarType    ReKi             SPyVels     {:}{:}{:} -  - "" m/s
+typedef   ^    MiscVarType    ReKi             PPyVels     {:}{:}{:} -  - "" m/s
+typedef   ^    MiscVarType    ReKi             FusOmegas     {:}{:}  -  - "" rad/s
+typedef   ^    MiscVarType    ReKi             SWnOmegas     {:}{:}  -  - "" rad/s
+typedef   ^    MiscVarType    ReKi             PWnOmegas     {:}{:}  -  - "" rad/s
+typedef   ^    MiscVarType    ReKi             VSOmegas      {:}{:}  -  - "" rad/s
+typedef   ^    MiscVarType    ReKi             SHSOmegas     {:}{:}  -  - "" rad/s
+typedef   ^    MiscVarType    ReKi             PHSOmegas     {:}{:}  -  - "" rad/s
+typedef   ^    MiscVarType    ReKi             SPyOmegas   {:}{:}{:} -  - "" rad/s
+typedef   ^    MiscVarType    ReKi             PPyOmegas   {:}{:}{:} -  - "" rad/s
+typedef   ^    MiscVarType    ReKi             SPyRtrO     {:}{:}{:} -  - "" m
+typedef   ^    MiscVarType    ReKi             PPyRtrO     {:}{:}{:} -  - "" m
+typedef   ^    MiscVarType    ReKi             SPyRtrVels  {:}{:}{:} -  - "" m/s
+typedef   ^    MiscVarType    ReKi             PPyRtrVels  {:}{:}{:} -  - "" m/s
 typedef   ^    MiscVarType    ReKi             SPyRtrDCMs {:}{:}{:}{:} - - "" -
 typedef   ^    MiscVarType    ReKi             PPyRtrDCMs {:}{:}{:}{:} - - "" -
-typedef   ^    MiscVarType    R8Ki             FusODCM {:}{:}  - - "" -
-typedef   ^    MiscVarType    R8Ki             FusNdDCMs {:}{:}{:} - - "" -
-typedef   ^    MiscVarType    R8Ki             SWnNdDCMs {:}{:}{:} - - "" -
-typedef   ^    MiscVarType    R8Ki             PWnNdDCMs {:}{:}{:} - - "" -
-typedef   ^    MiscVarType    R8Ki             VsNdDCMs  {:}{:}{:} - - "" -
-typedef   ^    MiscVarType    R8Ki             SHSNdDCMs {:}{:}{:} - - "" -
-typedef   ^    MiscVarType    R8Ki             PHSNdDCMs {:}{:}{:} - - "" -
+typedef   ^    MiscVarType    R8Ki             FusODCM       {:}{:}  -  - "" -
+typedef   ^    MiscVarType    R8Ki             FusNdDCMs   {:}{:}{:} -  - "" -
+typedef   ^    MiscVarType    R8Ki             SWnNdDCMs   {:}{:}{:} -  - "" -
+typedef   ^    MiscVarType    R8Ki             PWnNdDCMs   {:}{:}{:} -  - "" -
+typedef   ^    MiscVarType    R8Ki             VsNdDCMs    {:}{:}{:} -  - "" -
+typedef   ^    MiscVarType    R8Ki             SHSNdDCMs   {:}{:}{:} -  - "" -
+typedef   ^    MiscVarType    R8Ki             PHSNdDCMs   {:}{:}{:} -  - "" -
 typedef   ^    MiscVarType    R8Ki             SPyNdDCMs {:}{:}{:}{:} - - "" -
 typedef   ^    MiscVarType    R8Ki             PPyNdDCMs {:}{:}{:}{:} - - "" -
 
@@ -162,3 +161,15 @@ typedef   ^  ^              IntKi            numPPyNds  {:} -  -  "Number of por
 typedef   ^  ^              ReKi             anchorPt   {3} -  -  "Anchor point for the kite tether" m
 typedef   ^  ^              ReKi             DCM_Fast2Ctrl {3}{3} - - "DCM between FAST inertial and the Controller's reference frame" -
 typedef	 ^	 ^	             CHARACTER(1024)	outFileRoot -	-	-	"Rootname of the KiteFAST output file(s)"	-
+typedef	 ^	 ^	             IntKi	         numOuts	   -	 0	   -	  "Total number of outputs requested (across all modules)"	-
+typedef	 ^	 ^	             IntKi	         numKADOuts	   -	 0	   -	  "Number of KAD outputs requested"	-
+typedef	 ^	 ^	             IntKi	         numMDOuts	   -	 0	   -	  "Number of MD outputs requested"	-
+typedef	 ^	 ^	             IntKi	         numIfWOuts	   -	 0	   -	  "Number of IfW outputs requested"	-
+typedef	 ^	 ^              LOGICAL	         TabDelim	   -	 -	   -	  "Flag to cause tab-delimited text output (delimited by space otherwise)"	-
+typedef	 ^	 ^	             CHARACTER(20)	   OutFmt	   -	-	-	"Output format for tabular data"	-
+typedef	 ^	 ^	             CHARACTER(20)	   OutSFmt	   -	-	-	"Output format for channel labels and units"	-
+typedef	 ^	 ^	             CHARACTER(1)	   Delim	      -	-	-	"Column delimiter for output text files"	-
+typedef   ^  ^              IntKi            UnOutFile   -	-	-	"File unit for the KAD-generated output file"	-
+
+# ..... Other States ................................................................................................................
+typedef   ^  OtherStateType logical          NewTime       -    -   -  "" -

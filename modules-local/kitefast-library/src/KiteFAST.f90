@@ -18,6 +18,7 @@ private
    integer,        parameter  :: IntfStrLen  = 1025       ! length of strings through the C interface
    type(KFAST_ParameterType)  :: p
    type(KFAST_MiscVarType)    :: m
+   type(KFAST_OtherStateType)    :: OtherSt
    !type(KFAST_InputType)      :: u
    !type(KFAST_OutputType)     :: y
    
@@ -44,6 +45,412 @@ subroutine TransferErrors(errStat, errMsg, errStat_c, errMsg_c)
       
 end subroutine TransferErrors
 
+!====================================================================================================
+subroutine KFAST_WriteOutput( t, p, y_KAD, y_MD, y_IfW, errStat, errMsg )
+! This subroutine 
+!----------------------------------------------------------------------------------------------------
+
+      ! Passed variables
+   real(DbKi),                    intent( in    ) :: t
+   type(KFAST_ParameterType),     intent( inout ) :: p   
+   type(KAD_OutPutType ),         intent( in    ) :: y_KAD          !
+   type(MD_OutPutType ),          intent( in    ) :: y_MD          !
+   type(InflowWind_OutPutType ),  intent( in    ) :: y_IfW              !
+   integer,                       intent(   out ) :: errStat              ! a non-zero value indicates an error occurred           
+   character(*),                  intent(   out ) :: errMsg               ! Error message if ErrStat /= ErrID_None
+   
+      ! Local variables
+   integer                                        :: i                    ! Generic loop counter      
+   character(1024)                                :: OutFileName          ! The name of the output file  including the full path.
+   integer                                        :: errStat2              
+   character(ErrMsgLen)                           :: errMsg2                ! error messages
+   character(200)                                 :: Frmt                                      ! A string to hold a format specifier
+   character(14)                                  :: TmpStr                                    ! temporary string to print the time output as text
+
+   !-------------------------------------------------------------------------------------------------      
+   ! Initialize local variables
+   !-------------------------------------------------------------------------------------------------      
+   ErrStat = ErrID_None  
+   ErrMsg  = ""
+
+   if ( p%numOuts > 0 ) then   ! Output has been requested so let's write to the output file            
+ 
+             ! Write one line of tabular output:
+      Frmt = '"'//p%Delim//'"'//p%OutFmt      ! format for array elements from individual modules
+
+            ! time
+      write( tmpStr, '(F14.6)' ) t
+      call WrFileNR( p%UnOutFile, tmpStr )
+
+         ! write the individual module output (convert to SiKi if necessary, so that we don't need to print so many digits in the exponent)
+      
+      
+      if ( p%numKADOuts > 0 ) then
+         do i=1,p%numKADOuts
+            call WrNumAryFileNR ( p%UnOutFile, real(y_KAD%WriteOutput,SiKi), Frmt, errStat2, errMsg2 )
+         end do ! I
+      end if
+      
+      if ( p%numMDOuts > 0 ) then
+         do i=1,p%numMDOuts
+            call WrNumAryFileNR ( p%UnOutFile, real(y_MD%WriteOutput,SiKi), Frmt, errStat2, errMsg2 )
+         end do ! I
+      end if
+      if ( p%numIfWOuts > 0 ) then
+         do i=1,p%numIfWOuts
+            call WrNumAryFileNR ( p%UnOutFile, real(y_IfW%WriteOutput,SiKi), Frmt, errStat2, errMsg2 )
+         end do ! I
+      end if
+      write (p%UnOutFile,'()')
+
+   end if   ! there are any requested outputs   
+
+   return
+
+end subroutine KFAST_WriteOutput
+!====================================================================================================
+subroutine KFAST_OpenOutput( ProgVer, OutRootName, p, KAD_InitOut, MD_InitOut, IfW_InitOut, errStat, errMsg )
+! This subroutine initialized the output module, checking if the output parameter list (OutList)
+! contains valid names, and opening the output file if there are any requested outputs
+!----------------------------------------------------------------------------------------------------
+
+      ! Passed variables
+
+   type(ProgDesc),                intent( in    ) :: ProgVer
+   character(*),                  intent( in    ) :: OutRootName          ! Root name for the output file
+   type(KFAST_ParameterType),     intent( inout ) :: p   
+   type(KAD_InitOutPutType ),     intent( in    ) :: KAD_InitOut              !
+   type(MD_InitOutPutType ),      intent( in    ) :: MD_InitOut              !
+   type(InflowWind_InitOutPutType ),     intent( in    ) :: IfW_InitOut              !
+   integer,                       intent(   out ) :: ErrStat              ! a non-zero value indicates an error occurred           
+   character(*),                  intent(   out ) :: ErrMsg               ! Error message if ErrStat /= ErrID_None
+   
+      ! Local variables
+   integer                                        :: i                    ! Generic loop counter      
+   character(1024)                                :: OutFileName          ! The name of the output file  including the full path.
+   character(200)                                 :: Frmt                 ! a string to hold a format statement
+   integer                                        :: errStat2              
+   character(ErrMsgLen)                           :: errMsg2                ! error messages
+   
+   !-------------------------------------------------------------------------------------------------      
+   ! Initialize local variables
+   !-------------------------------------------------------------------------------------------------      
+   ErrStat = ErrID_None  
+   ErrMsg  = ""
+   p%OutSFmt = "A10"  
+   p%OutFmt  = "ES10.3E2"
+   p%Delim = ' '
+   
+   
+   !-------------------------------------------------------------------------------------------------      
+   ! Open the output file, if necessary, and write the header
+   !-------------------------------------------------------------------------------------------------      
+   if ( allocated( KAD_InitOut%WriteOutputHdr ) ) then
+      p%numKADOuts = size(KAD_InitOut%WriteOutputHdr)
+   else
+      p%numKADOuts = 0
+   end if
+   if ( allocated( MD_InitOut%WriteOutputHdr ) ) then
+      p%numMDOuts = size(MD_InitOut%WriteOutputHdr)
+   else
+      p%numMDOuts = 0
+   end if
+   if ( allocated( IfW_InitOut%WriteOutputHdr ) ) then
+      p%numIfWOuts = size(IfW_InitOut%WriteOutputHdr)
+   else
+      p%numIfWOuts = 0
+   end if
+   p%numOuts = p%numKADOuts + p%numMDOuts + p%numIfWOuts
+   
+   if ( p%numOuts > 0 ) then   ! Output has been requested so let's open an output file            
+      
+         ! Open the file for output
+      OutFileName = trim(OutRootName)//'.out'
+      call GetNewUnit( p%UnOutFile )
+   
+      call OpenFOutFile ( p%UnOutFile, OutFileName, errStat, errMsg ) 
+      if ( errStat >= AbortErrLev ) then
+         errMsg = ' Error opening KiteFAST output file: '//trim(errMsg)
+         return
+      end if
+      
+       
+         ! Write the output file header
+      
+      write (p%UnOutFile,'(/,A/)', IOSTAT=errStat2)  'These predictions were generated by '//trim(GETNVD(ProgVer))//&
+                      ' on '//CurDate()//' at '//CurTime()//'.'
+      
+      write(p%UnOutFile, '(//)') ! add 3 lines to make file format consistant with FAST v8 (headers on line 7; units on line 8) [this allows easier post-processing]
+
+         ! Write the names of the output channels:
+      
+      call WrFileNR ( p%UnOutFile, '   Time   ' )
+      
+      if ( p%numKADOuts > 0 ) then
+         do i=1,p%numKADOuts
+            call WrFileNR ( p%UnOutFile, p%Delim//KAD_InitOut%WriteOutputHdr(i) )
+         end do ! I
+      end if
+      if ( p%numMDOuts > 0 ) then
+         do i=1,p%numMDOuts
+            call WrFileNR ( p%UnOutFile, p%Delim//MD_InitOut%WriteOutputHdr(i) )
+         end do ! I
+      end if
+      if ( p%numIfWOuts > 0 ) then
+         do i=1,p%numIfWOuts
+            call WrFileNR ( p%UnOutFile, p%Delim//IfW_InitOut%WriteOutputHdr(i) )
+         end do ! I
+      end if
+      write (p%UnOutFile,'()')
+      
+      
+      
+      
+         ! Write the names of the output channel units:
+      
+      call WrFileNR ( p%UnOutFile, '    s     ' )
+      
+      if ( p%numKADOuts > 0 ) then
+         do i=1,p%numKADOuts
+            call WrFileNR ( p%UnOutFile, p%Delim//KAD_InitOut%WriteOutputUnt(i) )
+         end do ! I
+      end if
+      if ( p%numMDOuts > 0 ) then
+         do i=1,p%numMDOuts
+            call WrFileNR ( p%UnOutFile, p%Delim//MD_InitOut%WriteOutputUnt(i) )
+         end do ! I
+      end if
+      if ( p%numIfWOuts > 0 ) then
+         do i=1,p%numIfWOuts
+            call WrFileNR ( p%UnOutFile, p%Delim//IfW_InitOut%WriteOutputUnt(i) )
+         end do ! I
+      end if
+      write (p%UnOutFile,'()')
+
+   end if   ! there are any requested outputs   
+
+   return
+
+end subroutine KFAST_OpenOutput
+
+subroutine TransferLoadsToMBDyn( p, m, nodeLoads_c, rtrLoads_c, errStat, errMsg )
+   type(KFAST_ParameterType), intent(in   ) :: p
+   type(KFAST_MiscVarType),   intent(inout) :: m
+   real(C_DOUBLE),            intent(inout) :: nodeLoads_c(:)  ! 1D array of the nodal point loads
+   real(C_DOUBLE),            intent(inout) :: rtrLoads_c(:)   ! 1D array of the rotor point loads
+   integer(IntKi),            intent(  out) :: errStat         !< Error status of the operation
+   character(*),              intent(  out) :: errMsg          !< Error message if errStat /= ErrID_None
+
+   integer(IntKi)  :: i,j,k,c, compOffset
+   integer(IntKi)           :: errStat2              ! error status values
+   character(ErrMsgLen)     :: errMsg2                ! error messages
+   character(*), parameter  :: routineName = 'TransferLoadsToMBDyn'
+   
+   errStat = ErrID_None
+   errMsg  = ''
+
+   nodeLoads_c = 0.0
+   rtrLoads_c  = 0.0
+   
+   if ( p%useMD ) then
+         ! First map MD loads back to the wing mesh
+         
+      !TODO: add translationdisp field to m%mbdWngLoads and manually apply the m%mbdWngMotions TranslationDisp to m%mbdWngLoads mesh
+      call Transfer_Point_to_Point( m%MD%y%PtFairleadLoad, m%mbdWngLoads,  m%MD_P_2_P, errStat2, errMsg2, m%MD%u(2)%PtFairleadDisplacement, m%mbdWngLoads )
+         call SetErrStat(errStat2, errMsg2, errStat, errMsg,' TransferLoadsToMBDyn: Transfer_MD_P_2_P' )   
+            
+         ! Now attach these loads to the corresponding array elements which are sent back to MBDyn
+      compOffset = p%numFusNds
+      !TODO Fix bug if wing mesh does not contain one of the two common nodes at the fuselage
+      do i = 1, p%numSwnNds
+         j = 6*compOffset + 6*(i-1) + 1
+         nodeLoads_c(j  ) = m%mbdWngLoads%Force(1,i + p%numPwnNds)
+         nodeLoads_c(j+1) = m%mbdWngLoads%Force(2,i + p%numPwnNds)
+         nodeLoads_c(j+2) = m%mbdWngLoads%Force(3,i + p%numPwnNds)
+         nodeLoads_c(j+3) = m%mbdWngLoads%Moment(1,i + p%numPwnNds)
+         nodeLoads_c(j+4) = m%mbdWngLoads%Moment(2,i + p%numPwnNds)
+         nodeLoads_c(j+5) = m%mbdWngLoads%Moment(3,i + p%numPwnNds)
+      end do
+      compOffset = compOffset + p%numSwnNds
+      
+      do i = 1, p%numPwnNds
+         j = 6*compOffset + 6*(i-1) + 1
+         nodeLoads_c(j  ) = m%mbdWngLoads%Force(1,p%numPwnNds-i+1)
+         nodeLoads_c(j+1) = m%mbdWngLoads%Force(2,p%numPwnNds-i+1)
+         nodeLoads_c(j+2) = m%mbdWngLoads%Force(3,p%numPwnNds-i+1)
+         nodeLoads_c(j+3) = m%mbdWngLoads%Moment(1,p%numPwnNds-i+1)
+         nodeLoads_c(j+4) = m%mbdWngLoads%Moment(2,p%numPwnNds-i+1)
+         nodeLoads_c(j+5) = m%mbdWngLoads%Moment(3,p%numPwnNds-i+1)
+      end do
+         
+   end if
+      
+      
+      
+   if ( p%useKAD ) then
+      
+      ! Map KAD component nodal loads to the MBDyn load meshes
+      !TODO: add translationdisp field to m%mbdFusLoads and manually apply the m%mbdFusMotions TranslationDisp to m%mbdFusLoads mesh   
+      call Transfer_Point_to_Point( m%KAD%y%FusLoads, m%mbdFusLoads, m%Fus_P_P, errStat2, errMsg2, m%KAD%y%FusLoads, m%mbdFusLoads )
+         call SetErrStat( errStat2, errMsg2, errStat, errMsg, ' TransferLoadsToMBDyn: m%Fus_P_P' )     
+            if (ErrStat>=AbortErrLev) return
+            
+            
+      
+      call Transfer_Point_to_Point( m%KAD%y%SWnLoads, m%mbdSWnLoads, m%SWn_P_P, errStat2, errMsg2, m%KAD%y%SWnLoads, m%mbdSWnLoads )
+         call SetErrStat( errStat2, errMsg2, errStat, errMsg, ' TransferLoadsToMBDyn: m%SWn_P_P' )     
+            if (ErrStat>=AbortErrLev) return
+      call Transfer_Point_to_Point( m%KAD%y%PWnLoads, m%mbdPWnLoads, m%PWn_P_P, errStat2, errMsg2, m%KAD%y%PWnLoads, m%mbdPWnLoads )
+         call SetErrStat( errStat2, errMsg2, errStat, errMsg, ' TransferLoadsToMBDyn: m%PWn_P_P' )     
+            if (ErrStat>=AbortErrLev) return
+      call Transfer_Point_to_Point( m%KAD%y%VSLoads, m%mbdVSLoads, m%VS_P_P, errStat2, errMsg2, m%KAD%y%VSLoads, m%mbdVSLoads )
+         call SetErrStat( errStat2, errMsg2, errStat, errMsg, ' TransferLoadsToMBDyn: m%VS_P_P' )     
+            if (ErrStat>=AbortErrLev) return
+      call Transfer_Point_to_Point( m%KAD%y%SHSLoads, m%mbdSHSLoads, m%SHS_P_P, errStat2, errMsg2, m%KAD%y%SHSLoads, m%mbdSHSLoads )
+         call SetErrStat( errStat2, errMsg2, errStat, errMsg, ' TransferLoadsToMBDyn: m%SHS_P_P' )     
+            if (ErrStat>=AbortErrLev) return
+      call Transfer_Point_to_Point( m%KAD%y%PHSLoads, m%mbdPHSLoads, m%PHS_P_P, errStat2, errMsg2, m%KAD%y%PHSLoads, m%mbdPHSLoads )
+         call SetErrStat( errStat2, errMsg2, errStat, errMsg, ' TransferLoadsToMBDyn: m%PHS_P_P' )     
+            if (ErrStat>=AbortErrLev) return
+     
+      do i = 1 , p%NumPylons           
+         call Transfer_Point_to_Point( m%KAD%y%SPyLoads(i), m%mbdSPyLoads(i), m%SPy_P_P(i), errStat2, errMsg2, m%KAD%y%SPyLoads(i), m%mbdSPyLoads(i) )
+            call SetErrStat( errStat2, errMsg2, errStat, errMsg, ' TransferLoadsToMBDyn: m%SPy_P_P('//trim(num2lstr(i))//')' ) 
+               if (ErrStat>=AbortErrLev) return
+            
+         call Transfer_Point_to_Point( m%KAD%y%PPyLoads(i), m%mbdPPyLoads(i), m%PPy_P_P(i), errStat2, errMsg2, m%KAD%y%PPyLoads(i), m%mbdPPyLoads(i) )
+            call SetErrStat( errStat2, errMsg2, errStat, errMsg, ' TransferLoadsToMBDyn: m%PPy_P_P('//trim(num2lstr(i))//')' ) 
+               if (ErrStat>=AbortErrLev) return
+      end do
+      
+      ! Now transfer the MBDyn mesh loads over to the corresponding elements of the data going back to MBDyn
+         
+         ! Fuselage
+      compOffset = 0
+      do i = 1, p%numFusNds
+         j = compOffset*6 + 6*(i-1) + 1
+         nodeLoads_c(j  ) = m%mbdFusLoads%Force(1,i)
+         nodeLoads_c(j+1) = m%mbdFusLoads%Force(2,i)
+         nodeLoads_c(j+2) = m%mbdFusLoads%Force(3,i)
+         nodeLoads_c(j+3) = m%mbdFusLoads%Moment(1,i)
+         nodeLoads_c(j+4) = m%mbdFusLoads%Moment(2,i)
+         nodeLoads_c(j+5) = m%mbdFusLoads%Moment(3,i)
+      end do       
+      compOffset = p%numFusNds
+         
+         ! Starboard Wing  (add these to any loads coming from MoorDyn)
+      do i = 1, p%numSwnNds
+         j = compOffset*6 + 6*(i-1) + 1
+         nodeLoads_c(j  ) = nodeLoads_c(j  ) + m%mbdSWnLoads%Force(1,i)
+         nodeLoads_c(j+1) = nodeLoads_c(j+1) + m%mbdSWnLoads%Force(2,i)
+         nodeLoads_c(j+2) = nodeLoads_c(j+2) + m%mbdSWnLoads%Force(3,i)
+         nodeLoads_c(j+3) = nodeLoads_c(j+3) + m%mbdSWnLoads%Moment(1,i)
+         nodeLoads_c(j+4) = nodeLoads_c(j+4) + m%mbdSWnLoads%Moment(2,i)
+         nodeLoads_c(j+5) = nodeLoads_c(j+5) + m%mbdSWnLoads%Moment(3,i)
+      end do
+      compOffset = compOffset + p%numSwnNds
+         
+         ! Port Wing  (add these to any loads coming from MoorDyn)
+         do i = 1, p%numPwnNds
+         j = compOffset*6 + 6*(i-1) + 1
+         nodeLoads_c(j  ) = nodeLoads_c(j  ) + m%mbdPWnLoads%Force(1,i)
+         nodeLoads_c(j+1) = nodeLoads_c(j+1) + m%mbdPWnLoads%Force(2,i)
+         nodeLoads_c(j+2) = nodeLoads_c(j+2) + m%mbdPWnLoads%Force(3,i)
+         nodeLoads_c(j+3) = nodeLoads_c(j+3) + m%mbdPWnLoads%Moment(1,i)
+         nodeLoads_c(j+4) = nodeLoads_c(j+4) + m%mbdPWnLoads%Moment(2,i)
+         nodeLoads_c(j+5) = nodeLoads_c(j+5) + m%mbdPWnLoads%Moment(3,i)
+      end do
+      compOffset = compOffset + p%numPwnNds
+        
+         ! Vertical stabilizer
+      do i = 1, p%numVSNds
+         j = compOffset*6 + 6*(i-1) + 1
+         nodeLoads_c(j  ) = m%mbdVSLoads%Force(1,i)
+         nodeLoads_c(j+1) = m%mbdVSLoads%Force(2,i)
+         nodeLoads_c(j+2) = m%mbdVSLoads%Force(3,i)
+         nodeLoads_c(j+3) = m%mbdVSLoads%Moment(1,i)
+         nodeLoads_c(j+4) = m%mbdVSLoads%Moment(2,i)
+         nodeLoads_c(j+5) = m%mbdVSLoads%Moment(3,i)
+      end do       
+      compOffset = compOffset + p%numVSNds
+ 
+         ! Starboard horizontal stabilizer
+      do i = 1, p%numSHSNds
+         j = compOffset*6 + 6*(i-1) + 1
+         nodeLoads_c(j  ) = m%mbdSHSLoads%Force(1,i)
+         nodeLoads_c(j+1) = m%mbdSHSLoads%Force(2,i)
+         nodeLoads_c(j+2) = m%mbdSHSLoads%Force(3,i)
+         nodeLoads_c(j+3) = m%mbdSHSLoads%Moment(1,i)
+         nodeLoads_c(j+4) = m%mbdSHSLoads%Moment(2,i)
+         nodeLoads_c(j+5) = m%mbdSHSLoads%Moment(3,i)
+      end do       
+      compOffset = compOffset + p%numSHSNds
+
+         ! Port horizontal stabilizer
+      do i = 1, p%numPHSNds
+         j = compOffset*6 + 6*(i-1) + 1
+         nodeLoads_c(j  ) = m%mbdPHSLoads%Force(1,i)
+         nodeLoads_c(j+1) = m%mbdPHSLoads%Force(2,i)
+         nodeLoads_c(j+2) = m%mbdPHSLoads%Force(3,i)
+         nodeLoads_c(j+3) = m%mbdPHSLoads%Moment(1,i)
+         nodeLoads_c(j+4) = m%mbdPHSLoads%Moment(2,i)
+         nodeLoads_c(j+5) = m%mbdPHSLoads%Moment(3,i)
+      end do       
+      compOffset = compOffset + p%numPHSNds
+
+      do j = 1 , p%NumPylons  
+         do i = 1, p%numSPyNds(j)
+            k = compOffset*6 + 6*(i-1) + 1   
+            nodeLoads_c(k  ) = m%mbdSPyLoads(j)%Force(1,i)
+            nodeLoads_c(k+1) = m%mbdSPyLoads(j)%Force(2,i)
+            nodeLoads_c(k+2) = m%mbdSPyLoads(j)%Force(3,i)
+            nodeLoads_c(k+3) = m%mbdSPyLoads(j)%Moment(1,i)
+            nodeLoads_c(k+4) = m%mbdSPyLoads(j)%Moment(2,i)
+            nodeLoads_c(k+5) = m%mbdSPyLoads(j)%Moment(3,i)
+         end do
+         compOffset = compOffset + p%numSPyNds(j)
+      end do
+      do j = 1 , p%NumPylons  
+         do i = 1, p%numPPyNds(j)
+            k = compOffset*6 + 6*(i-1) + 1   
+            nodeLoads_c(k  ) = m%mbdPPyLoads(j)%Force(1,i)
+            nodeLoads_c(k+1) = m%mbdPPyLoads(j)%Force(2,i)
+            nodeLoads_c(k+2) = m%mbdPPyLoads(j)%Force(3,i)
+            nodeLoads_c(k+3) = m%mbdPPyLoads(j)%Moment(1,i)
+            nodeLoads_c(k+4) = m%mbdPPyLoads(j)%Moment(2,i)
+            nodeLoads_c(k+5) = m%mbdPPyLoads(j)%Moment(3,i)
+         end do
+         compOffset = compOffset + p%numPPyNds(j)
+      end do
+         
+      ! Map KAD rotor loads to the corresponding MBDyn loads (no mesh mapping required)
+      do i = 1, p%NumPylons *2
+         j = 6*(i-1) + 1
+         rtrLoads_c(j  ) = m%KAD%y%SPyRtrLoads(i)%Force(1,1)
+         rtrLoads_c(j+1) = m%KAD%y%SPyRtrLoads(i)%Force(2,1)
+         rtrLoads_c(j+2) = m%KAD%y%SPyRtrLoads(i)%Force(3,1)
+         rtrLoads_c(j+3) = m%KAD%y%SPyRtrLoads(i)%Moment(1,1)
+         rtrLoads_c(j+4) = m%KAD%y%SPyRtrLoads(i)%Moment(2,1)
+         rtrLoads_c(j+5) = m%KAD%y%SPyRtrLoads(i)%Moment(3,1)
+      end do
+      do i = 1, p%NumPylons *2
+         j = p%NumPylons*2*6 + 6*(i-1) + 1
+         rtrLoads_c(j  ) = m%KAD%y%PPyRtrLoads(i)%Force(1,1)
+         rtrLoads_c(j+1) = m%KAD%y%PPyRtrLoads(i)%Force(2,1)
+         rtrLoads_c(j+2) = m%KAD%y%PPyRtrLoads(i)%Force(3,1)
+         rtrLoads_c(j+3) = m%KAD%y%PPyRtrLoads(i)%Moment(1,1)
+         rtrLoads_c(j+4) = m%KAD%y%PPyRtrLoads(i)%Moment(2,1)
+         rtrLoads_c(j+5) = m%KAD%y%PPyRtrLoads(i)%Moment(3,1)
+      end do
+         
+   end if
+   if ( p%useKFC ) then
+      ! TODO: Map the controller torques back to the top and bottom nodes of the pylons
+      !       and to the rtrLoads data
+      
+         
+   end if
+end subroutine TransferLoadsToMBDyn
 subroutine CreateMBDynL2MotionsMesh(origin, numNodes, positions, alignDCM, nodeDCMs, mesh, errStat, errMsg)
    real(ReKi),                   intent(inout)  :: origin(3)         !< Reference position for the mesh in global coordinates
    integer(IntKi),               intent(in   )  :: numNodes          !< Number of nodes in the mesh
@@ -106,8 +513,13 @@ subroutine CreateMBDynL2MotionsMesh(origin, numNodes, positions, alignDCM, nodeD
    if (errStat >= AbortErrLev) return
    
       
-   mesh%Orientation     = mesh%RefOrientation
-   mesh%TranslationDisp = 0.0_ReKi
+   
+   
+   do j=1,numNodes 
+      mesh%Orientation(:,:,j)     = nodeDCMs(:,:,j)
+      mesh%TranslationDisp(:,j)   = positions(:,j)  - mesh%Position(:,j)
+   end do
+   
    mesh%TranslationVel  = 0.0_ReKi
    mesh%RotationVel     = 0.0_ReKi
    
@@ -162,7 +574,7 @@ subroutine CreateMBDynL2MotionsWingMesh(origin, numSWnNodes, SWnPos, numPWnNodes
       orientation = PWnDCMs(:,:,j)
       orientation = matmul(orientation, transpose(alignDCM))
       
-      call MeshPositionNode(mesh, j, position, errStat2, errMsg2, orientation)  
+      call MeshPositionNode(mesh, numPWnNodes-j+1, position, errStat2, errMsg2, orientation)  
          call SetErrStat( errStat2, errMsg2, errStat, errMsg, RoutineName )
          
    end do !j
@@ -172,7 +584,7 @@ subroutine CreateMBDynL2MotionsWingMesh(origin, numSWnNodes, SWnPos, numPWnNodes
       orientation = SWnDCMs(:,:,j)
       orientation = matmul(orientation, transpose(alignDCM))
       
-      call MeshPositionNode(mesh, j, position, errStat2, errMsg2, orientation)  
+      call MeshPositionNode(mesh, j+numPWnNodes, position, errStat2, errMsg2, orientation)  
          call SetErrStat( errStat2, errMsg2, errStat, errMsg, RoutineName )
          
    end do !j
@@ -188,9 +600,14 @@ subroutine CreateMBDynL2MotionsWingMesh(origin, numSWnNodes, SWnPos, numPWnNodes
             
    if (errStat >= AbortErrLev) return
    
-      
-   mesh%Orientation     = mesh%RefOrientation
-   mesh%TranslationDisp = 0.0_ReKi
+   do j=numPWnNodes,1,-1       
+      mesh%Orientation(:,:,numPWnNodes-j+1)   = PWnDCMs(:,:,j)
+      mesh%TranslationDisp(:,numPWnNodes-j+1) = PWnPos(:,j)  - mesh%Position(:,numPWnNodes-j+1)
+   end do
+   do j=1,numSWnNodes     
+      mesh%Orientation(:,:,j+numPWnNodes)   = SWnDCMs(:,:,j)
+      mesh%TranslationDisp(:,j+numPWnNodes) = SWnPos(:,j)  - mesh%Position(:,j+numPWnNodes)
+   end do
    mesh%TranslationVel  = 0.0_ReKi
    mesh%RotationVel     = 0.0_ReKi
    
@@ -284,13 +701,13 @@ subroutine CreateMBDynPtLoadsMesh(origin, numNodes, positions, alignDCM, nodeDCM
    errMsg  = ""
 
    call MeshCreate ( BlankMesh = mesh     &
-                     ,IOS         = COMPONENT_INPUT &
+                     ,IOS         = COMPONENT_OUTPUT &
                      ,Nnodes      = numNodes        &
                      ,errStat     = errStat2        &
                      ,ErrMess     = errMsg2         &
                      ,force       = .true.          &
                      ,moment      = .true.          &
-                     ,orientation = .true.          &
+                     ,translationdisp = .true.      &
                      )
       call SetErrStat( errStat2, errMsg2, errStat, errMsg, RoutineName )
 
@@ -318,10 +735,11 @@ subroutine CreateMBDynPtLoadsMesh(origin, numNodes, positions, alignDCM, nodeDCM
             
    if (errStat >= AbortErrLev) return
       
-   mesh%Orientation     = mesh%RefOrientation
-   mesh%Force           = 0.0_R8Ki
+   mesh%Force           = 0.0_ReKi
    mesh%Moment          = 0.0_ReKi
-   
+   do j=1,numNodes  
+      mesh%TranslationDisp(:,j)   = positions(:,j)  - mesh%Position(:,j)
+   end do
    
 end subroutine CreateMBDynPtLoadsMesh  
 
@@ -352,13 +770,13 @@ subroutine CreateMBDynPtLoadsWingMesh(origin, numSWnNodes, SWnPos, numPWnNodes, 
    errMsg  = ""
 
    call MeshCreate ( BlankMesh = mesh     &
-                     ,IOS         = COMPONENT_INPUT &
+                     ,IOS         = COMPONENT_OUTPUT &
                      ,Nnodes      = numSWnNodes+numPWnNodes        &
                      ,errStat     = errStat2        &
                      ,ErrMess     = errMsg2         &
                      ,force       = .true.          &
                      ,moment      = .true.          &
-                     ,orientation = .true.          &
+                     ,translationdisp = .true.      &
                      )
       call SetErrStat( errStat2, errMsg2, errStat, errMsg, RoutineName )
 
@@ -371,7 +789,7 @@ subroutine CreateMBDynPtLoadsWingMesh(origin, numSWnNodes, SWnPos, numPWnNodes, 
       position = matmul(alignDCM, position) 
       orientation = PWnDCMs(:,:,j)
       orientation = matmul(orientation, transpose(alignDCM))
-      call MeshPositionNode(mesh, j, position, errStat2, errMsg2, orientation)  
+      call MeshPositionNode(mesh, numPWnNodes-j+1, position, errStat2, errMsg2, orientation)  
          call SetErrStat( errStat2, errMsg2, errStat, errMsg, RoutineName )   
    end do !j
    
@@ -380,7 +798,7 @@ subroutine CreateMBDynPtLoadsWingMesh(origin, numSWnNodes, SWnPos, numPWnNodes, 
       position = matmul(alignDCM, position) 
       orientation = SWnDCMs(:,:,j)
       orientation = matmul(orientation, transpose(alignDCM))
-      call MeshPositionNode(mesh, j, position, errStat2, errMsg2, orientation)  
+      call MeshPositionNode(mesh, j+numPWnNodes, position, errStat2, errMsg2, orientation)  
          call SetErrStat( errStat2, errMsg2, errStat, errMsg, RoutineName )   
    end do !j
    
@@ -394,9 +812,17 @@ subroutine CreateMBDynPtLoadsWingMesh(origin, numSWnNodes, SWnPos, numPWnNodes, 
             
    if (errStat >= AbortErrLev) return
       
-   mesh%Orientation     = mesh%RefOrientation
-   mesh%Force           = 0.0_R8Ki
+
+   mesh%Force           = 0.0_ReKi
    mesh%Moment          = 0.0_ReKi
+   mesh%TranslationDisp = 0.0_ReKi
+   
+   do j = numPWnNodes, 1, -1   
+      mesh%TranslationDisp(:,numPWnNodes-j+1) = PWnPos(:,j)  - mesh%Position(:,numPWnNodes-j+1)
+   end do
+   do j = 1, numSWnNodes  
+      mesh%TranslationDisp(:,j+numPWnNodes)   = SWnPos(:,j)  - mesh%Position(:,j+numPWnNodes)
+   end do
    
    
 end subroutine CreateMBDynPtLoadsWingMesh  
@@ -492,18 +918,21 @@ subroutine CreateMeshMappings(m, p, KAD, MD, errStat, errMsg)
       end do
    end if ! if ( p%useKAD )
    
+   if ( p%useMD ) then
       ! Need to transfer the MBDyn bridle point motions to MoorDyn
-   call MeshMapCreate( m%mbdWngMotions, m%MD%u(1)%PtFairleadDisplacement, m%MD_L2_2_P, errStat2, errMsg )
+   call MeshMapCreate( m%mbdWngMotions, m%MD%u(2)%PtFairleadDisplacement, m%MD_L2_2_P, errStat2, errMsg )
       call SetErrStat( errStat2, errMsg2, errStat, errMsg, ' CreateMeshMappings: m%MD_L2_2_P' )     
             if (ErrStat>=AbortErrLev) return
       ! Need to transfer the MoorDyn bridle point loads back the to MBDyn wing mesh for loads
    call MeshMapCreate( m%MD%y%PtFairleadLoad, m%mbdWngLoads,  m%MD_P_2_P, errStat2, errMsg )
       call SetErrStat( errStat2, errMsg2, errStat, errMsg, ' CreateMeshMappings: m%MD_P_2_P' )     
             if (ErrStat>=AbortErrLev) return
-
+   end if 
+   
 end subroutine CreateMeshMappings
 
-subroutine TransferMBDynInputs2KADMeshes( p, m, errStat, errMsg )
+subroutine TransferMBDynInputs2KADMeshes( FusO, p, m, errStat, errMsg )
+   real(ReKi),                intent(in   ) :: FusO(3)
    type(KFAST_ParameterType), intent(in   ) :: p
    type(KFAST_MiscVarType),   intent(inout) :: m
    integer(IntKi),            intent(  out) :: errStat                    ! Error status of the operation
@@ -521,39 +950,46 @@ subroutine TransferMBDynInputs2KADMeshes( p, m, errStat, errMsg )
       ! Use the current point locations and the mesh node reference positions to compute the current displacements
       ! Then set the displacements, velocities, and DCMs to the MBDyn-based meshes
 
+   
    do i = 1,p%numFusNds
       m%mbdFusMotions%Orientation  (:,:,i) = m%FusNdDCMs(:,:,i)
       m%mbdFusMotions%TranslationDisp(:,i) = m%FusPts(:,i) - m%mbdFusMotions%Position(:,i)
+      m%mbdFusLoads%TranslationDisp(:,i)   = m%mbdFusMotions%TranslationDisp(:,i)
       m%mbdFusMotions%TranslationVel (:,i) = m%FusVels(:,i)
       m%mbdFusMotions%RotationVel    (:,i) = m%FusOmegas(:,i)
    end do
    do i = 1,p%numSwnNds
       m%mbdSWnMotions%Orientation  (:,:,i) = m%SWnNdDCMs(:,:,i)
       m%mbdSWnMotions%TranslationDisp(:,i) = m%SWnPts(:,i) - m%mbdSWnMotions%Position(:,i)
+      m%mbdSWnLoads%TranslationDisp(:,i)   = m%mbdSWnMotions%TranslationDisp(:,i)
       m%mbdSWnMotions%TranslationVel (:,i) = m%SWnVels(:,i)
       m%mbdSWnMotions%RotationVel    (:,i) = m%SWnOmegas(:,i)
    end do
    do i = 1,p%numPwnNds
       m%mbdPWnMotions%Orientation  (:,:,i) = m%PWnNdDCMs(:,:,i)
       m%mbdPWnMotions%TranslationDisp(:,i) = m%PWnPts(:,i) - m%mbdPWnMotions%Position(:,i)
+      m%mbdPWnLoads%TranslationDisp(:,i)   = m%mbdPWnMotions%TranslationDisp(:,i)
       m%mbdPWnMotions%TranslationVel (:,i) = m%PWnVels(:,i)
       m%mbdPWnMotions%RotationVel    (:,i) = m%PWnOmegas(:,i)
    end do
    do i = 1,p%numVSNds
       m%mbdVSMotions%Orientation  (:,:,i) = m%VSNdDCMs(:,:,i)
       m%mbdVSMotions%TranslationDisp(:,i) = m%VSPts(:,i) - m%mbdVSMotions%Position(:,i)
+      m%mbdVSLoads%TranslationDisp(:,i)   = m%mbdVSMotions%TranslationDisp(:,i)
       m%mbdVSMotions%TranslationVel (:,i) = m%VSVels(:,i)
       m%mbdVSMotions%RotationVel    (:,i) = m%VSOmegas(:,i)
    end do
    do i = 1,p%numSHSNds
       m%mbdSHSMotions%Orientation  (:,:,i) = m%SHSNdDCMs(:,:,i)
       m%mbdSHSMotions%TranslationDisp(:,i) = m%SHSPts(:,i) - m%mbdSHSMotions%Position(:,i)
+      m%mbdSHSLoads%TranslationDisp(:,i)   = m%mbdSHSMotions%TranslationDisp(:,i)
       m%mbdSHSMotions%TranslationVel (:,i) = m%SHSVels(:,i)
       m%mbdSHSMotions%RotationVel    (:,i) = m%SHSOmegas(:,i)
    end do
    do i = 1,p%numPHSNds
       m%mbdPHSMotions%Orientation  (:,:,i) = m%PHSNdDCMs(:,:,i)
       m%mbdPHSMotions%TranslationDisp(:,i) = m%PHSPts(:,i) - m%mbdPHSMotions%Position(:,i)
+      m%mbdPHSLoads%TranslationDisp(:,i)   = m%mbdPHSMotions%TranslationDisp(:,i)
       m%mbdPHSMotions%TranslationVel (:,i) = m%PHSVels(:,i)
       m%mbdPHSMotions%RotationVel    (:,i) = m%PHSOmegas(:,i)
    end do
@@ -561,6 +997,7 @@ subroutine TransferMBDynInputs2KADMeshes( p, m, errStat, errMsg )
       do i = 1, p%numSPyNds(j)
          m%mbdSPyMotions(j)%Orientation  (:,:,i) = m%SPyNdDCMs(:,:,i,j)
          m%mbdSPyMotions(j)%TranslationDisp(:,i) = m%SPyPts(:,i,j) - m%mbdSPyMotions(j)%Position(:,i)
+         m%mbdSPyLoads(j)%TranslationDisp(:,i)   = m%mbdSPyMotions(j)%TranslationDisp(:,i) 
          m%mbdSPyMotions(j)%TranslationVel (:,i) = m%SPyVels(:,i,j)
          m%mbdSPyMotions(j)%RotationVel    (:,i) = m%SPyOmegas(:,i,j)
       end do
@@ -569,10 +1006,13 @@ subroutine TransferMBDynInputs2KADMeshes( p, m, errStat, errMsg )
       do i = 1, p%numPPyNds(j)
          m%mbdPPyMotions(j)%Orientation  (:,:,i) = m%PPyNdDCMs(:,:,i,j)
          m%mbdPPyMotions(j)%TranslationDisp(:,i) = m%PPyPts(:,i,j) - m%mbdPPyMotions(j)%Position(:,i)
+         m%mbdPPyLoads(j)%TranslationDisp(:,i)   = m%mbdPPyMotions(j)%TranslationDisp(:,i)
          m%mbdPPyMotions(j)%TranslationVel (:,i) = m%PPyVels(:,i,j)
          m%mbdPPyMotions(j)%RotationVel    (:,i) = m%PPyOmegas(:,i,j)
       end do
    end do
+   
+   m%KAD%u(1)%FusOMotions%TranslationDisp(:,1) =  FusO 
    
       ! Map the motions over to the corresponding KAD input meshes
    call Transfer_Line2_to_Line2(m%mbdFusMotions, m%KAD%u(1)%FusMotions, m%Fus_L2_L2, errStat2, errMsg2)
@@ -599,7 +1039,7 @@ subroutine TransferMBDynInputs2KADMeshes( p, m, errStat, errMsg )
       do i=1,2 ! two per pylon
          c = i+(j-1)*p%numPylons
          m%KAD%u(1)%SPyRtrMotions(c)%TranslationDisp(:,1) =  m%SPyRtrO(:,i,j) - m%KAD%u(1)%SPyRtrMotions(c)%Position(:,1)
-         m%KAD%u(1)%SPyRtrMotions(c)%Orientation(:,:,1)     =  m%SPyRtrDCMs(:,:,i,j)
+         m%KAD%u(1)%SPyRtrMotions(c)%Orientation(:,:,1)   =  m%SPyRtrDCMs(:,:,i,j)
          m%KAD%u(1)%SPyRtrMotions(c)%TranslationVel(:,1)  =  m%SPyRtrVels(:,i,j)
       end do
    end do
@@ -608,7 +1048,7 @@ subroutine TransferMBDynInputs2KADMeshes( p, m, errStat, errMsg )
       do i=1,2 ! two per pylon
          c = i+(j-1)*p%numPylons
          m%KAD%u(1)%PPyRtrMotions(c)%TranslationDisp(:,1) = m%PPyRtrO(:,i,j) - m%KAD%u(1)%PPyRtrMotions(c)%Position(:,1)
-         m%KAD%u(1)%PPyRtrMotions(c)%Orientation(:,:,1)     = m%PPyRtrDCMs(:,:,i,j)
+         m%KAD%u(1)%PPyRtrMotions(c)%Orientation(:,:,1)   = m%PPyRtrDCMs(:,:,i,j)
          m%KAD%u(1)%PPyRtrMotions(c)%TranslationVel(:,1)  = m%PPyRtrVels(:,i,j)
       end do
    end do
@@ -767,7 +1207,6 @@ subroutine TransferMBDynToKAD( FusO, numNodePtElem_c, nodePts_c, numNodeVelElem_
       m%FusPts(:,i)            = nodePts_c(n:n+2)
       m%FusVels(:,i)           = nodeVels_c(n:n+2)
       m%FusOmegas(:,i)         = nodeOmegas_c(n:n+2)
-      !mbdFusMotions%
       c = c + 9
       n = n + 3
    end do
@@ -853,12 +1292,12 @@ subroutine TransferMBDynToKAD( FusO, numNodePtElem_c, nodePts_c, numNodeVelElem_
       n = n + 9
    end do
    do i = 1, p%numPylons
-      m%PPyRtrO(:,1,i)         = rtrPts_c(c:c+2)
+      m%PPyRtrO(:,1,i)          = rtrPts_c(c:c+2)
       m%PPyRtrDCMs(:,:,1,i)     = reshape(rtrDCMs_c(n:n+8),(/3,3/))
       m%PPyRtrVels(:,1,i)       = rtrVels_c(c:c+2)
       c = c + 3
       n = n + 9
-      m%PPyRtrO(:,2,i)         = rtrPts_c(c:c+2)
+      m%PPyRtrO(:,2,i)          = rtrPts_c(c:c+2)
       m%PPyRtrDCMs(:,:,2,i)     = reshape(rtrDCMs_c(n:n+8),(/3,3/))
       m%PPyRtrVels(:,2,i)       = rtrVels_c(c:c+2)
       c = c + 3
@@ -866,7 +1305,7 @@ subroutine TransferMBDynToKAD( FusO, numNodePtElem_c, nodePts_c, numNodeVelElem_
    end do
    
       ! Now attach this motion data to the MBDyn motion meshes and transfer motions to the corresponding KAD input meshes
-   call TransferMBDynInputs2KADMeshes( p, m, errStat, errMsg )
+   call TransferMBDynInputs2KADMeshes( FusO, p, m, errStat, errMsg )
    
 end subroutine TransferMBDynToKAD
  
@@ -890,75 +1329,62 @@ subroutine TransferMBDynToIfW( WindPt_c, FusO, numNodePtElem_c, nodePts_c, rtrPt
    m%IfW%u%PositionXYZ(:,1) = WindPt_c
    m%IfW%u%PositionXYZ(:,2) = FusO
    
-   n=1
    v=3
    
-   do i = 1,p%numFusNds
-      m%IfW%u%PositionXYZ(:,v) = nodePts_c(n:n+2)
-      n = n + 3
+   do i = 1,m%KAD%u(1)%FusMotions%NNodes
+      m%IfW%u%PositionXYZ(:,v) = m%KAD%u(1)%FusMotions%Position(:,i) + m%KAD%u(1)%FusMotions%TranslationDisp(:,i)
       v = v + 1
    end do
-   do i = 1,p%numSwnNds
-      m%IfW%u%PositionXYZ(:,v) = nodePts_c(n:n+2)
-      n = n + 3
+   do i = 1,m%KAD%u(1)%SWnMotions%NNodes
+      m%IfW%u%PositionXYZ(:,v) = m%KAD%u(1)%SWnMotions%Position(:,i) + m%KAD%u(1)%SWnMotions%TranslationDisp(:,i)
       v = v + 1
    end do
-   do i = 1,p%numPwnNds
-      m%IfW%u%PositionXYZ(:,v) = nodePts_c(n:n+2)
-      n = n + 3
+   do i = 1,m%KAD%u(1)%PWnMotions%NNodes
+      m%IfW%u%PositionXYZ(:,v) = m%KAD%u(1)%PWnMotions%Position(:,i) + m%KAD%u(1)%PWnMotions%TranslationDisp(:,i)
       v = v + 1
    end do
-   do i = 1,p%numVSNds
-      m%IfW%u%PositionXYZ(:,v) = nodePts_c(n:n+2)
-      n = n + 3
+   do i = 1,m%KAD%u(1)%VSMotions%NNodes
+      m%IfW%u%PositionXYZ(:,v) = m%KAD%u(1)%VSMotions%Position(:,i) + m%KAD%u(1)%VSMotions%TranslationDisp(:,i)
       v = v + 1
    end do
-   do i = 1,p%numSHSNds
-      m%IfW%u%PositionXYZ(:,v) = nodePts_c(n:n+2)
-      n = n + 3
+   do i = 1,m%KAD%u(1)%SHSMotions%NNodes
+      m%IfW%u%PositionXYZ(:,v) = m%KAD%u(1)%SHSMotions%Position(:,i) + m%KAD%u(1)%SHSMotions%TranslationDisp(:,i)
       v = v + 1
    end do
-   do i = 1,p%numPHSNds
-      m%IfW%u%PositionXYZ(:,v) = nodePts_c(n:n+2)
-      n = n + 3
+   do i = 1,m%KAD%u(1)%PHSMotions%NNodes
+      m%IfW%u%PositionXYZ(:,v) = m%KAD%u(1)%PHSMotions%Position(:,i) + m%KAD%u(1)%PHSMotions%TranslationDisp(:,i)
       v = v + 1
    end do
    do j = 1, p%numPylons
-      do i = 1, p%numSPyNds(j)
-         m%IfW%u%PositionXYZ(:,v)   = nodePts_c(n:n+2)
-         n = n + 3
+      do i = 1, m%KAD%u(1)%SPyMotions(j)%NNodes
+         m%IfW%u%PositionXYZ(:,v)   = m%KAD%u(1)%SPyMotions(j)%Position(:,i) + m%KAD%u(1)%SPyMotions(j)%TranslationDisp(:,i)
          v = v + 1
       end do
    end do
    do j = 1, p%numPylons
-      do i = 1, p%numPPyNds(j)
-         m%IfW%u%PositionXYZ(:,v)   = nodePts_c(n:n+2)
-         n = n + 3
+      do i = 1, m%KAD%u(1)%PPyMotions(j)%NNodes
+         m%IfW%u%PositionXYZ(:,v)   = m%KAD%u(1)%PPyMotions(j)%Position(:,i) + m%KAD%u(1)%PPyMotions(j)%TranslationDisp(:,i)
          v = v + 1
       end do
    end do
    
       ! Decode rotor positions
-   c=1
-   do i = 1, p%numPylons
-      m%IfW%u%PositionXYZ(:,v) = rtrPts_c(c:c+2)
-      c = c + 3
-      v = v + 1
-      m%IfW%u%PositionXYZ(:,v) = rtrPts_c(c:c+2)
-      c = c + 3
-      v = v + 1
-   end do
-   do i = 1, p%numPylons
-      m%IfW%u%PositionXYZ(:,v) = rtrPts_c(c:c+2)
-      c = c + 3
-      v = v + 1
-      m%IfW%u%PositionXYZ(:,v) = rtrPts_c(c:c+2)
-      c = c + 3
-      v = v + 1
+   do j = 1, p%numPylons
+      do i=1,2 ! two per pylon
+         c = i+(j-1)*p%numPylons
+         m%IfW%u%PositionXYZ(:,v) = m%KAD%u(1)%SPyRtrMotions(c)%Position(:,1) + m%KAD%u(1)%SPyRtrMotions(c)%TranslationDisp(:,1) 
+         v = v + 1
+      end do
    end do
    
-   
-  
+   do j = 1, p%numPylons
+      do i=1,2 ! two per pylon
+         c = i+(j-1)*p%numPylons
+         m%IfW%u%PositionXYZ(:,v) = m%KAD%u(1)%PPyRtrMotions(c)%Position(:,1) + m%KAD%u(1)%PPyRtrMotions(c)%TranslationDisp(:,1) 
+         v = v + 1
+      end do
+   end do
+
 end subroutine TransferMBDynToIfW
 
 subroutine KFAST_Init(dt, numFlaps, numPylons, numComp, numCompNds, modFlags, KAD_FileName_c, IfW_FileName_c, MD_FileName_c, KFC_FileName_c, &
@@ -1045,12 +1471,12 @@ subroutine KFAST_Init(dt, numFlaps, numPylons, numComp, numCompNds, modFlags, KA
          ! Validate some of the input data
       if ( numFlaps /=  3 )  call SetErrStat( ErrID_FATAL, "Due to the Controller interface requirements, numFlaps must be set to 3", errStat, errMsg, routineName )
       if ( numPylons /=  2 ) call SetErrStat( ErrID_FATAL, "Due to the Controller interface requirements, numPylons must be set to 2", errStat, errMsg, routineName )
+      if ( .not. EqualRealNos(REAL(dt, DbKi) ,0.01_DbKi) )  call SetErrStat( ErrID_FATAL, "Due to the Controller requirements, dt must be set to 0.01", errStat, errMsg, routineName )
    else
       p%useKFC = .false.
    end if
    
-   if ( .not. EqualRealNos(REAL(dt, DbKi) ,0.01_DbKi) )  call SetErrStat( ErrID_FATAL, "Due to the Controller requirements, dt must be set to 0.01", errStat, errMsg, routineName )
-
+   
    if (errStat >= AbortErrLev ) then
       call TransferErrors(errStat, errMsg, errStat_c, errMsg_c)
       return
@@ -1108,8 +1534,7 @@ subroutine KFAST_Init(dt, numFlaps, numPylons, numComp, numCompNds, modFlags, KA
       KAD_InitInp%SHSOR = matmul(m%FusODCM,KAD_InitInp%SHSOR)
       KAD_InitInp%PHSOR =  PHSO - FusO
       KAD_InitInp%PHSOR = matmul(m%FusODCM,KAD_InitInp%PHSOR)
-      KAD_InitInp%SWnOR =  SwnO - FusO
-      KAD_InitInp%SWnOR = matmul(m%FusODCM,KAD_InitInp%SWnOR)
+
       do i = 1, numPylons
          KAD_InitInp%SPyOR(:,i) = SPyO(:,i) - FusO
          KAD_InitInp%SPyOR(:,i) = matmul(m%FusODCM,KAD_InitInp%SPyOR(:,i))
@@ -1141,8 +1566,8 @@ subroutine KFAST_Init(dt, numFlaps, numPylons, numComp, numCompNds, modFlags, KA
       
       p%AirDens = KAD_InitOut%AirDens
    else
-      p%AirDens = 0.0_ReKi
-      KAD_InitOut%nIfWPts = 0
+      p%AirDens = 1.225_ReKi   ! Default air density
+      KAD_InitOut%nIfWPts = 0  
    end if
                        
 !----------------------------------------------------------------
@@ -1174,9 +1599,7 @@ subroutine KFAST_Init(dt, numFlaps, numPylons, numComp, numCompNds, modFlags, KA
 !----------------------------------------------------------------
 ! Initialize the MoorDyn Module
 !----------------------------------------------------------------
-         
-   
-   
+
    if (p%useMD) then
       
       MD_InitInp%FileName  = transfer(MD_FileName_c(1:IntfStrLen-1),MD_InitInp%FileName)
@@ -1187,11 +1610,11 @@ subroutine KFAST_Init(dt, numFlaps, numPylons, numComp, numCompNds, modFlags, KA
       MD_InitInp%PtfmPos   = FusO
       MD_InitInp%PtfmDCM   = m%FusODCM
       MD_InitInp%g         = gravity                    ! 
-      MD_InitInp%rhoW      = KAD_InitOut%AirDens        ! This needs to be set according to air density at the Kite      
+      MD_InitInp%rhoW      = p%AirDens                  ! This needs to be set according to air density at the Kite      
       MD_InitInp%WtrDepth  = 0.0_ReKi                   ! No water depth in this application
       interval             = dt
    
-      call MD_Init( MD_InitInp, m%MD%u(1), m%MD%p, m%MD%x, m%MD%xd, m%MD%z, &
+      call MD_Init( MD_InitInp, m%MD%u(2), m%MD%p, m%MD%x, m%MD%xd, m%MD%z, &
                      m%MD%OtherSt, m%MD%y, m%MD%m, interval, MD_InitOut, errStat2, errMsg2 )
          call SetErrStat(errStat2,errMsg2,errStat,errMsg,routineName)
          if (errStat >= AbortErrLev ) then
@@ -1199,6 +1622,9 @@ subroutine KFAST_Init(dt, numFlaps, numPylons, numComp, numCompNds, modFlags, KA
             return
          end if
          
+            ! Copy t+dt inputs to t for the next timestep
+         call MD_CopyInput( m%MD%u(2), m%MD%u(1), MESH_NEWCOPY, errStat2, errMsg2 )
+   
       if ( MD_InitOut%NAnchs > 1 ) then
          call SetErrStat(ErrID_Fatal,'KiteFAST can only support a single anchor point in the MoorDyn model',errStat,errMsg,routineName)
          if (errStat >= AbortErrLev ) then
@@ -1224,7 +1650,7 @@ subroutine KFAST_Init(dt, numFlaps, numPylons, numComp, numCompNds, modFlags, KA
 
          ! Set the DCM between FAST inertial frame and the Controller ground frame
       p%DCM_Fast2Ctrl = reshape((/-1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, -1.0/),(/3,3/))
-      KFC_InitInp%DLL_FileName = transfer(KFC_FileName_c(1:IntfStrLen-1),KFC_InitInp%DLL_FileName)
+      
       KFC_InitInp%numPylons    = numPylons
       KFC_InitInp%numFlaps     = numFlaps
       interval = dt
@@ -1236,7 +1662,7 @@ subroutine KFAST_Init(dt, numFlaps, numPylons, numComp, numCompNds, modFlags, KA
          end if
    end if
    
-   m%NewTime = .true.  ! This flag is needed to tell us when we have advanced time, and hence need to call the Controller's Step routine
+   OtherSt%NewTime = .true.  ! This flag is needed to tell us when we have advanced time, and hence need to call the Controller's Step routine
    
 ! -------------------------------------------------------------------------
 ! Initialize mesh-mapping data
@@ -1252,206 +1678,9 @@ subroutine KFAST_Init(dt, numFlaps, numPylons, numComp, numCompNds, modFlags, KA
 ! Open the Output file and generate header data
 ! -------------------------------------------------------------------------      
 
+   call KFAST_OpenOutput( KFAST_Ver, p%outFileRoot, p, KAD_InitOut, MD_InitOut, IfW_InitOut, ErrStat2, ErrMsg2 )
+      call SetErrStat(errStat2,errMsg2,errStat,errMsg,routineName)
       
-!! -------------------------------------------------------------------------
-!! Call the t = 0.0 CalcOutput() routines
-!! -------------------------------------------------------------------------
-!   
-!   ! -------------------------------------------------------------------------
-!   ! MoorDyn
-!   ! -------------------------------------------------------------------------      
-!   if ( p%useMD ) then      
-!  
-!         ! Pos and Vel of each Fairlead (Bridle connection) at t.  
-!         !   We need to set the TranslationDisp, Orientation, TranslationVel, RotationVel properties on the mesh
-!      !m%MD%u(1)%PtFairleadDisplacement%TranslationDisp = 0.0
-!      !m%MD%u(1)%PtFairleadDisplacement%Orientation     = 0.0  ! What is this really?  the FusODCM??
-!      m%MD%u(1)%PtFairleadDisplacement%TranslationVel  = 0.0
-!      m%MD%u(1)%PtFairleadDisplacement%RotationVel     = 0.0
-!      
-!      call MD_CalcOutput( 0.0_DbKi, m%MD%u(1), m%MD%p, m%MD%x, m%MD%xd, m%MD%z, m%MD%OtherSt, m%MD%y, m%MD%m, errStat2, errMsg2 )
-!         call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
-!      if (errStat >= AbortErrLev ) then
-!         call TransferErrors(errStat, errMsg, errStat_c, errMsg_c)
-!         return
-!      end if
-!   
-!   end if   
-!      
-!   ! -------------------------------------------------------------------------
-!   ! InflowWind
-!   ! -------------------------------------------------------------------------      
-!      ! The inputs to InflowWind are the positions where wind velocities [the outputs] are to be computed.  These inputs are set above by
-!      !  the TransferMBDynInputs() call.
-!   if ( p%useIfW ) then
-!      call TransferMBDynToIfW( WindPt_c, FusO, numNodePtElem_c, nodePts_c, rtrPts_c, p, m, errStat2, errMsg2 )
-!         call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
-!         if (errStat >= AbortErrLev ) then
-!            call TransferErrors(errStat, errMsg, errStat_c, errMsg_c)
-!            return
-!         end if
-!      call InflowWind_CalcOutput(0.0_DbKi, m%IfW%u, m%IfW%p, m%IfW%x, m%IfW%xd, m%IfW%z, m%IfW%OtherSt, m%IfW%y, m%IfW%m, errStat2, errMsg2 )
-!         call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
-!         if (errStat >= AbortErrLev ) then
-!            call TransferErrors(errStat, errMsg, errStat_c, errMsg_c)
-!            return
-!         end if
-!   end if
-!   
-!   ! -------------------------------------------------------------------------
-!   ! Controller
-!   ! -------------------------------------------------------------------------      
-! 
-!         ! Set the 2 special previous timestep inflows based on the InflowWind outputs
-!   if (p%useKFC) then
-!               ! NOTE: The controller is stepping from t (GetXPrev in MBDyn) to t+dt (GetXCur in MBDyn)
-!         !       therefore, all inputs to KFC needs to be at time, t.
-!      zero_vec = (/0.0_ReKi, 0.0_ReKi,0.0_ReKi/)
-!      m%KFC%u%dcm_g2b       = matmul(FusODCM, transpose(p%DCM_Fast2Ctrl))
-!      m%KFC%u%pqr           = zero_vec
-!      m%KFC%u%acc_norm      = 0.0_reKi
-!      m%KFC%u%Xg            = FusO - p%anchorPt
-!      m%KFC%u%Xg            = matmul(p%DCM_Fast2Ctrl, m%KFC%u%Xg)
-!      m%KFC%u%Vg            = zero_vec
-!      m%KFC%u%Vb            = zero_vec
-!      m%KFC%u%Ag            = zero_vec
-!      m%KFC%u%Ab            = zero_vec
-!      m%KFC%u%rho           = p%AirDens
-!      m%KFC%u%apparent_wind = m%IfW%y%VelocityUVW(:,2)
-!      m%KFC%u%apparent_wind = matmul(p%DCM_Fast2Ctrl, m%KFC%u%apparent_wind)
-!      ! m%KFC%u%tether_force  = 0 
-!      m%KFC%u%wind_g        = matmul(p%DCM_Fast2Ctrl, m%IfW%y%VelocityUVW(:,1))
-!      
-!      call KFC_CalcOutput(0.0_DbKi, m%KFC%u, m%KFC%p, m%KFC%y, errStat2, errMsg2 )
-!         call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
-!      if (errStat >= AbortErrLev ) then
-!         call TransferErrors(errStat, errMsg, errStat_c, errMsg_c)
-!         return
-!      end if
-!
-!      m%IfW_ground_prev = m%IfW%y%VelocityUVW(:,1)
-!      m%IfW_FusO_prev   = m%IfW%y%VelocityUVW(:,2)
-!      
-!   end if  
-!
-!   ! -------------------------------------------------------------------------
-!   ! KiteAeroDyn
-!   ! -------------------------------------------------------------------------      
-!   
-!   if ( p%useKAD ) then
-!         ! Outputs from Controller for KAD
-!      if ( p%useKFC ) then
-!         m%KAD%u(1)%Ctrl_SFlp = m%KFC%y%SFlp
-!         m%KAD%u(1)%Ctrl_PFlp = m%KFC%y%PFlp
-!         m%KAD%u(1)%Ctrl_Rudr = m%KFC%y%Rudr
-!         m%KAD%u(1)%Ctrl_SElv = m%KFC%y%SElv
-!         m%KAD%u(1)%Ctrl_PElv = m%KFC%y%PElv
-!      else
-!         m%KAD%u(1)%Ctrl_SFlp = 0.0_ReKi
-!         m%KAD%u(1)%Ctrl_PFlp = 0.0_ReKi
-!         m%KAD%u(1)%Ctrl_Rudr = 0.0_ReKi
-!         m%KAD%u(1)%Ctrl_SElv = 0.0_ReKi
-!         m%KAD%u(1)%Ctrl_PElv = 0.0_ReKi
-!      end if
-!      
-!      m%KAD%u(1)%Pitch_SPyRtr = 0.0_ReKi   ! Controller does not set these, yet.
-!      m%KAD%u(1)%Pitch_PPyRtr = 0.0_ReKi
-!   
-!         ! Rotor Speeds from MBDyn  [2 per pylon]
-!      c = 1
-!      
-!! TODO: Where do we get these initial speeds from?
-!      do i = 1, p%numPylons ! [moving from inboard to outboard]
-!         m%KAD%u(1)%RtSpd_SPyRtr(1,i) = 0.0_ReKi  ! RtSpd_PyRtr_c(c)    ! top
-!         m%KAD%u(1)%RtSpd_SPyRtr(2,i) = 0.0_ReKi  ! RtSpd_PyRtr_c(c+1)  ! bottom
-!         c = c+2
-!      end do
-!      do i = 1, p%numPylons   ! [moving from inboard to outboard]
-!         m%KAD%u%RtSpd_PPyRtr(1,i) = 0.0_ReKi  ! RtSpd_PyRtr_c(c)    ! top
-!         m%KAD%u%RtSpd_PPyRtr(2,i) = 0.0_ReKi  ! RtSpd_PyRtr_c(c+1)  ! bottom
-!         c = c+2
-!      end do
-!   
-!         ! Update the MBDyn Motions meshes based on the transferred inputs
-!   
-!         ! Map the MBDyn motion mesh data to the corresponding KAD motion mesh
-!   
-!      if ( p%useIfW ) then
-!            ! Transfer Inflow Wind outputs to the various KAD inflow inputs
-!         c=3
-!         do i = 1,size(m%KAD%u(1)%V_Fus,2)
-!            m%KAD%u(1)%V_Fus(:,i)   = m%IfW%y%VelocityUVW(:,c)
-!            c = c+1
-!         end do
-!         do i = 1,size(m%KAD%u(1)%V_SWn,2)
-!            m%KAD%u(1)%V_SWn(:,i)   = m%IfW%y%VelocityUVW(:,c)
-!            c = c+1
-!         end do
-!         do i = 1,size(m%KAD%u(1)%V_PWn,2)
-!            m%KAD%u(1)%V_PWn(:,i)   = m%IfW%y%VelocityUVW(:,c)
-!            c = c+1
-!         end do
-!         do i = 1,size(m%KAD%u(1)%V_VS,2)
-!            m%KAD%u(1)%V_VS(:,i)   = m%IfW%y%VelocityUVW(:,c)
-!            c = c+1
-!         end do
-!         do i = 1,size(m%KAD%u(1)%V_SHS,2)
-!            m%KAD%u(1)%V_SHS(:,i)   = m%IfW%y%VelocityUVW(:,c)
-!            c = c+1
-!         end do
-!         do i = 1,size(m%KAD%u(1)%V_PHS,2)
-!            m%KAD%u(1)%V_PHS(:,i)   = m%IfW%y%VelocityUVW(:,c)
-!            c = c+1
-!         end do
-!         do j = 1,p%numPylons
-!            do i = 1,size(m%KAD%u(1)%V_SPy,2)
-!               m%KAD%u(1)%V_SPy(:,i,j)   = m%IfW%y%VelocityUVW(:,c)
-!               c = c+1
-!            end do
-!         end do
-!         do j = 1,p%numPylons
-!            do i = 1,size(m%KAD%u(1)%V_PPy,2)
-!               m%KAD%u(1)%V_PPy(:,i,j)   = m%IfW%y%VelocityUVW(:,c)
-!               c = c+1
-!            end do
-!         end do   
-!         do i = 1,p%numPylons
-!            m%KAD%u(1)%V_SPyRtr(:,1,i) = m%IfW%y%VelocityUVW(:,c)
-!            c = c+1
-!            m%KAD%u(1)%V_SPyRtr(:,2,i) = m%IfW%y%VelocityUVW(:,c)
-!            c = c+1
-!         end do
-!         do i = 1,p%numPylons
-!            m%KAD%u(1)%V_PPyRtr(:,1,i) = m%IfW%y%VelocityUVW(:,c)
-!            c = c+1
-!            m%KAD%u(1)%V_PPyRtr(:,2,i) = m%IfW%y%VelocityUVW(:,c)
-!            c = c+1
-!         end do
-!      else
-!         m%KAD%u(1)%V_Fus     = 0.0_ReKi
-!         m%KAD%u(1)%V_SWn     = 0.0_ReKi
-!         m%KAD%u(1)%V_PWn     = 0.0_ReKi
-!         m%KAD%u(1)%V_VS      = 0.0_ReKi
-!         m%KAD%u(1)%V_SHS     = 0.0_ReKi
-!         m%KAD%u(1)%V_PHS     = 0.0_ReKi
-!         m%KAD%u(1)%V_SPy     = 0.0_ReKi
-!         m%KAD%u(1)%V_PPy     = 0.0_ReKi         
-!         m%KAD%u(1)%V_SPyRtr  = 0.0_ReKi    
-!         m%KAD%u(1)%V_PPyRtr  = 0.0_ReKi  
-!      end if
-!      
-!      call KAD_CalcOutput( 0.0_DbKi, m%KAD%u(1), m%KAD%p, m%KAD%x, m%KAD%xd, m%KAD%z, m%KAD%OtherSt, m%KAD%y, m%KAD%m, errStat, errMsg )
-!         call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
-!      
-!   end if
-!   
-!   ! TODO: Now map any of the loads from these modules outputs back to the MBDyn nodes and return the t=0 loads to MBDyn
-!   !  Question: Does MBDyn do anything with this t=0, Constructor generated loads?  I don't think so.  GJH
-!      
-!! -------------------------------------------------------------------------
-!! Write the Outputs
-!! -------------------------------------------------------------------------      
-
    call TransferErrors(errStat, errMsg, errStat_c, errMsg_c)
    return
 
@@ -1594,6 +1823,7 @@ contains
    call AllocAry( m%PPyOmegas, 3, maxPPyNds, p%numPylons, 'PPyOmegas', errStat2, errMsg2 )
       call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
 
+   ! TODO : Check ording of c data to make sure we get the expected global to local DCM
    m%FusODCM = reshape(FusODCM_c,(/3,3/))
    
    call TransferMBDynInitInputs( WindPt_c, FusO, numNodePtElem_c, nodePts_c, numDCMElem_c, nodeDCMs_c, rtrPts_c, p, m, errStat2, errMsg2 )
@@ -1644,7 +1874,7 @@ contains
       ! Port Wing
    call CreateMBDynPtLoadsMesh(FusO, p%numPWnNds, m%PWnPts, m%FusODCM, m%PWnNdDCMs, m%mbdPWnLoads, errStat, errMsg)
       ! Total Wing
-   call CreateMBDynPtLoadsWingMesh(FusO, p%numSWnNds, m%SWnPts, p%numPWnNds, m%PWnPts, m%FusODCM, m%SWnNdDCMs, m%PWnNdDCMs, m%mbdPWnLoads, errStat, errMsg)
+   call CreateMBDynPtLoadsWingMesh(FusO, p%numSWnNds, m%SWnPts, p%numPWnNds, m%PWnPts, m%FusODCM, m%SWnNdDCMs, m%PWnNdDCMs, m%mbdWngLoads, errStat, errMsg)
       ! Vertical Stabilizer
    call CreateMBDynPtLoadsMesh(FusO, p%numVSNds, m%VSPts, m%FusODCM, m%VSNdDCMs, m%mbdVSLoads, errStat, errMsg)
       ! Starboard Horizontal Stabilizer
@@ -1670,13 +1900,13 @@ contains
                        
 end subroutine KFAST_Init
 
-subroutine KFAST_AssRes(t_c, doUpdateStates_c, numRtSpdRtrElem_c, RtSpd_PyRtr_c, WindPt_c, FusO_prev_c, FusO_c, FusODCM_prev_c, FusOv_prev_c, FusOomegas_prev_c, FusOacc_prev_c, numNodePtElem_c, nodePts_c, &
+subroutine KFAST_AssRes(t_c, isInitialTime_c, numRtSpdRtrElem_c, RtSpd_PyRtr_c, WindPt_c, FusO_prev_c, FusO_c, FusODCM_prev_c, FusOv_prev_c, FusOomegas_prev_c, FusOacc_prev_c, numNodePtElem_c, nodePts_c, &
                           numNodeVelElem_c, nodeVels_c, numNodeOmegaElem_c, nodeOmegas_c, numDCMElem_c, nodeDCMs_c, numRtrPtsElem_c, rtrPts_c, &
                           rtrVels_c, rtrDCMs_c, numNodeLoadsElem_c, nodeLoads_c, numRtrLoadsElem_c, rtrLoads_c, errStat_c, errMsg_c ) BIND (C, NAME='KFAST_AssRes')
    IMPLICIT NONE
 
    real(C_DOUBLE),         intent(in   ) :: t_c                               ! simulation time  (s)
-   integer(C_INT),         intent(in   ) :: doUpdateStates_c                  ! Should we call the UpdateStates routines? 1= yes, 0 = no
+   integer(C_INT),         intent(in   ) :: isInitialTime_c                   ! Is this the initial time of the simulation 1=Yes, should we update the states? 0=yes, 1=no
    integer(C_INT),         intent(in   ) :: numRtSpdRtrElem_c                 ! total number of array elements in the rotor rotor speeds array
    real(C_DOUBLE),         intent(in   ) :: RtSpd_PyRtr_c(numRtSpdRtrElem_c)  ! 1D array containing all the rotor speeds for the kite 
    real(C_DOUBLE),         intent(in   ) :: WindPt_c(3)                       ! The location of the ground station point where the freestream wind is measured [global coordinates] (m)
@@ -1699,15 +1929,15 @@ subroutine KFAST_AssRes(t_c, doUpdateStates_c, numRtSpdRtrElem_c, RtSpd_PyRtr_c,
    real(C_DOUBLE),         intent(in   ) :: rtrVels_c(numRtrPtsElem_c)        ! 1D array of the rotor point velocities in global coordinates (m/s)
    real(C_DOUBLE),         intent(in   ) :: rtrDCMs_c(numRtrPtsElem_c*3)      ! 1D array of the rotor point DCMs
    integer(C_INT),         intent(in   ) :: numNodeLoadsElem_c                ! total number of nodel point load elements
-   real(C_DOUBLE),         intent(inout) :: nodeLoads_c(numNodeLoadsElem_c*3) ! 1D array of the nodal point loads
-   integer(C_INT),         intent(in   ) :: numRtrLoadsElem_c                ! total number of rotor point load elements
-   real(C_DOUBLE),         intent(inout) :: rtrLoads_c(numRtrLoadsElem_c*3) ! 1D array of the rotor point loads
+   real(C_DOUBLE),         intent(inout) :: nodeLoads_c(numNodeLoadsElem_c)   ! 1D array of the nodal point loads
+   integer(C_INT),         intent(in   ) :: numRtrLoadsElem_c                 ! total number of rotor point load elements
+   real(C_DOUBLE),         intent(inout) :: rtrLoads_c(numRtrLoadsElem_c)     ! 1D array of the rotor point loads
 
    integer(C_INT),         intent(  out) :: errStat_c      
    character(kind=C_CHAR), intent(  out) :: errMsg_c(IntfStrLen)   
 
    integer(IntKi)           :: n, c, i, j                     ! counters
-   integer(IntKi)           :: doUpdateStates                 ! Should we update the states? 1=yes, 0=no
+   integer(IntKi)           :: isInitialTime                  ! Is this the initial time of the simulation 1=Yes, should we update the states? 0=yes, 1=no
    real(DbKi)               :: t                              ! simulations time (s)
    real(DbKi)               :: utimes(2)                      ! t and t+dt timestep values (s)
    real(ReKi)               :: FusO(3)                        ! fuselage (or kite) reference point location in global (inertial) coordinates at time t+dt (m)
@@ -1723,9 +1953,17 @@ subroutine KFAST_AssRes(t_c, doUpdateStates_c, numRtSpdRtrElem_c, RtSpd_PyRtr_c,
    errStat = ErrID_None
    errMsg  = ''
    
-   doUpdateStates = doUpdateStates_c
+   isInitialTime = isInitialTime_c
    t = t_c
-   n = t / p%DT
+   
+   if (isInitialTime > 0 ) then
+      utimes(1) = t
+   else
+      utimes(1) = t - p%DT
+   end if
+      
+   utimes(2) = t
+   n = utimes(1) / p%DT
    
       ! Transfer fuselage (kite) principal point inputs
    FusO            = FusO_c
@@ -1773,7 +2011,7 @@ subroutine KFAST_AssRes(t_c, doUpdateStates_c, numRtSpdRtrElem_c, RtSpd_PyRtr_c,
 ! Controller
 ! -------------------------------------------------------------------------      
    
-   if (m%NewTime) then
+   if (OtherSt%NewTime) then
       
       if ( p%useKFC ) then         
 ! TODO: Need to work out how we generate a controller output signal for the very first timestep (t=0.0)
@@ -1790,12 +2028,16 @@ subroutine KFAST_AssRes(t_c, doUpdateStates_c, numRtSpdRtrElem_c, RtSpd_PyRtr_c,
          m%KFC%u%Ag            = matmul(p%DCM_Fast2Ctrl, FusOacc_prev)
          m%KFC%u%Ab            = matmul(FusODCM_prev, FusOacc_prev)
          m%KFC%u%rho           = p%AirDens
-         m%KFC%u%apparent_wind = m%IfW_FusO_prev - FusOv_prev
+         if ( isInitialTime > 0 ) then
+            m%KFC%u%apparent_wind = m%IfW%y%VelocityUVW(:,2) - FusOv_prev
+         else
+            m%KFC%u%apparent_wind = m%IfW_FusO_prev - FusOv_prev
+         end if
          m%KFC%u%apparent_wind = matmul(p%DCM_Fast2Ctrl, m%KFC%u%apparent_wind)
         ! m%KFC%u%tether_force  = 0 
          m%KFC%u%wind_g        = matmul(p%DCM_Fast2Ctrl, m%IfW_ground_prev)
       
-         call KFC_CalcOutput(t, m%KFC%u, m%KFC%p, m%KFC%y, errStat2, errMsg2 )
+         call KFC_Step(utimes(1), m%KFC%u, m%KFC%p, m%KFC%y, errStat2, errMsg2 )
             call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
          if (errStat >= AbortErrLev ) then
             call TransferErrors(errStat, errMsg, errStat_c, errMsg_c)
@@ -1804,7 +2046,7 @@ subroutine KFAST_AssRes(t_c, doUpdateStates_c, numRtSpdRtrElem_c, RtSpd_PyRtr_c,
       
       end if
       
-      m%NewTime = .false. ! only call the controller once per timestep
+      OtherSt%NewTime = .false. ! only call the controller once per timestep
       
    end if
   
@@ -1813,23 +2055,24 @@ subroutine KFAST_AssRes(t_c, doUpdateStates_c, numRtSpdRtrElem_c, RtSpd_PyRtr_c,
 ! ------------------------------------------------------------------------- 
    
    if ( p%useMD ) then
-      utimes(1) = t - p%DT
-      utimes(2) = t
-      
+     
          ! Update the MBDyn motions mesh associated with the total wing
          ! Nodes for this wing mesh are specified left to right (port tip across to starboard tip)
       
+      ! TODO: Handle possible colocated nodes at fuselage
       c = 1   
       do i = p%numPwnNds, 1, -1
          m%mbdWngMotions%Orientation  (:,:,c) = m%PWnNdDCMs(:,:,i)
-         m%mbdWngMotions%TranslationDisp(:,c) = m%PWnPts(:,i) - m%mbdPWnMotions%Position(:,i)
+         m%mbdWngMotions%TranslationDisp(:,c) = m%PWnPts(:,i) - m%mbdPWnMotions%Position(:,c)
+         m%mbdWngLoads%TranslationDisp(:,c)   = m%mbdWngMotions%TranslationDisp(:,c)
          m%mbdWngMotions%TranslationVel (:,c) = m%PWnVels(:,i)
          m%mbdWngMotions%RotationVel    (:,c) = m%PWnOmegas(:,i)
          c = c + 1
       end do
       do i = 1,p%numSwnNds
          m%mbdWngMotions%Orientation  (:,:,c) = m%SWnNdDCMs(:,:,i)
-         m%mbdWngMotions%TranslationDisp(:,c) = m%SWnPts(:,i) - m%mbdSWnMotions%Position(:,i)
+         m%mbdWngMotions%TranslationDisp(:,c) = m%SWnPts(:,i) - m%mbdSWnMotions%Position(:,c)
+         m%mbdWngLoads%TranslationDisp(:,c)   = m%mbdWngMotions%TranslationDisp(:,c)
          m%mbdWngMotions%TranslationVel (:,c) = m%SWnVels(:,i)
          m%mbdWngMotions%RotationVel    (:,c) = m%SWnOmegas(:,i)
          c = c + 1
@@ -1839,19 +2082,16 @@ subroutine KFAST_AssRes(t_c, doUpdateStates_c, numRtSpdRtrElem_c, RtSpd_PyRtr_c,
          !   We need to set the TranslationDisp, Orientation, TranslationVel, RotationVel properties on the mesh
          ! To do this we need to map the motions from a wing mesh to the specific fairlead mesh ( one node per fairlead connection point)
          ! This means we need the t and t+dt motions of this wing mesh
-      call Transfer_Line2_to_Point( m%mbdWngMotions, m%MD%u(1)%PtFairleadDisplacement, m%MD_L2_2_P, errStat2, errMsg )
+      call Transfer_Line2_to_Point( m%mbdWngMotions, m%MD%u(2)%PtFairleadDisplacement, m%MD_L2_2_P, errStat2, errMsg )
  
-      if ( doUpdateStates == 1 ) then
-            ! Pos and Vel of each Fairlead (Bridle connection) at t + dt, simply copy the inputs at time t
-         call MD_CopyInput( m%MD%u(1), m%MD%u(2), MESH_NEWCOPY, errStat2, errMsg2 )
-   
+      if ( isInitialTime < 1 ) then
          call MD_CopyContState( m%MD%x, m%MD%x_copy, MESH_NEWCOPY, errStat2, errMsg2 )
             call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
-         call MD_UpdateStates( t, n, m%MD%u, utimes, m%MD%p, m%MD%x_copy, m%MD%xd, m%MD%z, m%MD%OtherSt, m%MD%m, errStat2, errMsg2 )
+         call MD_UpdateStates( utimes(1), n, m%MD%u, utimes, m%MD%p, m%MD%x_copy, m%MD%xd, m%MD%z, m%MD%OtherSt, m%MD%m, errStat2, errMsg2 )
             call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
       end if
       
-      call MD_CalcOutput( t, m%MD%u(1), m%MD%p, m%MD%x_copy, m%MD%xd, m%MD%z, m%MD%OtherSt, m%MD%y, m%MD%m, errStat2, errMsg2 )
+      call MD_CalcOutput( t, m%MD%u(2), m%MD%p, m%MD%x_copy, m%MD%xd, m%MD%z, m%MD%OtherSt, m%MD%y, m%MD%m, errStat2, errMsg2 )
          call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
       if (errStat >= AbortErrLev ) then
          call TransferErrors(errStat, errMsg, errStat_c, errMsg_c)
@@ -1892,13 +2132,17 @@ subroutine KFAST_AssRes(t_c, doUpdateStates_c, numRtSpdRtrElem_c, RtSpd_PyRtr_c,
          c = c+2
       end do
       do i = 1, p%numPylons   ! [moving from inboard to outboard]
-         m%KAD%u%RtSpd_PPyRtr(1,i) = RtSpd_PyRtr_c(c)    ! top
-         m%KAD%u%RtSpd_PPyRtr(2,i) = RtSpd_PyRtr_c(c+1)  ! bottom
+         m%KAD%u(1)%RtSpd_PPyRtr(1,i) = RtSpd_PyRtr_c(c)    ! top
+         m%KAD%u(1)%RtSpd_PPyRtr(2,i) = RtSpd_PyRtr_c(c+1)  ! bottom
          c = c+2
       end do
    
    
       if ( p%useIfW ) then
+         
+            ! Need previous timestep's inflow at FusO for the next call to KFC calcoutput
+         m%IfW_FusO_prev = m%IfW%y%VelocityUVW(:,2)
+         
             ! Transfer Inflow Wind outputs to the various KAD inflow inputs
          c=3
          do i = 1,size(m%KAD%u(1)%V_Fus,2)
@@ -1962,39 +2206,42 @@ subroutine KFAST_AssRes(t_c, doUpdateStates_c, numRtSpdRtrElem_c, RtSpd_PyRtr_c,
          m%KAD%u(1)%V_PPyRtr  = 0.0_ReKi  
       end if
  
-      if ( doUpdateStates == 1 ) then
+      
 
 ! TODO: Should we clean up/destroy the old version of m%KAD%z_copy ?
-         call KAD_CopyConstrState( m%KAD%z, m%KAD%z_copy, MESH_NEWCOPY, errStat2, errMsg2 )
+      call KAD_CopyConstrState( m%KAD%z, m%KAD%z_copy, MESH_NEWCOPY, errStat2, errMsg2 )
+         call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
+         if (errStat >= AbortErrLev ) then
+            call TransferErrors(errStat, errMsg, errStat_c, errMsg_c)
+            return
+         end if
+         
+      if ( isInitialTime < 1 ) then
+            ! Copy the inputs
+         call KAD_CopyInput(m%KAD%u(1),m%KAD%u(2), MESH_NEWCOPY, errStat, errMsg)
+         call KAD_UpdateStates( utimes(1), n, m%KAD%u, utimes, m%KAD%p, m%KAD%x, m%KAD%xd, m%KAD%z_copy, m%KAD%OtherSt, m%KAD%m, errStat, errMsg )
             call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
             if (errStat >= AbortErrLev ) then
                call TransferErrors(errStat, errMsg, errStat_c, errMsg_c)
                return
             end if
-   
-            ! Copy the inputs
-         call KAD_CopyInput(m%KAD%u(1),m%KAD%u(2), MESH_NEWCOPY, errStat, errMsg)
-         call KAD_UpdateStates( t, n, m%KAD%u, utimes, m%KAD%p, m%KAD%x, m%KAD%xd, m%KAD%z_copy, m%KAD%OtherSt, m%KAD%m, errStat, errMsg )
-            call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
-         end if
+      end if
+      
       call KAD_CalcOutput( t, m%KAD%u(1), m%KAD%p, m%KAD%x, m%KAD%xd, m%KAD%z_copy, m%KAD%OtherSt, m%KAD%y, m%KAD%m, errStat, errMsg )
          call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
-   
+         if (errStat >= AbortErrLev ) then
+            call TransferErrors(errStat, errMsg, errStat_c, errMsg_c)
+            return
+         end if
    end if
    
-   call TransferLoadsToMBDyn()
-   
+   call TransferLoadsToMBDyn(p, m, nodeLoads_c, rtrLoads_c, errStat2, errMsg2 )
+      call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
+      
    call TransferErrors(errStat, errMsg, errStat_c, errMsg_c)
    return
    
-contains
-                          
-   subroutine TransferLoadsToMBDyn()
-      
-   end subroutine TransferLoadsToMBDyn
-   
-   
-   
+
    
    
 end subroutine KFAST_AssRes
@@ -2012,13 +2259,16 @@ subroutine KFAST_AfterPredict(errStat_c, errMsg_c) BIND (C, NAME='KFAST_AfterPre
    errStat = ErrID_None
    errMsg  = ''
 
-   m%NewTime = .true.
+   OtherSt%NewTime = .true.
    
       ! Copy the temporary states and place them into the actual versions
    call MD_CopyContState   ( m%MD%x_copy, m%MD%x, MESH_NEWCOPY, errStat2, errMsg2 )
       call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
    call KAD_CopyConstrState( m%KAD%z_copy, m%KAD%z, MESH_NEWCOPY, errStat2, errMsg2 )
       call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
+      
+      ! Copy t+dt inputs to t for the next timestep
+   call MD_CopyInput( m%MD%u(2), m%MD%u(1), MESH_NEWCOPY, errStat2, errMsg2 )
    
               ! transfer Fortran variables to C:  
    errStat_c = errStat
@@ -2027,21 +2277,23 @@ subroutine KFAST_AfterPredict(errStat_c, errMsg_c) BIND (C, NAME='KFAST_AfterPre
    
 end subroutine KFAST_AfterPredict
 
-subroutine KFAST_Output(errStat_c, errMsg_c) BIND (C, NAME='KFAST_Output')
+subroutine KFAST_Output(t_c, errStat_c, errMsg_c) BIND (C, NAME='KFAST_Output')
    IMPLICIT NONE
-   
+   real(C_DOUBLE),         intent(in   ) :: t_c
    integer(C_INT),         intent(  out) :: errStat_c      
    character(kind=C_CHAR), intent(  out) :: errMsg_c(IntfStrLen)   
 
    integer(IntKi)                  :: errStat, errStat2
    character(ErrMsgLen)            :: errMsg, errMsg2
    character(*), parameter         :: routineName = 'KFAST_Output'
-
+   real(DbKi)                      :: t
    errStat = ErrID_None
    errMsg  = ''
+   t = real(t_c,DbKi)
 
    ! Write any outputs to file
    ! call KFAST_WriteOutput()
+   call KFAST_WriteOutput( t, p, m%KAD%y, m%MD%y, m%IfW%y, errStat2, errMsg2 )
       call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
       
                  ! transfer Fortran variables to C:  
@@ -2067,16 +2319,38 @@ subroutine KFAST_End(errStat_c, errMsg_c) BIND (C, NAME='KFAST_End')
 
    
    ! Call the End subroutines for KiteAeroDyn, MoorDyn, InflowWind, and the Controller
-   !call KAD_End()
-   !call MD_End()
-   !call KFC_End()
+   if ( p%useKAD ) then
+      call KAD_DestroyInput(m%KAD%u(2), errStat2 , errMsg2)
+         call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
+      call KAD_End(m%KAD%u(1), m%KAD%p, m%KAD%x, m%KAD%xd, m%KAD%z, m%KAD%OtherSt, m%KAD%y, m%KAD%m, errStat2 , errMsg2)
+         call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
+   end if
    
-      call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
+   if ( p%useMD ) then
+      call MD_DestroyInput(m%MD%u(2), errStat2 , errMsg2)
+         call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
+      call MD_End(m%MD%u(1), m%MD%p, m%MD%x, m%MD%xd, m%MD%z, m%MD%OtherSt, m%MD%y, m%MD%m, errStat2 , errMsg2)
+         call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
+   end if
+   
+   if ( p%useIfW ) then
+
+      call InflowWind_End(m%IfW%u, m%IfW%p, m%IfW%x, m%IfW%xd, m%IfW%z, m%IfW%OtherSt, m%IfW%y, m%IfW%m, errStat2 , errMsg2)
+         call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
+   end if
+   
+   if ( p%useKFC ) then
+      call KFC_End(m%KFC%p, errStat2, errMsg2)
+         call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
+   end if
+   
+   
+   
       
 ! -------------------------------------------------------------------------
 ! Close the Output file
 ! -------------------------------------------------------------------------   
-      
+      close(p%UnOutFile)
       
       ! transfer Fortran variables to C:  
    errStat_c = errStat

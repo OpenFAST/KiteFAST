@@ -16,9 +16,10 @@ int _tmain(int argc, _TCHAR* argv[])
 //    BOOL fFreeResult, fRunTimeLinkSuccess = FALSE;
     int i;
     int c;
+  
     double dt = 0.01;
-    int doUpdateStates;
-    int nFinal = 5;   // Last time increment for this simulation
+    int isInitialTime;
+    int nFinal;          // Last time increment for this simulation
     int numFlaps = 3;
     int numPylons = 2;
     int numComp = 10;
@@ -60,7 +61,7 @@ int _tmain(int argc, _TCHAR* argv[])
     double *pNodeLoads;
     int numRtrLoadsElem;
     double *pRtrLoads;
-
+    double *pKiteOffset;
 
 
    // Set module flags 0 = off, 1=on
@@ -100,7 +101,7 @@ int _tmain(int argc, _TCHAR* argv[])
     //Test the FusODCM as a 1D array instead of a 2D array
     // The kite is aligned with the Global Coordinate system
     pFusODCM = (double *)malloc(9*sizeof(double));
-    pFusODCM[0] =  1.0;
+    pFusODCM[0] =  -1.0;
     pFusODCM[1] =  0.0;
     pFusODCM[2] =  0.0;
     pFusODCM[3] =  0.0;
@@ -108,7 +109,15 @@ int _tmain(int argc, _TCHAR* argv[])
     pFusODCM[5] =  0.0;
     pFusODCM[6] =  0.0;
     pFusODCM[7] =  0.0;
-    pFusODCM[8] =  1.0;
+    pFusODCM[8] =  -1.0;
+
+    // Offset of kit in global coordinates (m)
+    // This offset needs to be added to all the regerence points.
+
+    pKiteOffset = (double *)malloc(3 * sizeof(double));
+    pKiteOffset[0] = 0.0;
+    pKiteOffset[1] = 0.0;
+    pKiteOffset[2] = 300.0;
 
     // Rotor points
     numRtrPtsElem = numPylons * 4 * 3;
@@ -120,90 +129,101 @@ int _tmain(int argc, _TCHAR* argv[])
     pRtrLoads = (double *)malloc(numRtrLoadsElem * sizeof(double));
 
     // Starboard inner top
-    pRtrPts[0] = -1.861;
-    pRtrPts[1] = 1.213;
-    pRtrPts[2] = 1.221;
+    pRtrPts[0] = -1.861 + pKiteOffset[0];
+    pRtrPts[1] = 1.213 + pKiteOffset[1];
+    pRtrPts[2] = 1.221 + pKiteOffset[2];
     // Starboard inner bottom
-    pRtrPts[3] = -1.515;
-    pRtrPts[4] = 1.213;
-    pRtrPts[5] = -1.593;
+    pRtrPts[3] = -1.515 + pKiteOffset[0];
+    pRtrPts[4] = 1.213 + pKiteOffset[1];
+    pRtrPts[5] = -1.593 + pKiteOffset[2];
     // Starboard outer top
-    pRtrPts[6] = -1.861;
-    pRtrPts[7] = 3.640;
-    pRtrPts[8] = 1.221;
+    pRtrPts[6] = -1.861 + pKiteOffset[0];
+    pRtrPts[7] = 3.640 + pKiteOffset[1];
+    pRtrPts[8] = 1.221 + pKiteOffset[2];
     // Starboard outer bottom
-    pRtrPts[9]  = -1.515;
-    pRtrPts[10] = 3.640;
-    pRtrPts[11] = -1.593;
+    pRtrPts[9] = -1.515 + pKiteOffset[0];
+    pRtrPts[10] = 3.640 + pKiteOffset[1];
+    pRtrPts[11] = -1.593 + pKiteOffset[2];
     // Port inner top
-    pRtrPts[12] = -1.861;
-    pRtrPts[13] = -1.213;
-    pRtrPts[14] = 1.221;
+    pRtrPts[12] = -1.861 + pKiteOffset[0];
+    pRtrPts[13] = -1.213 + pKiteOffset[1];
+    pRtrPts[14] = 1.221 + pKiteOffset[2];
     // Port inner bottom
-    pRtrPts[15] = -1.515;
-    pRtrPts[16] = -1.213;
-    pRtrPts[17] = -1.593;
+    pRtrPts[15] = -1.515 + pKiteOffset[0];
+    pRtrPts[16] = -1.213 + pKiteOffset[1];
+    pRtrPts[17] = -1.593 + pKiteOffset[2];
     // Port outer top
-    pRtrPts[18] = -1.861;
-    pRtrPts[19] = -3.639;
-    pRtrPts[20] = 1.221;
+    pRtrPts[18] = -1.861 + pKiteOffset[0];
+    pRtrPts[19] = -3.639 + pKiteOffset[1];
+    pRtrPts[20] = 1.221 + pKiteOffset[2];
     // Port outer bottom
-    pRtrPts[21] = -1.515;
-    pRtrPts[22] = -3.639;
-    pRtrPts[23] = -1.593;
+    pRtrPts[21] = -1.515 + pKiteOffset[0];
+    pRtrPts[22] = -3.639 + pKiteOffset[1];
+    pRtrPts[23] = -1.593 + pKiteOffset[2];
 
 
 
     // Reference points
     numRefPtElem = numComp * 3;
     pRefPts = (double *)malloc(numRefPtElem * sizeof(double));
-    
+
     for (i = 0; i < numRefPtElem; i++)
     {
         pRefPts[i] = 0.0;
     }
-
+    c = 0;
     //Fuselage
-    pRefPts[0] = 0.0;
-    pRefPts[1] = 0.0;
-    pRefPts[2] = 0.0;
+    pRefPts[c + 0] = 0.0 + pKiteOffset[0];
+    pRefPts[c + 1] = 0.0 + pKiteOffset[1];
+    pRefPts[c + 2] = 0.0 + pKiteOffset[2];
+    c = c + 3;
     // Starboard Wing
-    pRefPts[3] = 0.0;
-    pRefPts[4] = 0.0;
-    pRefPts[5] = 0.0;
+    pRefPts[c + 0] = 0.0 + pKiteOffset[0];
+    pRefPts[c + 1] = 0.0 + pKiteOffset[1];
+    pRefPts[c + 2] = 0.0 + pKiteOffset[2];
+    c = c + 3;
     // Port Wing
-    pRefPts[6] = 0.0;
-    pRefPts[7] = 0.0;
-    pRefPts[8] = 0.0;
+    pRefPts[c + 0] = 0.0 + pKiteOffset[0];
+    pRefPts[c + 1] = 0.0 + pKiteOffset[1];
+    pRefPts[c + 2] = 0.0 + pKiteOffset[2];
+    c = c + 3;
     // Vertical Stabilizer
-    pRefPts[6] = 6.891;
-    pRefPts[7] = 98.0;
-    pRefPts[8] = 100.0;
-    // Starboard Horizontal Stabilizer
-    pRefPts[9] = 6.555;
-    pRefPts[10] = 0.0;
-    pRefPts[11] = -0.817;
-    // Port Horizontal Stabilizer
-    pRefPts[12] = 6.555;
-    pRefPts[13] = 0.0;
-    pRefPts[14] = -0.817;
-    // Starboard Pylons
-    pRefPts[15] = -0.857;
-    pRefPts[16] = 1.0;
-    pRefPts[17] = 0.0;
 
-    pRefPts[18] = -0.857;
-    pRefPts[19] = 3.5;
-    pRefPts[20] = 0.0;
+    pRefPts[c + 0] = 6.891 + pKiteOffset[0];
+    pRefPts[c + 1] = 0.0 + pKiteOffset[1];
+    pRefPts[c + 2] = 0.0 + pKiteOffset[2];
+    c = c + 3;
+    // Starboard Horizontal Stabilizer
+    pRefPts[c + 0] = 6.555 + pKiteOffset[0];
+    pRefPts[c + 1] = 0.0 + pKiteOffset[1];
+    pRefPts[c + 2] = -0.817 + pKiteOffset[2];
+    c = c + 3;
+    // Port Horizontal Stabilizer
+    pRefPts[c + 0] = 6.555 + pKiteOffset[0];
+    pRefPts[c + 1] = 0.0 + pKiteOffset[1];
+    pRefPts[c + 2] = -0.817 + pKiteOffset[2];
+    c = c + 3;
+    // Starboard Pylons
+    pRefPts[c + 0] = -0.857 + pKiteOffset[0];
+    pRefPts[c + 1] = 1.0 + pKiteOffset[1];
+    pRefPts[c + 2] = 0.0 + pKiteOffset[2];
+    c = c + 3;
+
+    pRefPts[c + 0] = -0.857 + pKiteOffset[0];
+    pRefPts[c + 1] = 3.5 + pKiteOffset[1];
+    pRefPts[c + 2] = 0.0 + pKiteOffset[2];
+    c = c + 3;
 
     // Port Pylons
-    pRefPts[21] = -0.857;
-    pRefPts[22] = -1.0;
-    pRefPts[23] = 0.0;
+    pRefPts[c + 0] = -0.857 + pKiteOffset[0];
+    pRefPts[c + 1] = -1.0 + pKiteOffset[1];
+    pRefPts[c + 2] = 0.0 + pKiteOffset[2];
+    c = c + 3;
 
-    pRefPts[24] = -0.857;
-    pRefPts[25] = -3.5;
-    pRefPts[26] = 0.0;
+    pRefPts[c + 0] = -0.857 + pKiteOffset[0];
+    pRefPts[c + 1] = -3.5 + pKiteOffset[1];
+    pRefPts[c + 2] = 0.0 + pKiteOffset[2];
+    c = c + 3;
 
     // nodal DCMs
     numDCMElem = 0;
@@ -218,103 +238,113 @@ int _tmain(int argc, _TCHAR* argv[])
     numNodeLoadsElem = numNodePtElem*2;
     pNodeLoads = (double *)malloc(numNodeLoadsElem * sizeof(double));
 
-    // Set all DCMs to Identity
+    // Set all DCMs to FusO DCM
     for (i = 0; i < numDCMElem; i=i+9)
     {
-        pNodeDCMs[i]   = 1.0;
-        pNodeDCMs[i+1] = 0.0;
-        pNodeDCMs[i+2] = 0.0;
-        pNodeDCMs[i+3] = 0.0;
-        pNodeDCMs[i+4] = 1.0;
-        pNodeDCMs[i+5] = 0.0;
-        pNodeDCMs[i+6] = 0.0;
-        pNodeDCMs[i+7] = 0.0;
-        pNodeDCMs[i+8] = 1.0;
+        pNodeDCMs[i] = pFusODCM[0];
+        pNodeDCMs[i + 1] = pFusODCM[1];
+        pNodeDCMs[i + 2] = pFusODCM[2];
+        pNodeDCMs[i + 3] = pFusODCM[3];
+        pNodeDCMs[i + 4] = pFusODCM[4];
+        pNodeDCMs[i + 5] = pFusODCM[5];
+        pNodeDCMs[i + 6] = pFusODCM[6];
+        pNodeDCMs[i + 7] = pFusODCM[7];
+        pNodeDCMs[i + 8] = pFusODCM[8];
     }
-   
+    
+    n = 0;
     // Fuselage node positions
-    pNodePts[0] = 0.027;
-    pNodePts[1] = 0.000;
-    pNodePts[2] = -0.170;
-    pNodePts[3] = 3.400;
-    pNodePts[4] = 0.000;
-    pNodePts[5] = 0.00;
-    pNodePts[6] = 6.917;
-    pNodePts[7] = 0.000;
-    pNodePts[8] = -0.039;
+    pNodePts[0] = 0.027 +pRefPts[n + 0];
+    pNodePts[1] = 0.000 +pRefPts[n + 1];
+    pNodePts[2] = -0.170 +pRefPts[n + 2];
+    pNodePts[3] = 3.400 +pRefPts[n + 0];
+    pNodePts[4] = 0.000 +pRefPts[n + 1];
+    pNodePts[5] = 0.00  +pRefPts[n + 2];
+    pNodePts[6] = 6.917   +pRefPts[n + 0];
+    pNodePts[7] = 0.000   +pRefPts[n + 1];
+    pNodePts[8] = -0.039  +pRefPts[n + 2];
     c = 9;
     //  Starboard wing nodes
-    pNodePts[c + 0] = 0.000;
-    pNodePts[c + 1] = 0.000;
-    pNodePts[c + 2] = 0.000;
-    pNodePts[c + 3] = 0.000;
-    pNodePts[c + 4] = 12.831;
-    pNodePts[c + 5] = 0.384;
+    n = 3;
+    pNodePts[c + 0] = 0.000  + pRefPts[n+0];
+    pNodePts[c + 1] = 0.000  + pRefPts[n+1];
+    pNodePts[c + 2] = 0.000  + pRefPts[n+2];
+    pNodePts[c + 3] = 0.000  + pRefPts[n+0];
+    pNodePts[c + 4] = 12.831 + pRefPts[n+1];
+    pNodePts[c + 5] = 0.384  + pRefPts[n+2];
+    n = n + 3;
     c = c + 6;
     //  Port wing nodes
-    pNodePts[c + 0] = 0.000;
-    pNodePts[c + 1] = 0.000;
-    pNodePts[c + 2] = 0.000;
-    pNodePts[c + 3] = 0.000;
-    pNodePts[c + 4] = -12.831;
-    pNodePts[c + 5] = 0.384;
+    pNodePts[c + 0] = 0.000 + pRefPts[n + 0];
+    pNodePts[c + 1] = 0.000 + pRefPts[n + 1];
+    pNodePts[c + 2] = 0.000 + pRefPts[n + 2];
+    pNodePts[c + 3] = 0.000 + pRefPts[n + 0];
+    pNodePts[c + 4] = -12.831 + pRefPts[n + 1];
+    pNodePts[c + 5] = 0.384 + pRefPts[n + 2];
+    n = n + 3;
     c = c + 6;
     //  vertical stabilizer nodes
-    pNodePts[c + 0] = 0.123 + pRefPts[6];
-    pNodePts[c + 1] = 0.000 + pRefPts[7];
-    pNodePts[c + 2] = 2.850 + pRefPts[8];
-    pNodePts[c + 3] = 0.044 + pRefPts[6];
-    pNodePts[c + 4] = 0.000 + pRefPts[7];
-    pNodePts[c + 5] = -0.712 + pRefPts[8];
+    pNodePts[c + 0] = 0.123 + pRefPts[n + 0];
+    pNodePts[c + 1] = 0.000 + pRefPts[n + 1];
+    pNodePts[c + 2] = 2.850 + pRefPts[n + 2];
+    pNodePts[c + 3] = 0.044 + pRefPts[n + 0];
+    pNodePts[c + 4] = 0.000 + pRefPts[n + 1];
+    pNodePts[c + 5] = -0.712 + pRefPts[n + 2];
+    n = n + 3;
     c = c + 6;
     //  starboard horizontal stabilizer nodes
-    pNodePts[c + 0] = 0.000 + pRefPts[9];
-    pNodePts[c + 1] = 0.000 + pRefPts[10];
-    pNodePts[c + 2] = 0.000 + pRefPts[11];
-    pNodePts[c + 3] = 0.417 + pRefPts[9];
-    pNodePts[c + 4] = 2.447 + pRefPts[10];
-    pNodePts[c + 5] = 0.000 + pRefPts[11];
+    pNodePts[c + 0] = 0.000 + pRefPts[n + 0];
+    pNodePts[c + 1] = 0.000 + pRefPts[n + 1];
+    pNodePts[c + 2] = 0.000 + pRefPts[n + 2];
+    pNodePts[c + 3] = 0.417 + pRefPts[n + 0];
+    pNodePts[c + 4] = 2.447 + pRefPts[n + 1];
+    pNodePts[c + 5] = 0.000 + pRefPts[n + 2];
+    n = n + 3;
     c = c + 6;
     //  port horizontal stabilizer nodes
-    pNodePts[c + 0] = 0.000 + pRefPts[12];
-    pNodePts[c + 1] = 0.000 + pRefPts[13];
-    pNodePts[c + 2] = 0.000 + pRefPts[14];
-    pNodePts[c + 3] = 0.417 + pRefPts[12];
-    pNodePts[c + 4] = -2.447 + pRefPts[13];
-    pNodePts[c + 5] = 0.000 + pRefPts[14];
+    pNodePts[c + 0] = 0.000 + pRefPts[n + 0];
+    pNodePts[c + 1] = 0.000 + pRefPts[n + 1];
+    pNodePts[c + 2] = 0.000 + pRefPts[n + 2];
+    pNodePts[c + 3] = 0.417 + pRefPts[n + 0];
+    pNodePts[c + 4] = -2.447 + pRefPts[n + 1];
+    pNodePts[c + 5] = 0.000 + pRefPts[n + 2];
+    n = n + 3;
     c = c + 6;
     //  starboard inboard pylon nodes
-    pNodePts[c + 0] = -0.729 + pRefPts[15];
-    pNodePts[c + 1] = 0.000 + pRefPts[16];
-    pNodePts[c + 2] = 1.470 + pRefPts[17];
-    pNodePts[c + 3] = -0.510 + pRefPts[15];
-    pNodePts[c + 4] = 0.000 + pRefPts[16];
-    pNodePts[c + 5] = -1.832 + pRefPts[17];
+    pNodePts[c + 0] = -0.729 + pRefPts[n + 0];
+    pNodePts[c + 1] = 0.000 + pRefPts[n + 1];
+    pNodePts[c + 2] = 1.470 + pRefPts[n + 2];
+    pNodePts[c + 3] = -0.510 + pRefPts[n + 0];
+    pNodePts[c + 4] = 0.000 + pRefPts[n + 1];
+    pNodePts[c + 5] = -1.832 + pRefPts[n + 2];
+    n = n + 3;
     c = c + 6;
     //  starboard outboard pylon nodes
-    pNodePts[c + 0] = -0.729 + pRefPts[18];
-    pNodePts[c + 1] = 0.000 + pRefPts[19];
-    pNodePts[c + 2] = 1.470 + pRefPts[20];
-    pNodePts[c + 3] = -0.510 + pRefPts[18];
-    pNodePts[c + 4] = 0.000 + pRefPts[19];
-    pNodePts[c + 5] = -1.832 + pRefPts[20];
+    pNodePts[c + 0] = -0.729 + pRefPts[n + 0];
+    pNodePts[c + 1] = 0.000 + pRefPts[n + 1];
+    pNodePts[c + 2] = 1.470 + pRefPts[n + 2];
+    pNodePts[c + 3] = -0.510 + pRefPts[n + 0];
+    pNodePts[c + 4] = 0.000 + pRefPts[n + 1];
+    pNodePts[c + 5] = -1.832 + pRefPts[n + 2];
+    n = n + 3;
     c = c + 6;
     //  port inboard pylon nodes
-    pNodePts[c + 0] = -0.729 + pRefPts[21];
-    pNodePts[c + 1] = 0.000 + pRefPts[22];
-    pNodePts[c + 2] = 1.470 + pRefPts[23];
-    pNodePts[c + 3] = -0.510 + pRefPts[21];
-    pNodePts[c + 4] = 0.000 + pRefPts[22];
-    pNodePts[c + 5] = -1.832 + pRefPts[23];
+    pNodePts[c + 0] = -0.729 + pRefPts[n + 0];
+    pNodePts[c + 1] = 0.000 + pRefPts[n + 1];
+    pNodePts[c + 2] = 1.470 + pRefPts[n + 2];
+    pNodePts[c + 3] = -0.510 + pRefPts[n + 0];
+    pNodePts[c + 4] = 0.000 + pRefPts[n + 1];
+    pNodePts[c + 5] = -1.832 + pRefPts[n + 2];
+    n = n + 3;
     c = c + 6;
 
     //  port outboard pylon nodes
-    pNodePts[c + 0] = -0.729 + pRefPts[24];
-    pNodePts[c + 1] = 0.000 + pRefPts[25];
-    pNodePts[c + 2] = 1.470 + pRefPts[26];
-    pNodePts[c + 3] = -0.510 + pRefPts[24];
-    pNodePts[c + 4] = 0.000 + pRefPts[25];
-    pNodePts[c + 5] = -1.832 + pRefPts[26];
+    pNodePts[c + 0] = -0.729 + pRefPts[n + 0];
+    pNodePts[c + 1] = 0.000 + pRefPts[n + 1];
+    pNodePts[c + 2] = 1.470 + pRefPts[n + 2];
+    pNodePts[c + 3] = -0.510 + pRefPts[n + 0];
+    pNodePts[c + 4] = 0.000 + pRefPts[n + 1];
+    pNodePts[c + 5] = -1.832 + pRefPts[n + 2];
 
 
     // This is called as part of the user module constructor
@@ -340,7 +370,7 @@ int _tmain(int argc, _TCHAR* argv[])
         pRtSpd_PyRtr[i] = 0.0;
     }
     pFusO        = (double *)malloc(3*sizeof(double));
-    pFusO[0] = pRefPts[0]-50.0;
+    pFusO[0] = pRefPts[0];
     pFusO[1] = pRefPts[1];
     pFusO[2] = pRefPts[2];
 
@@ -379,35 +409,29 @@ int _tmain(int argc, _TCHAR* argv[])
     }
     
     // Need to set rotor point velocities and orientations
-    for (n = 0; n < numRtrPtsElem; n++)
+    for (n = 0; n < numRtrPtsElem; n=n+3)
     {
-        pRtrVels[n] = 0.0;
+        pRtrVels[n]     = -50.0;
+        pRtrVels[n + 1] =   0.0;
+        pRtrVels[n + 2] =   0.0;
     }
 
-    for (n = 0; n < numRtrPtsElem; n++)
+    for (i = 0; i < numDCMElem; i = i + 9)
     {
-        pRtrVels[n] = 0.0;
-    }
-    for (n = 0; n < numRtrPtsElem*3; n++)
-    {
-        pRtrDCMs[n] = 0.0;
-    }
-    for (n = 0; n < numRtrPtsElem * 3; n=n+9)
-    {
-        pRtrDCMs[n] = 1.0;
-    }
-    for (n = 4; n < numRtrPtsElem * 3; n = n + 9)
-    {
-        pRtrDCMs[n] = 1.0;
-    }
-    for (n = 8; n < numRtrPtsElem * 3; n = n + 9)
-    {
-        pRtrDCMs[n] = 1.0;
+        pRtrDCMs[i] = pFusODCM[0];
+        pRtrDCMs[i + 1] = pFusODCM[1];
+        pRtrDCMs[i + 2] = pFusODCM[2];
+        pRtrDCMs[i + 3] = pFusODCM[3];
+        pRtrDCMs[i + 4] = pFusODCM[4];
+        pRtrDCMs[i + 5] = pFusODCM[5];
+        pRtrDCMs[i + 6] = pFusODCM[6];
+        pRtrDCMs[i + 7] = pFusODCM[7];
+        pRtrDCMs[i + 8] = pFusODCM[8];
     }
 
     // This returns the loads from KiteFAST at the initial time
-    doUpdateStates = 0;  // we do not advance the states for the first call to KFAST_AssRes(), we only want to compute the output loads
-    KFAST_AssRes(&t, &doUpdateStates, &numRtSpdRtrElem, pRtSpd_PyRtr, pWindPt, pFusO_prev, pFusO, pFusODCM_prev, pFusOv_prev,
+    isInitialTime = 1;  // we do not advance the states for the first call to KFAST_AssRes(), we only want to compute the output loads
+    KFAST_AssRes(&t, &isInitialTime, &numRtSpdRtrElem, pRtSpd_PyRtr, pWindPt, pFusO_prev, pFusO, pFusODCM_prev, pFusOv_prev,
                     pFusOomegas_prev, pFusOacc_prev, &numNodePtElem, pNodePts,
                     &numNodePtElem, pNodeVels, &numNodePtElem, pNodeOmegas,
                     &numDCMElem, pNodeDCMs, &numRtrPtsElem, pRtrPts, pRtrVels, pRtrDCMs, 
@@ -418,10 +442,21 @@ int _tmain(int argc, _TCHAR* argv[])
         return errStat;
     }
 
-    //Now we begin calls associated with the time marching loop of MBDyn
-    doUpdateStates = 1;  // Now we do advance the states for the each call to KFAST_AssRes()
+    // Output()
+    KFAST_Output(&t, &errStat, errMsg);
+    if (errStat != 0)
+    {
+        printf("%s\n", errMsg);
+        printf("%s\n", "Quitting due to error in KFAST_OUTPUT");
+        return errStat;
+    }
 
-    for (n = 1; n < nFinal; n++) 
+
+
+    //Now we begin calls associated with the time marching loop of MBDyn
+    isInitialTime = 0;  // Now we do advance the states for the each call to KFAST_AssRes()
+    nFinal = 5;
+    for (n = 2; n < nFinal; n++) 
     {
         t = t + dt;
 
@@ -430,7 +465,7 @@ int _tmain(int argc, _TCHAR* argv[])
         // For now we will simulate constant positions, velocities, and accelerations
 
         // AssRes()
-        KFAST_AssRes(&t, &doUpdateStates, &numRtSpdRtrElem, pRtSpd_PyRtr, pWindPt, pFusO_prev, pFusO, pFusODCM_prev, pFusOv_prev,
+        KFAST_AssRes(&t, &isInitialTime, &numRtSpdRtrElem, pRtSpd_PyRtr, pWindPt, pFusO_prev, pFusO, pFusODCM_prev, pFusOv_prev,
             pFusOomegas_prev, pFusOacc_prev, &numNodePtElem, pNodePts,
             &numNodePtElem, pNodeVels, &numNodePtElem, pNodeOmegas,
             &numDCMElem, pNodeDCMs, &numRtrPtsElem, pRtrPts, pRtrVels, pRtrDCMs, 
@@ -450,7 +485,7 @@ int _tmain(int argc, _TCHAR* argv[])
         }
 
         // Output()
-        KFAST_Output(&errStat, errMsg);
+        KFAST_Output(&t, &errStat, errMsg);
         if (errStat != 0)
         {
             printf("%s\n", errMsg);
@@ -469,17 +504,27 @@ int _tmain(int argc, _TCHAR* argv[])
     }
 
 
-    free(pNumCompNds);
-    free(pFusODCM);
-    free(pRtrPts);
-    free(pRefPts);
-    free(pNodePts);
-    free(pNodeDCMs);
-
-    free(pRtSpd_PyRtr);
-    free(pFusO);
-    free(pFusOv_prev);
-    free(pNodeDCMs);
+    //free(pNumCompNds);
+    //free(pWindPt);
+    //free(pFusODCM);
+    ////free(pRtrPts);
+    ////free(pRefPts);
+    //free(pNodePts);
+    //free(pNodeDCMs);
+    //free(pRtSpd_PyRtr);
+    //free(pFusO);
+    //free(pFusO_prev);
+    //free(pFusOv_prev);
+    //free(pFusOomegas_prev);
+    //free(pFusOacc_prev);
+    //free(pNodeVels);
+    //free(pNodeOmegas);
+    //free(pModFlags);
+    //free(pRtrVels);
+    //free(pRtrDCMs);
+    //free(pNodeLoads);
+    //free(pRtrLoads);
+    //free(pKiteOffset);
 
 
     return 0;
