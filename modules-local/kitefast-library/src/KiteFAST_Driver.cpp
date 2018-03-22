@@ -455,7 +455,7 @@ int _tmain(int argc, _TCHAR* argv[])
 
     //Now we begin calls associated with the time marching loop of MBDyn
     isInitialTime = 0;  // Now we do advance the states for the each call to KFAST_AssRes()
-    nFinal = 5;
+    nFinal = 1;
     for (n = 2; n < nFinal; n++) 
     {
         t = t + dt;
@@ -527,7 +527,7 @@ int _tmain(int argc, _TCHAR* argv[])
     //free(pKiteOffset);
 
 
-    return 0;
+    return errStat;
 
 }
 
