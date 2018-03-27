@@ -1,21 +1,31 @@
-/* $Header: /var/cvs/mbdyn/mbdyn/mbdyn-1.0/modules/module-aerodyn/NREL_AeroDyn.h,v 1.8 2017/01/12 14:47:15 masarati Exp $ */
+/* $Header: /var/cvs/mbdyn/mbdyn/mbdyn-1.0/modules/module-kitefastmbd/module-kitefastmbd.h,v 1.8 2017/01/12 14:47:15 masarati Exp $ */
 /*
- * Copyright (C) 2017-
+ * MBDyn (C) is a multibody analysis code.
+ * http://www.mbdyn.org
  *
- * Rick Damiani <rick.damiani@nrel.gov>
+ * Copyright (C) 1996-2017
  *
- * NWTC/NREL
- * Golden, CO
+ * Pierangelo Masarati  <masarati@aero.polimi.it>
+ *
+ * Dipartimento di Ingegneria Aerospaziale - Politecnico di Milano
+ * via La Masa, 34 - 20156 Milano, Italy
+ * http://www.aero.polimi.it
  *
  * Changing this copyright notice is forbidden.
  *
- * This header file is free software; you can redistribute it at will,
- * under the same license conditions of the AeroDyn package.
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation (version 2 of the License).
+ *
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
 #include "mbconfig.h" /* This goes first in every *.c,*.cc file */
@@ -47,24 +57,20 @@ typedef double f_real;
 
 typedef long int f_integer;
 
-// test data transfers from c++ to fortran
-extern int __FC_DECL__(test_array_transfer)(double[], int *);
+#define ErrID_None 0
+#define ErrID_Info 1
+#define ErrID_Warn 2
+#define ErrID_Severe 3
+#define ErrID_Fatal 4
+#define CHANNEL_LENGTH 10
+#define INTERFACE_STRING_LENGTH 1025
 
-extern int __FC_DECL__(test_testme)(int *in, int *out);
-
-/*
- * This subroutine is to pass the current simulation time
- * from MBDyn to AeroDyn!
- * c_time: current time
- */
-extern int __FC_DECL__(mbdyn_sim_time)(doublereal *c_time);
-
-/*
- * This subroutine is to pass the current simulation time step
- * from MBDyn to AeroDyn!
- * dt: time step
- */
-extern int __FC_DECL__(mbdyn_time_step)(f_real *dt);
+extern int KFAST_Init(double *dt, int *numFlaps, int *numPylons, int *numComp, int numCompNds[], int modFlags[], const char KAD_FileName[], const char IfW_FileName[], const char MD_FileName[], const char KFC_FileName[],
+                      const char outFileRoot[], double *gravity, double windPt[], double FusODCM[], int *numRtrPtsElem, double rtrPts[], int *numRefPtElem, double refPts[],
+                      int *numNodePtElem, double nodePts[], int *numDCMElem, double nodeDCMs[], int *errStat, char errMsg[]);
+extern int KFAST_AfterPredict(int *errStat, char errMsg[]);
+extern int KFAST_Output(double *t, int *errStat, char errMsg[]);
+extern int KFAST_End(int *errStat, char errMsg[]);
 
 #ifdef __cplusplus
 }
@@ -72,29 +78,60 @@ extern int __FC_DECL__(mbdyn_time_step)(f_real *dt);
 
 #endif /* KiteFAST_MBD_H */
 
-class KiteADelem : virtual public Elem, public UserDefinedElem
+class ModuleKiteFAST : virtual public Elem, public UserDefinedElem
 {
 private:
-  struct AeroNode
+  struct KiteFASTNode
   {
     StructNode *pNode;
   };
 
+  const static int AbortErrLev = ErrID_Fatal; // abort error level; compare with NWTC Library
+
+  char kiteaerodyn_filename[INTERFACE_STRING_LENGTH];
+  char inflowwind_filename[INTERFACE_STRING_LENGTH];
+  char moordyn_filename[INTERFACE_STRING_LENGTH];
+  char controller_filename[INTERFACE_STRING_LENGTH];
+  char output_file_root[INTERFACE_STRING_LENGTH];
+  int error_status;
+  char error_message[INTERFACE_STRING_LENGTH];
+
+  double dt;
+  double gravity;
+  double *ground_station_point;
+  int *kitefast_module_flags;
+  char component_keywords;
+
+  int n_flaps_per_wing;
+  int n_pylons_per_wing;
+  int n_components;
+  int *component_node_counts;
+  int *component_reference_node_indeces;
+  int *component_reference_nodes;
+  int numRefPtElem;
+  int numRtrPtsElem;
+  int numNodePtElem;
+  int numDCMElem;
+  double *reference_points;
+  // doublereal node_points;
+  double *rotor_points;
+  // double *node_dcms;
+
   int node_count; // number of nodes connected to this element
-  std::vector<AeroNode> nodes;
-  std::vector<AeroNode> nodes_fuselage;
-  std::vector<AeroNode> nodes_portwing;
-  std::vector<AeroNode> nodes_starwing;
-  std::vector<AeroNode> nodes_vstab;
-  std::vector<AeroNode> nodes_porthstab;
-  std::vector<AeroNode> nodes_starhstab;
-  std::vector<AeroNode> nodes_portpylon1;
-  std::vector<AeroNode> nodes_portpylon2;
-  std::vector<AeroNode> nodes_starpylon1;
-  std::vector<AeroNode> nodes_starpylon2;
-  std::vector<AeroNode> nodes_portrotors;
-  std::vector<AeroNode> nodes_starrotors;
-  std::vector<AeroNode> nodes_bridle;
+  std::vector<KiteFASTNode> nodes;
+  std::vector<KiteFASTNode> nodes_fuselage;
+  std::vector<KiteFASTNode> nodes_portwing;
+  std::vector<KiteFASTNode> nodes_starwing;
+  std::vector<KiteFASTNode> nodes_vstab;
+  std::vector<KiteFASTNode> nodes_porthstab;
+  std::vector<KiteFASTNode> nodes_starhstab;
+  std::vector<KiteFASTNode> nodes_portpylon1;
+  std::vector<KiteFASTNode> nodes_portpylon2;
+  std::vector<KiteFASTNode> nodes_starpylon1;
+  std::vector<KiteFASTNode> nodes_starpylon2;
+  std::vector<KiteFASTNode> nodes_portrotors;
+  std::vector<KiteFASTNode> nodes_starrotors;
+  std::vector<KiteFASTNode> nodes_bridle;
 
   std::string output_file_name;
   mutable std::ofstream outputfile;
@@ -103,10 +140,11 @@ private:
   DriveOwner Time;
 
 public:
-  KiteADelem(unsigned uLabel, const DofOwner *pDO, DataManager *pDM, MBDynParser &HP);
-  virtual ~KiteADelem(void);
+  ModuleKiteFAST(unsigned uLabel, const DofOwner *pDO, DataManager *pDM, MBDynParser &HP);
+  virtual ~ModuleKiteFAST(void);
   void SetValue(DataManager *pDM, VectorHandler &X, VectorHandler &XP, SimulationEntity::Hints *ph);
-  void BuildComponentNodeArray(DataManager *pDM, MBDynParser &HP, const char *keyword, std::vector<AeroNode> &node_array);
+  void ValidateInputKeyword(MBDynParser &HP, const char *keyword);
+  void BuildComponentNodeArray(DataManager *pDM, MBDynParser &HP, const char *keyword, std::vector<KiteFASTNode> &node_array, int &ref_node_index);
   void InitOutputFile(std::string output_file_name);
   virtual void Output(OutputHandler &OH) const;
   int iGetNumConnectedNodes(void) const;
@@ -120,7 +158,7 @@ public:
 
   // helper functions while in development
   void printdebug(std::string debugstring) const;
-  void PrintNodeLocations(AeroNode node);
+  void PrintNodeLocations(KiteFASTNode node);
 
   // these are specific for mbdyn, not used by us or KiteFAST
   unsigned int iGetNumPrivData(void) const;
