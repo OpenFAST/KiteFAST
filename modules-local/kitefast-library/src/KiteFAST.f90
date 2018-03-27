@@ -79,27 +79,21 @@ subroutine KFAST_WriteOutput( t, p, y_KAD, y_MD, y_IfW, errStat, errMsg )
       Frmt = '"'//p%Delim//'"'//p%OutFmt      ! format for array elements from individual modules
 
             ! time
-      write( tmpStr, '(F14.6)' ) t
+      write( tmpStr, '(F10.6)' ) t
       call WrFileNR( p%UnOutFile, tmpStr )
 
          ! write the individual module output (convert to SiKi if necessary, so that we don't need to print so many digits in the exponent)
       
       
       if ( p%numKADOuts > 0 ) then
-         do i=1,p%numKADOuts
-            call WrNumAryFileNR ( p%UnOutFile, real(y_KAD%WriteOutput,SiKi), Frmt, errStat2, errMsg2 )
-         end do ! I
+        call WrNumAryFileNR ( p%UnOutFile, real(y_KAD%WriteOutput,SiKi), Frmt, errStat2, errMsg2 )
       end if
       
       if ( p%numMDOuts > 0 ) then
-         do i=1,p%numMDOuts
             call WrNumAryFileNR ( p%UnOutFile, real(y_MD%WriteOutput,SiKi), Frmt, errStat2, errMsg2 )
-         end do ! I
       end if
       if ( p%numIfWOuts > 0 ) then
-         do i=1,p%numIfWOuts
             call WrNumAryFileNR ( p%UnOutFile, real(y_IfW%WriteOutput,SiKi), Frmt, errStat2, errMsg2 )
-         end do ! I
       end if
       write (p%UnOutFile,'()')
 
@@ -241,7 +235,7 @@ subroutine TransferLoadsToMBDyn( p, m, nodeLoads_c, rtrLoads_c, errStat, errMsg 
    integer(IntKi),            intent(  out) :: errStat         !< Error status of the operation
    character(*),              intent(  out) :: errMsg          !< Error message if errStat /= ErrID_None
 
-   integer(IntKi)  :: i,j,k,c, compOffset
+   integer(IntKi)  :: i, istart, j,k,c, compOffset
    integer(IntKi)           :: errStat2              ! error status values
    character(ErrMsgLen)     :: errMsg2                ! error messages
    character(*), parameter  :: routineName = 'TransferLoadsToMBDyn'
@@ -262,6 +256,8 @@ subroutine TransferLoadsToMBDyn( p, m, nodeLoads_c, rtrLoads_c, errStat, errMsg 
          ! Now attach these loads to the corresponding array elements which are sent back to MBDyn
       compOffset = p%numFusNds
       !TODO Fix bug if wing mesh does not contain one of the two common nodes at the fuselage
+      !istart = 1
+      !if (m%mbdWngLoads%NNodes /= (p%numSwnNds+p%numPwnNds) istart = 2
       do i = 1, p%numSwnNds
          j = 6*compOffset + 6*(i-1) + 1
          nodeLoads_c(j  ) = m%mbdWngLoads%Force(1,i + p%numPwnNds)
@@ -542,7 +538,7 @@ subroutine CreateMBDynL2MotionsWingMesh(origin, numSWnNodes, SWnPos, numPWnNodes
    ! Local variables
    real(reKi)                                   :: position(3)       ! node reference position
    real(R8Ki)                                   :: orientation(3,3)  ! node reference orientation
-   integer(intKi)                               :: j                 ! counter for nodes
+   integer(intKi)                               :: c,j,jstart        ! counter for nodes
    integer(intKi)                               :: errStat2          ! temporary Error status
    character(ErrMsgLen)                         :: errMsg2           ! temporary Error message
    character(*), parameter                      :: RoutineName = 'CreateMBDynL2MotionsWingMesh'
@@ -568,29 +564,39 @@ subroutine CreateMBDynL2MotionsWingMesh(origin, numSWnNodes, SWnPos, numPWnNodes
             
       ! set node initial position/orientation
    position = 0.0_ReKi
+   c = 1
    do j=numPWnNodes,1,-1       
       position = PWnPos(:,j) - origin(:) 
       position = matmul(alignDCM, position) 
       orientation = PWnDCMs(:,:,j)
       orientation = matmul(orientation, transpose(alignDCM))
       
-      call MeshPositionNode(mesh, numPWnNodes-j+1, position, errStat2, errMsg2, orientation)  
+      call MeshPositionNode(mesh, c, position, errStat2, errMsg2, orientation)  
          call SetErrStat( errStat2, errMsg2, errStat, errMsg, RoutineName )
-         
+      c = c + 1   
    end do !j
-   do j=1,numSWnNodes       
+   
+   jstart = 1
+   if ( EqualRealNos( TwoNorm( PWnPos(:,numPWnNodes) - SWnPos(:,1) ), 0.0_ReKi ) ) then
+      jstart = 2
+      ! TODO: For now we will throw an error if the inboard nodes are co-located!
+      call SetErrStat( ErrID_Fatal, 'The current version of KiteFAST does not allow the most inboard nodes of the port and starboard wings to be colocated', errStat, errMsg, RoutineName )
+      return
+   end if
+   
+   do j=jstart,numSWnNodes       
       position = SWnPos(:,j) - origin(:) 
       position = matmul(alignDCM, position) 
       orientation = SWnDCMs(:,:,j)
       orientation = matmul(orientation, transpose(alignDCM))
       
-      call MeshPositionNode(mesh, j+numPWnNodes, position, errStat2, errMsg2, orientation)  
+      call MeshPositionNode(mesh, c, position, errStat2, errMsg2, orientation)  
          call SetErrStat( errStat2, errMsg2, errStat, errMsg, RoutineName )
-         
+      c = c + 1    
    end do !j
          
       ! create line2 elements
-   do j=1,numSWnNodes + numPWnNodes -1
+   do j=1,numSWnNodes + numPWnNodes - jstart
       call MeshConstructElement( mesh, ELEMENT_LINE2, errStat2, errMsg2, p1=j, p2=j+1 )
          call SetErrStat( errStat2, errMsg2, errStat, errMsg, RoutineName )
    end do 
@@ -599,14 +605,16 @@ subroutine CreateMBDynL2MotionsWingMesh(origin, numSWnNodes, SWnPos, numPWnNodes
       call SetErrStat( errStat2, errMsg2, errStat, errMsg, RoutineName )
             
    if (errStat >= AbortErrLev) return
-   
+   c = 1
    do j=numPWnNodes,1,-1       
-      mesh%Orientation(:,:,numPWnNodes-j+1)   = PWnDCMs(:,:,j)
-      mesh%TranslationDisp(:,numPWnNodes-j+1) = PWnPos(:,j)  - mesh%Position(:,numPWnNodes-j+1)
+      mesh%Orientation(:,:,c)   = PWnDCMs(:,:,j)
+      mesh%TranslationDisp(:,c) = PWnPos(:,j)  - mesh%Position(:,c)
+      c = c+1
    end do
-   do j=1,numSWnNodes     
-      mesh%Orientation(:,:,j+numPWnNodes)   = SWnDCMs(:,:,j)
-      mesh%TranslationDisp(:,j+numPWnNodes) = SWnPos(:,j)  - mesh%Position(:,j+numPWnNodes)
+   do j=jstart,numSWnNodes     
+      mesh%Orientation(:,:,c)   = SWnDCMs(:,:,j)
+      mesh%TranslationDisp(:,c) = SWnPos(:,j)  - mesh%Position(:,c)
+      c = c+1
    end do
    mesh%TranslationVel  = 0.0_ReKi
    mesh%RotationVel     = 0.0_ReKi
@@ -759,7 +767,7 @@ subroutine CreateMBDynPtLoadsWingMesh(origin, numSWnNodes, SWnPos, numPWnNodes, 
    ! Local variables
    real(reKi)                                   :: position(3)       ! node reference position
    real(R8Ki)                                   :: orientation(3,3)  ! node reference orientation
-   integer(intKi)                               :: j                 ! counter for nodes
+   integer(intKi)                               :: c,j,jstart        ! counter for nodes
    integer(intKi)                               :: errStat2          ! temporary Error status
    character(ErrMsgLen)                         :: errMsg2           ! temporary Error message
    character(*), parameter                      :: RoutineName = 'CreateMBDynPtLoadsWingMesh'
@@ -784,25 +792,35 @@ subroutine CreateMBDynPtLoadsWingMesh(origin, numSWnNodes, SWnPos, numPWnNodes, 
    
          ! set node initial position/orientation
    position = 0.0_ReKi
+   c = 1
    do j = numPWnNodes, 1, -1       
       position = PWnPos(:,j) - origin(:) 
       position = matmul(alignDCM, position) 
       orientation = PWnDCMs(:,:,j)
       orientation = matmul(orientation, transpose(alignDCM))
-      call MeshPositionNode(mesh, numPWnNodes-j+1, position, errStat2, errMsg2, orientation)  
+      call MeshPositionNode(mesh, c, position, errStat2, errMsg2, orientation)  
          call SetErrStat( errStat2, errMsg2, errStat, errMsg, RoutineName )   
+      c = c + 1
    end do !j
+   jstart = 1
+   if ( EqualRealNos( TwoNorm( PWnPos(:,numPWnNodes) - SWnPos(:,1) ), 0.0_ReKi ) ) then
+      jstart = 2
+      ! TODO: For now we will throw an error if the inboard nodes are co-located!
+      call SetErrStat( ErrID_Fatal, 'The current version of KiteFAST does not allow the most inboard nodes of the port and starboard wings to be colocated', errStat, errMsg, RoutineName )
+      return
+   end if
    
-   do j = 1, numSWnNodes       
+   do j = jstart, numSWnNodes       
       position = SWnPos(:,j) - origin(:) 
       position = matmul(alignDCM, position) 
       orientation = SWnDCMs(:,:,j)
       orientation = matmul(orientation, transpose(alignDCM))
-      call MeshPositionNode(mesh, j+numPWnNodes, position, errStat2, errMsg2, orientation)  
+      call MeshPositionNode(mesh, c, position, errStat2, errMsg2, orientation)  
          call SetErrStat( errStat2, errMsg2, errStat, errMsg, RoutineName )   
+      c = c + 1
    end do !j
    
-   do j = 1, numSWnNodes + numPWnNodes    
+   do j = 1, numSWnNodes + numPWnNodes + 1 - jstart   
       call MeshConstructElement( mesh, ELEMENT_POINT, errStat2, errMsg2, p1=j )
          call SetErrStat( errStat2, errMsg2, errStat, errMsg, RoutineName )  
    end do
@@ -816,12 +834,14 @@ subroutine CreateMBDynPtLoadsWingMesh(origin, numSWnNodes, SWnPos, numPWnNodes, 
    mesh%Force           = 0.0_ReKi
    mesh%Moment          = 0.0_ReKi
    mesh%TranslationDisp = 0.0_ReKi
-   
+   c = 1
    do j = numPWnNodes, 1, -1   
-      mesh%TranslationDisp(:,numPWnNodes-j+1) = PWnPos(:,j)  - mesh%Position(:,numPWnNodes-j+1)
+      mesh%TranslationDisp(:,c) = PWnPos(:,j)  - mesh%Position(:,c)
+      c = c + 1
    end do
-   do j = 1, numSWnNodes  
-      mesh%TranslationDisp(:,j+numPWnNodes)   = SWnPos(:,j)  - mesh%Position(:,j+numPWnNodes)
+   do j = jstart, numSWnNodes  
+      mesh%TranslationDisp(:,c)   = SWnPos(:,j)  - mesh%Position(:,c)
+      c = c + 1
    end do
    
    
@@ -1506,6 +1526,7 @@ subroutine KFAST_Init(dt, numFlaps, numPylons, numComp, numCompNds, modFlags, KA
       call RemoveNullChar(KAD_InitInp%FileName)
       KAD_InitInp%NumFlaps  = numFlaps
       KAD_InitInp%NumPylons = numPylons
+      KAD_InitInp%outFileRoot = p%outFileRoot
       interval              = dt
    
          ! Determine Kite component reference point locations in the kite coordinate system

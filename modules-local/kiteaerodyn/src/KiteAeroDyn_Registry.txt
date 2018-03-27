@@ -79,6 +79,7 @@ typedef    ^    KAD_InputFile    CHARACTER(ChanLen) OutList        {:}   -    - 
 # ..... Initialization Inputs .....................................................................................................
 typedef    ^    InitInputType    CHARACTER(1024)    FileName        -      -    -  "Supplied by Driver:  The name of the root file including the full path"    -
 typedef    ^    ^                KAD_InputFile      InpFileData     -      -    -  "Either populated when parsing the KAD inputfile or supplied by the Driver" 
+typedef	  ^	 ^	               CHARACTER(1024)	 OutFileRoot     -	   -	  -	"Rootname of the KAD output file"	-
 typedef    ^    ^                IntKi              NumFlaps        -      -    -  "Supplied by Driver:  Number of flaps per wing" -
 typedef    ^    ^                IntKi              NumPylons       -      -    -  "Supplied by Driver:  Number of pylons per wing" -
 typedef    ^    ^                ReKi               SWnOR          {3}     -    -  "Supplied by Driver:  Starboard wing reference point" -

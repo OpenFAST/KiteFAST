@@ -3795,7 +3795,8 @@ subroutine KAD_Init( InitInp, u, p, y, interval, x, xd, z, OtherState, m, InitOu
 
    
    ! Open and initialize the output file/data
-   call GetRoot( InitInp%FileName, p%OutFileRoot )
+   p%OutFileRoot = InitInp%OutFileRoot
+   
    if (p%OutSwtch /= 2) then   
       call KAD_OpenOutput( KAD_Ver, p%OutFileRoot,  p, InitOut, ErrStat, ErrMsg )
          if (ErrStat >= AbortErrLev) return
