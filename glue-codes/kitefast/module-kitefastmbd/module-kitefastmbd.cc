@@ -328,7 +328,7 @@ void ModuleKiteFAST::BuildComponentNodeArray(DataManager *pDM, MBDynParser &HP,
 void ModuleKiteFAST::InitOutputFile(std::string output_file_name)
 {
   printdebug("InitOutputFile");
-  outputfile.open(output_file_name);
+  outputfile.open(output_file_name.c_str());
   if (!outputfile)
   {
     silent_cerr("Runtime Error: cannot open file at " << output_file_name << std::endl);
