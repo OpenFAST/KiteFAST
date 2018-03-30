@@ -214,26 +214,16 @@ ModuleKiteFAST::ModuleKiteFAST(unsigned uLabel, const DofOwner *pDO, DataManager
   integer mip_index = component_reference_node_indeces[0];
   KiteFASTNode mipnode = nodes_fuselage[mip_index];
   Mat3x3 mip_dcm = mipnode.pNode->GetRCurr();
-  
-  silent_cout("mip current rotation matrix\n");
-  printf("%f %f %f\n", mip_dcm.dGet(1, 1), mip_dcm.dGet(1, 2), mip_dcm.dGet(1, 3));
-  printf("%f %f %f\n", mip_dcm.dGet(2, 1), mip_dcm.dGet(2, 2), mip_dcm.dGet(2, 3));
-  printf("%f %f %f\n", mip_dcm.dGet(3, 1), mip_dcm.dGet(3, 2), mip_dcm.dGet(3, 3));
-
-  // Vec3 mip_position = mipnode.pNode->GetXCurr();
-  // printf("mip current position vector\n");
-  // printf("%f %f %f\n", mip_position[0], mip_position[1], mip_position[2]);
-
   doublereal pFusODCM[9];
-  pFusODCM[0] = doublereal(-1.0);
-  pFusODCM[1] = doublereal(0.0);
-  pFusODCM[2] = doublereal(0.0);
-  pFusODCM[3] = doublereal(0.0);
-  pFusODCM[4] = doublereal(1.0);
-  pFusODCM[5] = doublereal(0.0);
-  pFusODCM[6] = doublereal(0.0);
-  pFusODCM[7] = doublereal(0.0);
-  pFusODCM[8] = doublereal(-1.0);
+  pFusODCM[0] = mip_dcm.dGet(1, 1);
+  pFusODCM[1] = mip_dcm.dGet(1, 2);
+  pFusODCM[2] = mip_dcm.dGet(1, 3);
+  pFusODCM[3] = mip_dcm.dGet(2, 1);
+  pFusODCM[4] = mip_dcm.dGet(2, 2);
+  pFusODCM[5] = mip_dcm.dGet(2, 3);
+  pFusODCM[6] = mip_dcm.dGet(3, 1);
+  pFusODCM[7] = mip_dcm.dGet(3, 2);
+  pFusODCM[8] = mip_dcm.dGet(3, 3);
 
   int numRtSpdRtrElem;
   double *pRtSpd_PyRtr;
