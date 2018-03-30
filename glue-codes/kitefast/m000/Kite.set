@@ -1,0 +1,165 @@
+# Set basic counters and parameters
+
+# ****************** Fuselage **********************
+set: integer MIP_RF = 10;
+set: integer afkink_RF = 20; #NOT USED HERE
+
+set: integer fusnNodes = 3; # number of fuse nodes
+
+set: integer MIP_node = 10; #most important point id, reference for all
+
+set: integer aftfuse_node = MIP_node +fusnNodes -2; # id of tail node to connect to vstab
+
+set: integer fusnBeams = 1; #number of beams in the fore fuse
+
+# ****************** Wing  **********************
+set: integer lwroot_RF = 30;
+
+set: integer rwroot_RF = 50;
+
+set: real  lwroot_xoffset = 0.;  #along MIP_RF
+set: real  lwroot_yoffset = -0.5;
+set: real  lwroot_zoffset = 0.;  #along MIP_RF
+
+set: real  rwroot_xoffset = 0.;  #along MIP_RF
+set: real  rwroot_yoffset = +0.5;
+set: real  rwroot_zoffset = 0.;  #along MIP_RF
+
+set: integer lwnNodes    = 3;
+set: integer rwnNodes    = 3;
+
+set: integer lwroot_node = 30;
+set: integer rwroot_node = 50;
+
+set: integer lwnBeams = 1; #number of beams in the left wing
+set: integer rwnBeams = 1; #number of beams in the right wing
+
+
+# ****************** Vertical Stabilizer **********************
+set: integer vsroot_RF = 70; #Top node, of stabilizer,
+#called root for this example to match weird aerodyn convention
+
+set: integer vsnNodes    = 3;  #upper VS nodes (including root node)
+
+set: integer vsroot_node  = 70; #connection node to VS
+set: integer vsbot_node= vsroot_node + vsnNodes-1; #ID of Vstab node where  connects to fuse
+
+set: const real  vsroot_xoffset = -5.1; #relative position of the VS root w.r.t. MIP_RF
+set: const real  vsroot_yoffset =  0.; #relative position of the VS root w.r.t. MIP_RF
+set: const real  vsroot_zoffset =  -2.0;#relative position of the VS root w.r.t. MIP_RF
+
+set: integer vsnBeams = 1; #number of beams in the VS
+
+# ****************** Horizontal Stabilizer **********************
+set: integer lhsroot_RF = 90;
+set: integer rhsroot_RF = 110;
+
+set: integer lhsnNodes    = 3; #number of nodes in port HS including root
+set: integer rhsnNodes    = 3; #number of nodes in port HS including root
+
+set: integer lhsroot_node = 90;
+set: integer rhsroot_node = 110;
+
+set: real  lhsroot_xoffset = vsroot_xoffset;  #w.r.t. MIP_RF, offset for LHS root
+set: real  lhsroot_yoffset = -0.1;
+set: real  lhsroot_zoffset = vsroot_zoffset;
+set: real  rhsroot_xoffset =  lhsroot_xoffset;  #w.r.t. MIP_RF, offset for RHS root
+set: real  rhsroot_yoffset = -lhsroot_yoffset;
+set: real  rhsroot_zoffset = lhsroot_zoffset;
+
+set: integer rhsnBeams = 1; #number of beams in the right HS
+set: integer lhsnBeams = 1; #number of beams in the left HS
+
+# ****************** Pylon  **********************
+set: integer npyspw    =1; #pylons per wing
+set: integer pynNodes  =3; #nodes per pylon
+set: integer npyBeams  =1; #number of beams per pylon
+
+set: integer lpy1_RF = 130;
+set: integer rpy1_RF = 170;
+
+set: integer lpynNodes    = pynNodes*npyspw; #This will need to be changed appropriately
+set: integer rpynNodes    = pynNodes*npyspw; #This will need to be changed appropriately
+
+set: integer lpy1root_node  = 130; #These are the top nodes to match AD way of doing this
+
+set: integer lpy1bot_node  = lpy1root_node+2;
+set: integer lpy1mid_node  = lpy1root_node+1;
+set: integer lpy1top_node  = lpy1root_node;
+
+set: integer rpy1root_node  = 170;
+
+set: integer rpy1bot_node  = rpy1root_node+2;
+set: integer rpy1mid_node  = rpy1root_node+1;
+set: integer rpy1top_node  = rpy1root_node;
+
+set: real  lpy1_xoffset   =  lwroot_xoffset+0.1;    #distance along MIP_RF of pylon root
+set: real  lpy1_yoffset   =  -3.0;
+set: real  lpy1_zoffset   =  -0.5;
+
+set: real  rpy1_xoffset   =  lpy1_xoffset;    #distance along MIP_RF of pylon root
+set: real  rpy1_yoffset   =  -lpy1_yoffset;
+set: real  rpy1_zoffset   =  lpy1_zoffset;
+
+
+# ****************** Rotor  **********************
+set: integer nrotppy =2; #rotors per pylon
+
+set: integer nrotpw =nrotppy*npyspw; #rotors per wing
+
+set: integer lrot1_RF = 200;
+set: integer lrot2_RF = 201;
+
+set: integer rrot1_RF = 210;
+set: integer rrot2_RF = 211;
+
+set: integer lrotnNodes    = nrotpw;
+set: integer rrotnNodes    = nrotpw;
+
+set: integer lrot1_node  = 200;
+set: integer lrot2_node  = 201;
+
+set: integer rrot1_node  = 210;
+set: integer rrot2_node  = 211;
+
+#rotors are numbered this way to match KiteAD
+# l1    |   r1
+#--------------------->y
+# l2    |   r2
+
+set: real  lrot1_xoffset  =  lpy1_xoffset+0.1;  #offset w.r.t. MIP_RF.
+set: real  lrot1_yoffset  =  lpy1_yoffset;
+set: real  lrot1_zoffset  =  lpy1_zoffset;
+
+set: real  lrot2_xoffset  =  lrot1_xoffset; #bottom
+set: real  lrot2_yoffset  =  lrot1_yoffset;
+set: real  lrot2_zoffset  =  -lrot1_zoffset;
+
+
+set: real  rrot1_xoffset  =  rpy1_xoffset+0.1;  #doffset w.r.t. MIP_RF.
+set: real  rrot1_yoffset  =  rpy1_yoffset;
+set: real  rrot1_zoffset  =  rpy1_zoffset;
+
+set: real  rrot2_xoffset  =  rrot1_xoffset; #bottom
+set: real  rrot2_yoffset  =  rrot1_yoffset;
+set: real  rrot2_zoffset  =  -rrot1_zoffset;
+
+#____________________AUX one-time stuff_____________________#
+set:   real l1 = 1;
+set:   real l2 = l1;
+set:   real l3 = l1;
+
+# nodal partition
+set:  real m1  = 1;   # nodal mass of the three part of the beam
+set:  real m2  = 1;
+set:  real m3  = 1;
+
+set:  real Jx1 = 1;
+set:  real Jy1 = 1;
+set:  real Jz1 = 1;
+set:  real Jx2 = 1;
+set:  real Jy2 = 1;
+set:  real Jz2 = 1;
+set:  real Jx3 = 1;
+set:  real Jy3 = 1;
+set:  real Jz3 = 1;
