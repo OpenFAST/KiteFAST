@@ -209,52 +209,48 @@ ModuleKiteFAST::ModuleKiteFAST(unsigned uLabel, const DofOwner *pDO, DataManager
     rotor_points[3 * i + 2] = xcurr[2];
   }
 
-  int numRtSpdRtrElem;
-  double *pRtSpd_PyRtr;  
-  double *pFusO;
-  double *pFusOv;
-  double *pFusOomegas;
-  double *pFusOacc;
-  double *pNodeVels;
-  double *pNodeOmegas;
-
   // Test the FusODCM as a 1D array instead of a 2D array
   // The kite is aligned with the Global Coordinate system
   integer mip_index = component_reference_node_indeces[0];
   KiteFASTNode mipnode = nodes_fuselage[mip_index];
   Mat3x3 mip_dcm = mipnode.pNode->GetRCurr();
-  printf("%f %f %f\n", mip_dcm.dGet(0, 0), mip_dcm.dGet(0, 1), mip_dcm.dGet(0, 2));
-  printf("%f %f %f\n", mip_dcm.dGet(1, 0), mip_dcm.dGet(1, 1), mip_dcm.dGet(1, 2));
-  printf("%f %f %f\n", mip_dcm.dGet(2, 0), mip_dcm.dGet(2, 1), mip_dcm.dGet(2, 2));
-
   doublereal pFusODCM[9];
-  pFusODCM[0] = doublereal(-1.0);
-  pFusODCM[1] = doublereal(0.0);
-  pFusODCM[2] = doublereal(0.0);
-  pFusODCM[3] = doublereal(0.0);
-  pFusODCM[4] = doublereal(1.0);
-  pFusODCM[5] = doublereal(0.0);
-  pFusODCM[6] = doublereal(0.0);
-  pFusODCM[7] = doublereal(0.0);
-  pFusODCM[8] = doublereal(-1.0);
-
-  // int index = 6;
-  // int indexm1 = index-1;
-  // int begin = 0;
-  // for (int h = 0; h <= indexm1; h++) {
-  //   begin += component_node_counts[h];
-  // }
-  // for (int h = begin; h < begin + component_node_counts[index]; h++)
-  // {
-  //   printf("%-8.5f  %-8.5f  %-8.5f  0.000     1.000     1\n", -1 * node_points[3 * h + 0], node_points[3 * h + 1], node_points[8] - node_points[3 * h + 2]);
-  // }
+  pFusODCM[0] = mip_dcm.dGet(1, 1);
+  pFusODCM[1] = mip_dcm.dGet(1, 2);
+  pFusODCM[2] = mip_dcm.dGet(1, 3);
+  pFusODCM[3] = mip_dcm.dGet(2, 1);
+  pFusODCM[4] = mip_dcm.dGet(2, 2);
+  pFusODCM[5] = mip_dcm.dGet(2, 3);
+  pFusODCM[6] = mip_dcm.dGet(3, 1);
+  pFusODCM[7] = mip_dcm.dGet(3, 2);
+  pFusODCM[8] = mip_dcm.dGet(3, 3);
 
   int error_status;
   char error_message[INTERFACE_STRING_LENGTH];
-  KFAST_Init(&dt, &n_flaps_per_wing, &n_pylons_per_wing, &n_components, component_node_counts,
-             kitefast_module_flags, kiteaerodyn_filename, inflowwind_filename, moordyn_filename, controller_filename,
-             output_file_root, &gravity, ground_station_point, pFusODCM, &numRtrPtsElem, rotor_points, &numRefPtElem,
-             reference_points, &numNodePtElem, node_points, &numDCMElem, node_dcms, &error_status, error_message);
+  KFAST_Init(&dt,
+             &n_flaps_per_wing,
+             &n_pylons_per_wing,
+             &n_components,
+             component_node_counts,
+             kitefast_module_flags,
+             kiteaerodyn_filename,
+             inflowwind_filename,
+             moordyn_filename,
+             controller_filename,
+             output_file_root,
+             &gravity,
+             ground_station_point,
+             pFusODCM,
+             &numRtrPtsElem,
+             rotor_points,
+             &numRefPtElem,
+             reference_points,
+             &numNodePtElem,
+             node_points,
+             &numDCMElem,
+             node_dcms,
+             &error_status,
+             error_message);
   silent_cout(error_status << error_message << std::endl);
   if (error_status >= AbortErrLev)
   {
