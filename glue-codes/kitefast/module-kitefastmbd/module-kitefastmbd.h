@@ -87,37 +87,10 @@ private:
   };
 
   const static int AbortErrLev = ErrID_Fatal; // abort error level; compare with NWTC Library
-
-  char kiteaerodyn_filename[INTERFACE_STRING_LENGTH];
-  char inflowwind_filename[INTERFACE_STRING_LENGTH];
-  char moordyn_filename[INTERFACE_STRING_LENGTH];
-  char controller_filename[INTERFACE_STRING_LENGTH];
-  char output_file_root[INTERFACE_STRING_LENGTH];
+  
   int error_status;
   char error_message[INTERFACE_STRING_LENGTH];
 
-  double dt;
-  double gravity;
-  double *ground_station_point;
-  int *kitefast_module_flags;
-  char component_keywords;
-
-  int n_flaps_per_wing;
-  int n_pylons_per_wing;
-  int n_components;
-  int *component_node_counts;
-  int *component_reference_node_indeces;
-  int *component_reference_nodes;
-  int numRefPtElem;
-  int numRtrPtsElem;
-  int numNodePtElem;
-  int numDCMElem;
-  double *reference_points;
-  // doublereal node_points;
-  double *rotor_points;
-  // double *node_dcms;
-
-  int node_count; // number of nodes connected to this element
   std::vector<KiteFASTNode> nodes;
   std::vector<KiteFASTNode> nodes_fuselage;
   std::vector<KiteFASTNode> nodes_portwing;
@@ -126,17 +99,11 @@ private:
   std::vector<KiteFASTNode> nodes_porthstab;
   std::vector<KiteFASTNode> nodes_starhstab;
   std::vector<KiteFASTNode> nodes_portpylon1;
-  std::vector<KiteFASTNode> nodes_portpylon2;
   std::vector<KiteFASTNode> nodes_starpylon1;
-  std::vector<KiteFASTNode> nodes_starpylon2;
   std::vector<KiteFASTNode> nodes_portrotors;
   std::vector<KiteFASTNode> nodes_starrotors;
-  std::vector<KiteFASTNode> nodes_bridle;
 
-  std::string output_file_name;
   mutable std::ofstream outputfile;
-
-  bool bFirst;
   DriveOwner Time;
 
 public:
