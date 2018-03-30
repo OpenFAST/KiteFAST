@@ -348,10 +348,6 @@ joint: lrot2_node, revolute hinge,
       lhsroot_xoffset, lhsroot_yoffset, lhsroot_zoffset,   # port horizontal stabilizer
       rpy1_xoffset, rpy1_yoffset, rpy1_zoffset,   # starboard pylon
       lpy1_xoffset, lpy1_yoffset, lpy1_zoffset,   # port pylon
-      rrot1_xoffset, rrot1_yoffset, rrot1_zoffset,   # 
-      rrot2_xoffset, rrot2_yoffset, rrot2_zoffset,   # 
-      lrot1_xoffset, lrot1_yoffset, lrot1_zoffset,   # 
-      lrot2_xoffset, lrot2_yoffset, lrot2_zoffset,   # 
     fuselage,
       fusnNodes,
       1,

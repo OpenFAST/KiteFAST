@@ -62,7 +62,7 @@ ModuleKiteFAST::ModuleKiteFAST(unsigned uLabel, const DofOwner *pDO, DataManager
   // parse the kitefast module flags
   // 0 = off, 1 = on
   ValidateInputKeyword(HP, "fast_submodule_flags");
-  kitefast_module_flags = (int *)malloc(4 * sizeof(int));
+  int kitefast_module_flags[4];
   kitefast_module_flags[0] = HP.GetInt(); // kiteaerodyn
   kitefast_module_flags[1] = HP.GetInt(); // inflowwind
   kitefast_module_flags[2] = HP.GetInt(); // moordyn
@@ -70,6 +70,10 @@ ModuleKiteFAST::ModuleKiteFAST(unsigned uLabel, const DofOwner *pDO, DataManager
 
   // parse the kitefast module input files
   ValidateInputKeyword(HP, "fast_submodule_input_files");
+  char kiteaerodyn_filename[INTERFACE_STRING_LENGTH];
+  char inflowwind_filename[INTERFACE_STRING_LENGTH];
+  char moordyn_filename[INTERFACE_STRING_LENGTH];
+  char controller_filename[INTERFACE_STRING_LENGTH];
   strcpy(kiteaerodyn_filename, HP.GetFileName());
   strcpy(inflowwind_filename, HP.GetFileName());
   strcpy(moordyn_filename, HP.GetFileName());
@@ -77,44 +81,42 @@ ModuleKiteFAST::ModuleKiteFAST(unsigned uLabel, const DofOwner *pDO, DataManager
 
   // parse the output file settings and initialize the output file
   ValidateInputKeyword(HP, "output_file_root");
+  char output_file_root[INTERFACE_STRING_LENGTH];
   strcpy(output_file_root, HP.GetFileName());
+  std::string output_file_name;
   output_file_name = strcat(output_file_root, "MBD.out");
   InitOutputFile(output_file_name);
 
   // parse the time step
   ValidateInputKeyword(HP, "time_step");
-  dt = HP.GetReal();
+  doublereal dt = HP.GetReal();
 
   // parse the gravity
   ValidateInputKeyword(HP, "gravity");
-  gravity = HP.GetReal();
+  doublereal gravity = HP.GetReal();
 
   // parse the ground station location
   ValidateInputKeyword(HP, "ground_weather_station_location");
-  ground_station_point = (doublereal *)malloc(3 * sizeof(doublereal));
+  doublereal ground_station_point[3];
   ground_station_point[0] = HP.GetReal();
   ground_station_point[1] = HP.GetReal();
   ground_station_point[2] = HP.GetReal();
 
   // parse the component counts
   ValidateInputKeyword(HP, "number_of_flaps_per_wing");
-  n_flaps_per_wing = HP.GetInt();
+  integer n_flaps_per_wing = HP.GetInt();
   ValidateInputKeyword(HP, "number_of_pylons_per_wing");
-  n_pylons_per_wing = HP.GetInt();
-  ValidateInputKeyword(HP, "number_of_kite_components");
-  n_components = HP.GetInt();
+  integer n_pylons_per_wing = HP.GetInt();
 
-  // ***
   // n_components includes all components except the rotors
-  // ***
+  ValidateInputKeyword(HP, "number_of_kite_components");
+  integer n_components = HP.GetInt();
 
   // parse the keypoints (aka reference points)
   ValidateInputKeyword(HP, "keypoints");
-  numRefPtElem = 3 * (n_components + 2 * 2 * n_pylons_per_wing);
-  reference_points = (doublereal *)malloc(numRefPtElem * sizeof(doublereal));
-
-  // 2 * 2 * n_pylons_per_wing = 2 wings * 2 rotors per pylon * # of pylons = total rotor count
-  for (int i = 0; i < n_components + 2 * 2 * n_pylons_per_wing; i++)
+  integer numRefPtElem = 3 * (n_components + 2 * n_pylons_per_wing);
+  doublereal reference_points[numRefPtElem];
+  for (int i = 0; i < n_components; i++)
   {
     reference_points[3 * i] = HP.GetReal();
     reference_points[3 * i + 1] = HP.GetReal();
@@ -122,7 +124,7 @@ ModuleKiteFAST::ModuleKiteFAST(unsigned uLabel, const DofOwner *pDO, DataManager
   }
 
   // parse the component nodes into arrays
-  component_reference_node_indeces = (int *)malloc(n_components * sizeof(int));
+  integer component_reference_node_indeces[n_components];
   BuildComponentNodeArray(pDM, HP, "fuselage", nodes_fuselage, component_reference_node_indeces[0]);
   BuildComponentNodeArray(pDM, HP, "starboard_wing", nodes_starwing, component_reference_node_indeces[1]);
   BuildComponentNodeArray(pDM, HP, "port_wing", nodes_portwing, component_reference_node_indeces[2]);
@@ -130,28 +132,22 @@ ModuleKiteFAST::ModuleKiteFAST(unsigned uLabel, const DofOwner *pDO, DataManager
   BuildComponentNodeArray(pDM, HP, "starboard_hstab", nodes_starhstab, component_reference_node_indeces[4]);
   BuildComponentNodeArray(pDM, HP, "port_hstab", nodes_porthstab, component_reference_node_indeces[5]);
   BuildComponentNodeArray(pDM, HP, "starboard_pylon1", nodes_starpylon1, component_reference_node_indeces[6]);
-  // BuildComponentNodeArray(pDM, HP, "starboard_pylon2", nodes_starpylon2, component_reference_node_indeces[7]);
   BuildComponentNodeArray(pDM, HP, "port_pylon1", nodes_portpylon1, component_reference_node_indeces[7]);
-  // BuildComponentNodeArray(pDM, HP, "port_pylon2", nodes_portpylon2, component_reference_node_indeces[9]);
   BuildComponentNodeArray(pDM, HP, "starboard_rotors", nodes_starrotors, component_reference_node_indeces[8]);
   BuildComponentNodeArray(pDM, HP, "port_rotors", nodes_portrotors, component_reference_node_indeces[9]);
-  // BuildComponentNodeArray(pDM, HP, "bridle", nodes_bridle, component_reference_node_indeces[12]);
 
-  node_count = nodes_fuselage.size()
-             + nodes_portwing.size()
-             + nodes_starwing.size()
-             + nodes_vstab.size()
-             + nodes_porthstab.size()
-             + nodes_starhstab.size()
-             + nodes_portpylon1.size()
-            //  + nodes_portpylon2.size()
-             + nodes_starpylon1.size()
-            //  + nodes_starpylon2.size()
-             + nodes_portrotors.size()
-             + nodes_starrotors.size();
-            //  + nodes_bridle.size();
+  integer total_node_count = nodes_fuselage.size()
+                           + nodes_starwing.size()
+                           + nodes_portwing.size()
+                           + nodes_vstab.size()
+                           + nodes_starhstab.size()
+                           + nodes_porthstab.size()
+                           + nodes_starpylon1.size()
+                           + nodes_portpylon1.size()
+                           + nodes_starrotors.size()
+                           + nodes_portrotors.size();
 
-  nodes.reserve(node_count);
+  nodes.reserve(total_node_count);
   nodes.insert(nodes.begin(), nodes_fuselage.begin(), nodes_fuselage.end());
   nodes.insert(nodes.end(), nodes_starwing.begin(), nodes_starwing.end());
   nodes.insert(nodes.end(), nodes_portwing.begin(), nodes_portwing.end());
@@ -159,36 +155,29 @@ ModuleKiteFAST::ModuleKiteFAST(unsigned uLabel, const DofOwner *pDO, DataManager
   nodes.insert(nodes.end(), nodes_starhstab.begin(), nodes_starhstab.end());
   nodes.insert(nodes.end(), nodes_porthstab.begin(), nodes_porthstab.end());
   nodes.insert(nodes.end(), nodes_starpylon1.begin(), nodes_starpylon1.end());
-  // nodes.insert(nodes.end(), nodes_starpylon2.begin(), nodes_starpylon2.end());
   nodes.insert(nodes.end(), nodes_portpylon1.begin(), nodes_portpylon1.end());
-  // nodes.insert(nodes.end(), nodes_portpylon2.begin(), nodes_portpylon2.end());
   nodes.insert(nodes.end(), nodes_starrotors.begin(), nodes_starrotors.end());
   nodes.insert(nodes.end(), nodes_portrotors.begin(), nodes_portrotors.end());
-  // nodes.insert(nodes.end(), nodes_bridle.begin(), nodes_bridle.end());
 
   // number of nodes per kite component excluding rotors
-  component_node_counts = (int *)malloc(n_components * sizeof(int));
-  component_node_counts[0] = nodes_fuselage.size();   // fuselage nodes
-  component_node_counts[1] = nodes_starwing.size();   // starboard wing nodes
-  component_node_counts[2] = nodes_portwing.size();   // port wing nodes
-  component_node_counts[3] = nodes_vstab.size();      // vertical stabilizer nodes
-  component_node_counts[4] = nodes_starhstab.size();  // starboard horizontal stabilizer nodes
-  component_node_counts[5] = nodes_porthstab.size();  // port horizontal stabilizer nodes
-  component_node_counts[6] = nodes_starpylon1.size(); // starboard inboard pylon nodes
-  // component_node_counts[7] = nodes_starpylon2.size(); // starboard outboard pylon nodes
-  component_node_counts[7] = nodes_portpylon1.size(); // port inboard pylon nodes
-  // component_node_counts[9] = nodes_portpylon2.size(); // port outboard pylon nodes
+  integer component_node_counts[n_components];
+  component_node_counts[0] = nodes_fuselage.size();
+  component_node_counts[1] = nodes_starwing.size();
+  component_node_counts[2] = nodes_portwing.size();
+  component_node_counts[3] = nodes_vstab.size();
+  component_node_counts[4] = nodes_starhstab.size();
+  component_node_counts[5] = nodes_porthstab.size();
+  component_node_counts[6] = nodes_starpylon1.size();
+  component_node_counts[7] = nodes_portpylon1.size();
 
   // build the node arrays for kite components excluding rotors
-  int component_node_count = nodes.size() - nodes_starrotors.size() - nodes_portrotors.size();
-  numNodePtElem = 3 * component_node_count;
+  integer node_count_no_rotors = nodes.size() - nodes_starrotors.size() - nodes_portrotors.size();
+  integer numNodePtElem = 3 * node_count_no_rotors;
   doublereal node_points[numNodePtElem];
-  // node_points = (doublereal *)malloc(numNodePtElem * sizeof(doublereal));
-  numDCMElem = 9 * component_node_count;
+  integer numDCMElem = 9 * numNodePtElem;
   doublereal node_dcms[numDCMElem];
-  // node_dcms = (doublereal *)malloc(numDCMElem * sizeof(doublereal));
 
-  for (int i = 0; i < component_node_count; i++)
+  for (int i = 0; i < node_count_no_rotors; i++)
   {
     Vec3 xcurr = nodes[i].pNode->GetXCurr();
     node_points[3 * i] = xcurr[0];
@@ -209,10 +198,10 @@ ModuleKiteFAST::ModuleKiteFAST(unsigned uLabel, const DofOwner *pDO, DataManager
   }
 
   // build the node arrays for rotors
-  int rotors_node_count = nodes_starrotors.size() + nodes_portrotors.size();
-  numRtrPtsElem = 3 * rotors_node_count;
-  rotor_points = (doublereal *)malloc(numRtrPtsElem * sizeof(doublereal));
-  for (int i = component_node_count; i < rotors_node_count; i++)
+  integer rotor_node_count = nodes_starrotors.size() + nodes_portrotors.size();
+  integer numRtrPtsElem = 3 * rotor_node_count;
+  doublereal rotor_points[numRtrPtsElem];
+  for (int i = node_count_no_rotors; i < rotor_node_count; i++)
   {
     Vec3 xcurr = nodes[i].pNode->GetXCurr();
     rotor_points[3 * i] = xcurr[0];
@@ -221,8 +210,7 @@ ModuleKiteFAST::ModuleKiteFAST(unsigned uLabel, const DofOwner *pDO, DataManager
   }
 
   int numRtSpdRtrElem;
-  double *pRtSpd_PyRtr;
-  double *pFusODCM;
+  double *pRtSpd_PyRtr;  
   double *pFusO;
   double *pFusOv;
   double *pFusOomegas;
@@ -232,14 +220,14 @@ ModuleKiteFAST::ModuleKiteFAST(unsigned uLabel, const DofOwner *pDO, DataManager
 
   // Test the FusODCM as a 1D array instead of a 2D array
   // The kite is aligned with the Global Coordinate system
-  int mip_index = component_reference_node_indeces[0];
+  integer mip_index = component_reference_node_indeces[0];
   KiteFASTNode mipnode = nodes_fuselage[mip_index];
   Mat3x3 mip_dcm = mipnode.pNode->GetRCurr();
   printf("%f %f %f\n", mip_dcm.dGet(0, 0), mip_dcm.dGet(0, 1), mip_dcm.dGet(0, 2));
   printf("%f %f %f\n", mip_dcm.dGet(1, 0), mip_dcm.dGet(1, 1), mip_dcm.dGet(1, 2));
   printf("%f %f %f\n", mip_dcm.dGet(2, 0), mip_dcm.dGet(2, 1), mip_dcm.dGet(2, 2));
 
-  pFusODCM = (doublereal *)malloc(9 * sizeof(doublereal));
+  doublereal pFusODCM[9];
   pFusODCM[0] = doublereal(-1.0);
   pFusODCM[1] = doublereal(0.0);
   pFusODCM[2] = doublereal(0.0);
