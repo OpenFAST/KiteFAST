@@ -1545,39 +1545,61 @@ subroutine KFAST_Init(dt, numFlaps, numPylons, numComp, numCompNds, modFlags, KA
          return
       end if
       
-      KAD_InitInp%SWnOR =  SwnO - FusO
-      KAD_InitInp%SWnOR = matmul(m%FusODCM,KAD_InitInp%SWnOR)
-      KAD_InitInp%PWnOR =  PwnO - FusO
-      KAD_InitInp%PWnOR = matmul(m%FusODCM,KAD_InitInp%PWnOR)
-      KAD_InitInp%VSOR =  VSO - FusO
-      KAD_InitInp%VSOR = matmul(m%FusODCM,KAD_InitInp%VSOR)
-      KAD_InitInp%SHSOR =  SHSO - FusO
-      KAD_InitInp%SHSOR = matmul(m%FusODCM,KAD_InitInp%SHSOR)
-      KAD_InitInp%PHSOR =  PHSO - FusO
-      KAD_InitInp%PHSOR = matmul(m%FusODCM,KAD_InitInp%PHSOR)
+      !KAD_InitInp%SWnOR =  SwnO - FusO
+      !KAD_InitInp%SWnOR = matmul(m%FusODCM,KAD_InitInp%SWnOR)
+      !KAD_InitInp%PWnOR =  PwnO - FusO
+      !KAD_InitInp%PWnOR = matmul(m%FusODCM,KAD_InitInp%PWnOR)
+      !KAD_InitInp%VSOR =  VSO - FusO
+      !KAD_InitInp%VSOR = matmul(m%FusODCM,KAD_InitInp%VSOR)
+      !KAD_InitInp%SHSOR =  SHSO - FusO
+      !KAD_InitInp%SHSOR = matmul(m%FusODCM,KAD_InitInp%SHSOR)
+      !KAD_InitInp%PHSOR =  PHSO - FusO
+      !KAD_InitInp%PHSOR = matmul(m%FusODCM,KAD_InitInp%PHSOR)
 
+      KAD_InitInp%SWnOR =  SwnO 
+      KAD_InitInp%PWnOR =  PwnO 
+      KAD_InitInp%VSOR  =  VSO 
+      KAD_InitInp%SHSOR =  SHSO 
+      KAD_InitInp%PHSOR =  PHSO 
+      
+      !do i = 1, numPylons
+      !   KAD_InitInp%SPyOR(:,i) = SPyO(:,i) - FusO
+      !   KAD_InitInp%SPyOR(:,i) = matmul(m%FusODCM,KAD_InitInp%SPyOR(:,i))
+      !end do
+      !do i = 1, numPylons
+      !   KAD_InitInp%PPyOR(:,i) = PPyO(:,i) - FusO
+      !   KAD_InitInp%PPyOR(:,i) = matmul(m%FusODCM,KAD_InitInp%PPyOR(:,i))
+      !end do
+      !
+      !do i = 1, numPylons
+      !   KAD_InitInp%SPyRtrOR(:,1,i) = m%SPyRtrO(:,1,i) - FusO   
+      !   KAD_InitInp%SPyRtrOR(:,1,i) = matmul(m%FusODCM,KAD_InitInp%SPyRtrOR(:,1,i))
+      !   KAD_InitInp%SPyRtrOR(:,2,i) = m%SPyRtrO(:,2,i) - FusO   
+      !   KAD_InitInp%SPyRtrOR(:,2,i) = matmul(m%FusODCM,KAD_InitInp%SPyRtrOR(:,2,i))     
+      !end do
+      !do i = 1, numPylons
+      !   KAD_InitInp%PPyRtrOR(:,1,i) = m%PPyRtrO(:,1,i) - FusO   
+      !   KAD_InitInp%PPyRtrOR(:,1,i) = matmul(m%FusODCM,KAD_InitInp%PPyRtrOR(:,1,i))
+      !   KAD_InitInp%PPyRtrOR(:,2,i) = m%PPyRtrO(:,2,i) - FusO   
+      !   KAD_InitInp%PPyRtrOR(:,2,i) = matmul(m%FusODCM,KAD_InitInp%PPyRtrOR(:,2,i))     
+      !end do
+   
       do i = 1, numPylons
-         KAD_InitInp%SPyOR(:,i) = SPyO(:,i) - FusO
-         KAD_InitInp%SPyOR(:,i) = matmul(m%FusODCM,KAD_InitInp%SPyOR(:,i))
+         KAD_InitInp%SPyOR(:,i) = SPyO(:,i)
       end do
       do i = 1, numPylons
-         KAD_InitInp%PPyOR(:,i) = PPyO(:,i) - FusO
-         KAD_InitInp%PPyOR(:,i) = matmul(m%FusODCM,KAD_InitInp%PPyOR(:,i))
+         KAD_InitInp%PPyOR(:,i) = PPyO(:,i)
       end do
   
       do i = 1, numPylons
-         KAD_InitInp%SPyRtrOR(:,1,i) = m%SPyRtrO(:,1,i) - FusO   
-         KAD_InitInp%SPyRtrOR(:,1,i) = matmul(m%FusODCM,KAD_InitInp%SPyRtrOR(:,1,i))
-         KAD_InitInp%SPyRtrOR(:,2,i) = m%SPyRtrO(:,2,i) - FusO   
-         KAD_InitInp%SPyRtrOR(:,2,i) = matmul(m%FusODCM,KAD_InitInp%SPyRtrOR(:,2,i))     
+         KAD_InitInp%SPyRtrOR(:,1,i) = m%SPyRtrO(:,1,i)
+         KAD_InitInp%SPyRtrOR(:,2,i) = m%SPyRtrO(:,2,i)
       end do
       do i = 1, numPylons
-         KAD_InitInp%PPyRtrOR(:,1,i) = m%PPyRtrO(:,1,i) - FusO   
-         KAD_InitInp%PPyRtrOR(:,1,i) = matmul(m%FusODCM,KAD_InitInp%PPyRtrOR(:,1,i))
-         KAD_InitInp%PPyRtrOR(:,2,i) = m%PPyRtrO(:,2,i) - FusO   
-         KAD_InitInp%PPyRtrOR(:,2,i) = matmul(m%FusODCM,KAD_InitInp%PPyRtrOR(:,2,i))     
+         KAD_InitInp%PPyRtrOR(:,1,i) = m%PPyRtrO(:,1,i)
+         KAD_InitInp%PPyRtrOR(:,2,i) = m%PPyRtrO(:,2,i)
       end do
-   
+      
       call KAD_Init(KAD_InitInp, m%KAD%u(1), m%KAD%p, m%KAD%y, interval, m%KAD%x, m%KAD%xd, m%KAD%z, m%KAD%OtherSt, m%KAD%m, KAD_InitOut, errStat2, errMsg2 )
          call SetErrStat(errStat2,errMsg2,errStat,errMsg,routineName)
          if (errStat >= AbortErrLev ) then
@@ -1753,7 +1775,9 @@ contains
       
       ! Convert 1D float array data into specific quantities
       
-   FusO = refPts_c(1:3)  
+   FusO = refPts_c(1:3)   ! This is in global coordinates
+   
+   ! The remaining reference points are already in the Kite coordinate system!
    SWnO = refPts_c(4:6)
    PWnO = refPts_c(7:9)
    VSO = refPts_c(10:12)
