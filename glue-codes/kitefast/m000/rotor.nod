@@ -22,7 +22,7 @@ reference: rrot1_RF,
 
 reference: rrot2_RF,
 	reference, MIP_RF, rrot2_xoffset,rrot2_yoffset,rrot2_zoffset,
-        reference, MIP_RF, eye,
+  reference, MIP_RF, eye,
 	reference, MIP_RF, null,
 	reference, MIP_RF, null;
 
@@ -36,7 +36,7 @@ structural: lrot1_node, dynamic,
       reference,  lrot1_RF, null,
       reference,  lrot1_RF, eye,
       reference,  lrot1_RF, null,
-	    reference,  lrot1_RF,  10.*2*pi/60.0, 0.0, 0.0 ;
+	    reference,  lrot1_RF,  10., 00., 0.0 ;
 
 structural: lrot2_node, dynamic,
       reference, lrot2_RF, null,
