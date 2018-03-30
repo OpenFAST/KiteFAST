@@ -225,15 +225,6 @@ ModuleKiteFAST::ModuleKiteFAST(unsigned uLabel, const DofOwner *pDO, DataManager
   pFusODCM[7] = mip_dcm.dGet(3, 2);
   pFusODCM[8] = mip_dcm.dGet(3, 3);
 
-  int numRtSpdRtrElem;
-  double *pRtSpd_PyRtr;
-  double *pFusO;
-  double *pFusOv;
-  double *pFusOomegas;
-  double *pFusOacc;
-  double *pNodeVels;
-  double *pNodeOmegas;
-
   int error_status;
   char error_message[INTERFACE_STRING_LENGTH];
   KFAST_Init(&dt,
