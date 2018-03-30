@@ -113,8 +113,7 @@ ModuleKiteFAST::ModuleKiteFAST(unsigned uLabel, const DofOwner *pDO, DataManager
   numRefPtElem = 3 * (n_components + 2 * 2 * n_pylons_per_wing);
   reference_points = (doublereal *)malloc(numRefPtElem * sizeof(doublereal));
 
-  // 2 * 2 * n_pylons_per_wing = 2 wings * 2 rotors per pylon * # of pylons = total rotor count
-  for (int i = 0; i < n_components + 2 * 2 * n_pylons_per_wing; i++)
+  for (int i = 0; i < n_components; i++)
   {
     reference_points[3 * i] = HP.GetReal();
     reference_points[3 * i + 1] = HP.GetReal();
