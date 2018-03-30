@@ -2177,7 +2177,7 @@ SUBROUTINE KAD_OpenOutput( ProgVer, OutRootName,  p, InitOut, ErrStat, ErrMsg )
    
       CALL OpenFOutFile ( p%UnOutFile, OutFileName, ErrStat, ErrMsg ) 
       IF ( ErrStat >= AbortErrLev ) THEN
-         ErrMsg = ' Error opening SubDyn-level output file: '//TRIM(ErrMsg)
+         ErrMsg = ' Error opening KiteAeroDyn-level output file: '//TRIM(ErrMsg)
          RETURN
       END IF
       

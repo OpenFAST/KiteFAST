@@ -837,7 +837,8 @@ subroutine KAD_Dvr_Simulate( dvrInitInp, errStat, errMsg )
       ! Set the driver suggested time step, but KiteAeroDyn may change this in KAD_Init()
    KAD_DT    = dvrInitInp%DTAero
    
-   ! Initialize KiteAeroDyn and all sub-modules  
+   ! Initialize KiteAeroDyn and all sub-modules 
+   dvrInitInp%KAD_InitInp%OutFileRoot = dvrInitInp%OutFileRoot
    call KAD_Init( dvrInitInp%KAD_InitInp, Inputs(1), KAD_p, KAD_y, KAD_DT,  KAD_x, KAD_xd, KAD_z, KAD_OtherSt, KAD_m, KAD_InitOut, errStat2, errMsg2 )
       if ( errStat2 >= AbortErrLev ) then
             call WrScr( trim(errMsg2) )
