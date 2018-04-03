@@ -111,7 +111,7 @@ public:
   virtual ~ModuleKiteFAST(void);
   void SetValue(DataManager *pDM, VectorHandler &X, VectorHandler &XP, SimulationEntity::Hints *ph);
   void ValidateInputKeyword(MBDynParser &HP, const char *keyword);
-  void BuildComponentNodeArray(DataManager *pDM, MBDynParser &HP, const char *keyword, std::vector<KiteFASTNode> &node_array, int &ref_node_index);
+  void BuildComponentNodeArray(DataManager *pDM, MBDynParser &HP, const char *keyword, std::vector<KiteFASTNode> &node_array);
   void InitOutputFile(std::string output_file_name);
   virtual void Output(OutputHandler &OH) const;
   int iGetNumConnectedNodes(void) const;

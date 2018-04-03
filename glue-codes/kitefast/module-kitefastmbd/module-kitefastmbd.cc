@@ -123,18 +123,22 @@ ModuleKiteFAST::ModuleKiteFAST(unsigned uLabel, const DofOwner *pDO, DataManager
     reference_points[3 * i + 2] = HP.GetReal();
   }
 
+  //
+  ValidateInputKeyword(HP, "mip_node");
+  KiteFASTNode mip_node;
+  mip_node.pNode = dynamic_cast<StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
+  
   // parse the component nodes into arrays
-  integer component_reference_node_indeces[n_components];
-  BuildComponentNodeArray(pDM, HP, "fuselage", nodes_fuselage, component_reference_node_indeces[0]);
-  BuildComponentNodeArray(pDM, HP, "starboard_wing", nodes_starwing, component_reference_node_indeces[1]);
-  BuildComponentNodeArray(pDM, HP, "port_wing", nodes_portwing, component_reference_node_indeces[2]);
-  BuildComponentNodeArray(pDM, HP, "vstab", nodes_vstab, component_reference_node_indeces[3]);
-  BuildComponentNodeArray(pDM, HP, "starboard_hstab", nodes_starhstab, component_reference_node_indeces[4]);
-  BuildComponentNodeArray(pDM, HP, "port_hstab", nodes_porthstab, component_reference_node_indeces[5]);
-  BuildComponentNodeArray(pDM, HP, "starboard_pylon1", nodes_starpylon1, component_reference_node_indeces[6]);
-  BuildComponentNodeArray(pDM, HP, "port_pylon1", nodes_portpylon1, component_reference_node_indeces[7]);
-  BuildComponentNodeArray(pDM, HP, "starboard_rotors", nodes_starrotors, component_reference_node_indeces[8]);
-  BuildComponentNodeArray(pDM, HP, "port_rotors", nodes_portrotors, component_reference_node_indeces[9]);
+  BuildComponentNodeArray(pDM, HP, "fuselage", nodes_fuselage);
+  BuildComponentNodeArray(pDM, HP, "starboard_wing", nodes_starwing);
+  BuildComponentNodeArray(pDM, HP, "port_wing", nodes_portwing);
+  BuildComponentNodeArray(pDM, HP, "vstab", nodes_vstab);
+  BuildComponentNodeArray(pDM, HP, "starboard_hstab", nodes_starhstab);
+  BuildComponentNodeArray(pDM, HP, "port_hstab", nodes_porthstab);
+  BuildComponentNodeArray(pDM, HP, "starboard_pylon1", nodes_starpylon1);
+  BuildComponentNodeArray(pDM, HP, "port_pylon1", nodes_portpylon1);
+  BuildComponentNodeArray(pDM, HP, "starboard_rotors", nodes_starrotors);
+  BuildComponentNodeArray(pDM, HP, "port_rotors", nodes_portrotors);
 
   integer total_node_count = nodes_fuselage.size()
                            + nodes_starwing.size()
@@ -211,9 +215,7 @@ ModuleKiteFAST::ModuleKiteFAST(unsigned uLabel, const DofOwner *pDO, DataManager
 
   // Test the FusODCM as a 1D array instead of a 2D array
   // The kite is aligned with the Global Coordinate system
-  integer mip_index = component_reference_node_indeces[0];
-  KiteFASTNode mipnode = nodes_fuselage[mip_index];
-  Mat3x3 mip_dcm = mipnode.pNode->GetRCurr();
+  Mat3x3 mip_dcm = mip_node.pNode->GetRCurr();
   doublereal pFusODCM[9];
   pFusODCM[0] = mip_dcm.dGet(1, 1);
   pFusODCM[1] = mip_dcm.dGet(1, 2);
@@ -252,6 +254,7 @@ ModuleKiteFAST::ModuleKiteFAST(unsigned uLabel, const DofOwner *pDO, DataManager
              &error_status,
              error_message);
   silent_cout(error_status << error_message << std::endl);
+  error_status = 4;
   if (error_status >= AbortErrLev)
   {
     throw ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -306,8 +309,7 @@ void ModuleKiteFAST::ValidateInputKeyword(MBDynParser &HP, const char *keyword)
 
 void ModuleKiteFAST::BuildComponentNodeArray(DataManager *pDM, MBDynParser &HP,
                                              const char *keyword,
-                                             std::vector<KiteFASTNode> &node_array,
-                                             int &ref_node_index)
+                                             std::vector<KiteFASTNode> &node_array)
 {
   printdebug("BuildComponentNodeArray");
   if (!HP.IsKeyWord(keyword))
@@ -317,7 +319,6 @@ void ModuleKiteFAST::BuildComponentNodeArray(DataManager *pDM, MBDynParser &HP,
   }
 
   int node_count = HP.GetInt();
-  ref_node_index = HP.GetInt();
 
   node_array.resize(node_count);
 
@@ -402,16 +403,16 @@ void ModuleKiteFAST::InitOutputFile(std::string output_file_name)
 void ModuleKiteFAST::Output(OutputHandler &OH) const
 {
   printdebug("Output");
-  // if (outputfile)
-  //   outputfile << std::setw(8)
-  //              << std::scientific
-  //              << std::setw(16) << Time.dGet()
-  //              << std::setw(16) << nodes[0].pNode->GetLabel()
-  //              << std::setw(16) << nodes[0].pNode->GetXCurr()
-  //              << std::setw(16) << nodes[0].pNode->GetVCurr()
-  //              << std::setw(16) << nodes[0].pNode->GetXPPCurr()
-  //             //  << std::setw(16) << nodes[0].pNode->GetXPPPrev()
-  //              << std::endl;
+  if (outputfile)
+    for (int i=0; i<6; i++){
+      outputfile << std::setw(8)
+                 << std::scientific
+                 << std::setw(16) << Time.dGet()
+                 << std::setw(16) << nodes[i].pNode->GetLabel()
+                 << std::setw(16) << nodes[i].pNode->GetXCurr()
+                 << std::endl;
+    }
+    
   // if (outputfile)
   //   outputfile << std::setw(16) << "Time s"
   //               << std::setw(16) << "Node ID"
