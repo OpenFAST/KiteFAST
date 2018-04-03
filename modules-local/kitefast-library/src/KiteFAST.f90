@@ -45,6 +45,18 @@ subroutine TransferErrors(errStat, errMsg, errStat_c, errMsg_c)
       
 end subroutine TransferErrors
 
+subroutine DumpMotionsMeshData(mesh, meshLabel)
+type(MeshType),  intent(in)  :: mesh              !< The motions mesh 
+character(*)  ,  intent(in)  :: meshLabel
+
+integer(IntKi) :: i
+
+do i = 1, mesh%NNodes
+   call WrScr(trim(meshLabel)//": Node "//trim(num2lstr(i))//" Position = "//trim(num2lstr(mesh%Position(1,i)))//", "//trim(num2lstr(mesh%Position(2,i)))//", "//trim(num2lstr(mesh%Position(3,i))) )
+end do
+
+end subroutine
+
 !====================================================================================================
 subroutine KFAST_WriteOutput( t, p, y_KAD, y_MD, y_IfW, errStat, errMsg )
 ! This subroutine 
@@ -869,6 +881,8 @@ subroutine CreateMeshMappings(m, p, KAD, MD, errStat, errMsg)
       call MeshMapCreate( m%mbdFusMotions, KAD%u(1)%FusMotions, m%Fus_L2_L2, errStat2, errMsg2 )
          call SetErrStat( errStat2, errMsg2, errStat, errMsg, ' CreateMeshMappings: m%Fus_L2_L2' )     
             if (ErrStat>=AbortErrLev) return
+      call DumpMotionsMeshData(m%mbdSWnMotions, "m%mbdSWnMotions")
+      call DumpMotionsMeshData(KAD%u(1)%SWnMotions, "KAD%u(1)%SWnMotions")
       call MeshMapCreate( m%mbdSWnMotions, KAD%u(1)%SWnMotions, m%SWn_L2_L2, errStat2, errMsg2 )
          call SetErrStat( errStat2, errMsg2, errStat, errMsg, ' CreateMeshMappings: m%SWn_L2_L2' )     
             if (ErrStat>=AbortErrLev) return
