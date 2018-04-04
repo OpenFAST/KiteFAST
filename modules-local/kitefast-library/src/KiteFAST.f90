@@ -1421,13 +1421,13 @@ subroutine TransferMBDynToIfW( WindPt_c, FusO, numNodePtElem_c, nodePts_c, rtrPt
 
 end subroutine TransferMBDynToIfW
 
-subroutine KFAST_Init(dt, numFlaps, numPylons, numComp, numCompNds, modFlags, KAD_FileName_c, IfW_FileName_c, MD_FileName_c, KFC_FileName_c, &
+subroutine KFAST_Init(dt_c, numFlaps, numPylons, numComp, numCompNds, modFlags, KAD_FileName_c, IfW_FileName_c, MD_FileName_c, KFC_FileName_c, &
                        outFileRoot_c, gravity, WindPt_c, FusODCM_c, numRtrPtsElem_c, rtrPts_c, numRefPtElem_c, refPts_c, &
                        numNodePtElem_c, nodePts_c, numDCMElem_c, nodeDCMs_c, errStat_c, errMsg_c ) BIND (C, NAME='KFAST_Init')
    IMPLICIT NONE
 
 
-   real(C_DOUBLE),         intent(in   ) :: dt                         ! simulation time step size (s)
+   real(C_DOUBLE),         intent(in   ) :: dt_c                       ! simulation time step size (s)
    integer(C_INT),         intent(in   ) :: numFlaps                   ! number of flaps per wing
    integer(C_INT),         intent(in   ) :: numPylons                  ! number of pylons per wing
    integer(C_INT),         intent(in   ) :: numComp                    ! number of individual components in the kite
@@ -1453,6 +1453,7 @@ subroutine KFAST_Init(dt, numFlaps, numPylons, numComp, numCompNds, modFlags, KA
    character(kind=C_CHAR), intent(  out) :: errMsg_c(IntfStrLen)   
 
       ! Local variables
+   real(DbKi)                      :: dt
    real(ReKi)                      :: FusO(3), SWnO(3), PWnO(3), VSO(3), SHSO(3), PHSO(3), zero_vec(3)
    real(R8Ki)                      :: FusODCM(3,3)
    real(ReKi)                      :: SPyO(3,numPylons), PPyO(3,numPylons)
@@ -1478,6 +1479,8 @@ subroutine KFAST_Init(dt, numFlaps, numPylons, numComp, numCompNds, modFlags, KA
   
          ! Initialize the NWTC Subroutine Library
    call NWTC_Init( EchoLibVer=.FALSE. )
+
+   dt = dt_c
 
    ! If a module's input file/dll file is empty, then turn off that module
    
@@ -1790,7 +1793,7 @@ contains
       ! Convert 1D float array data into specific quantities
       
    FusO = refPts_c(1:3)   ! This is in global coordinates
-   
+
    ! The remaining reference points are already in the Kite coordinate system!
    SWnO = refPts_c(4:6)
    PWnO = refPts_c(7:9)
