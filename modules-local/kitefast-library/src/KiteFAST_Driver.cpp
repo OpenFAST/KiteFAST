@@ -4,6 +4,7 @@
 #include "stdafx.h"
 #include "KFAST_Lib.h"
 #include <windows.h> 
+#include <math.h>
 #include <stdio.h> 
 
 //!typedef void(__cdecl *KFAST_INITPROC)(double *dt, int *numFlaps, int *numPylons, int *numComp, int *numCompNds, const char *KAD_FileName, const char *IfW_FileName, const char *MD_FileName,
@@ -436,6 +437,13 @@ int _tmain(int argc, _TCHAR* argv[])
                     &numNodePtElem, pNodeVels, &numNodePtElem, pNodeOmegas,
                     &numDCMElem, pNodeDCMs, &numRtrPtsElem, pRtrPts, pRtrVels, pRtrDCMs, 
                     &numNodeLoadsElem, pNodeLoads, &numRtrLoadsElem, pRtrLoads, & errStat, errMsg);
+    for (n = 0; n < numNodeLoadsElem; n = n + 6)
+    {
+        if (fabs(pNodeLoads[n ]) > 0 || fabs(pNodeLoads[n  + 1]) > 0 || fabs(pNodeLoads[n + 2]) > 0 || fabs(pNodeLoads[n +3]) > 0 || fabs(pNodeLoads[n  + 4]) > 0 || fabs(pNodeLoads[n  + 5]) > 0)
+        {
+            printf("Node %d loads = %10.3e,%10.3e,%10.3e,%10.3e,%10.3e,%10.3e\n", n / 6, pNodeLoads[n], pNodeLoads[n  + 1], pNodeLoads[n + 2], pNodeLoads[n +3], pNodeLoads[n  + 4], pNodeLoads[n + 5]);
+        }
+    }
     if (errStat != 0)
     {
         printf("%s\n", errMsg);

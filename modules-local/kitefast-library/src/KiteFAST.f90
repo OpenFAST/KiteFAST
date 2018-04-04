@@ -2027,9 +2027,9 @@ subroutine KFAST_AssRes(t_c, isInitialTime_c, numRtSpdRtrElem_c, RtSpd_PyRtr_c, 
    real(C_DOUBLE),         intent(in   ) :: rtrVels_c(numRtrPtsElem_c)        ! 1D array of the rotor point velocities in global coordinates (m/s)
    real(C_DOUBLE),         intent(in   ) :: rtrDCMs_c(numRtrPtsElem_c*3)      ! 1D array of the rotor point DCMs
    integer(C_INT),         intent(in   ) :: numNodeLoadsElem_c                ! total number of nodel point load elements
-   real(C_DOUBLE),         intent(inout) :: nodeLoads_c(numNodeLoadsElem_c)   ! 1D array of the nodal point loads
+   real(C_DOUBLE),         intent(  out) :: nodeLoads_c(numNodeLoadsElem_c)   ! 1D array of the nodal point loads
    integer(C_INT),         intent(in   ) :: numRtrLoadsElem_c                 ! total number of rotor point load elements
-   real(C_DOUBLE),         intent(inout) :: rtrLoads_c(numRtrLoadsElem_c)     ! 1D array of the rotor point loads
+   real(C_DOUBLE),         intent(  out) :: rtrLoads_c(numRtrLoadsElem_c)     ! 1D array of the rotor point loads
 
    integer(C_INT),         intent(  out) :: errStat_c      
    character(kind=C_CHAR), intent(  out) :: errMsg_c(IntfStrLen)   
