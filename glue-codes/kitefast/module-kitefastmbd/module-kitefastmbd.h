@@ -158,6 +158,7 @@ private:
   doublereal *rotor_velocities;
   doublereal *rotor_dcms;
 
+  KiteFASTNode mip_node;
   std::vector<KiteFASTNode> nodes;
   std::vector<KiteFASTNode> nodes_fuselage;
   std::vector<KiteFASTNode> nodes_portwing;
@@ -165,8 +166,8 @@ private:
   std::vector<KiteFASTNode> nodes_vstab;
   std::vector<KiteFASTNode> nodes_porthstab;
   std::vector<KiteFASTNode> nodes_starhstab;
-  std::vector<KiteFASTNode> nodes_portpylon1;
-  std::vector<KiteFASTNode> nodes_starpylon1;
+  std::vector< std::vector<KiteFASTNode> > nodes_starpylons;
+  std::vector< std::vector<KiteFASTNode> > nodes_portpylons;
   std::vector<KiteFASTNode> nodes_portrotors;
   std::vector<KiteFASTNode> nodes_starrotors;
 

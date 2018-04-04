@@ -124,18 +124,29 @@ ModuleKiteFAST::ModuleKiteFAST(unsigned uLabel, const DofOwner *pDO, DataManager
 
   // parse the mip node
   ValidateInputKeyword(HP, "mip_node");
-  KiteFASTNode mip_node;
   mip_node.pNode = dynamic_cast<StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
   
   // parse the component nodes into arrays
   BuildComponentNodeArray(pDM, HP, "fuselage", nodes_fuselage);
   BuildComponentNodeArray(pDM, HP, "starboard_wing", nodes_starwing);
   BuildComponentNodeArray(pDM, HP, "port_wing", nodes_portwing);
-  BuildComponentNodeArray(pDM, HP, "vstab", nodes_vstab);
-  BuildComponentNodeArray(pDM, HP, "starboard_hstab", nodes_starhstab);
-  BuildComponentNodeArray(pDM, HP, "port_hstab", nodes_porthstab);
-  BuildComponentNodeArray(pDM, HP, "starboard_pylon1", nodes_starpylon1);
-  BuildComponentNodeArray(pDM, HP, "port_pylon1", nodes_portpylon1);
+  BuildComponentNodeArray(pDM, HP, "vertical_stabilizer", nodes_vstab);
+  BuildComponentNodeArray(pDM, HP, "starboard_horizontal_stabilizer", nodes_starhstab);
+  BuildComponentNodeArray(pDM, HP, "port_horizontal_stabilizer", nodes_porthstab);
+  nodes_starpylons.resize(n_pylons_per_wing);
+  for (int i = 0; i < n_pylons_per_wing; i++)
+  {
+    std::string component_name = "starboard_pylon_";
+    component_name.append(std::to_string(i + 1));
+    BuildComponentNodeArray(pDM, HP, component_name.c_str(), nodes_starpylons[i]);
+  }
+  nodes_portpylons.resize(n_pylons_per_wing);
+  for (int i = 0; i < n_pylons_per_wing; i++)
+  {
+    std::string component_name = "port_pylon_";
+    component_name.append(std::to_string(i + 1));
+    BuildComponentNodeArray(pDM, HP, component_name.c_str(), nodes_portpylons[i]);
+  }
   BuildComponentNodeArray(pDM, HP, "starboard_rotors", nodes_starrotors);
   BuildComponentNodeArray(pDM, HP, "port_rotors", nodes_portrotors);
 
@@ -144,11 +155,12 @@ ModuleKiteFAST::ModuleKiteFAST(unsigned uLabel, const DofOwner *pDO, DataManager
                            + nodes_portwing.size()
                            + nodes_vstab.size()
                            + nodes_starhstab.size()
-                           + nodes_porthstab.size()
-                           + nodes_starpylon1.size()
-                           + nodes_portpylon1.size()
-                           + nodes_starrotors.size()
-                           + nodes_portrotors.size();
+                           + nodes_porthstab.size();
+  for (int i = 0; i < n_pylons_per_wing; i++)
+  {
+    total_node_count += nodes_portpylons[i].size() + nodes_portpylons[i].size();
+  }
+  total_node_count += nodes_starrotors.size() + nodes_portrotors.size();
 
   nodes.reserve(total_node_count);
   nodes.insert(nodes.begin(), nodes_fuselage.begin(), nodes_fuselage.end());
@@ -157,8 +169,14 @@ ModuleKiteFAST::ModuleKiteFAST(unsigned uLabel, const DofOwner *pDO, DataManager
   nodes.insert(nodes.end(), nodes_vstab.begin(), nodes_vstab.end());
   nodes.insert(nodes.end(), nodes_starhstab.begin(), nodes_starhstab.end());
   nodes.insert(nodes.end(), nodes_porthstab.begin(), nodes_porthstab.end());
-  nodes.insert(nodes.end(), nodes_starpylon1.begin(), nodes_starpylon1.end());
-  nodes.insert(nodes.end(), nodes_portpylon1.begin(), nodes_portpylon1.end());
+  for (int i = 0; i < n_pylons_per_wing; i++)
+  {
+    nodes.insert(nodes.end(), nodes_starpylons[i].begin(), nodes_starpylons[i].end());
+  }
+  for (int i = 0; i < n_pylons_per_wing; i++)
+  {
+    nodes.insert(nodes.end(), nodes_portpylons[i].begin(), nodes_portpylons[i].end());
+  }
   nodes.insert(nodes.end(), nodes_starrotors.begin(), nodes_starrotors.end());
   nodes.insert(nodes.end(), nodes_portrotors.begin(), nodes_portrotors.end());
 
@@ -170,16 +188,26 @@ ModuleKiteFAST::ModuleKiteFAST(unsigned uLabel, const DofOwner *pDO, DataManager
   component_node_counts[3] = nodes_vstab.size();
   component_node_counts[4] = nodes_starhstab.size();
   component_node_counts[5] = nodes_porthstab.size();
-  component_node_counts[6] = nodes_starpylon1.size();
-  component_node_counts[7] = nodes_portpylon1.size();
+  for (int i = 0; i < n_pylons_per_wing; i++)
+  {
+    component_node_counts[6 + i] = nodes_starpylons[i].size();
+  }
+  for (int i = 0; i < n_pylons_per_wing; i++)
+  {
+    component_node_counts[6 + n_pylons_per_wing + i] = nodes_portpylons[i].size();
+  }
 
   // build the node arrays for kite components excluding rotors
-  node_count_no_rotors = nodes.size() - nodes_starrotors.size() - nodes_portrotors.size();
+  node_count_no_rotors = 0;
+  for (int i = 0; i < 6 + 2 * n_pylons_per_wing; i++)
+  {
+    node_count_no_rotors += component_node_counts[i];
+  }
   numNodePtElem = 3 * node_count_no_rotors;
   node_points = new doublereal[numNodePtElem];
   numDCMElem = 9 * numNodePtElem;
   node_dcms = new doublereal[numDCMElem];
-
+  
   for (int i = 0; i < node_count_no_rotors; i++)
   {
     Vec3 xcurr = nodes[i].pNode->GetXCurr();
@@ -212,7 +240,6 @@ ModuleKiteFAST::ModuleKiteFAST(unsigned uLabel, const DofOwner *pDO, DataManager
     rotor_points[3 * i + 2] = xcurr[2];
   }
 
-  // Test the FusODCM as a 1D array instead of a 2D array
   // The kite is aligned with the Global Coordinate system
   Mat3x3 mip_dcm = mip_node.pNode->GetRCurr();
   doublereal pFusODCM[9];
@@ -306,6 +333,7 @@ void ModuleKiteFAST::BuildComponentNodeArray(DataManager *pDM, MBDynParser &HP,
                                              std::vector<KiteFASTNode> &node_array)
 {
   printdebug("BuildComponentNodeArray");
+  printdebug(keyword);
   if (!HP.IsKeyWord(keyword))
   {
     silent_cerr("Runtime Error: cannot read keyword " << keyword << std::endl);
@@ -406,19 +434,19 @@ SubVectorHandler &ModuleKiteFAST::AssRes(SubVectorHandler &WorkVec, doublereal d
     RtSpd_PyRtr[i] = 200.0;
   }
   
-  Vec3 vec3_fusOprev = nodes_fuselage[0].pNode->GetXPrev();
+  Vec3 vec3_fusOprev = mip_node.pNode->GetXPrev();
   doublereal FusO_prev[3];
   FusO_prev[0] = vec3_fusOprev[0];
   FusO_prev[1] = vec3_fusOprev[1];
   FusO_prev[2] = vec3_fusOprev[2];
 
-  Vec3 vec3_fusO = nodes_fuselage[0].pNode->GetXCurr();
+  Vec3 vec3_fusO = mip_node.pNode->GetXCurr();
   doublereal FusO[3];
   FusO[0] = vec3_fusO[0];
   FusO[1] = vec3_fusO[1];
   FusO[2] = vec3_fusO[2];
 
-  Mat3x3 fus0_dcm_prev = nodes_fuselage[0].pNode->GetRPrev();
+  Mat3x3 fus0_dcm_prev = mip_node.pNode->GetRPrev();
   doublereal FusODCM_prev[9];
   FusODCM_prev[0] = fus0_dcm_prev.dGet(1, 1);
   FusODCM_prev[1] = fus0_dcm_prev.dGet(1, 2);
@@ -430,19 +458,19 @@ SubVectorHandler &ModuleKiteFAST::AssRes(SubVectorHandler &WorkVec, doublereal d
   FusODCM_prev[7] = fus0_dcm_prev.dGet(3, 2);
   FusODCM_prev[8] = fus0_dcm_prev.dGet(3, 3);
 
-  Vec3 vec3_FusOv_prev = nodes_fuselage[0].pNode->GetVPrev();
+  Vec3 vec3_FusOv_prev = mip_node.pNode->GetVPrev();
   doublereal FusOv_prev[3];
   FusOv_prev[0] = vec3_FusOv_prev[0];
   FusOv_prev[1] = vec3_FusOv_prev[1];
   FusOv_prev[2] = vec3_FusOv_prev[2];
 
-  Vec3 vec3_FusOomegas_prev = nodes_fuselage[0].pNode->GetWPrev();
+  Vec3 vec3_FusOomegas_prev = mip_node.pNode->GetWPrev();
   doublereal FusOomegas_prev[3];
   FusOomegas_prev[0] = vec3_FusOomegas_prev[0];
   FusOomegas_prev[1] = vec3_FusOomegas_prev[1];
   FusOomegas_prev[2] = vec3_FusOomegas_prev[2];
 
-  Vec3 vec3_FusOacc_prev = nodes_fuselage[0].pNode->GetXPPPrev();
+  Vec3 vec3_FusOacc_prev = mip_node.pNode->GetXPPPrev();
   doublereal FusOacc_prev[3];
   FusOacc_prev[0] = vec3_FusOacc_prev[0];
   FusOacc_prev[1] = vec3_FusOacc_prev[1];
