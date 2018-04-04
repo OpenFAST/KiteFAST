@@ -65,9 +65,59 @@ typedef long int f_integer;
 #define CHANNEL_LENGTH 10
 #define INTERFACE_STRING_LENGTH 1025
 
-extern int KFAST_Init(double *dt, int *numFlaps, int *numPylons, int *numComp, int numCompNds[], int modFlags[], const char KAD_FileName[], const char IfW_FileName[], const char MD_FileName[], const char KFC_FileName[],
-                      const char outFileRoot[], double *gravity, double windPt[], double FusODCM[], int *numRtrPtsElem, double rtrPts[], int *numRefPtElem, double refPts[],
-                      int *numNodePtElem, double nodePts[], int *numDCMElem, double nodeDCMs[], int *errStat, char errMsg[]);
+extern int KFAST_Init(double *dt,
+                      int *numFlaps,
+                      int *numPylons,
+                      int *numComp,
+                      int numCompNds[],
+                      int modFlags[],
+                      const char KAD_FileName[],
+                      const char IfW_FileName[],
+                      const char MD_FileName[],
+                      const char KFC_FileName[],
+                      const char outFileRoot[],
+                      double *gravity,
+                      double windPt[],
+                      double FusODCM[],
+                      int *numRtrPtsElem,
+                      double rtrPts[],
+                      int *numRefPtElem,
+                      double refPts[],
+                      int *numNodePtElem,
+                      double nodePts[],
+                      int *numDCMElem,
+                      double nodeDCMs[],
+                      int *errStat,
+                      char errMsg[]);
+extern int KFAST_AssRes(double *t,
+                        int *isInitialTime,
+                        int *numRtSpdRtrElem,
+                        double RtSpd_PyRtr[],
+                        double WindPt[],
+                        double FusO_prev[],
+                        double FusO[],
+                        double FusODCM_prev[],
+                        double FusOv_prev[],
+                        double FusOomegas_prev[],
+                        double FusOacc_prev[],
+                        int *numNodePtElem,
+                        double nodePts[],
+                        int *numNodeVelElem,
+                        double nodeVels[],
+                        int *numNodeOmegaElem,
+                        double nodeOmegas[],
+                        int *numDCMElem,
+                        double nodeDCMs[],
+                        int *numRtrPtsElem,
+                        double rtrPts[],
+                        double rtrVels[],
+                        double rtrDCMs[],
+                        int *numNodeLoadsElem,
+                        double nodeLoads[],
+                        int *numRtrLoadsElem,
+                        double rtrLoads[],
+                        int *errStat,
+                        char errMsg[]);
 extern int KFAST_AfterPredict(int *errStat, char errMsg[]);
 extern int KFAST_Output(double *t, int *errStat, char errMsg[]);
 extern int KFAST_End(int *errStat, char errMsg[]);
@@ -90,6 +140,23 @@ private:
   
   int error_status;
   char error_message[INTERFACE_STRING_LENGTH];
+
+  // class data
+  doublereal ground_station_point[3];
+  integer first_iteration;  // 0 no - 1 yes
+  integer n_pylons_per_wing;
+  integer numNodePtElem;
+  integer node_count_no_rotors;
+  integer numDCMElem;
+  integer rotor_node_count;
+  integer numRtrPtsElem;
+  doublereal *node_points;
+  doublereal *node_dcms;
+  doublereal *node_velocities;
+  doublereal *node_omegas;
+  doublereal *rotor_points;
+  doublereal *rotor_velocities;
+  doublereal *rotor_dcms;
 
   std::vector<KiteFASTNode> nodes;
   std::vector<KiteFASTNode> nodes_fuselage;
