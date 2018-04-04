@@ -880,24 +880,52 @@ subroutine CreateMeshMappings(m, p, KAD, MD, errStat, errMsg)
          ! Mappings between MBDyn input motions meshes and the KiteAeroDyn motions meshes
       call MeshMapCreate( m%mbdFusMotions, KAD%u(1)%FusMotions, m%Fus_L2_L2, errStat2, errMsg2 )
          call SetErrStat( errStat2, errMsg2, errStat, errMsg, ' CreateMeshMappings: m%Fus_L2_L2' )     
-            if (ErrStat>=AbortErrLev) return
-      call DumpMotionsMeshData(m%mbdSWnMotions, "m%mbdSWnMotions")
-      call DumpMotionsMeshData(KAD%u(1)%SWnMotions, "KAD%u(1)%SWnMotions")
+            if (ErrStat>=AbortErrLev) then 
+               call DumpMotionsMeshData(m%mbdFusMotions, "m%mbdFusMotions")
+               call DumpMotionsMeshData(KAD%u(1)%FusMotions, "KAD%u(1)%FusMotions")
+               return
+            end if
+
       call MeshMapCreate( m%mbdSWnMotions, KAD%u(1)%SWnMotions, m%SWn_L2_L2, errStat2, errMsg2 )
          call SetErrStat( errStat2, errMsg2, errStat, errMsg, ' CreateMeshMappings: m%SWn_L2_L2' )     
-            if (ErrStat>=AbortErrLev) return
+            if (ErrStat>=AbortErrLev) then 
+               call DumpMotionsMeshData(m%mbdSWnMotions, "m%mbdSWnMotions")
+               call DumpMotionsMeshData(KAD%u(1)%SWnMotions, "KAD%u(1)%SWnMotions")
+               return
+            end if
+            
       call MeshMapCreate( m%mbdPWnMotions, KAD%u(1)%PWnMotions, m%PWn_L2_L2, errStat2, errMsg2 )
          call SetErrStat( errStat2, errMsg2, errStat, errMsg, ' CreateMeshMappings: m%PWn_L2_L2' )     
-            if (ErrStat>=AbortErrLev) return
+            if (ErrStat>=AbortErrLev) then 
+               call DumpMotionsMeshData(m%mbdPWnMotions, "m%mbdPWnMotions")
+               call DumpMotionsMeshData(KAD%u(1)%PWnMotions, "KAD%u(1)%PWnMotions")
+               return
+            end if
+
       call MeshMapCreate( m%mbdVSMotions, KAD%u(1)%VSMotions, m%VS_L2_L2, errStat2, errMsg2 )
          call SetErrStat( errStat2, errMsg2, errStat, errMsg, ' CreateMeshMappings: m%VS_L2_L2' )     
-            if (ErrStat>=AbortErrLev) return
+            if (ErrStat>=AbortErrLev) then 
+               call DumpMotionsMeshData(m%mbdVSMotions, "m%mbdVSMotions")
+               call DumpMotionsMeshData(KAD%u(1)%VSMotions, "KAD%u(1)%VSMotions")
+               return
+            end if
+
       call MeshMapCreate( m%mbdSHSMotions, KAD%u(1)%SHSMotions, m%SHS_L2_L2, errStat2, errMsg2 )
          call SetErrStat( errStat2, errMsg2, errStat, errMsg, ' CreateMeshMappings: m%SHS_L2_L2' )     
-            if (ErrStat>=AbortErrLev) return
+            if (ErrStat>=AbortErrLev) then 
+               call DumpMotionsMeshData(m%mbdSHSMotions, "m%mbdSHSMotions")
+               call DumpMotionsMeshData(KAD%u(1)%SHSMotions, "KAD%u(1)%SHSMotions")
+               return
+            end if
+
       call MeshMapCreate( m%mbdPHSMotions, KAD%u(1)%PHSMotions, m%PHS_L2_L2, errStat2, errMsg2 )
          call SetErrStat( errStat2, errMsg2, errStat, errMsg, ' CreateMeshMappings: m%PHS_L2_L2' )     
-            if (ErrStat>=AbortErrLev) return
+            if (ErrStat>=AbortErrLev) then 
+               call DumpMotionsMeshData(m%mbdPHSMotions, "m%mbdPHSMotions")
+               call DumpMotionsMeshData(KAD%u(1)%PHSMotions, "KAD%u(1)%PHSMotions")
+               return
+            end if
+
 
       allocate(m%SPy_L2_L2(p%NumPylons), STAT=errStat2)
          if (errStat2 /= 0) call SetErrStat( ErrID_Fatal, 'Could not allocate memory for m%SPy_L2_L2', errStat, errMsg, RoutineName )     
@@ -907,11 +935,19 @@ subroutine CreateMeshMappings(m, p, KAD, MD, errStat, errMsg)
       do i = 1 , p%NumPylons           
          call MeshMapCreate( m%mbdSPyMotions(i), KAD%u(1)%SPyMotions(i), m%SPy_L2_L2(i), errStat2, errMsg2 )
             call SetErrStat( errStat2, errMsg2, errStat, errMsg, ' CreateMeshMappings: m%SPy_L2_L2('//trim(num2lstr(i))//')' ) 
-               if (ErrStat>=AbortErrLev) return
+               if (ErrStat>=AbortErrLev) then 
+                  call DumpMotionsMeshData(m%mbdSPyMotions(i), "m%mbdSPyMotions("//trim(num2lstr(i))//")")
+                  call DumpMotionsMeshData(KAD%u(1)%SPyMotions(i), "KAD%u(1)%SPyMotions("//trim(num2lstr(i))//")")
+                  return
+               end if
             
          call MeshMapCreate( m%mbdPPyMotions(i), KAD%u(1)%PPyMotions(i), m%PPy_L2_L2(i), errStat2, errMsg2 )
             call SetErrStat( errStat2, errMsg2, errStat, errMsg, ' CreateMeshMappings: m%PPy_L2_L2('//trim(num2lstr(i))//')' ) 
-               if (ErrStat>=AbortErrLev) return
+               if (ErrStat>=AbortErrLev) then 
+                  call DumpMotionsMeshData(m%mbdPPyMotions(i), "m%mbdPPyMotions("//trim(num2lstr(i))//")")
+                  call DumpMotionsMeshData(KAD%u(1)%PPyMotions(i), "KAD%u(1)%PPyMotions("//trim(num2lstr(i))//")")
+                  return
+               end if
       end do
    
    

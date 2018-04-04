@@ -3378,6 +3378,7 @@ subroutine KAD_MapOutputs(p, u, u_VSM, y, y_VSM, p_VSM, u_ActDsk, y_ActDsk, m, z
    ! Starboard Pylon 2   Top and Bottom rotors
  !m%AllOuts( SP2TVRelx) = m%ActDsk(3)%DiskAve_Vx_Rel
  !m%AllOuts( SP2BVRelx) = m%ActDsk(4)%DiskAve_Vx_Rel
+ if (p%NumPylons == 2 ) then
  m%AllOuts( SP2TPitch) = u_ActDsk(3)%pitch*R2D
  m%AllOuts( SP2BPitch) = u_ActDsk(4)%pitch*R2D
  m%AllOuts( SP2TTSR  ) = m%ActDsk(3)%TSR
@@ -3409,6 +3410,7 @@ subroutine KAD_MapOutputs(p, u, u_VSM, y, y_VSM, p_VSM, u_ActDsk, y_ActDsk, m, z
  m%AllOuts( SP2TPwr  ) = y_ActDsk(3)%P
  m%AllOuts( SP2BPwr  ) = y_ActDsk(4)%P
 
+ end if
  offset = p%NumPylons*2
  
  ! Orientation is transform from global to local
@@ -3455,6 +3457,7 @@ end do
    ! Port Pylon 2   Top and Bottom rotors
  !m%AllOuts( PP2TVRelx) = m%ActDsk(3+offset)%DiskAve_Vx_Rel
  !m%AllOuts( PP2BVRelx) = m%ActDsk(4+offset)%DiskAve_Vx_Rel
+ if (p%NumPylons == 2 ) then
  m%AllOuts( PP2TPitch) = u_ActDsk(3+offset)%pitch*R2D
  m%AllOuts( PP2BPitch) = u_ActDsk(4+offset)%pitch*R2D
  m%AllOuts( PP2TTSR  ) = m%ActDsk(3+offset)%TSR
@@ -3485,7 +3488,7 @@ end do
  m%AllOuts( PP2BMz   ) = moments(3,4)
  m%AllOuts( PP2TPwr  ) = y_ActDsk(3+offset)%P
  m%AllOuts( PP2BPwr  ) = y_ActDsk(4+offset)%P
- 
+ end if
  ! Kite Loads
  call ComputeKiteLoads( p, u, y, m, kiteForces, kiteMoments, errStat, errMsg)
    if (errStat >= AbortErrLev) return
@@ -4033,7 +4036,9 @@ subroutine KAD_CalcOutput( Time, u, p, x, xd, z, OtherState, y, m, errStat, errM
    integer(IntKi)                         :: n, i, j, c
    real(ReKi)                             :: forces(3), moments(3), dcm(3,3)
    
-   
+   character(ErrMsgLen)                   :: errMsg2     ! temporary Error message if errStat /= ErrID_None
+   integer(IntKi)                         :: errStat2    ! temporary Error status of the operation
+
    errStat   = ErrID_None           ! no error has occurred
    errMsg    = ""
    
@@ -4045,6 +4050,27 @@ subroutine KAD_CalcOutput( Time, u, p, x, xd, z, OtherState, y, m, errStat, errM
       if ( errStat >= AbortErrLev ) return
    call VSM_CalcOutput( Time, n, m%u_VSM, p%VSM, z%VSM, OtherState%VSM, m%VSM, m%y_VSM, errStat, errMsg )   
       if ( errStat >= AbortErrLev ) return
+      
+      ! Transfer motions needed for mesh mapping from the miscvar meshes to the output meshes
+   call Transfer_Motions_Line2_to_Point( u%FusMotions, y%FusLoads, m%Fus_L_2_P, errStat2, errMsg2 )
+      call SetErrStat(errStat2, errMsg2, errStat, errMsg,' KAD_CalcOutput: Transfer_Fus_L_2_P' )      
+   call Transfer_Motions_Line2_to_Point( u%SWnMotions, y%SWnLoads, m%SWn_L_2_P, errStat2, errMsg2 )
+      call SetErrStat(errStat2, errMsg2, errStat, errMsg,' KAD_CalcOutput: Transfer_SWn_L_2_P' )      
+   call Transfer_Motions_Line2_to_Point( u%PWnMotions, y%PWnLoads, m%PWn_L_2_P, errStat2, errMsg2 )
+      call SetErrStat(errStat2, errMsg2, errStat, errMsg,' KAD_CalcOutput: Transfer_PWn_L_2_P' )      
+   call Transfer_Motions_Line2_to_Point( u%VSMotions, y%VSLoads, m%VS_L_2_P, errStat2, errMsg2 )
+      call SetErrStat(errStat2, errMsg2, errStat, errMsg,' KAD_CalcOutput: Transfer_VS_L_2_P' )      
+   call Transfer_Motions_Line2_to_Point( u%SHSMotions, y%SHSLoads, m%SHS_L_2_P, errStat2, errMsg2 )
+      call SetErrStat(errStat2, errMsg2, errStat, errMsg,' KAD_CalcOutput: Transfer_SHS_L_2_P' )      
+   call Transfer_Motions_Line2_to_Point( u%PHSMotions, y%PHSLoads, m%PHS_L_2_P, errStat2, errMsg2 )
+      call SetErrStat(errStat2, errMsg2, errStat, errMsg,' KAD_CalcOutput: Transfer_PHS_L_2_P' )      
+   do i = 1, p%NumPylons
+      call Transfer_Motions_Line2_to_Point( u%SPyMotions(i), y%SPyLoads(i), m%SPy_L_2_P(i), errStat2, errMsg2 )
+         call SetErrStat(errStat2, errMsg2, errStat, errMsg,' KAD_CalcOutput: Transfer_SPy_L_2_P' )      
+      call Transfer_Motions_Line2_to_Point( u%PPyMotions(i), y%PPyLoads(i), m%PPy_L_2_P(i), errStat2, errMsg2 )
+         call SetErrStat(errStat2, errMsg2, errStat, errMsg,' KAD_CalcOutput: Transfer_PPy_L_2_P' )      
+   end do  
+      
       
       ! Transfer the VSM loads to the output meshes as point loads
    c = 1
