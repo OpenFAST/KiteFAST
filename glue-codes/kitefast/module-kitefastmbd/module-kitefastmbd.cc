@@ -253,6 +253,7 @@ ModuleKiteFAST::ModuleKiteFAST(unsigned uLabel, const DofOwner *pDO, DataManager
   pFusODCM[7] = mip_dcm.dGet(3, 2);
   pFusODCM[8] = mip_dcm.dGet(3, 3);
 
+  // call KFAST_Init method
   int error_status;
   char error_message[INTERFACE_STRING_LENGTH];
   KFAST_Init(&dt,
@@ -279,9 +280,29 @@ ModuleKiteFAST::ModuleKiteFAST(unsigned uLabel, const DofOwner *pDO, DataManager
              node_dcms,
              &error_status,
              error_message);
-  silent_cout(error_status << error_message << std::endl);
   if (error_status >= AbortErrLev)
   {
+    printf("error status %d: %s\n", error_status, error_message);
+    throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+  }
+
+  // call KFAST_AssRes to initialize the loads
+  integer numNodeLoadsElem = 6 * node_count_no_rotors; // force and moment components for each node
+  doublereal *nodeLoads = new doublereal[numNodeLoadsElem];
+  integer numRtrLoadsElem = numRtrPtsElem * 2; // force and moment components for each rotor node
+  doublereal *rotorLoads = new doublereal[numRtrLoadsElem];
+
+  _AssRes(1, numNodeLoadsElem, nodeLoads, numRtrLoadsElem, rotorLoads);
+
+  delete[] nodeLoads;
+  delete[] rotorLoads;
+
+  // call KFAST_Output to initialize its output file
+  doublereal current_time = Time.dGet();
+  KFAST_Output(&current_time, &error_status, error_message);
+  if (error_status >= AbortErrLev)
+  {
+    printf("error status %d: %s\n", error_status, error_message);
     throw ErrGeneric(MBDYN_EXCEPT_ARGS);
   }
 
@@ -302,11 +323,13 @@ ModuleKiteFAST::ModuleKiteFAST(unsigned uLabel, const DofOwner *pDO, DataManager
 ModuleKiteFAST::~ModuleKiteFAST(void)
 {
   printdebug("~ModuleKiteFAST");
+
   int error_status;
   char error_message[INTERFACE_STRING_LENGTH];
   KFAST_End(&error_status, error_message);
   if (error_status >= AbortErrLev)
   {
+    printf("error status %d: %s\n", error_status, error_message);
     throw ErrGeneric(MBDYN_EXCEPT_ARGS);
   }
 }
@@ -378,6 +401,7 @@ void ModuleKiteFAST::Output(OutputHandler &OH) const
   printdebug("Output");
 
   if (outputfile)
+  {
     for (int i = 0; i < 3; i++)
     {
       outputfile << std::setw(8)
@@ -387,13 +411,15 @@ void ModuleKiteFAST::Output(OutputHandler &OH) const
                  << std::setw(16) << nodes[i].pNode->GetXCurr()
                  << std::endl;
     }
+  }
 
+  doublereal current_time = Time.dGet();
   int error_status;
   char error_message[INTERFACE_STRING_LENGTH];
-  doublereal current_time = Time.dGet();
   KFAST_Output(&current_time, &error_status, error_message);
   if (error_status >= AbortErrLev)
   {
+    printf("error status %d: %s\n", error_status, error_message);
     throw ErrGeneric(MBDYN_EXCEPT_ARGS);
   }
 }
@@ -401,7 +427,7 @@ void ModuleKiteFAST::Output(OutputHandler &OH) const
 int ModuleKiteFAST::iGetNumConnectedNodes(void) const
 {
   printdebug("iGetNumConnectedNodes");
-  return nodes.size();
+  return node_count_no_rotors;
 }
 
 void ModuleKiteFAST::WorkSpaceDim(integer *piNumRows, integer *piNumCols) const
@@ -423,14 +449,19 @@ void ModuleKiteFAST::Update(const VectorHandler &XCurr, const VectorHandler &XPr
   printdebug("Update");
 }
 
-SubVectorHandler &ModuleKiteFAST::AssRes(SubVectorHandler &WorkVec, doublereal dCoef, const VectorHandler &XCurr, const VectorHandler &XPrimeCurr)
+void ModuleKiteFAST::_AssRes(integer first_iteration,
+                             integer numNodeLoadsElem,
+                             doublereal *nodeLoads,
+                             integer numRtrLoadsElem,
+                             doublereal *rotorLoads)
 {
-  printdebug("AssRes");
+  printdebug("_AssRes");
   
   doublereal t = Time.dGet();
   integer numRtSpdRtrElem = 4 * n_pylons_per_wing;
   doublereal RtSpd_PyRtr[numRtSpdRtrElem]; // rotational speed for each rotor element (rad/s)
-  for (int i = 0; i < numRtSpdRtrElem; i++) {
+  for (int i = 0; i < numRtSpdRtrElem; i++)
+  {
     RtSpd_PyRtr[i] = 200.0;
   }
   
@@ -535,11 +566,6 @@ SubVectorHandler &ModuleKiteFAST::AssRes(SubVectorHandler &WorkVec, doublereal d
     rotor_dcms[9 * i + 8] = rnode.dGet(3, 3);
   }
 
-  integer numNodeLoadsElem = numNodePtElem * 2; // force and moment components for each node
-  doublereal *nodeLoads = new doublereal[numNodeLoadsElem];
-  integer numRtrLoadsElem = numRtrPtsElem * 2; // force and moment components for each rotor node
-  doublereal *rotorLoads = new doublereal[numRtrLoadsElem];
-
   int error_status;
   char error_message[INTERFACE_STRING_LENGTH];
   KFAST_AssRes(&t,
@@ -571,17 +597,34 @@ SubVectorHandler &ModuleKiteFAST::AssRes(SubVectorHandler &WorkVec, doublereal d
                rotorLoads,
                &error_status,
                error_message);
-  silent_cout(error_status << error_message << std::endl);
   if (error_status >= AbortErrLev)
   {
+    printf("error status %d: %s\n", error_status, error_message);
     throw ErrGeneric(MBDYN_EXCEPT_ARGS);
   }
+
+  delete node_velocities;
+  delete node_omegas;
+  delete rotor_velocities;
+  delete rotor_dcms;
+}
+
+SubVectorHandler &ModuleKiteFAST::AssRes(SubVectorHandler &WorkVec, doublereal dCoef, const VectorHandler &XCurr, const VectorHandler &XPrimeCurr)
+{
+  printdebug("AssRes");
+  integer numNodeLoadsElem = 6 * node_count_no_rotors;  // force and moment components for each node
+  doublereal *nodeLoads = new doublereal[numNodeLoadsElem];
+  integer numRtrLoadsElem = 6 * rotor_node_count;  // force and moment components for each rotor node
+  
+  doublereal *rotorLoads = new doublereal[numRtrLoadsElem];
+
+  _AssRes(0, numNodeLoadsElem, nodeLoads, numRtrLoadsElem, rotorLoads);
 
   integer iNumRows, iNumCols;
   WorkSpaceDim(&iNumRows, &iNumCols);
   WorkVec.ResizeReset(iNumRows);
 
-  for (int i = 0; i < nodes.size(); i++)
+  for (int i = 0; i < node_count_no_rotors; i++)
   {
     // set indices where force/moment need to be put
     integer first_index = nodes[i].pNode->iGetFirstMomentumIndex();
@@ -596,10 +639,6 @@ SubVectorHandler &ModuleKiteFAST::AssRes(SubVectorHandler &WorkVec, doublereal d
     WorkVec.Add(6 * i + 4, moment);
   }
 
-  delete node_velocities;
-  delete node_omegas;
-  delete rotor_velocities;
-  delete rotor_dcms;
   delete[] nodeLoads;
   delete[] rotorLoads;
 
@@ -614,11 +653,13 @@ void ModuleKiteFAST::BeforePredict(VectorHandler &X, VectorHandler &XP, VectorHa
 void ModuleKiteFAST::AfterPredict(VectorHandler &X, VectorHandler &XP)
 {
   printdebug("AfterPredict");
+
   int error_status;
   char error_message[INTERFACE_STRING_LENGTH];
   KFAST_AfterPredict(&error_status, error_message);
   if (error_status >= AbortErrLev)
   {
+    printf("error status %d: %s\n", error_status, error_message);
     throw ErrGeneric(MBDYN_EXCEPT_ARGS);
   }
 }
