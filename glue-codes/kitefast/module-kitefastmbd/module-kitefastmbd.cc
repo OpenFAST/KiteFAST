@@ -427,7 +427,7 @@ void ModuleKiteFAST::Output(OutputHandler &OH) const
 int ModuleKiteFAST::iGetNumConnectedNodes(void) const
 {
   printdebug("iGetNumConnectedNodes");
-  return nodes.size();
+  return node_count_no_rotors;
 }
 
 void ModuleKiteFAST::WorkSpaceDim(integer *piNumRows, integer *piNumCols) const
@@ -624,7 +624,7 @@ SubVectorHandler &ModuleKiteFAST::AssRes(SubVectorHandler &WorkVec, doublereal d
   WorkSpaceDim(&iNumRows, &iNumCols);
   WorkVec.ResizeReset(iNumRows);
 
-  for (int i = 0; i < nodes.size(); i++)
+  for (int i = 0; i < node_count_no_rotors; i++)
   {
     // set indices where force/moment need to be put
     integer first_index = nodes[i].pNode->iGetFirstMomentumIndex();
