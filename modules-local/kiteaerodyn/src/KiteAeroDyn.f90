@@ -43,7 +43,7 @@ private
    contains
    
 !> Routine to compute the rotor inputs.
-subroutine RotorDisk_SetInputs(c_offset, numPylons, V_PyRtr, PyRtrMotions, RtSpds, pitches, u_ActDsk, errStat, errMsg)
+subroutine RotorDisk_SetInputs(c_offset, numPylons, V_PyRtr, PyRtrMotions, RtSpds, pitches, u_ActDsk, dcm, errStat, errMsg)
    integer(IntKi),             intent(in   ) :: c_offset          !< Offset into the 1D ActDsk array, either 0 (starboard wing) or numPylons (port wing)
    integer(IntKi),             intent(in   ) :: numPylons         !< Number of pylons
    real(ReKi),                 intent(in   ) :: V_PyRtr(:,:,:)    !< Undisturbed wind velocities at the rotors (1st index: u,v,w, 2nd index: 1=top, 2=bottom, 3rd index: 1,NumPylons)
@@ -51,6 +51,7 @@ subroutine RotorDisk_SetInputs(c_offset, numPylons, V_PyRtr, PyRtrMotions, RtSpd
    real(ReKi),                 intent(in   ) :: RtSpds(:,:)       !< Rotor speeds in rad/s for the wing's pylons (1st index: 1=top, 2=bottom, 2nd index: 1,NumPylons)
    real(ReKi),                 intent(in   ) :: pitches(:,:)      !< Rotor pitches in rad for the wing's pylons (1st index: 1=top, 2=bottom, 2nd index: 1,NumPylons)
    type(ActDsk_InputType),     intent(inout) :: u_ActDsk(:)       !< Actuator Disk inputs, starboard wing first, followed by port wing
+   real(ReKi),                 intent(inout) :: dcm(:,:,:)        !< direct cosine matrix for transforming from global coordinates into the disk local coordinates
    integer(IntKi),             intent(  out) :: errStat           !< Error status of the operation
    character(*),               intent(  out) :: errMsg            !< Error message if errStat /= ErrID_None
    
@@ -64,7 +65,7 @@ subroutine RotorDisk_SetInputs(c_offset, numPylons, V_PyRtr, PyRtrMotions, RtSpd
    real(ReKi)                             :: y_hat_disk(3)     ! Unit vector in the plane of the rotor disk
    real(ReKi)                             :: z_hat_disk(3)     ! Unit vector in the plane of the rotor disk
    real(ReKi)                             :: tmp(3)            ! temporary vector
-   real(ReKi)                             :: dcm(3,3)          ! direct cosine matrix
+   
    real(ReKi)                             :: tmp_sz, tmp_sz_y  ! temporary quantities for calculations
    real(ReKi)                             :: forces(3), moments(3)
    character(*), parameter                :: routineName = 'RotorDisk_SetInputs'
@@ -113,19 +114,22 @@ subroutine RotorDisk_SetInputs(c_offset, numPylons, V_PyRtr, PyRtrMotions, RtSpd
          u_ActDsk(c)%DiskAve_Vrel = tmp_sz
          u_ActDsk(c)%RtSpd = RtSpds(i,j)
          u_ActDsk(c)%pitch = pitches(i,j)
-         
+         dcm(1,:,c) = x_hat_disk
+         dcm(2,:,c) = y_hat_disk
+         dcm(3,:,c) = z_hat_disk
       end do
    end do
 
 end subroutine RotorDisk_SetInputs
 !> Routine to compute the rotor loads using a Actuator Disk Method on a per wing basis.
-subroutine RotorDisk_CalcOutput(c_offset, numPylons, V_PyRtr, PyRtrMotions, RtSpds, pitches, u_ActDsk, p_ActDsk, m_ActDsk, y_ActDsk, PyRtrLoads, errStat, errMsg)
+subroutine RotorDisk_CalcOutput(c_offset, numPylons, V_PyRtr, PyRtrMotions, RtSpds, pitches, dcms, u_ActDsk, p_ActDsk, m_ActDsk, y_ActDsk, PyRtrLoads, errStat, errMsg)
    integer(IntKi),             intent(in   ) :: c_offset          !< Offset into the 1D ActDsk array, either 0 (starboard wing) or numPylons (port wing)
    integer(IntKi),             intent(in   ) :: numPylons         !< Number of pylons
    real(ReKi),                 intent(in   ) :: V_PyRtr(:,:,:)    !< Undisturbed wind velocities at the rotors (1st index: u,v,w, 2nd index: 1=top, 2=bottom, 3rd index: 1,NumPylons)
    type(MeshType),             intent(in   ) :: PyRtrMotions(:)   !< Rotor point meshes
    real(ReKi),                 intent(in   ) :: RtSpds(:,:)       !< Rotor speeds in rad/s for the wing's pylons (1st index: 1=top, 2=bottom, 2nd index: 1,NumPylons)
    real(ReKi),                 intent(in   ) :: pitches(:,:)      !< Rotor pitches in rad for the wing's pylons (1st index: 1=top, 2=bottom, 2nd index: 1,NumPylons)
+   real(ReKi),                 intent(in   ) :: dcms(:,:,:)       !< direct cosine matrix for transforming from global coordinates into the disk local coordinates
    type(ActDsk_InputType),     intent(in   ) :: u_ActDsk(:)       !< Actuator Disk inputs, starboard wing first, followed by port wing
    type(ActDsk_ParameterType), intent(in   ) :: p_ActDsk(:)       !< Actuator Disk parameters
    type(ActDsk_MiscVarType),   intent(inout) :: m_ActDsk(:)       !< Actuator Disk miscvars
@@ -163,11 +167,12 @@ subroutine RotorDisk_CalcOutput(c_offset, numPylons, V_PyRtr, PyRtrMotions, RtSp
          call ActDsk_CalcOutput(u_ActDsk(c), p_ActDsk(c), m_ActDsk(c), y_ActDsk(c), errStat2, errMsg2)
             call SetErrStat( errStat2, errMsg2, errStat, errMsg, RoutineName )
             
-         dcm(1,:) = x_hat_disk
-         dcm(2,:) = y_hat_disk
-         dcm(3,:) = z_hat_disk
+         !dcm(1,:) = x_hat_disk
+         !dcm(2,:) = y_hat_disk
+         !dcm(3,:) = z_hat_disk
+            
             ! dcm is transform from global to local, but we need local to global so transpose
-         dcm = transpose(dcm)
+         dcm = transpose(dcms(:,:,c))
          forces  = (/y_ActDsk(c)%Fx,y_ActDsk(c)%Fy,y_ActDsk(c)%Fz/)
          moments = (/y_ActDsk(c)%Mx,y_ActDsk(c)%My,y_ActDsk(c)%Mz/)
          
@@ -3360,6 +3365,8 @@ subroutine KAD_MapOutputs(p, u, u_VSM, y, y_VSM, p_VSM, u_ActDsk, y_ActDsk, m, z
  m%AllOuts( SP1BCq   ) = m%ActDsk(2)%Cq
  m%AllOuts( SP1TCt   ) = m%ActDsk(1)%Ct
  m%AllOuts( SP1BCt   ) = m%ActDsk(2)%Ct
+! TODO: Should we simply be using the y_ActDsk(1)%Fx, etc for these outputs and not the ones in the Rotor Node coordinate system?
+! TODO:  this node system could be different than the Actuator Disk system which was used to compute y_ActDsk(1)%Fx
  m%AllOuts( SP1TFx   ) = forces(1,1)
  m%AllOuts( SP1BFx   ) = forces(1,2)
  m%AllOuts( SP1TFy   ) = forces(2,1)
@@ -4035,7 +4042,7 @@ subroutine KAD_CalcOutput( Time, u, p, x, xd, z, OtherState, y, m, errStat, errM
    character(*), parameter                :: routineName = 'KAD_CalcOutput'
    integer(IntKi)                         :: n, i, j, c
    real(ReKi)                             :: forces(3), moments(3), dcm(3,3)
-   
+   real(ReKi)                             :: rotorDCMs(3,3,p%NumPylons*4)
    character(ErrMsgLen)                   :: errMsg2     ! temporary Error message if errStat /= ErrID_None
    integer(IntKi)                         :: errStat2    ! temporary Error status of the operation
 
@@ -4121,14 +4128,14 @@ subroutine KAD_CalcOutput( Time, u, p, x, xd, z, OtherState, y, m, errStat, errM
 
       ! Rotor Inputs and Outputs
    
-   call RotorDisk_SetInputs(0,             p%NumPylons, u%V_SPyRtr, u%SPyRtrMotions, u%RtSpd_SPyRtr, u%Pitch_SPyRtr, m%u_ActDsk, errStat, errMsg)
+   call RotorDisk_SetInputs(0,             p%NumPylons, u%V_SPyRtr, u%SPyRtrMotions, u%RtSpd_SPyRtr, u%Pitch_SPyRtr, m%u_ActDsk, rotorDCMs, errStat, errMsg)
       if ( errStat >= AbortErrLev ) return
-   call RotorDisk_SetInputs(p%NumPylons*2, p%NumPylons, u%V_PPyRtr, u%PPyRtrMotions, u%RtSpd_PPyRtr, u%Pitch_PPyRtr, m%u_ActDsk, errStat, errMsg)
+   call RotorDisk_SetInputs(p%NumPylons*2, p%NumPylons, u%V_PPyRtr, u%PPyRtrMotions, u%RtSpd_PPyRtr, u%Pitch_PPyRtr, m%u_ActDsk, rotorDCMs, errStat, errMsg)
       if ( errStat >= AbortErrLev ) return 
       
-   call RotorDisk_CalcOutput(0,             p%NumPylons, u%V_SPyRtr, u%SPyRtrMotions, u%RtSpd_SPyRtr, u%Pitch_SPyRtr, m%u_ActDsk, p%ActDsk, m%ActDsk, m%y_ActDsk, y%SPyRtrLoads, errStat, errMsg)
+   call RotorDisk_CalcOutput(0,             p%NumPylons, u%V_SPyRtr, u%SPyRtrMotions, u%RtSpd_SPyRtr, u%Pitch_SPyRtr, rotorDCMs, m%u_ActDsk, p%ActDsk, m%ActDsk, m%y_ActDsk, y%SPyRtrLoads, errStat, errMsg)
       if ( errStat >= AbortErrLev ) return
-   call RotorDisk_CalcOutput(p%NumPylons*2, p%NumPylons, u%V_PPyRtr, u%PPyRtrMotions, u%RtSpd_PPyRtr, u%Pitch_PPyRtr, m%u_ActDsk, p%ActDsk, m%ActDsk, m%y_ActDsk, y%PPyRtrLoads, errStat, errMsg)
+   call RotorDisk_CalcOutput(p%NumPylons*2, p%NumPylons, u%V_PPyRtr, u%PPyRtrMotions, u%RtSpd_PPyRtr, u%Pitch_PPyRtr, rotorDCMs, m%u_ActDsk, p%ActDsk, m%ActDsk, m%y_ActDsk, y%PPyRtrLoads, errStat, errMsg)
       if ( errStat >= AbortErrLev ) return     
    
    ! Map the output quantities to the AllOuts array
