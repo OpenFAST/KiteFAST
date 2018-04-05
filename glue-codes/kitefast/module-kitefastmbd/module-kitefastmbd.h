@@ -137,9 +137,6 @@ private:
   };
 
   const static int AbortErrLev = ErrID_Fatal; // abort error level; compare with NWTC Library
-  
-  int error_status;
-  char error_message[INTERFACE_STRING_LENGTH];
 
   // class data
   doublereal ground_station_point[3];
