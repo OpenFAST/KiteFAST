@@ -186,6 +186,7 @@ public:
   virtual void WorkSpaceDim(integer *piNumRows, integer *piNumCols) const;
   VariableSubMatrixHandler &AssJac(VariableSubMatrixHandler &WorkMat, doublereal dCoef, const VectorHandler &XCurr, const VectorHandler &XPrimeCurr);
   void Update(const VectorHandler &XCurr, const VectorHandler &XPrimeCurr);
+  void _AssRes(integer first_iteration, integer numNodeLoadsElem, doublereal *nodeLoads, integer numRtrLoadsElem, doublereal *rotorLoads);
   SubVectorHandler &AssRes(SubVectorHandler &WorkVec, doublereal dCoef, const VectorHandler &XCurr, const VectorHandler &XPrimeCurr);
   void BeforePredict(VectorHandler & /* X */, VectorHandler & /* XP */, VectorHandler & /* XPrev */, VectorHandler & /* XPPrev */) const;
   void AfterPredict(VectorHandler &X, VectorHandler &XP);

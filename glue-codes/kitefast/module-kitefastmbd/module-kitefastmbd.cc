@@ -423,14 +423,19 @@ void ModuleKiteFAST::Update(const VectorHandler &XCurr, const VectorHandler &XPr
   printdebug("Update");
 }
 
-SubVectorHandler &ModuleKiteFAST::AssRes(SubVectorHandler &WorkVec, doublereal dCoef, const VectorHandler &XCurr, const VectorHandler &XPrimeCurr)
+void ModuleKiteFAST::_AssRes(integer first_iteration,
+                             integer numNodeLoadsElem,
+                             doublereal *nodeLoads,
+                             integer numRtrLoadsElem,
+                             doublereal *rotorLoads)
 {
-  printdebug("AssRes");
+  printdebug("_AssRes");
   
   doublereal t = Time.dGet();
   integer numRtSpdRtrElem = 4 * n_pylons_per_wing;
   doublereal RtSpd_PyRtr[numRtSpdRtrElem]; // rotational speed for each rotor element (rad/s)
-  for (int i = 0; i < numRtSpdRtrElem; i++) {
+  for (int i = 0; i < numRtSpdRtrElem; i++)
+  {
     RtSpd_PyRtr[i] = 200.0;
   }
   
@@ -535,11 +540,6 @@ SubVectorHandler &ModuleKiteFAST::AssRes(SubVectorHandler &WorkVec, doublereal d
     rotor_dcms[9 * i + 8] = rnode.dGet(3, 3);
   }
 
-  integer numNodeLoadsElem = numNodePtElem * 2; // force and moment components for each node
-  doublereal *nodeLoads = new doublereal[numNodeLoadsElem];
-  integer numRtrLoadsElem = numRtrPtsElem * 2; // force and moment components for each rotor node
-  doublereal *rotorLoads = new doublereal[numRtrLoadsElem];
-
   int error_status;
   char error_message[INTERFACE_STRING_LENGTH];
   KFAST_AssRes(&t,
@@ -571,11 +571,17 @@ SubVectorHandler &ModuleKiteFAST::AssRes(SubVectorHandler &WorkVec, doublereal d
                rotorLoads,
                &error_status,
                error_message);
-  silent_cout(error_status << error_message << std::endl);
   if (error_status >= AbortErrLev)
   {
+    printf("error status %d: %s\n", error_status, error_message);
     throw ErrGeneric(MBDYN_EXCEPT_ARGS);
   }
+
+  delete node_velocities;
+  delete node_omegas;
+  delete rotor_velocities;
+  delete rotor_dcms;
+}
 
   integer iNumRows, iNumCols;
   WorkSpaceDim(&iNumRows, &iNumCols);
