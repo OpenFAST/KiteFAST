@@ -427,7 +427,7 @@ void ModuleKiteFAST::Output(OutputHandler &OH) const
 int ModuleKiteFAST::iGetNumConnectedNodes(void) const
 {
   printdebug("iGetNumConnectedNodes");
-  return node_count_no_rotors;
+  return nodes.size();
 }
 
 void ModuleKiteFAST::WorkSpaceDim(integer *piNumRows, integer *piNumCols) const
@@ -637,6 +637,21 @@ SubVectorHandler &ModuleKiteFAST::AssRes(SubVectorHandler &WorkVec, doublereal d
     Vec3 moment = Vec3(nodeLoads[6 * i + 3], nodeLoads[6 * i + 4], nodeLoads[6 * i + 5]);
     WorkVec.Add(6 * i + 1, force);
     WorkVec.Add(6 * i + 4, moment);
+  }
+
+  for (int i = 0; i < rotor_node_count; i++)
+  {
+    // set indices where force/moment need to be put
+    integer first_index = nodes[node_count_no_rotors + i].pNode->iGetFirstMomentumIndex();
+    for (int j = 1; j <= 6; j++)
+    {
+      WorkVec.PutRowIndex(6 * node_count_no_rotors + 6 * i + j, first_index + j);
+    }
+
+    Vec3 force = Vec3(rotorLoads[6 * i + 0], rotorLoads[6 * i + 1], rotorLoads[6 * i + 2]);
+    Vec3 moment = Vec3(rotorLoads[6 * i + 3], rotorLoads[6 * i + 4], rotorLoads[6 * i + 5]);
+    WorkVec.Add(6 * node_count_no_rotors + 6 * i + 1, force);
+    WorkVec.Add(6 * node_count_no_rotors + 6 * i + 4, moment);
   }
 
   delete[] nodeLoads;
