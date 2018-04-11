@@ -45,6 +45,18 @@ subroutine TransferErrors(errStat, errMsg, errStat_c, errMsg_c)
       
 end subroutine TransferErrors
 
+subroutine DumpMotionsMeshData(mesh, meshLabel)
+type(MeshType),  intent(in)  :: mesh              !< The motions mesh 
+character(*)  ,  intent(in)  :: meshLabel
+
+integer(IntKi) :: i
+
+do i = 1, mesh%NNodes
+   call WrScr(trim(meshLabel)//": Node "//trim(num2lstr(i))//" Position = "//trim(num2lstr(mesh%Position(1,i)))//", "//trim(num2lstr(mesh%Position(2,i)))//", "//trim(num2lstr(mesh%Position(3,i))) )
+end do
+
+end subroutine
+
 !====================================================================================================
 subroutine KFAST_WriteOutput( t, p, y_KAD, y_MD, y_IfW, errStat, errMsg )
 ! This subroutine 
@@ -868,22 +880,52 @@ subroutine CreateMeshMappings(m, p, KAD, MD, errStat, errMsg)
          ! Mappings between MBDyn input motions meshes and the KiteAeroDyn motions meshes
       call MeshMapCreate( m%mbdFusMotions, KAD%u(1)%FusMotions, m%Fus_L2_L2, errStat2, errMsg2 )
          call SetErrStat( errStat2, errMsg2, errStat, errMsg, ' CreateMeshMappings: m%Fus_L2_L2' )     
-            if (ErrStat>=AbortErrLev) return
+            if (ErrStat>=AbortErrLev) then 
+               call DumpMotionsMeshData(m%mbdFusMotions, "m%mbdFusMotions")
+               call DumpMotionsMeshData(KAD%u(1)%FusMotions, "KAD%u(1)%FusMotions")
+               return
+            end if
+
       call MeshMapCreate( m%mbdSWnMotions, KAD%u(1)%SWnMotions, m%SWn_L2_L2, errStat2, errMsg2 )
          call SetErrStat( errStat2, errMsg2, errStat, errMsg, ' CreateMeshMappings: m%SWn_L2_L2' )     
-            if (ErrStat>=AbortErrLev) return
+            if (ErrStat>=AbortErrLev) then 
+               call DumpMotionsMeshData(m%mbdSWnMotions, "m%mbdSWnMotions")
+               call DumpMotionsMeshData(KAD%u(1)%SWnMotions, "KAD%u(1)%SWnMotions")
+               return
+            end if
+            
       call MeshMapCreate( m%mbdPWnMotions, KAD%u(1)%PWnMotions, m%PWn_L2_L2, errStat2, errMsg2 )
          call SetErrStat( errStat2, errMsg2, errStat, errMsg, ' CreateMeshMappings: m%PWn_L2_L2' )     
-            if (ErrStat>=AbortErrLev) return
+            if (ErrStat>=AbortErrLev) then 
+               call DumpMotionsMeshData(m%mbdPWnMotions, "m%mbdPWnMotions")
+               call DumpMotionsMeshData(KAD%u(1)%PWnMotions, "KAD%u(1)%PWnMotions")
+               return
+            end if
+
       call MeshMapCreate( m%mbdVSMotions, KAD%u(1)%VSMotions, m%VS_L2_L2, errStat2, errMsg2 )
          call SetErrStat( errStat2, errMsg2, errStat, errMsg, ' CreateMeshMappings: m%VS_L2_L2' )     
-            if (ErrStat>=AbortErrLev) return
+            if (ErrStat>=AbortErrLev) then 
+               call DumpMotionsMeshData(m%mbdVSMotions, "m%mbdVSMotions")
+               call DumpMotionsMeshData(KAD%u(1)%VSMotions, "KAD%u(1)%VSMotions")
+               return
+            end if
+
       call MeshMapCreate( m%mbdSHSMotions, KAD%u(1)%SHSMotions, m%SHS_L2_L2, errStat2, errMsg2 )
          call SetErrStat( errStat2, errMsg2, errStat, errMsg, ' CreateMeshMappings: m%SHS_L2_L2' )     
-            if (ErrStat>=AbortErrLev) return
+            if (ErrStat>=AbortErrLev) then 
+               call DumpMotionsMeshData(m%mbdSHSMotions, "m%mbdSHSMotions")
+               call DumpMotionsMeshData(KAD%u(1)%SHSMotions, "KAD%u(1)%SHSMotions")
+               return
+            end if
+
       call MeshMapCreate( m%mbdPHSMotions, KAD%u(1)%PHSMotions, m%PHS_L2_L2, errStat2, errMsg2 )
          call SetErrStat( errStat2, errMsg2, errStat, errMsg, ' CreateMeshMappings: m%PHS_L2_L2' )     
-            if (ErrStat>=AbortErrLev) return
+            if (ErrStat>=AbortErrLev) then 
+               call DumpMotionsMeshData(m%mbdPHSMotions, "m%mbdPHSMotions")
+               call DumpMotionsMeshData(KAD%u(1)%PHSMotions, "KAD%u(1)%PHSMotions")
+               return
+            end if
+
 
       allocate(m%SPy_L2_L2(p%NumPylons), STAT=errStat2)
          if (errStat2 /= 0) call SetErrStat( ErrID_Fatal, 'Could not allocate memory for m%SPy_L2_L2', errStat, errMsg, RoutineName )     
@@ -893,11 +935,19 @@ subroutine CreateMeshMappings(m, p, KAD, MD, errStat, errMsg)
       do i = 1 , p%NumPylons           
          call MeshMapCreate( m%mbdSPyMotions(i), KAD%u(1)%SPyMotions(i), m%SPy_L2_L2(i), errStat2, errMsg2 )
             call SetErrStat( errStat2, errMsg2, errStat, errMsg, ' CreateMeshMappings: m%SPy_L2_L2('//trim(num2lstr(i))//')' ) 
-               if (ErrStat>=AbortErrLev) return
+               if (ErrStat>=AbortErrLev) then 
+                  call DumpMotionsMeshData(m%mbdSPyMotions(i), "m%mbdSPyMotions("//trim(num2lstr(i))//")")
+                  call DumpMotionsMeshData(KAD%u(1)%SPyMotions(i), "KAD%u(1)%SPyMotions("//trim(num2lstr(i))//")")
+                  return
+               end if
             
          call MeshMapCreate( m%mbdPPyMotions(i), KAD%u(1)%PPyMotions(i), m%PPy_L2_L2(i), errStat2, errMsg2 )
             call SetErrStat( errStat2, errMsg2, errStat, errMsg, ' CreateMeshMappings: m%PPy_L2_L2('//trim(num2lstr(i))//')' ) 
-               if (ErrStat>=AbortErrLev) return
+               if (ErrStat>=AbortErrLev) then 
+                  call DumpMotionsMeshData(m%mbdPPyMotions(i), "m%mbdPPyMotions("//trim(num2lstr(i))//")")
+                  call DumpMotionsMeshData(KAD%u(1)%PPyMotions(i), "KAD%u(1)%PPyMotions("//trim(num2lstr(i))//")")
+                  return
+               end if
       end do
    
    
@@ -1407,13 +1457,13 @@ subroutine TransferMBDynToIfW( WindPt_c, FusO, numNodePtElem_c, nodePts_c, rtrPt
 
 end subroutine TransferMBDynToIfW
 
-subroutine KFAST_Init(dt, numFlaps, numPylons, numComp, numCompNds, modFlags, KAD_FileName_c, IfW_FileName_c, MD_FileName_c, KFC_FileName_c, &
+subroutine KFAST_Init(dt_c, numFlaps, numPylons, numComp, numCompNds, modFlags, KAD_FileName_c, IfW_FileName_c, MD_FileName_c, KFC_FileName_c, &
                        outFileRoot_c, gravity, WindPt_c, FusODCM_c, numRtrPtsElem_c, rtrPts_c, numRefPtElem_c, refPts_c, &
                        numNodePtElem_c, nodePts_c, numDCMElem_c, nodeDCMs_c, errStat_c, errMsg_c ) BIND (C, NAME='KFAST_Init')
    IMPLICIT NONE
 
 
-   real(C_DOUBLE),         intent(in   ) :: dt                         ! simulation time step size (s)
+   real(C_DOUBLE),         intent(in   ) :: dt_c                       ! simulation time step size (s)
    integer(C_INT),         intent(in   ) :: numFlaps                   ! number of flaps per wing
    integer(C_INT),         intent(in   ) :: numPylons                  ! number of pylons per wing
    integer(C_INT),         intent(in   ) :: numComp                    ! number of individual components in the kite
@@ -1439,6 +1489,7 @@ subroutine KFAST_Init(dt, numFlaps, numPylons, numComp, numCompNds, modFlags, KA
    character(kind=C_CHAR), intent(  out) :: errMsg_c(IntfStrLen)   
 
       ! Local variables
+   real(DbKi)                      :: dt
    real(ReKi)                      :: FusO(3), SWnO(3), PWnO(3), VSO(3), SHSO(3), PHSO(3), zero_vec(3)
    real(R8Ki)                      :: FusODCM(3,3)
    real(ReKi)                      :: SPyO(3,numPylons), PPyO(3,numPylons)
@@ -1464,6 +1515,8 @@ subroutine KFAST_Init(dt, numFlaps, numPylons, numComp, numCompNds, modFlags, KA
   
          ! Initialize the NWTC Subroutine Library
    call NWTC_Init( EchoLibVer=.FALSE. )
+
+   dt = dt_c
 
    ! If a module's input file/dll file is empty, then turn off that module
    
@@ -1776,7 +1829,7 @@ contains
       ! Convert 1D float array data into specific quantities
       
    FusO = refPts_c(1:3)   ! This is in global coordinates
-   
+
    ! The remaining reference points are already in the Kite coordinate system!
    SWnO = refPts_c(4:6)
    PWnO = refPts_c(7:9)
@@ -1974,9 +2027,9 @@ subroutine KFAST_AssRes(t_c, isInitialTime_c, numRtSpdRtrElem_c, RtSpd_PyRtr_c, 
    real(C_DOUBLE),         intent(in   ) :: rtrVels_c(numRtrPtsElem_c)        ! 1D array of the rotor point velocities in global coordinates (m/s)
    real(C_DOUBLE),         intent(in   ) :: rtrDCMs_c(numRtrPtsElem_c*3)      ! 1D array of the rotor point DCMs
    integer(C_INT),         intent(in   ) :: numNodeLoadsElem_c                ! total number of nodel point load elements
-   real(C_DOUBLE),         intent(inout) :: nodeLoads_c(numNodeLoadsElem_c)   ! 1D array of the nodal point loads
+   real(C_DOUBLE),         intent(  out) :: nodeLoads_c(numNodeLoadsElem_c)   ! 1D array of the nodal point loads
    integer(C_INT),         intent(in   ) :: numRtrLoadsElem_c                 ! total number of rotor point load elements
-   real(C_DOUBLE),         intent(inout) :: rtrLoads_c(numRtrLoadsElem_c)     ! 1D array of the rotor point loads
+   real(C_DOUBLE),         intent(  out) :: rtrLoads_c(numRtrLoadsElem_c)     ! 1D array of the rotor point loads
 
    integer(C_INT),         intent(  out) :: errStat_c      
    character(kind=C_CHAR), intent(  out) :: errMsg_c(IntfStrLen)   

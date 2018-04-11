@@ -97,7 +97,6 @@ ModuleKiteFAST::ModuleKiteFAST(unsigned uLabel, const DofOwner *pDO, DataManager
 
   // parse the ground station location
   ValidateInputKeyword(HP, "ground_weather_station_location");
-  doublereal ground_station_point[3];
   ground_station_point[0] = HP.GetReal();
   ground_station_point[1] = HP.GetReal();
   ground_station_point[2] = HP.GetReal();
@@ -106,7 +105,7 @@ ModuleKiteFAST::ModuleKiteFAST(unsigned uLabel, const DofOwner *pDO, DataManager
   ValidateInputKeyword(HP, "number_of_flaps_per_wing");
   integer n_flaps_per_wing = HP.GetInt();
   ValidateInputKeyword(HP, "number_of_pylons_per_wing");
-  integer n_pylons_per_wing = HP.GetInt();
+  n_pylons_per_wing = HP.GetInt();
 
   // n_components includes all components except the rotors
   ValidateInputKeyword(HP, "number_of_kite_components");
@@ -123,29 +122,45 @@ ModuleKiteFAST::ModuleKiteFAST(unsigned uLabel, const DofOwner *pDO, DataManager
     reference_points[3 * i + 2] = HP.GetReal();
   }
 
+  // parse the mip node
+  ValidateInputKeyword(HP, "mip_node");
+  mip_node.pNode = dynamic_cast<StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
+  
   // parse the component nodes into arrays
-  integer component_reference_node_indeces[n_components];
-  BuildComponentNodeArray(pDM, HP, "fuselage", nodes_fuselage, component_reference_node_indeces[0]);
-  BuildComponentNodeArray(pDM, HP, "starboard_wing", nodes_starwing, component_reference_node_indeces[1]);
-  BuildComponentNodeArray(pDM, HP, "port_wing", nodes_portwing, component_reference_node_indeces[2]);
-  BuildComponentNodeArray(pDM, HP, "vstab", nodes_vstab, component_reference_node_indeces[3]);
-  BuildComponentNodeArray(pDM, HP, "starboard_hstab", nodes_starhstab, component_reference_node_indeces[4]);
-  BuildComponentNodeArray(pDM, HP, "port_hstab", nodes_porthstab, component_reference_node_indeces[5]);
-  BuildComponentNodeArray(pDM, HP, "starboard_pylon1", nodes_starpylon1, component_reference_node_indeces[6]);
-  BuildComponentNodeArray(pDM, HP, "port_pylon1", nodes_portpylon1, component_reference_node_indeces[7]);
-  BuildComponentNodeArray(pDM, HP, "starboard_rotors", nodes_starrotors, component_reference_node_indeces[8]);
-  BuildComponentNodeArray(pDM, HP, "port_rotors", nodes_portrotors, component_reference_node_indeces[9]);
+  BuildComponentNodeArray(pDM, HP, "fuselage", nodes_fuselage);
+  BuildComponentNodeArray(pDM, HP, "starboard_wing", nodes_starwing);
+  BuildComponentNodeArray(pDM, HP, "port_wing", nodes_portwing);
+  BuildComponentNodeArray(pDM, HP, "vertical_stabilizer", nodes_vstab);
+  BuildComponentNodeArray(pDM, HP, "starboard_horizontal_stabilizer", nodes_starhstab);
+  BuildComponentNodeArray(pDM, HP, "port_horizontal_stabilizer", nodes_porthstab);
+  nodes_starpylons.resize(n_pylons_per_wing);
+  for (int i = 0; i < n_pylons_per_wing; i++)
+  {
+    std::string component_name = "starboard_pylon_";
+    component_name.append(std::to_string(i + 1));
+    BuildComponentNodeArray(pDM, HP, component_name.c_str(), nodes_starpylons[i]);
+  }
+  nodes_portpylons.resize(n_pylons_per_wing);
+  for (int i = 0; i < n_pylons_per_wing; i++)
+  {
+    std::string component_name = "port_pylon_";
+    component_name.append(std::to_string(i + 1));
+    BuildComponentNodeArray(pDM, HP, component_name.c_str(), nodes_portpylons[i]);
+  }
+  BuildComponentNodeArray(pDM, HP, "starboard_rotors", nodes_starrotors);
+  BuildComponentNodeArray(pDM, HP, "port_rotors", nodes_portrotors);
 
   integer total_node_count = nodes_fuselage.size()
                            + nodes_starwing.size()
                            + nodes_portwing.size()
                            + nodes_vstab.size()
                            + nodes_starhstab.size()
-                           + nodes_porthstab.size()
-                           + nodes_starpylon1.size()
-                           + nodes_portpylon1.size()
-                           + nodes_starrotors.size()
-                           + nodes_portrotors.size();
+                           + nodes_porthstab.size();
+  for (int i = 0; i < n_pylons_per_wing; i++)
+  {
+    total_node_count += nodes_portpylons[i].size() + nodes_portpylons[i].size();
+  }
+  total_node_count += nodes_starrotors.size() + nodes_portrotors.size();
 
   nodes.reserve(total_node_count);
   nodes.insert(nodes.begin(), nodes_fuselage.begin(), nodes_fuselage.end());
@@ -154,8 +169,14 @@ ModuleKiteFAST::ModuleKiteFAST(unsigned uLabel, const DofOwner *pDO, DataManager
   nodes.insert(nodes.end(), nodes_vstab.begin(), nodes_vstab.end());
   nodes.insert(nodes.end(), nodes_starhstab.begin(), nodes_starhstab.end());
   nodes.insert(nodes.end(), nodes_porthstab.begin(), nodes_porthstab.end());
-  nodes.insert(nodes.end(), nodes_starpylon1.begin(), nodes_starpylon1.end());
-  nodes.insert(nodes.end(), nodes_portpylon1.begin(), nodes_portpylon1.end());
+  for (int i = 0; i < n_pylons_per_wing; i++)
+  {
+    nodes.insert(nodes.end(), nodes_starpylons[i].begin(), nodes_starpylons[i].end());
+  }
+  for (int i = 0; i < n_pylons_per_wing; i++)
+  {
+    nodes.insert(nodes.end(), nodes_portpylons[i].begin(), nodes_portpylons[i].end());
+  }
   nodes.insert(nodes.end(), nodes_starrotors.begin(), nodes_starrotors.end());
   nodes.insert(nodes.end(), nodes_portrotors.begin(), nodes_portrotors.end());
 
@@ -167,16 +188,26 @@ ModuleKiteFAST::ModuleKiteFAST(unsigned uLabel, const DofOwner *pDO, DataManager
   component_node_counts[3] = nodes_vstab.size();
   component_node_counts[4] = nodes_starhstab.size();
   component_node_counts[5] = nodes_porthstab.size();
-  component_node_counts[6] = nodes_starpylon1.size();
-  component_node_counts[7] = nodes_portpylon1.size();
+  for (int i = 0; i < n_pylons_per_wing; i++)
+  {
+    component_node_counts[6 + i] = nodes_starpylons[i].size();
+  }
+  for (int i = 0; i < n_pylons_per_wing; i++)
+  {
+    component_node_counts[6 + n_pylons_per_wing + i] = nodes_portpylons[i].size();
+  }
 
   // build the node arrays for kite components excluding rotors
-  integer node_count_no_rotors = nodes.size() - nodes_starrotors.size() - nodes_portrotors.size();
-  integer numNodePtElem = 3 * node_count_no_rotors;
-  doublereal node_points[numNodePtElem];
-  integer numDCMElem = 9 * numNodePtElem;
-  doublereal node_dcms[numDCMElem];
-
+  node_count_no_rotors = 0;
+  for (int i = 0; i < 6 + 2 * n_pylons_per_wing; i++)
+  {
+    node_count_no_rotors += component_node_counts[i];
+  }
+  numNodePtElem = 3 * node_count_no_rotors;
+  node_points = new doublereal[numNodePtElem];
+  numDCMElem = 9 * numNodePtElem;
+  node_dcms = new doublereal[numDCMElem];
+  
   for (int i = 0; i < node_count_no_rotors; i++)
   {
     Vec3 xcurr = nodes[i].pNode->GetXCurr();
@@ -186,34 +217,31 @@ ModuleKiteFAST::ModuleKiteFAST(unsigned uLabel, const DofOwner *pDO, DataManager
 
     // these are dGet(row, col)
     Mat3x3 rnode = nodes[i].pNode->GetRCurr();
-    node_dcms[9 * i] = rnode.dGet(0, 0);
-    node_dcms[9 * i + 1] = rnode.dGet(0, 1);
-    node_dcms[9 * i + 2] = rnode.dGet(0, 2);
-    node_dcms[9 * i + 3] = rnode.dGet(1, 0);
-    node_dcms[9 * i + 4] = rnode.dGet(1, 1);
-    node_dcms[9 * i + 5] = rnode.dGet(1, 2);
-    node_dcms[9 * i + 6] = rnode.dGet(2, 0);
-    node_dcms[9 * i + 7] = rnode.dGet(2, 1);
-    node_dcms[9 * i + 8] = rnode.dGet(2, 2);
+    node_dcms[9 * i] = rnode.dGet(1, 1);
+    node_dcms[9 * i + 1] = rnode.dGet(1, 2);
+    node_dcms[9 * i + 2] = rnode.dGet(1, 3);
+    node_dcms[9 * i + 3] = rnode.dGet(2, 1);
+    node_dcms[9 * i + 4] = rnode.dGet(2, 2);
+    node_dcms[9 * i + 5] = rnode.dGet(2, 3);
+    node_dcms[9 * i + 6] = rnode.dGet(3, 1);
+    node_dcms[9 * i + 7] = rnode.dGet(3, 2);
+    node_dcms[9 * i + 8] = rnode.dGet(3, 3);
   }
 
   // build the node arrays for rotors
-  integer rotor_node_count = nodes_starrotors.size() + nodes_portrotors.size();
-  integer numRtrPtsElem = 3 * rotor_node_count;
-  doublereal rotor_points[numRtrPtsElem];
-  for (int i = node_count_no_rotors; i < rotor_node_count; i++)
+  rotor_node_count = nodes_starrotors.size() + nodes_portrotors.size();
+  numRtrPtsElem = 3 * rotor_node_count;
+  rotor_points = new doublereal[numRtrPtsElem];
+  for (int i = 0; i < rotor_node_count; i++)
   {
-    Vec3 xcurr = nodes[i].pNode->GetXCurr();
+    Vec3 xcurr = nodes[i + node_count_no_rotors].pNode->GetXCurr();
     rotor_points[3 * i] = xcurr[0];
     rotor_points[3 * i + 1] = xcurr[1];
     rotor_points[3 * i + 2] = xcurr[2];
   }
 
-  // Test the FusODCM as a 1D array instead of a 2D array
   // The kite is aligned with the Global Coordinate system
-  integer mip_index = component_reference_node_indeces[0];
-  KiteFASTNode mipnode = nodes_fuselage[mip_index];
-  Mat3x3 mip_dcm = mipnode.pNode->GetRCurr();
+  Mat3x3 mip_dcm = mip_node.pNode->GetRCurr();
   doublereal pFusODCM[9];
   pFusODCM[0] = mip_dcm.dGet(1, 1);
   pFusODCM[1] = mip_dcm.dGet(1, 2);
@@ -225,6 +253,7 @@ ModuleKiteFAST::ModuleKiteFAST(unsigned uLabel, const DofOwner *pDO, DataManager
   pFusODCM[7] = mip_dcm.dGet(3, 2);
   pFusODCM[8] = mip_dcm.dGet(3, 3);
 
+  // call KFAST_Init method
   int error_status;
   char error_message[INTERFACE_STRING_LENGTH];
   KFAST_Init(&dt,
@@ -251,9 +280,29 @@ ModuleKiteFAST::ModuleKiteFAST(unsigned uLabel, const DofOwner *pDO, DataManager
              node_dcms,
              &error_status,
              error_message);
-  silent_cout(error_status << error_message << std::endl);
   if (error_status >= AbortErrLev)
   {
+    printf("error status %d: %s\n", error_status, error_message);
+    throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+  }
+
+  // call KFAST_AssRes to initialize the loads
+  integer numNodeLoadsElem = 6 * node_count_no_rotors; // force and moment components for each node
+  doublereal *nodeLoads = new doublereal[numNodeLoadsElem];
+  integer numRtrLoadsElem = numRtrPtsElem * 2; // force and moment components for each rotor node
+  doublereal *rotorLoads = new doublereal[numRtrLoadsElem];
+
+  _AssRes(1, numNodeLoadsElem, nodeLoads, numRtrLoadsElem, rotorLoads);
+
+  delete[] nodeLoads;
+  delete[] rotorLoads;
+
+  // call KFAST_Output to initialize its output file
+  doublereal current_time = Time.dGet();
+  KFAST_Output(&current_time, &error_status, error_message);
+  if (error_status >= AbortErrLev)
+  {
+    printf("error status %d: %s\n", error_status, error_message);
     throw ErrGeneric(MBDYN_EXCEPT_ARGS);
   }
 
@@ -262,10 +311,6 @@ ModuleKiteFAST::ModuleKiteFAST(unsigned uLabel, const DofOwner *pDO, DataManager
   // if ((iNode % NElems) == 0) {
   //   bladeR[elem/NElems] = HP.GetRotRel(rf);
   // }
-  // m_pNode = pDM->ReadNode<const StructNode, Node::STRUCTURAL>(HP);
-  //if (!m_pNode->bComputeAccelerations()) {
-  // const_cast<StructNode *>(m_pNode)->ComputeAccelerations(true);
-  //}
   //ReferenceFrame RF(m_pNode);
   //if (HP.IsKeyWord("position")) {
   //    m_tilde_f = HP.GetPosRel(RF);
@@ -278,11 +323,13 @@ ModuleKiteFAST::ModuleKiteFAST(unsigned uLabel, const DofOwner *pDO, DataManager
 ModuleKiteFAST::~ModuleKiteFAST(void)
 {
   printdebug("~ModuleKiteFAST");
+
   int error_status;
   char error_message[INTERFACE_STRING_LENGTH];
   KFAST_End(&error_status, error_message);
   if (error_status >= AbortErrLev)
   {
+    printf("error status %d: %s\n", error_status, error_message);
     throw ErrGeneric(MBDYN_EXCEPT_ARGS);
   }
 }
@@ -306,10 +353,10 @@ void ModuleKiteFAST::ValidateInputKeyword(MBDynParser &HP, const char *keyword)
 
 void ModuleKiteFAST::BuildComponentNodeArray(DataManager *pDM, MBDynParser &HP,
                                              const char *keyword,
-                                             std::vector<KiteFASTNode> &node_array,
-                                             int &ref_node_index)
+                                             std::vector<KiteFASTNode> &node_array)
 {
   printdebug("BuildComponentNodeArray");
+  printdebug(keyword);
   if (!HP.IsKeyWord(keyword))
   {
     silent_cerr("Runtime Error: cannot read keyword " << keyword << std::endl);
@@ -317,7 +364,6 @@ void ModuleKiteFAST::BuildComponentNodeArray(DataManager *pDM, MBDynParser &HP,
   }
 
   int node_count = HP.GetInt();
-  ref_node_index = HP.GetInt();
 
   node_array.resize(node_count);
 
@@ -334,137 +380,46 @@ void ModuleKiteFAST::BuildComponentNodeArray(DataManager *pDM, MBDynParser &HP,
 void ModuleKiteFAST::InitOutputFile(std::string output_file_name)
 {
   printdebug("InitOutputFile");
+
   outputfile.open(output_file_name.c_str());
   if (!outputfile)
   {
     silent_cerr("Runtime Error: cannot open file at " << output_file_name << std::endl);
     throw ErrGeneric(MBDYN_EXCEPT_ARGS);
   }
-  // outputfile << std::setw(16) << "Node ID"
-  //            << std::setw(16) << "Time s"
-  //            << std::setw(16) << "prev - x"
-  //            << std::setw(13) << "prev - y"
-  //            << std::setw(13) << "prev - z"
-  //            << std::setw(16) << "prev - R11"
-  //            << std::setw(13) << "prev - R12"
-  //            << std::setw(13) << "prev - R13"
-  //            << std::setw(13) << "prev - R21"
-  //            << std::setw(13) << "prev - R22"
-  //            << std::setw(13) << "prev - R23"
-  //            << std::setw(13) << "prev - R31"
-  //            << std::setw(13) << "prev - R32"
-  //            << std::setw(13) << "prev - R33"
-  //            << std::endl;
-  // outputfile << std::setw(8)
-  //            << std::scientific
-  //            << std::setw(16) << Time.dGet()
-  //            << std::setw(16) << nodes[0].pNode->GetLabel()
-  //            << std::setw(16) << nodes[0].pNode->GetXPrev()
-  //            << std::setw(16) << nodes[0].pNode->GetRPrev()
-  //            << std::endl;
-  // outputfile << std::setw(16) << "Node ID"
-  //            << std::setw(16) << "Time s"
-  //            << std::setw(16) << "curr - x"
-  //            << std::setw(13) << "curr - y"
-  //            << std::setw(13) << "curr - z"
-  //            << std::setw(16) << "curr - R11"
-  //            << std::setw(13) << "curr - R12"
-  //            << std::setw(13) << "curr - R13"
-  //            << std::setw(13) << "curr - R21"
-  //            << std::setw(13) << "curr - R22"
-  //            << std::setw(13) << "curr - R23"
-  //            << std::setw(13) << "curr - R31"
-  //            << std::setw(13) << "curr - R32"
-  //            << std::setw(13) << "curr - R33"
-  //            << std::endl;
-  // outputfile << std::setw(8)
-  //            << std::scientific
-  //            << std::setw(16) << Time.dGet()
-  //            << std::setw(16) << nodes[0].pNode->GetLabel()
-  //            << std::setw(16) << nodes[0].pNode->GetXCurr()
-  //            << std::setw(16) << nodes[0].pNode->GetRCurr()
-  //            << std::endl;
 
-  // outputfile << std::setw(16) << "Time s"
-  //            << std::setw(16) << "Node ID"
-  //            << std::setw(16) << "pos - x"
-  //            << std::setw(13) << "pos - y"
-  //            << std::setw(13) << "pos - z"
-  //            << std::setw(16) << "vel - x"
-  //            << std::setw(13) << "vel - y"
-  //            << std::setw(13) << "vel - z"
-  //            << std::setw(16) << "acc - x"
-  //            << std::setw(13) << "acc - y"
-  //            << std::setw(13) << "acc - z"
-  //            << std::endl;
+  outputfile << std::setw(16) << "Time s"
+             << std::setw(16) << "Node ID"
+             << std::setw(16) << "pos - x"
+             << std::setw(13) << "pos - y"
+             << std::setw(13) << "pos - z"
+             << std::endl;
 }
 
 void ModuleKiteFAST::Output(OutputHandler &OH) const
 {
   printdebug("Output");
-  // if (outputfile)
-  //   outputfile << std::setw(8)
-  //              << std::scientific
-  //              << std::setw(16) << Time.dGet()
-  //              << std::setw(16) << nodes[0].pNode->GetLabel()
-  //              << std::setw(16) << nodes[0].pNode->GetXCurr()
-  //              << std::setw(16) << nodes[0].pNode->GetVCurr()
-  //              << std::setw(16) << nodes[0].pNode->GetXPPCurr()
-  //             //  << std::setw(16) << nodes[0].pNode->GetXPPPrev()
-  //              << std::endl;
-  // if (outputfile)
-  //   outputfile << std::setw(16) << "Time s"
-  //               << std::setw(16) << "Node ID"
-  //               << std::setw(16) << "prev - x"
-  //               << std::setw(13) << "prev - y"
-  //               << std::setw(13) << "prev - z"
-  //               << std::setw(16) << "prev - R11"
-  //               << std::setw(13) << "prev - R12"
-  //               << std::setw(13) << "prev - R13"
-  //               << std::setw(13) << "prev - R21"
-  //               << std::setw(13) << "prev - R22"
-  //               << std::setw(13) << "prev - R23"
-  //               << std::setw(13) << "prev - R31"
-  //               << std::setw(13) << "prev - R32"
-  //               << std::setw(13) << "prev - R33"
-  //               << std::endl;
-  // outputfile << std::setw(8)
-  //            << std::scientific
-  //            << std::setw(16) << Time.dGet()
-  //            << std::setw(16) << nodes[2].pNode->GetLabel()
-  //            << std::setw(16) << nodes[2].pNode->GetXPrev()
-  //            << std::setw(16) << nodes[2].pNode->GetRPrev()
-  //            << std::endl;
-  // outputfile << std::setw(16) << "Time s"
-  //            << std::setw(16) << "Node ID"
-  //            << std::setw(16) << "curr - x"
-  //            << std::setw(13) << "curr - y"
-  //            << std::setw(13) << "curr - z"
-  //            << std::setw(16) << "curr - R11"
-  //            << std::setw(13) << "curr - R12"
-  //            << std::setw(13) << "curr - R13"
-  //            << std::setw(13) << "curr - R21"
-  //            << std::setw(13) << "curr - R22"
-  //            << std::setw(13) << "curr - R23"
-  //            << std::setw(13) << "curr - R31"
-  //            << std::setw(13) << "curr - R32"
-  //            << std::setw(13) << "curr - R33"
-  //            << std::endl;
-  // outputfile << std::setw(8)
-  //            << std::scientific
-  //            << std::setw(16) << Time.dGet()
-  //            << std::setw(16) << nodes[2].pNode->GetLabel()
-  //            << std::setw(16) << nodes[2].pNode->GetXCurr()
-  //            << std::setw(16) << nodes[2].pNode->GetRCurr()
-  //            << std::endl
-  //            << std::endl;
 
+  if (outputfile)
+  {
+    for (int i = 0; i < 3; i++)
+    {
+      outputfile << std::setw(8)
+                 << std::scientific
+                 << std::setw(16) << Time.dGet()
+                 << std::setw(16) << nodes[i].pNode->GetLabel()
+                 << std::setw(16) << nodes[i].pNode->GetXCurr()
+                 << std::endl;
+    }
+  }
+
+  doublereal current_time = Time.dGet();
   int error_status;
   char error_message[INTERFACE_STRING_LENGTH];
-  doublereal current_time = Time.dGet();
   KFAST_Output(&current_time, &error_status, error_message);
   if (error_status >= AbortErrLev)
   {
+    printf("error status %d: %s\n", error_status, error_message);
     throw ErrGeneric(MBDYN_EXCEPT_ARGS);
   }
 }
@@ -494,38 +449,216 @@ void ModuleKiteFAST::Update(const VectorHandler &XCurr, const VectorHandler &XPr
   printdebug("Update");
 }
 
+void ModuleKiteFAST::_AssRes(integer first_iteration,
+                             integer numNodeLoadsElem,
+                             doublereal *nodeLoads,
+                             integer numRtrLoadsElem,
+                             doublereal *rotorLoads)
+{
+  printdebug("_AssRes");
+  
+  doublereal t = Time.dGet();
+  integer numRtSpdRtrElem = rotor_node_count;
+  doublereal RtSpd_PyRtr[numRtSpdRtrElem]; // rotational speed for each rotor element (rad/s)
+  for (int i = 0; i < rotor_node_count; i++)
+  {
+    Vec3 wcurr = nodes[i + node_count_no_rotors].pNode->GetWCurr();
+    RtSpd_PyRtr[i] = wcurr[0];
+  }
+
+  Vec3 vec3_fusOprev = mip_node.pNode->GetXPrev();
+  doublereal FusO_prev[3];
+  FusO_prev[0] = vec3_fusOprev[0];
+  FusO_prev[1] = vec3_fusOprev[1];
+  FusO_prev[2] = vec3_fusOprev[2];
+
+  Vec3 vec3_fusO = mip_node.pNode->GetXCurr();
+  doublereal FusO[3];
+  FusO[0] = vec3_fusO[0];
+  FusO[1] = vec3_fusO[1];
+  FusO[2] = vec3_fusO[2];
+
+  Mat3x3 fus0_dcm_prev = mip_node.pNode->GetRPrev();
+  doublereal FusODCM_prev[9];
+  FusODCM_prev[0] = fus0_dcm_prev.dGet(1, 1);
+  FusODCM_prev[1] = fus0_dcm_prev.dGet(1, 2);
+  FusODCM_prev[2] = fus0_dcm_prev.dGet(1, 3);
+  FusODCM_prev[3] = fus0_dcm_prev.dGet(2, 1);
+  FusODCM_prev[4] = fus0_dcm_prev.dGet(2, 2);
+  FusODCM_prev[5] = fus0_dcm_prev.dGet(2, 3);
+  FusODCM_prev[6] = fus0_dcm_prev.dGet(3, 1);
+  FusODCM_prev[7] = fus0_dcm_prev.dGet(3, 2);
+  FusODCM_prev[8] = fus0_dcm_prev.dGet(3, 3);
+
+  Vec3 vec3_FusOv_prev = mip_node.pNode->GetVPrev();
+  doublereal FusOv_prev[3];
+  FusOv_prev[0] = vec3_FusOv_prev[0];
+  FusOv_prev[1] = vec3_FusOv_prev[1];
+  FusOv_prev[2] = vec3_FusOv_prev[2];
+
+  Vec3 vec3_FusOomegas_prev = mip_node.pNode->GetWPrev();
+  doublereal FusOomegas_prev[3];
+  FusOomegas_prev[0] = vec3_FusOomegas_prev[0];
+  FusOomegas_prev[1] = vec3_FusOomegas_prev[1];
+  FusOomegas_prev[2] = vec3_FusOomegas_prev[2];
+
+  Vec3 vec3_FusOacc_prev = mip_node.pNode->GetXPPPrev();
+  doublereal FusOacc_prev[3];
+  FusOacc_prev[0] = vec3_FusOacc_prev[0];
+  FusOacc_prev[1] = vec3_FusOacc_prev[1];
+  FusOacc_prev[2] = vec3_FusOacc_prev[2];
+
+  node_velocities = new doublereal[numNodePtElem];
+  node_omegas = new doublereal[numNodePtElem];
+  for (int i = 0; i < node_count_no_rotors; i++)
+  {
+    Vec3 xcurr = nodes[i].pNode->GetXCurr();
+    node_points[3 * i] = xcurr[0];
+    node_points[3 * i + 1] = xcurr[1];
+    node_points[3 * i + 2] = xcurr[2];
+
+    Vec3 vcurr = nodes[i].pNode->GetVCurr();
+    node_velocities[3 * i] = vcurr[0];
+    node_velocities[3 * i + 1] = vcurr[1];
+    node_velocities[3 * i + 2] = vcurr[2];
+
+    Vec3 wcurr = nodes[i].pNode->GetWCurr();
+    node_omegas[3 * i] = wcurr[0];
+    node_omegas[3 * i + 1] = wcurr[1];
+    node_omegas[3 * i + 2] = wcurr[2];
+
+    // these are dGet(row, col)
+    Mat3x3 rnode = nodes[i].pNode->GetRCurr();
+    node_dcms[9 * i] = rnode.dGet(1, 1);
+    node_dcms[9 * i + 1] = rnode.dGet(1, 2);
+    node_dcms[9 * i + 2] = rnode.dGet(1, 3);
+    node_dcms[9 * i + 3] = rnode.dGet(2, 1);
+    node_dcms[9 * i + 4] = rnode.dGet(2, 2);
+    node_dcms[9 * i + 5] = rnode.dGet(2, 3);
+    node_dcms[9 * i + 6] = rnode.dGet(3, 1);
+    node_dcms[9 * i + 7] = rnode.dGet(3, 2);
+    node_dcms[9 * i + 8] = rnode.dGet(3, 3);
+  }
+
+  rotor_velocities = new doublereal[numRtrPtsElem];
+  rotor_dcms = new doublereal[3 * numRtrPtsElem];
+  for (int i = 0; i < rotor_node_count; i++)
+  {
+    Vec3 xcurr = nodes[i + node_count_no_rotors].pNode->GetXCurr();
+    rotor_points[3 * i] = xcurr[0];
+    rotor_points[3 * i + 1] = xcurr[1];
+    rotor_points[3 * i + 2] = xcurr[2];
+
+    Vec3 vcurr = nodes[i + node_count_no_rotors].pNode->GetVCurr();
+    rotor_velocities[3 * i] = vcurr[0];
+    rotor_velocities[3 * i + 1] = vcurr[1];
+    rotor_velocities[3 * i + 2] = vcurr[2];
+
+    // these are dGet(row, col)
+    Mat3x3 rnode = nodes[i + node_count_no_rotors].pNode->GetRCurr();
+    rotor_dcms[9 * i] = rnode.dGet(1, 1);
+    rotor_dcms[9 * i + 1] = rnode.dGet(1, 2);
+    rotor_dcms[9 * i + 2] = rnode.dGet(1, 3);
+    rotor_dcms[9 * i + 3] = rnode.dGet(2, 1);
+    rotor_dcms[9 * i + 4] = rnode.dGet(2, 2);
+    rotor_dcms[9 * i + 5] = rnode.dGet(2, 3);
+    rotor_dcms[9 * i + 6] = rnode.dGet(3, 1);
+    rotor_dcms[9 * i + 7] = rnode.dGet(3, 2);
+    rotor_dcms[9 * i + 8] = rnode.dGet(3, 3);
+  }
+
+  int error_status;
+  char error_message[INTERFACE_STRING_LENGTH];
+  KFAST_AssRes(&t,
+               &first_iteration,
+               &numRtSpdRtrElem, // length of next array
+               RtSpd_PyRtr,      // array with rotor speeds
+               ground_station_point,
+               FusO_prev,
+               FusO,
+               FusODCM_prev,
+               FusOv_prev,
+               FusOomegas_prev,
+               FusOacc_prev,
+               &numNodePtElem,
+               node_points,
+               &numNodePtElem,
+               node_velocities,
+               &numNodePtElem,
+               node_omegas,
+               &numDCMElem,
+               node_dcms,
+               &numRtrPtsElem,
+               rotor_points,
+               rotor_velocities,
+               rotor_dcms,
+               &numNodeLoadsElem,
+               nodeLoads,
+               &numRtrLoadsElem,
+               rotorLoads,
+               &error_status,
+               error_message);
+  if (error_status >= AbortErrLev)
+  {
+    printf("error status %d: %s\n", error_status, error_message);
+    throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+  }
+
+  delete node_velocities;
+  delete node_omegas;
+  delete rotor_velocities;
+  delete rotor_dcms;
+}
+
 SubVectorHandler &ModuleKiteFAST::AssRes(SubVectorHandler &WorkVec, doublereal dCoef, const VectorHandler &XCurr, const VectorHandler &XPrimeCurr)
 {
   printdebug("AssRes");
-  ASSERT(0);
-  WorkVec.ResizeReset(0);
-  return WorkVec;
-
-  // integer iNumRows, iNumCols;
-  // WorkSpaceDim(&iNumRows, &iNumCols);
-  // WorkVec.ResizeReset(iNumRows);
-
-  // for (int elem = 0; elem < nodes.size(); elem++)
-  // {
-  //   /*
-  //    * set indices where force/moment need to be put
-  //    */
-  //   integer iFirstIndex = nodes[elem].pNode->iGetFirstMomentumIndex();
-  //   for (int i = 1; i <= 6; i++)
-  //   {
-  //     WorkVec.PutRowIndex(6 * elem + i, iFirstIndex + i);
-  //   }
-  // }
-
-  // integer iFirstIndex = nodes[i].pNode->iGetFirstMomentumIndex();
-  // for (int i = 1; i <= 6; i++) {
-  //   WorkVec.PutRowIndex( i, iFirstIndex + i);
-  // }
-  // WorkVec.Add(1, Vec3(0.0, 0.0, -1000*sin(10*dCurTime)));
-  // WorkVec.Add(4, Vec3(0.0, 0.0, 0.0));
-  // WorkVec.Add(320, Vec3(0.0, 0.0, 1000.));
+  integer numNodeLoadsElem = 6 * node_count_no_rotors;  // force and moment components for each node
+  doublereal *nodeLoads = new doublereal[numNodeLoadsElem];
+  integer numRtrLoadsElem = 6 * rotor_node_count;  // force and moment components for each rotor node
   
-  // return WorkVec;
+  doublereal *rotorLoads = new doublereal[numRtrLoadsElem];
+
+  _AssRes(0, numNodeLoadsElem, nodeLoads, numRtrLoadsElem, rotorLoads);
+
+  integer iNumRows, iNumCols;
+  WorkSpaceDim(&iNumRows, &iNumCols);
+  WorkVec.ResizeReset(iNumRows);
+
+  for (int i = 0; i < node_count_no_rotors; i++)
+  {
+    // set indices where force/moment need to be put
+    integer first_index = nodes[i].pNode->iGetFirstMomentumIndex();
+    for (int j = 1; j <= 6; j++)
+    {
+      WorkVec.PutRowIndex(6 * i + j, first_index + j);
+    }
+
+    Vec3 force = Vec3(nodeLoads[6 * i + 0], nodeLoads[6 * i + 1], nodeLoads[6 * i + 2]);
+    Vec3 moment = Vec3(nodeLoads[6 * i + 3], nodeLoads[6 * i + 4], nodeLoads[6 * i + 5]);
+    WorkVec.Add(6 * i + 1, force);
+    WorkVec.Add(6 * i + 4, moment);
+  }
+
+  for (int i = 0; i < rotor_node_count; i++)
+  {
+    // set indices where force/moment need to be put
+    integer first_index = nodes[node_count_no_rotors + i].pNode->iGetFirstMomentumIndex();
+    for (int j = 1; j <= 6; j++)
+    {
+      WorkVec.PutRowIndex(6 * node_count_no_rotors + 6 * i + j, first_index + j);
+    }
+
+    Vec3 force = Vec3(rotorLoads[6 * i + 0], rotorLoads[6 * i + 1], rotorLoads[6 * i + 2]);
+    Vec3 moment = Vec3(rotorLoads[6 * i + 3], rotorLoads[6 * i + 4], rotorLoads[6 * i + 5]);
+    WorkVec.Add(6 * node_count_no_rotors + 6 * i + 1, force);
+    WorkVec.Add(6 * node_count_no_rotors + 6 * i + 4, moment);
+  }
+
+  delete[] nodeLoads;
+  delete[] rotorLoads;
+
+  return WorkVec;
 }
 
 void ModuleKiteFAST::BeforePredict(VectorHandler &X, VectorHandler &XP, VectorHandler &XPrev, VectorHandler &XPPrev) const
@@ -536,11 +669,13 @@ void ModuleKiteFAST::BeforePredict(VectorHandler &X, VectorHandler &XP, VectorHa
 void ModuleKiteFAST::AfterPredict(VectorHandler &X, VectorHandler &XP)
 {
   printdebug("AfterPredict");
+
   int error_status;
   char error_message[INTERFACE_STRING_LENGTH];
   KFAST_AfterPredict(&error_status, error_message);
   if (error_status >= AbortErrLev)
   {
+    printf("error status %d: %s\n", error_status, error_message);
     throw ErrGeneric(MBDYN_EXCEPT_ARGS);
   }
 }
