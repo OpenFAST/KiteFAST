@@ -113,7 +113,7 @@ ModuleKiteFAST::ModuleKiteFAST(unsigned uLabel, const DofOwner *pDO, DataManager
 
   // parse the keypoints (aka reference points)
   ValidateInputKeyword(HP, "keypoints");
-  integer numRefPtElem = 3 * (n_components + 2 * n_pylons_per_wing);
+  integer numRefPtElem = 3 * n_components;
   doublereal reference_points[numRefPtElem];
   for (int i = 0; i < n_components; i++)
   {
@@ -205,7 +205,7 @@ ModuleKiteFAST::ModuleKiteFAST(unsigned uLabel, const DofOwner *pDO, DataManager
   }
   numNodePtElem = 3 * node_count_no_rotors;
   node_points = new doublereal[numNodePtElem];
-  numDCMElem = 9 * numNodePtElem;
+  numDCMElem = 9 * node_count_no_rotors;
   node_dcms = new doublereal[numDCMElem];
   
   for (int i = 0; i < node_count_no_rotors; i++)
