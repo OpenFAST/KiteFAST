@@ -955,9 +955,10 @@ subroutine VSM_Init( InitInp, u, p, z, Otherstate, m, y, interval, InitOut, errS
       call SetErrStat( errStat2, errMsg2, errStat, errMsg, RoutineName )
    call AllocAry( m%Phi_AB2D_v , 3, p%NumElem, 'm%Phi_AB2D_v' , errStat2, errMsg2 )
       call SetErrStat( errStat2, errMsg2, errStat, errMsg, RoutineName )
+   m%Phi_AB2D_v=0.0_ReKi
    call AllocAry( m%Phi_v , 3, p%NumElem, p%NumElem, 'm%Phi_v' , errStat2, errMsg2 )
       call SetErrStat( errStat2, errMsg2, errStat, errMsg, RoutineName )
-      
+   m%Phi_v = 0.0_ReKi   
    call AllocAry( u%PtA , 3, p%NumElem, 'u%PtA' , errStat2, errMsg2 )
       call SetErrStat( errStat2, errMsg2, errStat, errMsg, RoutineName )
    call AllocAry( u%PtB , 3, p%NumElem, 'u%PtB' , errStat2, errMsg2 )
