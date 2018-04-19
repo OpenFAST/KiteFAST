@@ -38,6 +38,12 @@
 #include "userelem.h"
 #include "drive_.h"
 
+#include <sstream>
+
+#define SSTR(x) static_cast<std::ostringstream &>(           \
+                    (std::ostringstream() << std::dec << x)) \
+                    .str()
+
 #define USE_SINGLE_PRECISION
 
 #ifndef KiteFAST_MBD_H

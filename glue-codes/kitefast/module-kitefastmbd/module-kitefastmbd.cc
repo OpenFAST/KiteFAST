@@ -137,14 +137,14 @@ ModuleKiteFAST::ModuleKiteFAST(unsigned uLabel, const DofOwner *pDO, DataManager
   for (int i = 0; i < n_pylons_per_wing; i++)
   {
     std::string component_name = "starboard_pylon_";
-    component_name.append(std::to_string(i + 1));
+    component_name.append(SSTR(i + 1));
     BuildComponentNodeArray(pDM, HP, component_name.c_str(), nodes_starpylons[i]);
   }
   nodes_portpylons.resize(n_pylons_per_wing);
   for (int i = 0; i < n_pylons_per_wing; i++)
   {
     std::string component_name = "port_pylon_";
-    component_name.append(std::to_string(i + 1));
+    component_name.append(SSTR(i + 1));
     BuildComponentNodeArray(pDM, HP, component_name.c_str(), nodes_portpylons[i]);
   }
   BuildComponentNodeArray(pDM, HP, "starboard_rotors", nodes_starrotors);
