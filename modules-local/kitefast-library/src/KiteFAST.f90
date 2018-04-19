@@ -589,7 +589,7 @@ subroutine CreateMBDynL2MotionsWingMesh(origin, numSWnNodes, SWnPos, numPWnNodes
    end do !j
    
    jstart = 1
-   if ( EqualRealNos( TwoNorm( PWnPos(:,numPWnNodes) - SWnPos(:,1) ), 0.0_ReKi ) ) then
+   if ( EqualRealNos( TwoNorm( PWnPos(:,1) - SWnPos(:,1) ), 0.0_ReKi ) ) then
       jstart = 2
       ! TODO: For now we will throw an error if the inboard nodes are co-located!
       call SetErrStat( ErrID_Fatal, 'The current version of KiteFAST does not allow the most inboard nodes of the port and starboard wings to be colocated', errStat, errMsg, RoutineName )
@@ -990,11 +990,11 @@ subroutine CreateMeshMappings(m, p, KAD, MD, errStat, errMsg)
    
    if ( p%useMD ) then
       ! Need to transfer the MBDyn bridle point motions to MoorDyn
-   call MeshMapCreate( m%mbdWngMotions, m%MD%u(2)%PtFairleadDisplacement, m%MD_L2_2_P, errStat2, errMsg )
+   call MeshMapCreate( m%mbdWngMotions, m%MD%u(2)%PtFairleadDisplacement, m%MD_L2_2_P, errStat2, errMsg2 )
       call SetErrStat( errStat2, errMsg2, errStat, errMsg, ' CreateMeshMappings: m%MD_L2_2_P' )     
             if (ErrStat>=AbortErrLev) return
       ! Need to transfer the MoorDyn bridle point loads back the to MBDyn wing mesh for loads
-   call MeshMapCreate( m%MD%y%PtFairleadLoad, m%mbdWngLoads,  m%MD_P_2_P, errStat2, errMsg )
+   call MeshMapCreate( m%MD%y%PtFairleadLoad, m%mbdWngLoads,  m%MD_P_2_P, errStat2, errMsg2 )
       call SetErrStat( errStat2, errMsg2, errStat, errMsg, ' CreateMeshMappings: m%MD_P_2_P' )     
             if (ErrStat>=AbortErrLev) return
    end if 
@@ -1566,7 +1566,10 @@ subroutine KFAST_Init(dt_c, numFlaps, numPylons, numComp, numCompNds, modFlags, 
    p%numPylons   = numPylons
    
    call SetupMBDynMotionData()
-   
+      if (errStat >= AbortErrLev ) then
+         call TransferErrors(errStat, errMsg, errStat_c, errMsg_c)
+         return
+      end if
 !----------------------------------------------------------------
 ! Initialize the KiteAeroDyn Module
 !----------------------------------------------------------------
@@ -1935,19 +1938,25 @@ contains
 !----------------------------------------------------------------
 
       ! Fuselage
-   call CreateMBDynL2MotionsMesh(FusO, p%numFusNds, m%FusPts, m%FusODCM, m%FusNdDCMs, m%mbdFusMotions, errStat, errMsg)
+   call CreateMBDynL2MotionsMesh(FusO, p%numFusNds, m%FusPts, m%FusODCM, m%FusNdDCMs, m%mbdFusMotions, errStat2, errMsg2)
+      call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
       ! Starboard Wing
-   call CreateMBDynL2MotionsMesh(FusO, p%numSWnNds, m%SWnPts, m%FusODCM, m%SWnNdDCMs, m%mbdSWnMotions, errStat, errMsg)
+   call CreateMBDynL2MotionsMesh(FusO, p%numSWnNds, m%SWnPts, m%FusODCM, m%SWnNdDCMs, m%mbdSWnMotions, errStat2, errMsg2)
+      call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
       ! Port Wing
-   call CreateMBDynL2MotionsMesh(FusO, p%numPWnNds, m%PWnPts, m%FusODCM, m%PWnNdDCMs, m%mbdPWnMotions, errStat, errMsg)
+   call CreateMBDynL2MotionsMesh(FusO, p%numPWnNds, m%PWnPts, m%FusODCM, m%PWnNdDCMs, m%mbdPWnMotions, errStat2, errMsg2)
+      call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
       ! Total wing mesh which is needed for MoorDyn mapping
-   call CreateMBDynL2MotionsWingMesh(FusO, p%numSWnNds, m%SWnPts, p%numPWnNds, m%PWnPts, m%FusODCM, m%SWnNdDCMs, m%PWnNdDCMs, m%mbdWngMotions, errStat, errMsg)
+   call CreateMBDynL2MotionsWingMesh(FusO, p%numSWnNds, m%SWnPts, p%numPWnNds, m%PWnPts, m%FusODCM, m%SWnNdDCMs, m%PWnNdDCMs, m%mbdWngMotions, errStat2, errMsg2)
+      call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
       ! Vertical Stabilizer
-   call CreateMBDynL2MotionsMesh(FusO, p%numVSNds, m%VSPts, m%FusODCM, m%VSNdDCMs, m%mbdVSMotions, errStat, errMsg)
+   call CreateMBDynL2MotionsMesh(FusO, p%numVSNds, m%VSPts, m%FusODCM, m%VSNdDCMs, m%mbdVSMotions, errStat2, errMsg2)
       ! Starboard Horizontal Stabilizer
-   call CreateMBDynL2MotionsMesh(FusO, p%numSHSNds, m%SHSPts, m%FusODCM, m%SHSNdDCMs, m%mbdSHSMotions, errStat, errMsg)
+   call CreateMBDynL2MotionsMesh(FusO, p%numSHSNds, m%SHSPts, m%FusODCM, m%SHSNdDCMs, m%mbdSHSMotions, errStat2, errMsg2)
+      call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
       ! Port Horizontal Stabilizer
-   call CreateMBDynL2MotionsMesh(FusO, p%numPHSNds, m%PHSPts, m%FusODCM, m%PHSNdDCMs, m%mbdPHSMotions, errStat, errMsg)
+   call CreateMBDynL2MotionsMesh(FusO, p%numPHSNds, m%PHSPts, m%FusODCM, m%PHSNdDCMs, m%mbdPHSMotions, errStat2, errMsg2)
+      call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
 
    allocate(m%mbdSPyMotions(p%numPylons), STAT=errStat2)
       if (errStat2 /= 0) call SetErrStat( ErrID_Fatal, 'Could not allocate memory for m%mbdSPyMotions', errStat, errMsg, RoutineName )     
@@ -1956,40 +1965,51 @@ contains
 
       ! Starboard Pylons
    do i = 1, p%numPylons
-      call CreateMBDynL2MotionsMesh(FusO, p%numSPyNds(i), m%SPyPts(:,:,i), m%FusODCM, m%SPyNdDCMs(:,:,:,i), m%mbdSPyMotions(i), errStat, errMsg)
+      call CreateMBDynL2MotionsMesh(FusO, p%numSPyNds(i), m%SPyPts(:,:,i), m%FusODCM, m%SPyNdDCMs(:,:,:,i), m%mbdSPyMotions(i), errStat2, errMsg2)
+         call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
    end do
       ! Port Pylons
    do i = 1, p%numPylons
-      call CreateMBDynL2MotionsMesh(FusO, p%numPPyNds(i), m%PPyPts(:,:,i), m%FusODCM, m%PPyNdDCMs(:,:,:,i), m%mbdPPyMotions(i), errStat, errMsg)
+      call CreateMBDynL2MotionsMesh(FusO, p%numPPyNds(i), m%PPyPts(:,:,i), m%FusODCM, m%PPyNdDCMs(:,:,:,i), m%mbdPPyMotions(i), errStat2, errMsg2)
+         call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
    end do   
  
    ! NOTE: We don't need a set of MBDyn rotor meshes because the data is transferred directly to KiteAeroDyn and then back to MBDyn 
 
       ! Fuselage
-   call CreateMBDynPtLoadsMesh(FusO, p%numFusNds, m%FusPts, m%FusODCM, m%FusNdDCMs, m%mbdFusLoads, errStat, errMsg)
+   call CreateMBDynPtLoadsMesh(FusO, p%numFusNds, m%FusPts, m%FusODCM, m%FusNdDCMs, m%mbdFusLoads, errStat2, errMsg2)
+      call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
       ! Starboard Wing
-   call CreateMBDynPtLoadsMesh(FusO, p%numSWnNds, m%SWnPts, m%FusODCM, m%SWnNdDCMs, m%mbdSWnLoads, errStat, errMsg)
+   call CreateMBDynPtLoadsMesh(FusO, p%numSWnNds, m%SWnPts, m%FusODCM, m%SWnNdDCMs, m%mbdSWnLoads, errStat2, errMsg2)
+      call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
       ! Port Wing
-   call CreateMBDynPtLoadsMesh(FusO, p%numPWnNds, m%PWnPts, m%FusODCM, m%PWnNdDCMs, m%mbdPWnLoads, errStat, errMsg)
+   call CreateMBDynPtLoadsMesh(FusO, p%numPWnNds, m%PWnPts, m%FusODCM, m%PWnNdDCMs, m%mbdPWnLoads, errStat2, errMsg2)
+      call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
       ! Total Wing
-   call CreateMBDynPtLoadsWingMesh(FusO, p%numSWnNds, m%SWnPts, p%numPWnNds, m%PWnPts, m%FusODCM, m%SWnNdDCMs, m%PWnNdDCMs, m%mbdWngLoads, errStat, errMsg)
+   call CreateMBDynPtLoadsWingMesh(FusO, p%numSWnNds, m%SWnPts, p%numPWnNds, m%PWnPts, m%FusODCM, m%SWnNdDCMs, m%PWnNdDCMs, m%mbdWngLoads, errStat2, errMsg2)
+      call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
       ! Vertical Stabilizer
-   call CreateMBDynPtLoadsMesh(FusO, p%numVSNds, m%VSPts, m%FusODCM, m%VSNdDCMs, m%mbdVSLoads, errStat, errMsg)
+   call CreateMBDynPtLoadsMesh(FusO, p%numVSNds, m%VSPts, m%FusODCM, m%VSNdDCMs, m%mbdVSLoads, errStat2, errMsg2)
+      call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
       ! Starboard Horizontal Stabilizer
-   call CreateMBDynPtLoadsMesh(FusO, p%numSHSNds, m%SHSPts, m%FusODCM, m%SHSNdDCMs, m%mbdSHSLoads, errStat, errMsg)
+   call CreateMBDynPtLoadsMesh(FusO, p%numSHSNds, m%SHSPts, m%FusODCM, m%SHSNdDCMs, m%mbdSHSLoads, errStat2, errMsg2)
+      call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
       ! Port Horizontal Stabilizer
-   call CreateMBDynPtLoadsMesh(FusO, p%numPHSNds, m%PHSPts, m%FusODCM, m%PHSNdDCMs, m%mbdPHSLoads, errStat, errMsg)
+   call CreateMBDynPtLoadsMesh(FusO, p%numPHSNds, m%PHSPts, m%FusODCM, m%PHSNdDCMs, m%mbdPHSLoads, errStat2, errMsg2)
+      call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
       ! Starboard Pylons
    allocate(m%mbdSPyLoads(p%numPylons), STAT=errStat2)
       if (errStat2 /= 0) call SetErrStat( ErrID_Fatal, 'Could not allocate memory for m%mbdSPyLoads', errStat, errMsg, RoutineName )     
    allocate(m%mbdPPyLoads(p%numPylons), STAT=errStat2)
       if (errStat2 /= 0) call SetErrStat( ErrID_Fatal, 'Could not allocate memory for m%mbdPPyLoads', errStat, errMsg, RoutineName )  
    do i = 1, p%numPylons
-      call CreateMBDynPtLoadsMesh(FusO, p%numSPyNds(i), m%SPyPts(:,:,i), m%FusODCM, m%SPyNdDCMs(:,:,:,i), m%mbdSPyLoads(i), errStat, errMsg)
+      call CreateMBDynPtLoadsMesh(FusO, p%numSPyNds(i), m%SPyPts(:,:,i), m%FusODCM, m%SPyNdDCMs(:,:,:,i), m%mbdSPyLoads(i), errStat2, errMsg2)
+         call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
    end do
       ! Port Pylons
    do i = 1, p%numPylons
-      call CreateMBDynPtLoadsMesh(FusO, p%numPPyNds(i), m%PPyPts(:,:,i), m%FusODCM, m%PPyNdDCMs(:,:,:,i), m%mbdPPyLoads(i), errStat, errMsg)
+      call CreateMBDynPtLoadsMesh(FusO, p%numPPyNds(i), m%PPyPts(:,:,i), m%FusODCM, m%PPyNdDCMs(:,:,:,i), m%mbdPPyLoads(i), errStat2, errMsg2)
+         call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
    end do  
  
    ! NOTE: We don't need a set of MBDyn rotor meshes because the data is transferred directly to KiteAeroDyn and then back to MBDyn 
