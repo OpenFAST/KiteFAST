@@ -87,6 +87,10 @@ ModuleKiteFAST::ModuleKiteFAST(unsigned uLabel, const DofOwner *pDO, DataManager
   output_file_name.append("MBD.out");
   InitOutputFile(output_file_name);
 
+  // parse the initial time
+  ValidateInputKeyword(HP, "initial_time");
+  initial_time = HP.GetReal();
+
   // parse the time step
   ValidateInputKeyword(HP, "time_step");
   doublereal dt = HP.GetReal();
@@ -292,7 +296,7 @@ ModuleKiteFAST::ModuleKiteFAST(unsigned uLabel, const DofOwner *pDO, DataManager
   integer numRtrLoadsElem = numRtrPtsElem * 2; // force and moment components for each rotor node
   doublereal *rotorLoads = new doublereal[numRtrLoadsElem];
 
-  _AssRes(1, numNodeLoadsElem, nodeLoads, numRtrLoadsElem, rotorLoads);
+  _AssRes(numNodeLoadsElem, nodeLoads, numRtrLoadsElem, rotorLoads);
 
   delete[] nodeLoads;
   delete[] rotorLoads;
@@ -449,8 +453,7 @@ void ModuleKiteFAST::Update(const VectorHandler &XCurr, const VectorHandler &XPr
   printdebug("Update");
 }
 
-void ModuleKiteFAST::_AssRes(integer first_iteration,
-                             integer numNodeLoadsElem,
+void ModuleKiteFAST::_AssRes(integer numNodeLoadsElem,
                              doublereal *nodeLoads,
                              integer numRtrLoadsElem,
                              doublereal *rotorLoads)
@@ -458,6 +461,11 @@ void ModuleKiteFAST::_AssRes(integer first_iteration,
   printdebug("_AssRes");
   
   doublereal t = Time.dGet();
+  integer first_iteration = 0;  // 0 no - 1 yes
+  if (t == initial_time) {
+    first_iteration = 1;
+  }
+
   integer numRtSpdRtrElem = rotor_node_count;
   doublereal RtSpd_PyRtr[numRtSpdRtrElem]; // rotational speed for each rotor element (rad/s)
   for (int i = 0; i < rotor_node_count; i++)
@@ -619,7 +627,7 @@ SubVectorHandler &ModuleKiteFAST::AssRes(SubVectorHandler &WorkVec, doublereal d
   
   doublereal *rotorLoads = new doublereal[numRtrLoadsElem];
 
-  _AssRes(0, numNodeLoadsElem, nodeLoads, numRtrLoadsElem, rotorLoads);
+  _AssRes(numNodeLoadsElem, nodeLoads, numRtrLoadsElem, rotorLoads);
 
   integer iNumRows, iNumCols;
   WorkSpaceDim(&iNumRows, &iNumCols);
