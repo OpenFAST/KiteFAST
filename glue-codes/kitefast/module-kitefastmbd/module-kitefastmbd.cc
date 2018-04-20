@@ -83,8 +83,8 @@ ModuleKiteFAST::ModuleKiteFAST(unsigned uLabel, const DofOwner *pDO, DataManager
   ValidateInputKeyword(HP, "output_file_root");
   char output_file_root[INTERFACE_STRING_LENGTH];
   strcpy(output_file_root, HP.GetFileName());
-  std::string output_file_name;
-  output_file_name = strcat(output_file_root, "MBD.out");
+  std::string output_file_name = output_file_root;
+  output_file_name.append("MBD.out");
   InitOutputFile(output_file_name);
 
   // parse the time step
