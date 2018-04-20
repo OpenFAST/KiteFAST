@@ -2178,6 +2178,7 @@ subroutine KFAST_AssRes(t_c, isInitialTime_c, numRtSpdRtrElem_c, RtSpd_PyRtr_c, 
          ! Nodes for this wing mesh are specified left to right (port tip across to starboard tip)
       
       ! TODO: Handle possible colocated nodes at fuselage
+print *, "Beginning setting of mbdWngMotions mesh data"
       c = 1   
       do i = p%numPwnNds, 1, -1
          m%mbdWngMotions%Orientation  (:,:,c) = m%PWnNdDCMs(:,:,i)
@@ -2195,27 +2196,51 @@ subroutine KFAST_AssRes(t_c, isInitialTime_c, numRtSpdRtrElem_c, RtSpd_PyRtr_c, 
          m%mbdWngMotions%RotationVel    (:,c) = m%SWnOmegas(:,i)
          c = c + 1
       end do
-   
+print *, "Finish setting mbdWngMotions data"   
          ! Pos and Vel of each Fairlead (Bridle connection) at t.  
          !   We need to set the TranslationDisp, Orientation, TranslationVel, RotationVel properties on the mesh
          ! To do this we need to map the motions from a wing mesh to the specific fairlead mesh ( one node per fairlead connection point)
          ! This means we need the t and t+dt motions of this wing mesh
       call Transfer_Line2_to_Point( m%mbdWngMotions, m%MD%u(2)%PtFairleadDisplacement, m%MD_L2_2_P, errStat2, errMsg )
- 
-      if ( isInitialTime < 1 ) then
-         call MD_CopyContState( m%MD%x, m%MD%x_copy, MESH_NEWCOPY, errStat2, errMsg2 )
+      	 if (errStat >= AbortErrLev ) then
+            call TransferErrors(errStat, errMsg, errStat_c, errMsg_c)
+            return
+         end if
+
+      call MD_CopyContState( m%MD%x, m%MD%x_copy, MESH_NEWCOPY, errStat2, errMsg2 )
             call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
+
+      if ( isInitialTime < 1 ) then
+         
+         print *, "Beginning MD_UpdateStates" 
          call MD_UpdateStates( utimes(1), n, m%MD%u, utimes, m%MD%p, m%MD%x_copy, m%MD%xd, m%MD%z, m%MD%OtherSt, m%MD%m, errStat2, errMsg2 )
             call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
+               if (errStat >= AbortErrLev ) then
+                  call TransferErrors(errStat, errMsg, errStat_c, errMsg_c)
+                  return
+               end if
+         print *, "Finished MD_UpdateStates"
       end if
-      
+
+print *, "Beginning MD_CalcOutput"  
+print *, " at time="//trim(num2lstr(t))
+print *, "m%MD%u(2)%PtFairLeadDisplacement%Position(1,1): "//trim(num2lstr(m%MD%u(2)%PtFairLeadDisplacement%Position(1,1)))//", m%MD%u(2)%PtFairLeadDisplacement%Position(2,1): "//trim(num2lstr(m%MD%u(2)%PtFairLeadDisplacement%Position(2,1)))//", m%MD%u(2)%PtFairLeadDisplacement%Position(3,1): "//trim(num2lstr(m%MD%u(2)%PtFairLeadDisplacement%Position(3,1)))
+print *, "m%MD%u(2)%PtFairLeadDisplacement%Position(1,2): "//trim(num2lstr(m%MD%u(2)%PtFairLeadDisplacement%Position(1,2)))//", m%MD%u(2)%PtFairLeadDisplacement%Position(2,2): "//trim(num2lstr(m%MD%u(2)%PtFairLeadDisplacement%Position(2,2)))//", m%MD%u(2)%PtFairLeadDisplacement%Position(3,2): "//trim(num2lstr(m%MD%u(2)%PtFairLeadDisplacement%Position(3,2)))
+print *, "m%MD%u(2)%PtFairLeadDisplacement%TranslationDisp(1,1): "//trim(num2lstr(m%MD%u(2)%PtFairLeadDisplacement%TranslationDisp(1,1)))//", m%MD%u(2)%PtFairLeadDisplacement%TranslationDisp(2,1): "//trim(num2lstr(m%MD%u(2)%PtFairLeadDisplacement%TranslationDisp(2,1)))//", m%MD%u(2)%PtFairLeadDisplacement%TranslationDisp(3,1): "//trim(num2lstr(m%MD%u(2)%PtFairLeadDisplacement%TranslationDisp(3,1)))
+print *, "m%MD%u(2)%PtFairLeadDisplacement%TranslationDisp(1,2): "//trim(num2lstr(m%MD%u(2)%PtFairLeadDisplacement%TranslationDisp(1,2)))//", m%MD%u(2)%PtFairLeadDisplacement%TranslationDisp(2,2): "//trim(num2lstr(m%MD%u(2)%PtFairLeadDisplacement%TranslationDisp(2,2)))//", m%MD%u(2)%PtFairLeadDisplacement%TranslationDisp(3,2): "//trim(num2lstr(m%MD%u(2)%PtFairLeadDisplacement%TranslationDisp(3,2)))
       call MD_CalcOutput( t, m%MD%u(2), m%MD%p, m%MD%x_copy, m%MD%xd, m%MD%z, m%MD%OtherSt, m%MD%y, m%MD%m, errStat2, errMsg2 )
          call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
       if (errStat >= AbortErrLev ) then
          call TransferErrors(errStat, errMsg, errStat_c, errMsg_c)
          return
       end if
-   
+print *, "Finished MD_CalcOutput" 
+print *, "m%MD%y%PtFairLeadLoad%Force(1,1): "//trim(num2lstr(m%MD%y%PtFairLeadLoad%Force(1,1)))//", m%MD%y%PtFairLeadLoad%Force(2,1): "//trim(num2lstr(m%MD%y%PtFairLeadLoad%Force(2,1)))//", m%MD%y%PtFairLeadLoad%Force(3,1): "//trim(num2lstr(m%MD%y%PtFairLeadLoad%Force(3,1)))
+print *, "m%MD%y%PtFairLeadLoad%Force(1,2): "//trim(num2lstr(m%MD%y%PtFairLeadLoad%Force(1,2)))//", m%MD%y%PtFairLeadLoad%Force(2,2): "//trim(num2lstr(m%MD%y%PtFairLeadLoad%Force(2,2)))//", m%MD%y%PtFairLeadLoad%Force(3,2): "//trim(num2lstr(m%MD%y%PtFairLeadLoad%Force(3,2)))
+!print *, "m%MD%y%PtFairLeadLoad%Moment(1,1): "//trim(num2lstr(m%MD%y%PtFairLeadLoad%Moment(1,1)))//", m%MD%y%PtFairLeadLoad%Moment(2,1): "//trim(num2lstr(m%MD%y%PtFairLeadLoad%Moment(2,1)))//", m%MD%y%PtFairLeadLoad%Moment(3,1): "//trim(num2lstr(m%MD%y%PtFairLeadLoad%Moment(3,1)))
+!print *, "m%MD%y%PtFairLeadLoad%Moment(1,2): "//trim(num2lstr(m%MD%y%PtFairLeadLoad%Moment(1,2)))//", m%MD%y%PtFairLeadLoad%Moment(2,2): "//trim(num2lstr(m%MD%y%PtFairLeadLoad%Moment(2,2)))//", m%MD%y%PtFairLeadLoad%Moment(3,2): "//trim(num2lstr(m%MD%y%PtFairLeadLoad%Moment(3,2)))  
+m%MD%y%PtFairLeadLoad%Force(:,1)=0.0_ReKi
+m%MD%y%PtFairLeadLoad%Force(:,2)=0.0_ReKi
    end if
    
       
