@@ -145,8 +145,8 @@ private:
   const static int AbortErrLev = ErrID_Fatal; // abort error level; compare with NWTC Library
 
   // class data
+  doublereal initial_time;
   doublereal ground_station_point[3];
-  integer first_iteration;  // 0 no - 1 yes
   integer n_pylons_per_wing;
   integer numNodePtElem;
   integer node_count_no_rotors;
@@ -189,7 +189,7 @@ public:
   virtual void WorkSpaceDim(integer *piNumRows, integer *piNumCols) const;
   VariableSubMatrixHandler &AssJac(VariableSubMatrixHandler &WorkMat, doublereal dCoef, const VectorHandler &XCurr, const VectorHandler &XPrimeCurr);
   void Update(const VectorHandler &XCurr, const VectorHandler &XPrimeCurr);
-  void _AssRes(integer first_iteration, integer numNodeLoadsElem, doublereal *nodeLoads, integer numRtrLoadsElem, doublereal *rotorLoads);
+  void _AssRes(integer numNodeLoadsElem, doublereal *nodeLoads, integer numRtrLoadsElem, doublereal *rotorLoads);
   SubVectorHandler &AssRes(SubVectorHandler &WorkVec, doublereal dCoef, const VectorHandler &XCurr, const VectorHandler &XPrimeCurr);
   void BeforePredict(VectorHandler & /* X */, VectorHandler & /* XP */, VectorHandler & /* XPrev */, VectorHandler & /* XPPrev */) const;
   void AfterPredict(VectorHandler &X, VectorHandler &XP);

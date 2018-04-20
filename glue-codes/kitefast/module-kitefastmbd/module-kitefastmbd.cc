@@ -83,9 +83,13 @@ ModuleKiteFAST::ModuleKiteFAST(unsigned uLabel, const DofOwner *pDO, DataManager
   ValidateInputKeyword(HP, "output_file_root");
   char output_file_root[INTERFACE_STRING_LENGTH];
   strcpy(output_file_root, HP.GetFileName());
-  std::string output_file_name;
-  output_file_name = strcat(output_file_root, "MBD.out");
+  std::string output_file_name = output_file_root;
+  output_file_name.append("MBD.out");
   InitOutputFile(output_file_name);
+
+  // parse the initial time
+  ValidateInputKeyword(HP, "initial_time");
+  initial_time = HP.GetReal();
 
   // parse the time step
   ValidateInputKeyword(HP, "time_step");
@@ -113,7 +117,7 @@ ModuleKiteFAST::ModuleKiteFAST(unsigned uLabel, const DofOwner *pDO, DataManager
 
   // parse the keypoints (aka reference points)
   ValidateInputKeyword(HP, "keypoints");
-  integer numRefPtElem = 3 * (n_components + 2 * n_pylons_per_wing);
+  integer numRefPtElem = 3 * n_components;
   doublereal reference_points[numRefPtElem];
   for (int i = 0; i < n_components; i++)
   {
@@ -205,7 +209,7 @@ ModuleKiteFAST::ModuleKiteFAST(unsigned uLabel, const DofOwner *pDO, DataManager
   }
   numNodePtElem = 3 * node_count_no_rotors;
   node_points = new doublereal[numNodePtElem];
-  numDCMElem = 9 * numNodePtElem;
+  numDCMElem = 9 * node_count_no_rotors;
   node_dcms = new doublereal[numDCMElem];
   
   for (int i = 0; i < node_count_no_rotors; i++)
@@ -292,7 +296,7 @@ ModuleKiteFAST::ModuleKiteFAST(unsigned uLabel, const DofOwner *pDO, DataManager
   integer numRtrLoadsElem = numRtrPtsElem * 2; // force and moment components for each rotor node
   doublereal *rotorLoads = new doublereal[numRtrLoadsElem];
 
-  _AssRes(1, numNodeLoadsElem, nodeLoads, numRtrLoadsElem, rotorLoads);
+  _AssRes(numNodeLoadsElem, nodeLoads, numRtrLoadsElem, rotorLoads);
 
   delete[] nodeLoads;
   delete[] rotorLoads;
@@ -449,8 +453,7 @@ void ModuleKiteFAST::Update(const VectorHandler &XCurr, const VectorHandler &XPr
   printdebug("Update");
 }
 
-void ModuleKiteFAST::_AssRes(integer first_iteration,
-                             integer numNodeLoadsElem,
+void ModuleKiteFAST::_AssRes(integer numNodeLoadsElem,
                              doublereal *nodeLoads,
                              integer numRtrLoadsElem,
                              doublereal *rotorLoads)
@@ -458,6 +461,11 @@ void ModuleKiteFAST::_AssRes(integer first_iteration,
   printdebug("_AssRes");
   
   doublereal t = Time.dGet();
+  integer first_iteration = 0;  // 0 no - 1 yes
+  if (t == initial_time) {
+    first_iteration = 1;
+  }
+
   integer numRtSpdRtrElem = rotor_node_count;
   doublereal RtSpd_PyRtr[numRtSpdRtrElem]; // rotational speed for each rotor element (rad/s)
   for (int i = 0; i < rotor_node_count; i++)
@@ -619,7 +627,7 @@ SubVectorHandler &ModuleKiteFAST::AssRes(SubVectorHandler &WorkVec, doublereal d
   
   doublereal *rotorLoads = new doublereal[numRtrLoadsElem];
 
-  _AssRes(0, numNodeLoadsElem, nodeLoads, numRtrLoadsElem, rotorLoads);
+  _AssRes(numNodeLoadsElem, nodeLoads, numRtrLoadsElem, rotorLoads);
 
   integer iNumRows, iNumCols;
   WorkSpaceDim(&iNumRows, &iNumCols);
