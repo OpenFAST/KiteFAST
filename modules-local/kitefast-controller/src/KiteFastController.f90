@@ -46,11 +46,11 @@ module KiteFastController
 
    abstract interface
       subroutine KFC_DLL_Step_PROC ( dcm_g2b_c, pqr_c, acc_norm_c, Xg_c, Vg_c, Vb_c, Ag_c, Ab_c, rho_c, apparent_wind_c, &
-         tether_force_c, wind_g_c, SFlp, PFlp, Rudr, SElv, PElv, GenSPyRtr, GenPPyRtr, errStat, errMsg )  BIND(C)
+         tether_force_c, wind_g_c, kFlapA_c, Motor_c, errStat, errMsg )  BIND(C)
          use, intrinsic :: ISO_C_Binding
          real(C_DOUBLE),         intent(in   ) :: dcm_g2b_c(9)      
          real(C_DOUBLE),         intent(in   ) :: pqr_c(3)          
-         real(C_DOUBLE),         intent(in   ) :: acc_norm_c(3)     
+         real(C_DOUBLE),         intent(in   ) :: acc_norm_c    
          real(C_DOUBLE),         intent(in   ) :: Xg_c(3)           
          real(C_DOUBLE),         intent(in   ) :: Vg_c(3)           
          real(C_DOUBLE),         intent(in   ) :: Vb_c(3)           
@@ -60,13 +60,8 @@ module KiteFastController
          real(C_DOUBLE),         intent(in   ) :: apparent_wind_c(3)
          real(C_DOUBLE),         intent(in   ) :: tether_force_c(3) 
          real(C_DOUBLE),         intent(in   ) :: wind_g_c(3) 
-         real(C_DOUBLE),         intent(  out) :: SFlp(3)           
-         real(C_DOUBLE),         intent(  out) :: PFlp(3)           
-         real(C_DOUBLE),         intent(  out) :: Rudr(2)           
-         real(C_DOUBLE),         intent(  out) :: SElv(2)           
-         real(C_DOUBLE),         intent(  out) :: PElv(2)           
-         real(C_DOUBLE),         intent(  out) :: GenSPyRtr(4)
-         real(C_DOUBLE),         intent(  out) :: GenPPyRtr(4)
+         real(C_DOUBLE),         intent(  out) :: kFlapA_c(10)                      
+         real(C_DOUBLE),         intent(  out) :: Motor_c(8)
          integer(C_INT),         intent(inout) :: errStat           !< error status code (uses NWTC_Library error codes)
          character(kind=C_CHAR), intent(inout) :: errMsg(1025)      !< Error Message from DLL to simulation code        
       end subroutine KFC_DLL_Step_PROC   
@@ -195,7 +190,7 @@ module KiteFastController
       procedure(KFC_DLL_Step_PROC),pointer          :: DLL_KFC_Step_Subroutine              ! The address of the supercontroller sc_calcoutputs procedure in the DLL
       real(C_DOUBLE)                                :: dcm_g2b_c(9)      
       real(C_DOUBLE)                                :: pqr_c(3)          
-      real(C_DOUBLE)                                :: acc_norm_c(3)     
+      real(C_DOUBLE)                                :: acc_norm_c    
       real(C_DOUBLE)                                :: Xg_c(3)           
       real(C_DOUBLE)                                :: Vg_c(3)           
       real(C_DOUBLE)                                :: Vb_c(3)           
@@ -206,13 +201,8 @@ module KiteFastController
       real(C_DOUBLE)                                :: tether_force_c(3) 
       real(C_DOUBLE)                                :: wind_g_c(3)       
       character(kind=C_CHAR)                        :: errMsg_c(IntfStrLen)
-      real(C_DOUBLE)                                :: SFlp_c(3)           
-      real(C_DOUBLE)                                :: PFlp_c(3)           
-      real(C_DOUBLE)                                :: Rudr_c(2)           
-      real(C_DOUBLE)                                :: SElv_c(2)           
-      real(C_DOUBLE)                                :: PElv_c(2)           
-      real(C_DOUBLE)                                :: GenSPyRtr_c(4)
-      real(C_DOUBLE)                                :: GenPPyRtr_c(4)
+      real(C_DOUBLE)                                :: kFlapA_c(10)                   
+      real(C_DOUBLE)                                :: Motor_c(8)
 
       errStat2 = ErrID_None
       errMsg2  = ''
@@ -230,22 +220,31 @@ module KiteFastController
       apparent_wind_c = u%apparent_wind
       tether_force_c  = u%tether_force
       wind_g_c        = u%wind_g
-      GenSPyRtr_c     = reshape(y%GenSPyRtr,(/4/))
-      GenPPyRtr_c     = reshape(y%GenPPyRtr,(/4/))
+
 
          ! Call the DLL (first associate the address from the procedure in the DLL with the subroutine):
       call C_F_PROCPOINTER( p%DLL_Trgt%ProcAddr(2), DLL_KFC_Step_Subroutine) 
-      call DLL_KFC_Step_Subroutine ( dcm_g2b_c, pqr_c, acc_norm_c, Xg_c, Vg_c, Vb_c, Ag_c, Ab_c, rho_c, apparent_wind_c, tether_force_c, wind_g_c, SFlp_c, PFlp_c, Rudr_c, SElv_c, PElv_c, GenSPyRtr_c, GenPPyRtr_c, errStat, errMsg_c ) 
+      call DLL_KFC_Step_Subroutine ( dcm_g2b_c, pqr_c, acc_norm_c, Xg_c, Vg_c, Vb_c, Ag_c, Ab_c, rho_c, apparent_wind_c, tether_force_c, wind_g_c, kFlapA_c, Motor_c, errStat, errMsg_c ) 
       call c_to_fortran_string(errMsg_c, errMsg)
 
          ! Convert the controller outputs into the KiteFAST Fortran-style controller outputs
-      y%SFlp = SFlp_c
-      y%SFlp = SFlp_c   
-      y%Rudr = Rudr_c 
-      y%SElv = SElv_c
-      y%PElv = PElv_c   
-      y%GenSPyRtr = reshape(GenSPyRtr_c,(/2,2/))
-      y%GenPPyRtr = reshape(GenPPyRtr_c,(/2,2/))
+      y%SFlp(1) = kFlapA_c(5)
+      y%SFlp(2) = kFlapA_c(7)
+      y%SFlp(3) = kFlapA_c(8)
+      y%PFlp(1) = kFlapA_c(4)
+      y%PFlp(2) = kFlapA_c(2)
+      y%PFlp(3) = kFlapA_c(1)
+      y%Rudr(:) = kFlapA_c(10)
+      y%SElv(:) = kFlapA_c(9)
+      y%PElv(:) = kFlapA_c(9)   
+      y%GenSPyRtr(1,1) = Motor_c(7)  ! starboard top rotor, pylon 1 (inboard)
+      y%GenSPyRtr(2,1) = Motor_c(2)  ! starboard bottom rotor, pylon 1 (inboard)
+      y%GenSPyRtr(1,2) = Motor_c(8)  ! starboard top rotor, pylon 2 (outboard)
+      y%GenSPyRtr(2,2) = Motor_c(1)  ! starboard bottom rotor, pylon 2 (outboard)
+      y%GenPPyRtr(1,1) = Motor_c(6)  ! port top rotor, pylon 1 (inboard)
+      y%GenPPyRtr(2,1) = Motor_c(3)  ! port bottom rotor, pylon 1 (inboard)
+      y%GenPPyRtr(1,2) = Motor_c(5)  ! port top rotor, pylon 2 (outboard)
+      y%GenPPyRtr(2,2) = Motor_c(4)  ! port bottom rotor, pylon 2 (outboard)
       
          ! TODO Error checking
     
