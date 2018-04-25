@@ -2182,7 +2182,7 @@ print *, "Beginning setting of mbdWngMotions mesh data"
       c = 1   
       do i = p%numPwnNds, 1, -1
          m%mbdWngMotions%Orientation  (:,:,c) = m%PWnNdDCMs(:,:,i)
-         m%mbdWngMotions%TranslationDisp(:,c) = m%PWnPts(:,i) - m%mbdPWnMotions%Position(:,c)
+         m%mbdWngMotions%TranslationDisp(:,c) = m%PWnPts(:,i) - m%mbdWngMotions%Position(:,c)
          m%mbdWngLoads%TranslationDisp(:,c)   = m%mbdWngMotions%TranslationDisp(:,c)
          m%mbdWngMotions%TranslationVel (:,c) = m%PWnVels(:,i)
          m%mbdWngMotions%RotationVel    (:,c) = m%PWnOmegas(:,i)
@@ -2190,7 +2190,7 @@ print *, "Beginning setting of mbdWngMotions mesh data"
       end do
       do i = 1,p%numSwnNds
          m%mbdWngMotions%Orientation  (:,:,c) = m%SWnNdDCMs(:,:,i)
-         m%mbdWngMotions%TranslationDisp(:,c) = m%SWnPts(:,i) - m%mbdSWnMotions%Position(:,c)
+         m%mbdWngMotions%TranslationDisp(:,c) = m%SWnPts(:,i) - m%mbdWngMotions%Position(:,c)
          m%mbdWngLoads%TranslationDisp(:,c)   = m%mbdWngMotions%TranslationDisp(:,c)
          m%mbdWngMotions%TranslationVel (:,c) = m%SWnVels(:,i)
          m%mbdWngMotions%RotationVel    (:,c) = m%SWnOmegas(:,i)
