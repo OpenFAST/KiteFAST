@@ -29,7 +29,7 @@
 
 #include "module-kitefastmbd.h"
 
-#define DEBUGUDE
+// #define DEBUGUDE
 
 ModuleKiteFAST::ModuleKiteFAST(unsigned uLabel, const DofOwner *pDO, DataManager *pDM, MBDynParser &HP) : Elem(uLabel, flag(0)), UserDefinedElem(uLabel, pDO)
 {
@@ -290,26 +290,6 @@ ModuleKiteFAST::ModuleKiteFAST(unsigned uLabel, const DofOwner *pDO, DataManager
     throw ErrGeneric(MBDYN_EXCEPT_ARGS);
   }
 
-  // call KFAST_AssRes to initialize the loads
-  integer numNodeLoadsElem = 6 * node_count_no_rotors; // force and moment components for each node
-  doublereal *nodeLoads = new doublereal[numNodeLoadsElem];
-  integer numRtrLoadsElem = numRtrPtsElem * 2; // force and moment components for each rotor node
-  doublereal *rotorLoads = new doublereal[numRtrLoadsElem];
-
-  _AssRes(numNodeLoadsElem, nodeLoads, numRtrLoadsElem, rotorLoads);
-
-  delete[] nodeLoads;
-  delete[] rotorLoads;
-
-  // call KFAST_Output to initialize its output file
-  doublereal current_time = Time.dGet();
-  KFAST_Output(&current_time, &error_status, error_message);
-  if (error_status >= AbortErrLev)
-  {
-    printf("error status %d: %s\n", error_status, error_message);
-    throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-  }
-
   // for future reference
   // Get the orientation matrix of blade root with respect to hub reference frame
   // if ((iNode % NElems) == 0) {
@@ -416,7 +396,7 @@ void ModuleKiteFAST::Output(OutputHandler &OH) const
                  << std::endl;
     }
   }
-
+  
   doublereal current_time = Time.dGet();
   int error_status;
   char error_message[INTERFACE_STRING_LENGTH];
