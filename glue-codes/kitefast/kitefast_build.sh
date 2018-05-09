@@ -6,14 +6,14 @@
 source_code_parent_directory="/home/raf/Desktop/"
 
 # download mbdyn and unzip:
-# wget "https://www.mbdyn.org/userfiles/downloads/mbdyn-1.7.3.tar.gz"
-# gunzip mbdyn-1.7.3.tar.gz
-# tar -xf mbdyn-1.7.3.tar
+wget "https://www.mbdyn.org/userfiles/downloads/mbdyn-1.7.3.tar.gz"
+gunzip mbdyn-1.7.3.tar.gz
+tar -xf mbdyn-1.7.3.tar
 mbdyn_directory=$source_code_parent_directory"/mbdyn-1.7.3/"
 
 # clone openfast
 # git clone https://makani-private.googlesource.com/kite_fast/nrel_source openfast
-openfast_directory=$source_code_parent_directory"/makani_openfast/"
+openfast_directory=$source_code_parent_directory"/nrel_source/"
 
 ###
 
@@ -38,18 +38,18 @@ function install_package {
   sudo apt install -y $1
 }
 
+# if git is not installed, add this external ppa
+which git
+if [[ $? -eq 1 ]]; then
+    install_package "software-properties-common"
+    sudo apt-add-repository ppa:git-core/ppa
+fi
+
 # update apt-get repo
 sudo apt update
 
-# install the latest version of git - 2.16.2 as of March 27 2018
-which git
-if [[ $? -eq 1 ]]; then
-    sudo add-apt-repository ppa:git-core/ppa
-    sudo apt update
-    sudo apt install git -y
-fi
-
 # install these general software development tools
+install_if_not_found "git"
 install_if_not_found "build-essential"
 install_if_not_found "software-properties-common"
 install_if_not_found "gfortran" # this does not come on 14.04 by default
@@ -57,6 +57,9 @@ install_if_not_found "cmake"
 install_if_not_found "libblas-dev" # blas math library
 install_if_not_found "liblapack-dev" # lapack math library
 install_if_not_found "libltdl-dev" # libltdl headers, used in mbdyn for linking
+
+# remove lingering packages
+sudo apt-get autoremove
 
 # build KiteFAST
 cd $openfast_directory
@@ -80,12 +83,12 @@ ln -s $openfast_directory/build/modules-local/inflowwind/libifwlib.a $mbdyn_dire
 
 # configure and build mbdyn
 cd $mbdyn_directory
+export LDFLAGS=-rdynamic
 ./configure --enable-runtime-loading --with-module="kitefastmbd"
-make
 sudo make install
 
-# add this to your .bashrc, without the "#"
-# PATH="/usr/local/mbdyn/bin:$PATH"
+# add the mbdyn installation directory to your .bashrc
+echo 'PATH="/usr/local/mbdyn/bin:$PATH"' >> ~/.bashrc
 
 ### optional
 # visualization / post processing
