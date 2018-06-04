@@ -80,6 +80,7 @@ ln -s $openfast_directory/build/modules-local/vsm/libvsmlib.a $mbdyn_directory/m
 ln -s $openfast_directory/build/modules-local/actuatordisk/libactuatordisklib.a $mbdyn_directory/modules/module-kitefastmbd/.
 ln -s $openfast_directory/build/modules-local/airfoilinfo/libairfoilinfolib.a $mbdyn_directory/modules/module-kitefastmbd/.
 ln -s $openfast_directory/build/modules-local/inflowwind/libifwlib.a $mbdyn_directory/modules/module-kitefastmbd/.
+ln -s $openfast_directory/build/modules-local/kitefast-controller/libkitefastcontrollerlib.a $mbdyn_directory/modules/module-kitefastmbd/.
 
 # configure and build mbdyn
 cd $mbdyn_directory
