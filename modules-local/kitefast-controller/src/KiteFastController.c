@@ -46,7 +46,7 @@ void kfc_dll_step(double dcm_g2b_c[], double pqr_c[], double *acc_norm_c,
     printf(" KiteFastController_Controller in kfc_dll_step: these are the values in Motor_c \n");
     for (i = 0; i < 8; i++)
     {
-        printf("%f - %f\n", Motor_c[i];
+        printf("%f\n", Motor_c[i]);
     }
 
     printf(" KiteFastController_Controller in kfc_dll_step: returning ErrStat=1 ErrMsg=this is a message from dll\'s step\n");
