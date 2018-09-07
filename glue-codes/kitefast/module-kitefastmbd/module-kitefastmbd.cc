@@ -132,22 +132,22 @@ ModuleKiteFAST::ModuleKiteFAST(unsigned uLabel, const DofOwner *pDO, DataManager
   
   // parse the component nodes into arrays
   BuildComponentNodeArray(pDM, HP, "fuselage", nodes_fuselage);
-  BuildComponentNodeArray(pDM, HP, "starboard_wing", nodes_starwing);
-  BuildComponentNodeArray(pDM, HP, "port_wing", nodes_portwing);
+  BuildComponentNodeArray(pDM, HP, "wing_starboard", nodes_starwing);
+  BuildComponentNodeArray(pDM, HP, "wing_port", nodes_portwing);
   BuildComponentNodeArray(pDM, HP, "vertical_stabilizer", nodes_vstab);
-  BuildComponentNodeArray(pDM, HP, "starboard_horizontal_stabilizer", nodes_starhstab);
-  BuildComponentNodeArray(pDM, HP, "port_horizontal_stabilizer", nodes_porthstab);
+  BuildComponentNodeArray(pDM, HP, "horizontal_stabilizer_starboard", nodes_starhstab);
+  BuildComponentNodeArray(pDM, HP, "horizontal_stabilizer_port", nodes_porthstab);
   nodes_starpylons.resize(n_pylons_per_wing);
   for (int i = 0; i < n_pylons_per_wing; i++)
   {
-    std::string component_name = "starboard_pylon_";
+    std::string component_name = "pylon_starboard_";
     component_name.append(SSTR(i + 1));
     BuildComponentNodeArray(pDM, HP, component_name.c_str(), nodes_starpylons[i]);
   }
   nodes_portpylons.resize(n_pylons_per_wing);
   for (int i = 0; i < n_pylons_per_wing; i++)
   {
-    std::string component_name = "port_pylon_";
+    std::string component_name = "pylon_port_";
     component_name.append(SSTR(i + 1));
     BuildComponentNodeArray(pDM, HP, component_name.c_str(), nodes_portpylons[i]);
   }
