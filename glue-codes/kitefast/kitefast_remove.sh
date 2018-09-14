@@ -2,18 +2,24 @@
 
 ### configuration
 
-# download mbdyn and openfast and put both in the same directory. also, set their parent directory below
 source_code_parent_directory="/home/raf/Desktop/"
+if [ ! -d $source_code_parent_directory ]; then
+  echo "source_code_parent_directory does not exist as given: "$source_code_parent_directory
+  exit 1
+fi
+cd $source_code_parent_directory
 
-# download mbdyn and unzip:
-# wget "https://www.mbdyn.org/userfiles/downloads/mbdyn-1.7.3.tar.gz"
-# gunzip mbdyn-1.7.3.tar.gz
-# tar -xf mbdyn-1.7.3.tar
 mbdyn_directory=$source_code_parent_directory"/mbdyn-1.7.3/"
+if [ ! -d $mbdyn_directory ]; then
+  echo "mbdyn_directory does not exist as given: "$mbdyn_directory
+  exit 1
+fi
 
-# clone openfast
-# git clone https://makani-private.googlesource.com/kite_fast/nrel_source openfast
 openfast_directory=$source_code_parent_directory"/nrel_source/"
+if [ ! -d $openfast_directory ]; then
+  echo "openfast_directory does not exist as given: "$openfast_directory
+  exit 1
+fi
 
 ###
 
@@ -38,17 +44,14 @@ function uninstall_package {
   sudo apt remove -y $1
 }
 
-# if git is not installed, add this external ppa
-which git
-if [[ $? -eq 1 ]]; then
-    sudo add-apt-repository ppa:git-core/ppa
-fi
-
 # install these general software development tools
 uninstall_if_found "git"
 uninstall_if_found "build-essential"
 uninstall_if_found "software-properties-common"
 uninstall_if_found "gfortran" # this does not come on 14.04 by default
+uninstall_if_found "gfortran-4.8"
+uninstall_if_found "libgfortran-4.8-dev"
+uninstall_if_found "libgfortran3"
 uninstall_if_found "cmake"
 uninstall_if_found "libblas-dev" # blas math library
 uninstall_if_found "liblapack-dev" # lapack math library

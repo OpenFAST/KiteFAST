@@ -4,16 +4,29 @@
 
 # download mbdyn and openfast and put both in the same directory. also, set their parent directory below
 source_code_parent_directory="/home/raf/Desktop/"
+if [ ! -d $source_code_parent_directory ]; then
+  echo "source_code_parent_directory does not exist as given: "$source_code_parent_directory
+  exit 1
+fi
+cd $source_code_parent_directory
 
 # download mbdyn and unzip:
 wget "https://www.mbdyn.org/userfiles/downloads/mbdyn-1.7.3.tar.gz"
 gunzip mbdyn-1.7.3.tar.gz
 tar -xf mbdyn-1.7.3.tar
 mbdyn_directory=$source_code_parent_directory"/mbdyn-1.7.3/"
+if [ ! -d $mbdyn_directory ]; then
+  echo "mbdyn_directory does not exist as given: "$mbdyn_directory
+  exit 1
+fi
 
 # clone openfast
 # git clone https://makani-private.googlesource.com/kite_fast/nrel_source openfast
 openfast_directory=$source_code_parent_directory"/nrel_source/"
+if [ ! -d $openfast_directory ]; then
+  echo "openfast_directory does not exist as given: "$openfast_directory
+  exit 1
+fi
 
 ###
 
@@ -62,11 +75,12 @@ install_if_not_found "libltdl-dev" # libltdl headers, used in mbdyn for linking
 sudo apt-get autoremove
 
 # build KiteFAST
+export FC=/usr/bin/gfortran
 cd $openfast_directory
 mkdir build
 cd build
 cmake ..
-make kitefastlib
+make -j 2 kitefastlib
 
 # copy the external module from openfast to mbdyn
 cp -r $openfast_directory/glue-codes/kitefast/module-kitefastmbd $mbdyn_directory/modules/.
@@ -83,10 +97,14 @@ ln -s $openfast_directory/build/modules-local/inflowwind/libifwlib.a $mbdyn_dire
 ln -s $openfast_directory/build/modules-local/kitefast-controller/libkitefastcontrollerlib.a $mbdyn_directory/modules/module-kitefastmbd/.
 
 # configure and build mbdyn
-cd $mbdyn_directory
 export LDFLAGS=-rdynamic
+cd $mbdyn_directory
 ./configure --enable-runtime-loading --with-module="kitefastmbd"
-sudo make install
+sudo make                      # build mbdyn
+cd modules                     # move to the module directory
+sudo make                      # build the user defined element
+cd ..                          # move back to mbdyn
+sudo make install              # install everything
 
 # add the mbdyn installation directory to your .bashrc
 echo 'PATH="/usr/local/mbdyn/bin:$PATH"' >> ~/.bashrc
