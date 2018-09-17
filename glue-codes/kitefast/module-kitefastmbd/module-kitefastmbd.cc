@@ -53,6 +53,9 @@ ModuleKiteFAST::ModuleKiteFAST(unsigned uLabel, const DofOwner *pDO, DataManager
                 << std::endl);
   }
 
+  // store the data manager on the class to use in AssRes
+  data_manager = pDM;
+
   // setup the time drive
   Time.Set(new TimeDriveCaller(pDM->pGetDrvHdl()));
   silent_cout("initial time: " << Time.dGet() << std::endl);
@@ -93,7 +96,7 @@ ModuleKiteFAST::ModuleKiteFAST(unsigned uLabel, const DofOwner *pDO, DataManager
 
   // parse the time step
   ValidateInputKeyword(HP, "time_step");
-  doublereal dt = HP.GetReal();
+  time_step = HP.GetReal();
 
   // parse the gravity
   ValidateInputKeyword(HP, "gravity");
@@ -260,7 +263,7 @@ ModuleKiteFAST::ModuleKiteFAST(unsigned uLabel, const DofOwner *pDO, DataManager
   // call KFAST_Init method
   int error_status;
   char error_message[INTERFACE_STRING_LENGTH];
-  KFAST_Init(&dt,
+  KFAST_Init(&time_step,
              &n_flaps_per_wing,
              &n_pylons_per_wing,
              &n_components,
@@ -440,6 +443,15 @@ void ModuleKiteFAST::_AssRes(integer numNodeLoadsElem,
 {
   printdebug("_AssRes");
   
+  // exit if the input time step and mbdyn's time step do not match
+  if (time_step != data_manager->pGetDrvHdl()->dGetTimeStep())
+  {
+    silent_cout("The given KiteFAST time step does match the mbdyn time step." << std::endl);
+    silent_cout("KiteFAST: " << time_step << std::endl);
+    silent_cout("MBDyn: " << data_manager->pGetDrvHdl()->dGetTimeStep() << std::endl);
+    throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+  }
+
   doublereal t = Time.dGet();
   integer first_iteration = 0;  // 0 no - 1 yes
   if (t == initial_time) {

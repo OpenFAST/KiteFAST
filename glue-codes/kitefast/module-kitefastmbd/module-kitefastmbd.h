@@ -145,6 +145,7 @@ private:
   const static int AbortErrLev = ErrID_Fatal; // abort error level; compare with NWTC Library
 
   // class data
+  doublereal time_step;
   doublereal initial_time;
   doublereal ground_station_point[3];
   integer n_pylons_per_wing;
@@ -176,6 +177,7 @@ private:
 
   mutable std::ofstream outputfile;
   DriveOwner Time;
+  const DataManager *data_manager;
 
 public:
   ModuleKiteFAST(unsigned uLabel, const DofOwner *pDO, DataManager *pDM, MBDynParser &HP);
