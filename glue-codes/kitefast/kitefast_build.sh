@@ -108,6 +108,7 @@ sudo make install              # install everything
 
 # add the mbdyn installation directory to your .bashrc
 echo 'PATH="/usr/local/mbdyn/bin:$PATH"' >> ~/.bashrc
+source ~/.bashrc
 
 ### optional
 # visualization / post processing
