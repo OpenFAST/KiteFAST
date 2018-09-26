@@ -1,16 +1,18 @@
 // KiteFAST_Driver.cpp : Defines the entry point for the console application.
 //
 
-#include "stdafx.h"
-#include "KFAST_Lib.h"
-#include <windows.h> 
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
 #include <math.h>
-#include <stdio.h> 
+// #include "stdafx.h"
+// #include <windows.h> 
+#include "KFAST_Lib.h"
 
 //!typedef void(__cdecl *KFAST_INITPROC)(double *dt, int *numFlaps, int *numPylons, int *numComp, int *numCompNds, const char *KAD_FileName, const char *IfW_FileName, const char *MD_FileName,
 //!    const char *outFileRoot, double *gravity, double *FusODCM_c, int *numRtrPtsElem_c, double *rtrPts_c, int *numRefPtElem_c, double *refPts_c, int *numDCMElem_c, double *nodeDCMs_c, int *errStat, char *errMsg);
 
-int _tmain(int argc, _TCHAR* argv[])
+int main(int argc, char *argv[])
 {
 //    HINSTANCE hinstLib;
 //    KFAST_INITPROC ProcInit;
@@ -180,12 +182,12 @@ int _tmain(int argc, _TCHAR* argv[])
     c = c + 3;
     // Starboard Wing in kite coords
     pRefPts[c + 0] = 0.0;
-    pRefPts[c + 1] = 0.0;
+    pRefPts[c + 1] = 0.005;
     pRefPts[c + 2] = 0.0;
     c = c + 3;
     // Port Wing in kite coords
     pRefPts[c + 0] = 0.0;
-    pRefPts[c + 1] = 0.0;
+    pRefPts[c + 1] = -0.005;
     pRefPts[c + 2] = 0.0;
     c = c + 3;
     // Vertical Stabilizer in kite coords
