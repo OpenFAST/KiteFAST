@@ -133,30 +133,34 @@ ModuleKiteFAST::ModuleKiteFAST(unsigned uLabel, const DofOwner *pDO, DataManager
   ValidateInputKeyword(HP, "mip_node");
   mip_node.pNode = dynamic_cast<StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
   
-  // parse the component nodes into arrays
-  BuildComponentNodeArray(pDM, HP, "fuselage", nodes_fuselage);
-  BuildComponentNodeArray(pDM, HP, "wing_starboard", nodes_starwing);
-  BuildComponentNodeArray(pDM, HP, "wing_port", nodes_portwing);
-  BuildComponentNodeArray(pDM, HP, "vertical_stabilizer", nodes_vstab);
-  BuildComponentNodeArray(pDM, HP, "horizontal_stabilizer_starboard", nodes_starhstab);
-  BuildComponentNodeArray(pDM, HP, "horizontal_stabilizer_port", nodes_porthstab);
+  // parse the component nodes and beams into arrays
+  BuildComponentArrays(pDM, HP, "fuselage", nodes_fuselage, beams_fuselage);
+  BuildComponentArrays(pDM, HP, "wing_starboard", nodes_starwing, beams_starwing);
+  BuildComponentArrays(pDM, HP, "wing_port", nodes_portwing, beams_portwing);
+  BuildComponentArrays(pDM, HP, "vertical_stabilizer", nodes_vstab, beams_vstab);
+  BuildComponentArrays(pDM, HP, "horizontal_stabilizer_starboard", nodes_starhstab, beams_starhstab);
+  BuildComponentArrays(pDM, HP, "horizontal_stabilizer_port", nodes_porthstab, beams_porthstab);
+
   nodes_starpylons.resize(n_pylons_per_wing);
+  beams_starpylons.resize(n_pylons_per_wing);
   for (int i = 0; i < n_pylons_per_wing; i++)
   {
     std::string component_name = "pylon_starboard_";
     component_name.append(SSTR(i + 1));
-    BuildComponentNodeArray(pDM, HP, component_name.c_str(), nodes_starpylons[i]);
+    BuildComponentArrays(pDM, HP, component_name.c_str(), nodes_starpylons[i], beams_starpylons[i]);
   }
   nodes_portpylons.resize(n_pylons_per_wing);
+  beams_portpylons.resize(n_pylons_per_wing);
   for (int i = 0; i < n_pylons_per_wing; i++)
   {
     std::string component_name = "pylon_port_";
     component_name.append(SSTR(i + 1));
-    BuildComponentNodeArray(pDM, HP, component_name.c_str(), nodes_portpylons[i]);
+    BuildComponentArrays(pDM, HP, component_name.c_str(), nodes_portpylons[i], beams_portpylons[i]);
   }
-  BuildComponentNodeArray(pDM, HP, "starboard_rotors", nodes_starrotors);
-  BuildComponentNodeArray(pDM, HP, "port_rotors", nodes_portrotors);
+  BuildComponentArrays(pDM, HP, "starboard_rotors", nodes_starrotors, beams_throwaway);
+  BuildComponentArrays(pDM, HP, "port_rotors", nodes_portrotors, beams_throwaway);
 
+  // build a single node array
   integer total_node_count = nodes_fuselage.size()
                            + nodes_starwing.size()
                            + nodes_portwing.size()
@@ -186,6 +190,34 @@ ModuleKiteFAST::ModuleKiteFAST(unsigned uLabel, const DofOwner *pDO, DataManager
   }
   nodes.insert(nodes.end(), nodes_starrotors.begin(), nodes_starrotors.end());
   nodes.insert(nodes.end(), nodes_portrotors.begin(), nodes_portrotors.end());
+
+  // build a single beam array
+  total_beam_count = beams_fuselage.size()
+                   + beams_starwing.size()
+                   + beams_portwing.size()
+                   + beams_vstab.size()
+                   + beams_starhstab.size()
+                   + beams_porthstab.size();
+  for (int i = 0; i < n_pylons_per_wing; i++)
+  {
+    total_beam_count += beams_portpylons[i].size() + beams_portpylons[i].size();
+  }
+
+  beams.reserve(total_beam_count);
+  beams.insert(beams.begin(), beams_fuselage.begin(), beams_fuselage.end());
+  beams.insert(beams.end(), beams_starwing.begin(), beams_starwing.end());
+  beams.insert(beams.end(), beams_portwing.begin(), beams_portwing.end());
+  beams.insert(beams.end(), beams_vstab.begin(), beams_vstab.end());
+  beams.insert(beams.end(), beams_starhstab.begin(), beams_starhstab.end());
+  beams.insert(beams.end(), beams_porthstab.begin(), beams_porthstab.end());
+  for (int i = 0; i < n_pylons_per_wing; i++)
+  {
+    beams.insert(beams.end(), beams_starpylons[i].begin(), beams_starpylons[i].end());
+  }
+  for (int i = 0; i < n_pylons_per_wing; i++)
+  {
+    beams.insert(beams.end(), beams_portpylons[i].begin(), beams_portpylons[i].end());
+  }
 
   // number of nodes per kite component excluding rotors
   integer component_node_counts[n_components];
@@ -292,19 +324,6 @@ ModuleKiteFAST::ModuleKiteFAST(unsigned uLabel, const DofOwner *pDO, DataManager
     printf("error status %d: %s\n", error_status, error_message);
     throw ErrGeneric(MBDYN_EXCEPT_ARGS);
   }
-
-  // for future reference
-  // Get the orientation matrix of blade root with respect to hub reference frame
-  // if ((iNode % NElems) == 0) {
-  //   bladeR[elem/NElems] = HP.GetRotRel(rf);
-  // }
-  //ReferenceFrame RF(m_pNode);
-  //if (HP.IsKeyWord("position")) {
-  //    m_tilde_f = HP.GetPosRel(RF);
-  //  }
-  //if (HP.IsKeyWord("orientation")) {
-  //  m_tilde_Rh = HP.GetRotRel(RF);
-  //}
 }
 
 ModuleKiteFAST::~ModuleKiteFAST(void)
@@ -338,11 +357,12 @@ void ModuleKiteFAST::ValidateInputKeyword(MBDynParser &HP, const char *keyword)
   }
 }
 
-void ModuleKiteFAST::BuildComponentNodeArray(DataManager *pDM, MBDynParser &HP,
-                                             const char *keyword,
-                                             std::vector<KiteFASTNode> &node_array)
+void ModuleKiteFAST::BuildComponentArrays(DataManager *pDM, MBDynParser &HP,
+                                          const char *keyword,
+                                          std::vector<KiteFASTNode> &node_array,
+                                          std::vector<KiteFASTBeam> &beam_array)
 {
-  printdebug("BuildComponentNodeArray");
+  printdebug("BuildComponentArrays");
   printdebug(keyword);
   if (!HP.IsKeyWord(keyword))
   {
@@ -350,10 +370,23 @@ void ModuleKiteFAST::BuildComponentNodeArray(DataManager *pDM, MBDynParser &HP,
     throw ErrGeneric(MBDYN_EXCEPT_ARGS);
   }
 
+  BuildComponentNodeArray(pDM, HP, node_array);
+
+  // if keyword contains "rotor", dont read beams
+  std::string kwd(keyword);
+  if (kwd.find("rotor") != std::string::npos) return;
+  
+  BuildComponentBeamArray(pDM, HP, beam_array);
+}
+
+void ModuleKiteFAST::BuildComponentNodeArray(DataManager *pDM,
+                                             MBDynParser &HP,
+                                             std::vector<KiteFASTNode> &node_array)
+{
+  printdebug("BuildComponentNodeArray");
+
   int node_count = HP.GetInt();
-
   node_array.resize(node_count);
-
   for (int i = 0; i < node_count; i++)
   {
     node_array[i].pNode = dynamic_cast<StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
@@ -361,6 +394,20 @@ void ModuleKiteFAST::BuildComponentNodeArray(DataManager *pDM, MBDynParser &HP,
     {
       node_array[i].pNode->ComputeAccelerations(true);
     }
+  }
+}
+
+void ModuleKiteFAST::BuildComponentBeamArray(DataManager *pDM,
+                                             MBDynParser &HP,
+                                             std::vector<KiteFASTBeam> &beam_array)
+{
+  printdebug("BuildComponentBeamArray");
+
+  int beam_count = HP.GetInt();
+  beam_array.resize(beam_count);
+  for (int i = 0; i < beam_count; i++)
+  {
+    beam_array[i].pBeam = dynamic_cast<Beam *>(pDM->ReadElem(HP, Beam::BEAM));
   }
 }
 
@@ -408,6 +455,17 @@ void ModuleKiteFAST::Output(OutputHandler &OH) const
   {
     printf("error status %d: %s\n", error_status, error_message);
     throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+  }
+
+  for (int i = 0; i < total_beam_count; i++)
+  {
+    printf("beam #%d ", i);
+    integer index = beams[i].pBeam->iGetPrivDataIdx("pI.Xx");
+    doublereal value = beams[i].pBeam->dGetPrivData(index);
+    printf("pI.Xx = %f ", value);
+    index = beams[i].pBeam->iGetPrivDataIdx("pII.Xx");
+    value = beams[i].pBeam->dGetPrivData(index);
+    printf("pII.Xx = %f\n", value);
   }
 }
 

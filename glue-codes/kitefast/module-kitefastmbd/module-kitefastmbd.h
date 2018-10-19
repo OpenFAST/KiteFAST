@@ -33,10 +33,12 @@
 #include <iostream>
 #include <cfloat>
 #include <math.h>
+#include <string>
 
 #include "dataman.h"
 #include "userelem.h"
 #include "drive_.h"
+#include "beam.h"
 
 #include <sstream>
 
@@ -142,6 +144,11 @@ private:
     StructNode *pNode;
   };
 
+  struct KiteFASTBeam
+  {
+    Beam *pBeam;
+  };
+
   const static int AbortErrLev = ErrID_Fatal; // abort error level; compare with NWTC Library
 
   // class data
@@ -154,6 +161,7 @@ private:
   integer numDCMElem;
   integer rotor_node_count;
   integer numRtrPtsElem;
+  integer total_beam_count;
   doublereal *node_points;
   doublereal *node_dcms;
   doublereal *node_velocities;
@@ -175,6 +183,17 @@ private:
   std::vector<KiteFASTNode> nodes_portrotors;
   std::vector<KiteFASTNode> nodes_starrotors;
 
+  std::vector<KiteFASTBeam> beams;
+  std::vector<KiteFASTBeam> beams_fuselage;
+  std::vector<KiteFASTBeam> beams_portwing;
+  std::vector<KiteFASTBeam> beams_starwing;
+  std::vector<KiteFASTBeam> beams_vstab;
+  std::vector<KiteFASTBeam> beams_porthstab;
+  std::vector<KiteFASTBeam> beams_starhstab;
+  std::vector< std::vector<KiteFASTBeam> > beams_starpylons;
+  std::vector< std::vector<KiteFASTBeam> > beams_portpylons;
+  std::vector<KiteFASTBeam> beams_throwaway;
+
   mutable std::ofstream outputfile;
   DriveOwner Time;
   const DataManager *data_manager;
@@ -184,7 +203,9 @@ public:
   virtual ~ModuleKiteFAST(void);
   void SetValue(DataManager *pDM, VectorHandler &X, VectorHandler &XP, SimulationEntity::Hints *ph);
   void ValidateInputKeyword(MBDynParser &HP, const char *keyword);
-  void BuildComponentNodeArray(DataManager *pDM, MBDynParser &HP, const char *keyword, std::vector<KiteFASTNode> &node_array);
+  void BuildComponentArrays(DataManager *pDM, MBDynParser &HP, const char *keyword, std::vector<KiteFASTNode> &node_array, std::vector<KiteFASTBeam> &beam_array);
+  void BuildComponentNodeArray(DataManager *pDM, MBDynParser &HP, std::vector<KiteFASTNode> &node_array);
+  void BuildComponentBeamArray(DataManager *pDM, MBDynParser &HP, std::vector<KiteFASTBeam> &beam_array);
   void InitOutputFile(std::string output_file_name);
   virtual void Output(OutputHandler &OH) const;
   int iGetNumConnectedNodes(void) const;
