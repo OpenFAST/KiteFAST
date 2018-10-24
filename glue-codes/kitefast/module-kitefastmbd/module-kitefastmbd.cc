@@ -460,12 +460,12 @@ void ModuleKiteFAST::Output(OutputHandler &OH) const
   for (int i = 0; i < total_beam_count; i++)
   {
     printf("beam #%d ", i);
-    integer index = beams[i].pBeam->iGetPrivDataIdx("pI.Xx");
+    integer index = beams[i].pBeam->iGetPrivDataIdx("pI.Fx");
     doublereal value = beams[i].pBeam->dGetPrivData(index);
-    printf("pI.Xx = %f ", value);
-    index = beams[i].pBeam->iGetPrivDataIdx("pII.Xx");
+    printf("pI.Fx = %f ", value);
+    index = beams[i].pBeam->iGetPrivDataIdx("pII.Fx");
     value = beams[i].pBeam->dGetPrivData(index);
-    printf("pII.Xx = %f\n", value);
+    printf("pII.Fx = %f\n", value);
   }
 }
 
