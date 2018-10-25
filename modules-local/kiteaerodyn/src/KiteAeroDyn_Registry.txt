@@ -23,6 +23,7 @@ usefrom   AirfoilInfo_Registry.txt
 # ..... Member property data ......................................................................................................
 typedef    KiteAeroDyn/KAD    KAD_MbrPropsType IntKi              NumNds          -     -    -    "Number of member nodes" - 
 typedef    ^                  ^                ReKi               Pos            {:}{:} -    -    "Node position(s) in local coordinate system" m 
+typedef    ^                  ^                R8Ki               Dhdrl          {:}    -    -    "Node dihedral angle in local coordinate system" rad
 typedef    ^                  ^                R8Ki               Twist          {:}    -    -    "Node twist angle in local coordinate system" rad
 typedef    ^                  ^                ReKi               Chord          {:}    -    -    "Node chord length" m
 typedef    ^                  ^                IntKi              AFID           {:}    -    -    "Airfoil ID" -

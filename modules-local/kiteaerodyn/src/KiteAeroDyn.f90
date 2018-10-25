@@ -426,6 +426,163 @@ subroutine ReadProps( UnIn, fileName, numNodes, Props, numProps, label, errStat,
    
 end subroutine ReadProps
 
+!> Routine to parse kite wing component properties.
+subroutine ReadWngProps( UnIn, fileName, numNodes, Props, numProps, label, errStat, errMsg, UnEc )
+   integer(IntKi),               intent(in   )  :: UnIn              !< Input file unit number
+   character(*),                 intent(in   )  :: filename          !< Input file name
+   integer(IntKi),               intent(inout)  :: numNodes          !< Number of node in this component
+   type(KAD_MbrPropsType),       intent(inout)  :: Props             !< Member properties data
+   integer(IntKi),               intent(in   )  :: numProps          !< number of properties to parse from the input file for this component
+   character(*),                 intent(in   )  :: label             !< Component label/identifying string
+   integer(IntKi),               intent(  out)  :: errStat           !< Error status of the operation
+   character(*),                 intent(  out)  :: errMsg            !< Error message if errStat /= ErrID_None
+   integer(IntKi),               intent(in   )  :: UnEc              !< Echo file unit
+   
+   integer(intKi)                               :: i                 ! counter for nodes
+   integer(intKi)                               :: errStat2          ! temporary Error status
+   character(ErrMsgLen)                         :: errMsg2           ! temporary Error message
+   real(ReKi), allocatable                      :: vals(:)           ! Row of input file property values
+   character(*), parameter                      :: RoutineName = 'ReadProps'
+   
+      ! Initialize variables for this routine
+
+   errStat = ErrID_None
+   errMsg  = ""
+   
+      ! Skip the comment line.
+   call ReadCom( UnIn, fileName, trim(label)//' PROPERTIES ', errStat2, errMsg2  ) 
+      call SetErrStat( errStat2, errMsg2, errStat, errMsg, RoutineName )
+      ! Number of nodes used in the analysis
+   call ReadVar ( UnIn, fileName, numNodes, 'NumNodes', 'Number of '//trim(label)//' nodes used in the analysis', errStat2, errMsg2, UnEc )
+      call SetErrStat( errStat2, errMsg2, errStat, errMsg, RoutineName )
+
+   call AllocAry( Props%Pos, 3_IntKi, numNodes, trim(label)//'%Pos', errStat2, errMsg2 )
+      call SetErrStat( errStat2, errMsg2, errStat, errMsg, RoutineName )
+   call AllocAry( Props%Dhdrl, numNodes, trim(label)//'%Dhdrl', errStat2, errMsg2 )
+      call SetErrStat( errStat2, errMsg2, errStat, errMsg, RoutineName )
+   call AllocAry( Props%Twist, numNodes, trim(label)//'%Twist', errStat2, errMsg2 )
+      call SetErrStat( errStat2, errMsg2, errStat, errMsg, RoutineName )
+      Props%Twist = Props%Twist*D2R
+   call AllocAry( Props%Chord, numNodes, trim(label)//'%Chord', errStat2, errMsg2 )
+      call SetErrStat( errStat2, errMsg2, errStat, errMsg, RoutineName )
+   call AllocAry( Props%AFID, numNodes, trim(label)//'%AFID', errStat2, errMsg2 )
+      call SetErrStat( errStat2, errMsg2, errStat, errMsg, RoutineName )
+
+   call AllocAry( Props%CntrlID, numNodes, trim(label)//'%CntrlID', errStat2, errMsg2 )
+      call SetErrStat( errStat2, errMsg2, errStat, errMsg, RoutineName )
+   call AllocAry( vals, 8, 'vals', errStat2, errMsg2 )
+      call SetErrStat( errStat2, errMsg2, errStat, errMsg, RoutineName )   
+  
+   
+      ! Skip the table header line2.
+   call ReadCom( UnIn, fileName, ' property table header line 1 ', errStat2, errMsg2  ) 
+      call SetErrStat( errStat2, errMsg2, errStat, errMsg, RoutineName )
+
+   call ReadCom( UnIn, fileName, ' property table header line 2 ', errStat2, errMsg2  ) 
+      call SetErrStat( errStat2, errMsg2, errStat, errMsg, RoutineName )
+
+   do i=1, numNodes
+      call ReadAry( UnIn, fileName, vals, numProps, 'Values','Table row', errStat2, errMsg2, UnEc )
+         call SetErrStat( errStat2, errMsg2, errStat, errMsg, RoutineName )
+      Props%Pos(1,i) = vals(1)
+      Props%Pos(2,i) = vals(2)
+      Props%Pos(3,i) = vals(3)
+      Props%Dhdrl(i) = vals(4)*D2R
+      if ( abs(Props%Dhdrl(i)) > (PI/2.0_ReKi) ) call SetErrStat( ErrID_FATAL, ' wing dihedral angles must be >= -90 deg and <= 90 deg', errStat, errMsg, RoutineName )
+      Props%Twist(i) = vals(5)*D2R
+      Props%Chord(i) = vals(6)
+      Props%AFID(i)  = vals(7)
+      Props%CntrlID(i) = vals(8)
+   end do
+
+   deallocate(vals)
+   
+end subroutine ReadWngProps
+!> Routine to generate the line2 motions meshes for the various kite components.
+subroutine CreateL2WngMotionsMesh(origin, numNodes, positions, alignDCM, dhdrls, twists, axis, mesh, errStat, errMsg)
+   real(ReKi),                   intent(in   )  :: origin(3)         !< Reference position for the mesh in global coordinates
+   integer(IntKi),               intent(in   )  :: numNodes          !< Number of nodes in the mesh
+   real(ReKi),                   intent(in   )  :: positions(:,:)    !< Coordinates of the undisplaced mesh
+   real(R8Ki),                   intent(in   )  :: alignDCM(3,3)     !< DCM needed to transform into the airfoil axes
+   real(R8Ki),                   intent(in   )  :: dhdrls(:)         !< Dihedral angles for each node (rad)
+   real(R8Ki),                   intent(in   )  :: twists(:)         !< Twist angles for each node (rad)
+   integer(IntKi),               intent(in   )  :: axis              !< Which euler angle is being set to the twist value
+   type(MeshType),               intent(  out)  :: mesh              !< The resulting mesh 
+   integer(IntKi),               intent(  out)  :: errStat           !< Error status of the operation
+   character(*),                 intent(  out)  :: errMsg            !< Error message if errStat /= ErrID_None
+
+   ! Local variables
+   real(reKi)                                   :: position(3)       ! node reference position
+   real(R8Ki)                                   :: theta(3)          ! Euler angles
+   real(R8Ki)                                   :: orientation(3,3)  ! node reference orientation
+   integer(intKi)                               :: j                 ! counter for nodes
+   integer(intKi)                               :: errStat2          ! temporary Error status
+   character(ErrMsgLen)                         :: errMsg2           ! temporary Error message
+   character(*), parameter                      :: RoutineName = 'CreateL2WngMotionsMesh'
+
+      ! Initialize variables for this routine
+
+   errStat = ErrID_None
+   errMsg  = ""
+
+   call MeshCreate ( BlankMesh = mesh     &
+                     ,IOS       = COMPONENT_INPUT &
+                     ,Nnodes    = numNodes        &
+                     ,errStat   = errStat2        &
+                     ,ErrMess   = errMsg2         &
+                     ,Orientation     = .true.    &
+                     ,TranslationDisp = .true.    &
+                     ,TranslationVel  = .true.    &
+                     )
+         call SetErrStat( errStat2, errMsg2, errStat, errMsg, RoutineName )
+
+   if (errStat >= AbortErrLev) return
+            
+      ! set node initial position/orientation
+
+   do j=1,numNodes       
+      position(:) = origin(:) + positions(:,j)  
+      select case( axis )
+      case (1)
+         theta = (/ twists(j), 0.0_R8Ki, 0.0_R8Ki/)
+      case (2)  ! dhdrl only for wings
+         theta = (/ dhdrls(j), twists(j), 0.0_R8Ki/)
+      case (3)
+         theta = (/ 0.0_R8Ki, 0.0_R8Ki, twists(j)/)
+      case default
+         call SetErrStat( ErrID_FATAL, "axis must be 1,2,3 for using euler angles to contruct euler matrix", errStat, errMsg, RoutineName )
+         return
+      end select
+      
+      orientation = EulerConstruct(theta)   
+      orientation = matmul(alignDCM,orientation)
+      call MeshPositionNode(mesh, j, position, errStat2, errMsg2, orientation)  
+         call SetErrStat( errStat2, errMsg2, errStat, errMsg, RoutineName )
+   end do !j
+         
+      ! create line2 elements
+   do j=1,numNodes-1
+         ! Test for co-located nodes, which would be used when there is a step change in aerodynamic properties
+      position = mesh%position(:,j+1) - mesh%position(:,j)
+      if (.not. EqualRealNos ( abs(position(axis)), 0.0_ReKi ) ) then 
+         call MeshConstructElement( mesh, ELEMENT_LINE2, errStat2, errMsg2, p1=j, p2=j+1 )
+            call SetErrStat( errStat2, errMsg2, errStat, errMsg, RoutineName )
+      end if
+   end do 
+            
+   call MeshCommit(mesh, errStat2, errMsg2 )
+      call SetErrStat( errStat2, errMsg2, errStat, errMsg, RoutineName )
+            
+   if (errStat >= AbortErrLev) return
+
+      
+   mesh%Orientation     = mesh%RefOrientation
+   mesh%TranslationDisp = 0.0_ReKi
+   mesh%TranslationVel  = 0.0_ReKi
+   
+   
+   end subroutine CreateL2WngMotionsMesh
+   
 !> Routine to generate the line2 motions meshes for the various kite components.
 subroutine CreateL2MotionsMesh(origin, numNodes, positions, alignDCM, twists, axis, mesh, errStat, errMsg)
    real(ReKi),                   intent(in   )  :: origin(3)         !< Reference position for the mesh in global coordinates
@@ -604,6 +761,103 @@ subroutine CreatePtLoadsMesh(origin, numNodes, positions, alignDCM, twists, axis
 
    
 end subroutine CreatePtLoadsMesh
+
+!> Routine to generate the point loads meshes for the various kite components.
+subroutine CreatePtWngLoadsMesh(origin, numNodes, positions, alignDCM, dhdrls, twists, axis, mesh, elemLens, errStat, errMsg)
+   real(ReKi),                   intent(in   )  :: origin(3)         !< Reference position for the mesh in global coordinates
+   integer(IntKi),               intent(in   )  :: numNodes          !< Number of nodes in the mesh
+   real(ReKi),                   intent(in   )  :: positions(:,:)    !< Coordinates of the undisplaced mesh
+   real(R8Ki),                   intent(in   )  :: alignDCM(3,3)     !< DCM needed to transform into the airfoil axes
+   real(R8Ki),                   intent(in   )  :: dhdrls(:)         !< Dihedral angles for each node (rad)
+   real(R8Ki),                   intent(in   )  :: twists(:)         !< Twist angles for each node (rad)
+   integer(IntKi),               intent(in   )  :: axis              !< Which euler angle is being set to the twist value
+   type(MeshType),               intent(  out)  :: mesh              !< The resulting mesh 
+   real(ReKi),allocatable,       intent(  out)  :: elemLens(:)       !< The lengths of each element associated with this mesh data (VSM-elements)
+   integer(IntKi),               intent(  out)  :: errStat           !< Error status of the operation
+   character(*),                 intent(  out)  :: errMsg            !< Error message if errStat /= ErrID_None
+
+   ! Local variables
+   real(reKi)                                   :: position(3)       ! node reference position
+   real(R8Ki)                                   :: theta(3)          ! Euler angles
+   real(R8Ki)                                   :: orientation(3,3)  ! node reference orientation
+   
+   integer(intKi)                               :: j,count           ! counter for nodes
+   integer(intKi)                               :: errStat2          ! temporary Error status
+   character(ErrMsgLen)                         :: errMsg2           ! temporary Error message
+   character(*), parameter                      :: RoutineName = 'CreatePtLoadsMesh'
+   real(ReKi)                                   :: elemLen           ! Length of a VSM element associated with this data
+      ! Initialize variables for this routine
+
+   errStat = ErrID_None
+   errMsg  = ""
+
+   ! Determine actual number of nodes required, because some may be co-located to capture discontinuities in the properties
+   count = 0
+   do j=1,numNodes     
+      position(:) = positions(:,j+1) - positions(:,j)
+      if (.not. EqualRealNos(abs(position(axis)),0.0_ReKi)) then
+         count = count + 1
+      end if
+   end do
+   
+   call AllocAry(elemLens,count,'elemLens',errStat2, errMsg2)
+      call SetErrStat( errStat2, errMsg2, errStat, errMsg, RoutineName )
+   if (errStat >= AbortErrLev) return
+   
+   call MeshCreate ( BlankMesh = mesh     &
+                     ,Nnodes    = count         &
+                     ,errStat   = errStat2         &
+                     ,ErrMess   = errMsg2          &
+                     ,IOS       = COMPONENT_OUTPUT &
+                     , force    = .true.           &
+                     , moment   = .true.           &
+                     , orientation = .true.        &  ! Used for computing VSM inputs and for kite load calculations
+                     , translationdisp = .true.    &  ! Used by KiteFAST and for kite load calculations
+                     )
+         call SetErrStat( errStat2, errMsg2, errStat, errMsg, RoutineName )
+
+   if (errStat >= AbortErrLev) return
+            
+      ! set node initial position/orientation
+   count = 1
+   do j=1,numNodes     
+      position(:) = positions(:,j+1) - positions(:,j)
+      elemLen = abs(position(axis))
+      if (.not. EqualRealNos(elemLen,0.0_ReKi)) then
+         elemLens(count) = elemLen / cos ( 0.5_R8Ki * ( dhdrls(j) + dhdrls(j+1) ) )
+         position(:) = origin + 0.5_ReKi*(positions(:,j) + positions(:,j+1)) 
+         select case( axis )
+         case (1)
+            theta(1) = 0.5_R8Ki*(twists(j)+twists(j+1))
+         case (2)
+            theta(1) = 0.5_R8Ki*(dhdrls(j)+dhdrls(j+1))
+            theta(2) = 0.5_R8Ki*(twists(j)+twists(j+1))
+         case (3)
+            theta(3) = 0.5_R8Ki*(twists(j)+twists(j+1))
+         case default
+            call SetErrStat( ErrID_FATAL, "axis must be 1,2,3 for using twist to contruct euler matrix", errStat, errMsg, RoutineName )
+            return
+         end select
+      
+         orientation = EulerConstruct(theta)   
+         orientation = matmul(alignDCM,orientation)
+         call MeshPositionNode(mesh, count, position, errStat2, errMsg2, orientation)  
+            call SetErrStat( errStat2, errMsg2, errStat, errMsg, RoutineName )
+         call MeshConstructElement( mesh, ELEMENT_POINT, errStat2, errMsg2, p1=count )
+         call SetErrStat( errStat2, errMsg2, errStat, errMsg, RoutineName )
+         count = count + 1
+      end if
+      
+   end do !j
+         
+            
+   call MeshCommit(mesh, errStat2, errMsg2 )
+      call SetErrStat( errStat2, errMsg2, errStat, errMsg, RoutineName )
+            
+   if (errStat >= AbortErrLev) return
+
+   
+end subroutine CreatePtWngLoadsMesh
 
 !> Routine to generate the point loads meshes for the rotor components.
 subroutine CreateRtrPtLoadsMesh(origin, motionMesh, mesh, errStat, errMsg)
@@ -973,13 +1227,13 @@ subroutine Init_y(y, u, InitInp, p, errStat, errMsg)
 
       ! Starboard Wing Mesh
    alignDCM = reshape( (/0.0, -1.0, 0.0, 0.0, 0.0, 1.0, -1.0, 0.0, 0.0/), (/3,3/) )
-   call CreatePtLoadsMesh(InitInp%SWnOR, InitInp%InpFileData%SWnProps%NumNds-1, InitInp%InpFileData%SWnProps%Pos, alignDCM, InitInp%InpFileData%SWnProps%Twist, 2, y%SWnLoads, p%SWnElemLen, errStat2, errMsg2)
+   call CreatePtWngLoadsMesh(InitInp%SWnOR, InitInp%InpFileData%SWnProps%NumNds-1, InitInp%InpFileData%SWnProps%Pos, alignDCM, InitInp%InpFileData%SWnProps%Dhdrl, InitInp%InpFileData%SWnProps%Twist, 2, y%SWnLoads, p%SWnElemLen, errStat2, errMsg2)
       call SetErrStat( errStat2, errMsg2, errStat, errMsg, RoutineName )
       if (errStat >= AbortErrLev) return
       
       ! Port Wing Mesh
    alignDCM = reshape( (/0.0, -1.0, 0.0, 0.0, 0.0, 1.0, -1.0, 0.0, 0.0/), (/3,3/) )
-   call CreatePtLoadsMesh(InitInp%PWnOR, InitInp%InpFileData%PWnProps%NumNds-1, InitInp%InpFileData%PWnProps%Pos, alignDCM, InitInp%InpFileData%PWnProps%Twist, 2, y%PWnLoads, p%PWnElemLen, errStat2, errMsg2)
+   call CreatePtWngLoadsMesh(InitInp%PWnOR, InitInp%InpFileData%PWnProps%NumNds-1, InitInp%InpFileData%PWnProps%Pos, alignDCM, InitInp%InpFileData%PWnProps%Dhdrl, InitInp%InpFileData%PWnProps%Twist, 2, y%PWnLoads, p%PWnElemLen, errStat2, errMsg2)
       call SetErrStat( errStat2, errMsg2, errStat, errMsg, RoutineName )
       if (errStat >= AbortErrLev) return
    
@@ -1281,13 +1535,13 @@ subroutine Init_u( u, p, InitInp, nIfWPts, errStat, errMsg )
 
       ! Line2 Starboard Wing Mesh
    alignDCM = reshape( (/0.0, -1.0, 0.0, 0.0, 0.0, 1.0, -1.0, 0.0, 0.0/), (/3,3/) )
-   call CreateL2MotionsMesh(InitInp%SWnOR, InitInp%InpFileData%SWnProps%NumNds, InitInp%InpFileData%SWnProps%Pos, alignDCM, InitInp%InpFileData%SWnProps%Twist, 2, u%SWnMotions, errStat2, errMsg2)
+   call CreateL2WngMotionsMesh(InitInp%SWnOR, InitInp%InpFileData%SWnProps%NumNds, InitInp%InpFileData%SWnProps%Pos, alignDCM, -1.0_R8Ki*InitInp%InpFileData%SWnProps%Dhdrl, InitInp%InpFileData%SWnProps%Twist, 2, u%SWnMotions, errStat2, errMsg2)
       call SetErrStat( errStat2, errMsg2, errStat, errMsg, RoutineName )
       if (errStat >= AbortErrLev) return
       
       ! Line2 Port Wing Mesh
    alignDCM = reshape( (/0.0, -1.0, 0.0, 0.0, 0.0, 1.0, -1.0, 0.0, 0.0/), (/3,3/) )
-   call CreateL2MotionsMesh(InitInp%PWnOR, InitInp%InpFileData%PWnProps%NumNds, InitInp%InpFileData%PWnProps%Pos, alignDCM, InitInp%InpFileData%PWnProps%Twist, 2, u%PWnMotions, errStat2, errMsg2)
+   call CreateL2WngMotionsMesh(InitInp%PWnOR, InitInp%InpFileData%PWnProps%NumNds, InitInp%InpFileData%PWnProps%Pos, alignDCM, InitInp%InpFileData%PWnProps%Dhdrl, InitInp%InpFileData%PWnProps%Twist, 2, u%PWnMotions, errStat2, errMsg2)
       call SetErrStat( errStat2, errMsg2, errStat, errMsg, RoutineName )
       if (errStat >= AbortErrLev) return
    
@@ -1795,11 +2049,11 @@ subroutine ReadKADFile(InitInp, interval, errStat, errMsg)
       call SetErrStat( errStat2, errMsg2, errStat, errMsg, RoutineName )
       
    !-------------------------- STARBOARD WING PROPERTIES ------------------------   
-   call ReadProps( UnIn, fileName, InitInp%InpFileData%SWnProps%NumNds, InitInp%InpFileData%SWnProps, 7, 'Starboard Wing', errStat2, errMsg2, UnEc )
+   call ReadWngProps( UnIn, fileName, InitInp%InpFileData%SWnProps%NumNds, InitInp%InpFileData%SWnProps, 7, 'Starboard Wing', errStat2, errMsg2, UnEc )
       call SetErrStat( errStat2, errMsg2, errStat, errMsg, RoutineName )    
       
    !-------------------------- PORT WING PROPERTIES ------------------------   
-   call ReadProps( UnIn, fileName, InitInp%InpFileData%PWnProps%NumNds, InitInp%InpFileData%PWnProps, 7, 'Port Wing', errStat2, errMsg2, UnEc )
+   call ReadWngProps( UnIn, fileName, InitInp%InpFileData%PWnProps%NumNds, InitInp%InpFileData%PWnProps, 7, 'Port Wing', errStat2, errMsg2, UnEc )
       call SetErrStat( errStat2, errMsg2, errStat, errMsg, RoutineName )    
      
    !-------------------------- VERTICAL STABILIZER PROPERTIES ------------------------   
