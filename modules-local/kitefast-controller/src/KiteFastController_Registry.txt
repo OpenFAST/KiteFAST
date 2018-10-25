@@ -16,6 +16,7 @@ include Registry_NWTC_Library.txt
 typedef  KiteFastController/KFC InitInputType      CHARACTER(1024) DLL_FileName    -    -       - "Name of the shared library which the super controller logic" -
 typedef  ^                  ^                      IntKi           numPylons       -    -       - "Number of pylons per wing [controller expects 2]" -
 typedef  ^                  ^                      IntKi           numFlaps        -    -       - "Number of flaps per wing [controller expects 2]" -
+typedef  ^                  ^                      DbKi            DT              -     -      - "Time step for continuous state integration & discrete state update [controller expects 0.01]" s
 # ..... InitOutput ................................................................................................................
 typedef  ^                  InitOutputType         ProgDesc        Ver             -    -       - "This module's name, version, and date"	-                                        
 # ..... Parameters ................................................................................................................

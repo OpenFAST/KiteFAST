@@ -34,9 +34,9 @@ program KiteFastController_Driver
    InitInp%numFlaps = 3
    InitInp%numPylons = 2
    InitInp%DT  = 0.01_DbKi
-   InitInp%DLL_Filename = 'libkitefastcontroller_controller.so'
+   InitInp%DLL_Filename = '/path/to/libkitefastcontroller_controller.so'
    
-   call KFC_Init(InitInp, p, InitOut, errStat, errMsg)
+   call KFC_Init(InitInp, p, InitOut, InitInp%DT, errStat, errMsg)
       print *, "KiteFastController_Driver calling KFC_Init received ErrStat=", errStat, " ErrMsg=" , trim(errMsg)
       if ( errStat >= AbortErrLev ) call Cleanup()
       ! Establish the KiteFastController inputs

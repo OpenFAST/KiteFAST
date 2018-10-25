@@ -75,10 +75,10 @@ int main(int argc, char *argv[])
     pModFlags[3] = 0;  // no KiteFAST controller
 
     // Set input file names
-    strcpy(KAD_FileName, "C:\\Dev\\makani\\kitefast_models\\simple_m600_model.inp");
-    strcpy(IfW_FileName, "C:\\Dev\\makani\\kitefast_models\\kiteInflowWind.dat");
-    strcpy(MD_FileName , "C:\\Dev\\makani\\kitefast_models\\kiteTether.dat");
-    strcpy(KFC_FileName, "Kite-controller.dll");
+    strcpy(KAD_FileName, "/path/to/simple_m600_model.inp");
+    strcpy(IfW_FileName, "/path/to/kiteInflowWind.dat");
+    strcpy(MD_FileName , "/path/to/kiteTether.dat");
+    strcpy(KFC_FileName, "/path/to/libkitefastcontroller_controller.so");
     strcpy(outFileRoot , "KiteTest");
 
 

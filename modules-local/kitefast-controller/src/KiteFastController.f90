@@ -142,11 +142,8 @@ module KiteFastController
       p%numFlaps  = InitInp%numFlaps
       p%numPylons = InitInp%numPylons
       p%DT        = interval
-      
-      
-     
-         ! Define and load the DLL:
 
+         ! Define and load the DLL:
       p%DLL_Trgt%FileName = InitInp%DLL_FileName
 
       p%DLL_Trgt%ProcName = "" ! initialize all procedures to empty so we try to load only one
@@ -158,20 +155,16 @@ module KiteFastController
          call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
       if (errStat >= AbortErrLev ) return
 
-         
          ! Now that the library is loaded, call cc_init() 
-
 
          ! Call the DLL (first associate the address from the procedure in the DLL with the subroutine):
       call C_F_PROCPOINTER( p%DLL_Trgt%ProcAddr(1), DLL_KFC_Init_Subroutine) 
       call DLL_KFC_Init_Subroutine ( errStat, errMsg_c ) 
       call c_to_fortran_string(errMsg_c, errMsg)
-      
+
       ! TODO: Check errors
-           
       if (errStat >= AbortErrLev ) return
 
-    
    end subroutine KFC_Init
 
    subroutine KFC_Step(t, u, p, y, errStat, errMsg )
