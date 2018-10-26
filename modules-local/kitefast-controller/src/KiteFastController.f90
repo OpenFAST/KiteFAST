@@ -32,7 +32,7 @@ module KiteFastController
    private
    
    integer,        parameter    :: IntfStrLen  = 1025       ! length of strings through the C interface
-   type(ProgDesc), parameter    :: KFC_Ver = ProgDesc( 'KiteFast Controller', '', '' )
+   type(ProgDesc), parameter    :: KFC_Ver = ProgDesc( 'KiteFastController', '', '' )
 
       !> Definition of the DLL Interface for the SuperController
       !! 
@@ -102,6 +102,8 @@ module KiteFastController
       call DLL_KFC_End_Subroutine ( errStat, errMsg_c ) 
       call c_to_fortran_string(errMsg_c, errMsg)
       
+      print *, " KFC_End errStat - ", errStat, " errMsg - ", trim(errMsg)
+
       ! TODO: Check errors
       
          ! Free the library
@@ -162,6 +164,8 @@ module KiteFastController
       call DLL_KFC_Init_Subroutine ( errStat, errMsg_c ) 
       call c_to_fortran_string(errMsg_c, errMsg)
 
+      print *, " KFC_Init errStat - ", errStat, " errMsg - ", trim(errMsg)
+
       ! TODO: Check errors
       if (errStat >= AbortErrLev ) return
 
@@ -219,6 +223,8 @@ module KiteFastController
       call C_F_PROCPOINTER( p%DLL_Trgt%ProcAddr(2), DLL_KFC_Step_Subroutine) 
       call DLL_KFC_Step_Subroutine ( dcm_g2b_c, pqr_c, acc_norm_c, Xg_c, Vg_c, Vb_c, Ag_c, Ab_c, rho_c, apparent_wind_c, tether_force_c, wind_g_c, kFlapA_c, Motor_c, errStat, errMsg_c ) 
       call c_to_fortran_string(errMsg_c, errMsg)
+
+      print *, " KFC_Step errStat - ", errStat, " errMsg - ", trim(errMsg)
 
          ! Convert the controller outputs into the KiteFAST Fortran-style controller outputs
       y%SFlp(1) = kFlapA_c(5)

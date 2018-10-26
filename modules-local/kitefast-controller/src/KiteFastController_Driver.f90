@@ -58,8 +58,8 @@ program KiteFastController_Driver
    y%GenSPyRtr = reshape((/ 1, 2, 3, 4 /), shape(y%GenSPyRtr))
    y%GenPPyRtr = reshape((/ 1, 2, 3, 4 /), shape(y%GenPPyRtr))
 
-   call KFC_CalcOutput(t, u, p, y, errStat, errMsg )
-      print *, "KiteFastController_Driver calling KFC_CalcOutput received ErrStat=", errStat, " ErrMsg=" , trim(errMsg)
+   call KFC_Step(t, u, p, y, errStat, errMsg )
+      print *, "KiteFastController_Driver calling KFC_Step received ErrStat=", errStat, " ErrMsg=" , trim(errMsg)
       if ( errStat >= AbortErrLev ) call Cleanup()
       ! Print the controller outputs
 
