@@ -46,7 +46,7 @@ module KiteFastController
 
    abstract interface
       subroutine KFC_DLL_Step_PROC ( dcm_g2b_c, pqr_c, acc_norm_c, Xg_c, Vg_c, Vb_c, Ag_c, Ab_c, rho_c, apparent_wind_c, &
-         tether_force_c, wind_g_c, kFlapA_c, Motor_c, errStat, errMsg )  BIND(C)
+         tether_forceb_c, wind_g_c, kFlapA_c, Motor_c, errStat, errMsg )  BIND(C)
          use, intrinsic :: ISO_C_Binding
          real(C_DOUBLE),         intent(in   ) :: dcm_g2b_c(9)      
          real(C_DOUBLE),         intent(in   ) :: pqr_c(3)          
@@ -58,7 +58,7 @@ module KiteFastController
          real(C_DOUBLE),         intent(in   ) :: Ab_c(3)           
          real(C_DOUBLE),         intent(in   ) :: rho_c          
          real(C_DOUBLE),         intent(in   ) :: apparent_wind_c(3)
-         real(C_DOUBLE),         intent(in   ) :: tether_force_c(3) 
+         real(C_DOUBLE),         intent(in   ) :: tether_forceb_c(3) 
          real(C_DOUBLE),         intent(in   ) :: wind_g_c(3) 
          real(C_DOUBLE),         intent(  out) :: kFlapA_c(10)                      
          real(C_DOUBLE),         intent(  out) :: Motor_c(8)
@@ -195,7 +195,7 @@ module KiteFastController
       real(C_DOUBLE)                                :: Ab_c(3)           
       real(C_DOUBLE)                                :: rho_c          
       real(C_DOUBLE)                                :: apparent_wind_c(3)
-      real(C_DOUBLE)                                :: tether_force_c(3) 
+      real(C_DOUBLE)                                :: tether_forceb_c(3) 
       real(C_DOUBLE)                                :: wind_g_c(3)       
       character(kind=C_CHAR)                        :: errMsg_c(IntfStrLen)
       real(C_DOUBLE)                                :: kFlapA_c(10)                   
@@ -215,13 +215,13 @@ module KiteFastController
       Ab_c            = u%Ab
       rho_c           = u%rho
       apparent_wind_c = u%apparent_wind
-      tether_force_c  = u%tether_force
+      tether_forceb_c  = u%tether_forceb
       wind_g_c        = u%wind_g
 
 
          ! Call the DLL (first associate the address from the procedure in the DLL with the subroutine):
       call C_F_PROCPOINTER( p%DLL_Trgt%ProcAddr(2), DLL_KFC_Step_Subroutine) 
-      call DLL_KFC_Step_Subroutine ( dcm_g2b_c, pqr_c, acc_norm_c, Xg_c, Vg_c, Vb_c, Ag_c, Ab_c, rho_c, apparent_wind_c, tether_force_c, wind_g_c, kFlapA_c, Motor_c, errStat, errMsg_c ) 
+      call DLL_KFC_Step_Subroutine ( dcm_g2b_c, pqr_c, acc_norm_c, Xg_c, Vg_c, Vb_c, Ag_c, Ab_c, rho_c, apparent_wind_c, tether_forceb_c, wind_g_c, kFlapA_c, Motor_c, errStat, errMsg_c ) 
       call c_to_fortran_string(errMsg_c, errMsg)
 
       print *, " KFC_Step errStat - ", errStat, " errMsg - ", trim(errMsg)
@@ -236,15 +236,24 @@ module KiteFastController
       y%Rudr(:) = kFlapA_c(10)
       y%SElv(:) = kFlapA_c(9)
       y%PElv(:) = kFlapA_c(9)   
-      y%GenSPyRtr(1,1) = Motor_c(7)  ! starboard top rotor, pylon 1 (inboard)
-      y%GenSPyRtr(2,1) = Motor_c(2)  ! starboard bottom rotor, pylon 1 (inboard)
-      y%GenSPyRtr(1,2) = Motor_c(8)  ! starboard top rotor, pylon 2 (outboard)
-      y%GenSPyRtr(2,2) = Motor_c(1)  ! starboard bottom rotor, pylon 2 (outboard)
-      y%GenPPyRtr(1,1) = Motor_c(6)  ! port top rotor, pylon 1 (inboard)
-      y%GenPPyRtr(2,1) = Motor_c(3)  ! port bottom rotor, pylon 1 (inboard)
-      y%GenPPyRtr(1,2) = Motor_c(5)  ! port top rotor, pylon 2 (outboard)
-      y%GenPPyRtr(2,2) = Motor_c(4)  ! port bottom rotor, pylon 2 (outboard)
-      
+      y%SPyRtrSpd(1,1) = Motor_c(7)  ! starboard top rotor, pylon 1 (inboard)
+      y%SPyRtrSpd(2,1) = Motor_c(2)  ! starboard bottom rotor, pylon 1 (inboard)
+      y%SPyRtrSpd(1,2) = Motor_c(8)  ! starboard top rotor, pylon 2 (outboard)
+      y%SPyRtrSpd(2,2) = Motor_c(1)  ! starboard bottom rotor, pylon 2 (outboard)
+      y%PPyRtrSpd(1,1) = Motor_c(6)  ! port top rotor, pylon 1 (inboard)
+      y%PPyRtrSpd(2,1) = Motor_c(3)  ! port bottom rotor, pylon 1 (inboard)
+      y%PPyRtrSpd(1,2) = Motor_c(5)  ! port top rotor, pylon 2 (outboard)
+      y%PPyRtrSpd(2,2) = Motor_c(4)  ! port bottom rotor, pylon 2 (outboard)
+ 
+      y%SPyRtrAcc(1,1) = Motor_c(7)  ! starboard top rotor, pylon 1 (inboard)
+      y%SPyRtrAcc(2,1) = Motor_c(2)  ! starboard bottom rotor, pylon 1 (inboard)
+      y%SPyRtrAcc(1,2) = Motor_c(8)  ! starboard top rotor, pylon 2 (outboard)
+      y%SPyRtrAcc(2,2) = Motor_c(1)  ! starboard bottom rotor, pylon 2 (outboard)
+      y%PPyRtrAcc(1,1) = Motor_c(6)  ! port top rotor, pylon 1 (inboard)
+      y%PPyRtrAcc(2,1) = Motor_c(3)  ! port bottom rotor, pylon 1 (inboard)
+      y%PPyRtrAcc(1,2) = Motor_c(5)  ! port top rotor, pylon 2 (outboard)
+      y%PPyRtrAcc(2,2) = Motor_c(4)  ! port bottom rotor, pylon 2 (outboard)
+
          ! TODO Error checking
     
    end subroutine KFC_Step
