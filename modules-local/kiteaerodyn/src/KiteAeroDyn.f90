@@ -1227,7 +1227,7 @@ subroutine Init_y(y, u, InitInp, p, errStat, errMsg)
 
       ! Starboard Wing Mesh
    alignDCM = reshape( (/0.0, -1.0, 0.0, 0.0, 0.0, 1.0, -1.0, 0.0, 0.0/), (/3,3/) )
-   call CreatePtWngLoadsMesh(InitInp%SWnOR, InitInp%InpFileData%SWnProps%NumNds-1, InitInp%InpFileData%SWnProps%Pos, alignDCM, InitInp%InpFileData%SWnProps%Dhdrl, InitInp%InpFileData%SWnProps%Twist, 2, y%SWnLoads, p%SWnElemLen, errStat2, errMsg2)
+   call CreatePtWngLoadsMesh(InitInp%SWnOR, InitInp%InpFileData%SWnProps%NumNds-1, InitInp%InpFileData%SWnProps%Pos, alignDCM, -1.0_R8Ki*InitInp%InpFileData%SWnProps%Dhdrl, InitInp%InpFileData%SWnProps%Twist, 2, y%SWnLoads, p%SWnElemLen, errStat2, errMsg2)
       call SetErrStat( errStat2, errMsg2, errStat, errMsg, RoutineName )
       if (errStat >= AbortErrLev) return
       
