@@ -1,0 +1,166 @@
+--- KiteAeroDyn 1.00.* DRIVER INPUT FILE ---
+simple_m000_model driver input file w/RotorMod = 1
+--- SIMULATION CONTROL ---
+False     Echo      ! Echo input data to <RootName>.ech? (flag)
+1.0       DTAero    ! Time interval for aerodynamic calculations (s)
+1         LiftMod   ! Lifting-line calculation model (-) (switch) {1:geometric AoA, 2:vortex method}
+1         RotorMod  ! Rotor calculation model (-) (switch) {0:none, 1:actuator disk}
+True      UseCm     ! Include aerodynamic pitching moment in calculations? (flag)
+--- ENVIRONMENTAL CONDITIONS ---
+1.225     AirDens   ! Air density (kg/m^3) [>0.0]
+1.464E-05 KinVisc   ! Kinematic air viscosity (m^2/s) [>0.0]
+335.0     SpdSound  ! Speed of sound (m/s) [>0.0]
+--- LIFTING LINE VORTEX-STEP METHOD OPTIONS --- [used only when LiftMod=2]
+2           VSMMod              ! Trailing vortices alignment model (-) (switch) {1:chord, 2: local free stream}
+"DEFAULT"   VSMToler            ! Tolerance                                    in the Newton iterations (m^2/s) [>0.0] or DEFAULT [DEFAULT=0.0001]
+"DEFAULT"   VSMMaxIter          ! Maximum number of                                   Newton iterations (-    ) [>0  ] OR DEFAULT [DEFAULT=40]
+"DEFAULT"   VSMPerturb          ! Perturbation size for computing the Jacobian in the Newton iterations (m^2/s) [>0.0] OR DEFAULT [DEFAULT=0.5]
+--- AIRFOIL INFORMATION ---
+3         AFTabMod  ! Airfoil table interpolation model (-) (switch) {1:1D on AoA, 2:2D on AoA and Re, 3:2D on AoA and Ctrl}
+1         InCol_Alpha  ! The column in the airfoil tables that contains the angle of attack          (-)
+2         InCol_Cl  ! The column in the airfoil tables that contains the lift            coefficient (-)
+3         InCol_Cd  ! The column in the airfoil tables that contains the drag            coefficient (-)
+4         InCol_Cm  ! The column in the airfoil tables that contains the pitching-moment coefficient (-) [use 0 if there is no Cm column]
+2         NumAFfile ! Number of airfoil files used
+"simple_fuselage_airfoil.dat"           AFNames   ! AFID 1
+"simple_airfoil.dat"                    AFNames   ! AFID 2
+--- FUSELAGE PROPERTIES ---
+3        NumFusNds ! Number of fuselage nodes used in the analysis (-) [>=2]
+FusX      FusY      FusZ      FusTwist  FusChord  FusAFID
+(m)       (m)       (m)       (deg)     (m)       (-)
+ 5.00     0.000     0.000     0.000     0.50     1
+ 0.00     0.000     0.000     0.000     0.50     1
+-5.00     0.000     0.000     0.000     0.50     1
+--- STARBOARD (RIGHT) WING PROPERTIES ---
+3        NumSWnNds ! Number of starboard (right) wing nodes used in the analysis (-) [>=2]
+SWnX      SWnY      SWnZ      SWnTwist  SWnChord  SWnAFID   SWnFlpID {0:none, 1:SFlp1, 2:SFlp2, ...NumFlaps}
+(m)       (m)       (m)       (deg)     (m)       (-)       (-)
+0.000     0.000     0.000     2.000    1.000     2         1
+0.000     2.500     0.000     2.000    1.000     2         1
+0.000     5.500     0.000     2.000    1.000     2         1
+--- PORT (LEFT) WING PROPERTIES ---
+3        NumPWnNds ! Number of port (left) wing nodes used in the analysis (-) [>=2]
+PWnX      PWnY      PWnZ      PWnTwist  PWnChord  PWnAFID   SWnFlpID {0:none, 1:SFlp1, 2:SFlp2, ...NumFlaps}
+(m)       (m)       (m)       (deg)     (m)       (-)       (-)
+0.000    -0.000     0.000     2.000    1.000     2         1
+0.000    -2.500     0.000     2.000    1.000     2         1
+0.000    -5.500     0.000     2.000    1.000     2         1
+--- VERTICAL STABILIZER PROPERTIES ---
+3        NumVSNds  ! Number of vertical stabilizer nodes used in the analysis (-) [>=2]
+VSX       VSY       VSZ       VSTwist   VSChord   VSAFID    VSRdrID [0:none, 1:Rudr1, 2:Rudr2]
+(m)       (m)       (m)       (deg)     (m)       (-)       (-)
+-0.00    0.000      0.000    0.000     0.500     2        1
+-0.00    0.000      1.000    0.000     0.500     2        1
+-0.00    0.000      2.000    0.000     0.500     2        1
+--- STARBOARD (RIGHT) HORIZONTAL STABILIER PROPERTIES ---
+3        NumSHSNds ! Number of starboard (right) horizontal stabilizer nodes used in the analysis (-) [>=2]
+SHSX      SHSY      SHSZ      SHSTwist  SHSChord  SHSAFID   SHSElvID  [0:none, 1:SElv1, 2:SElv2]
+(m)       (m)       (m)       (deg)     (m)       (-)       (-)
+ 0.000    0.000      0.000     -0.5     0.500     2        1
+ 0.000    0.400      0.000     -0.5     0.500     2        1
+ 0.000    0.900      0.000     -0.5     0.500     2        1
+--- PORT HORIZONTAL STABILIER PROPERTIES ---
+3        NumPHSNds ! Number of port (left) horizontal stabilizer nodes used in the analysis (-) [>=2]
+PHSX      PHSY      PHSZ      PHSTwist  PHSChord  PHSAFID   PHSElvID  [0:none, 1:PElv1, 2:PElv2]
+(m)       (m)       (m)       (deg)     (m)       (-)       (-)
+ 0.000    0.000     0.000     -0.5     0.500     2        1
+ 0.000   -0.400     0.000     -0.5     0.500     2        1
+ 0.000   -0.900     0.000     -0.5     0.500     2        1
+--- PYLON PROPERTIES ---
+3        NumPylNds ! Number of pylon nodes used in the analysis (-) [>=2]
+PylX      PylY      PylZ      PylTwist  PylChord  PylAFID
+(m)       (m)       (m)       (deg)     (m)       (-)
+0.000     0.000     -0.000     0.000     0.500     1              Pylon on starboard wing
+0.000     0.000      0.500     0.000     0.500     1
+0.000     0.000      1.00     0.000     0.500     1
+0.000    -0.000     -0.000     0.000     0.500     1              Pylon on port wing
+0.000    -0.000      0.500     0.000     0.500     1
+0.000    -0.000      1.000     0.000     0.500     1
+--- ROTOR PROPERTIES ---
+RtrRad    RtrInFile
+(m)       (string)
+1.00      "simple_actuator_disk.dat"          ! Starboard Top
+1.00      "simple_actuator_disk.dat"          ! Starboard Bottom
+1.00      "simple_actuator_disk2.dat"         ! Port Top
+1.00      "simple_actuator_disk2.dat"         ! Port Bottom
+--- OUTPUT ---
+True                             SumPrint           Print summary data to <RootName>.sum? (flag)
+2                                OutSwtch           Output requested channels to? (-) (switch) {1=KiteAeroDyn.out, 2=GlueCode.out, 3=both files]
+"ES10.3E2"                       OutFmt             Format used for text tabular output, excluding the time channel; resulting field should be 10 characters (string)
+2                                NFusOuts           Number of fuselage                        node outputs (-) [0 to 9]
+1,2                              FusOutNd           List of fuselage                        nodes whose values will be output (-) [1 to NFusOuts] [unused for NFusOuts=0]
+2                                NSWnOuts           Number of starboard wing                  node outputs (-) [0 to 9]
+1,2                              SWnOutNd           List of starboard wing                  nodes whose values will be output (-) [1 to NSWnOuts] [unused for NSWnOuts=0]
+2                                NPWnOuts           Number of port wing                       node outputs (-) [0 to 9]
+1,2                              PWnOutNd           List of port wing                       nodes whose values will be output (-) [1 to NPWnOuts] [unused for NPWnOuts=0]
+2                                NVSOuts            Number of vertical stabilizer             node outputs (-) [0 to 9]
+1,2                              VSOutNd            List of vertical stabilizer             nodes whose values will be output (-) [1 to NVSOuts ] [unused for NVSOuts =0]
+2                                NSHSOuts           Number of starboard horizontal stabilizer node outputs (-) [0 to 9]
+1,2                              SHSOutNd           List of starboard horizontal stabilizer nodes whose values will be output (-) [1 to NSHSOuts] [unused for NSHSOuts=0]
+2                                NPHSOuts           Number of port horizontal stabilizer      node outputs (-) [0 to 9]
+1,2                              PHSOutNd           List of port horizontal stabilizer      nodes whose values will be output (-) [1 to NPHSOuts] [unused for NPHSOuts=0]
+2                                NPylOuts           Number of pylon node outputs (-) [0 to 9]
+1,2                              PylOutNd           List of pylon nodes whose values will be output (-) [1 to NPylOuts] [unused for NPylOuts=0]
+OutList            The next line(s) contains a list of output parameters.  See OutListParameters.xlsx for a listing of available output channels (quoted string)
+"KiteFxi, KiteFyi, KiteFzi, KiteMxi, KiteMyi, KiteMzi"                                                    Integerated Kite Loads
+"SP1TSkew, SP1TRtSpd, SP1TVRel, SP1TCp, SP1TCq, SP1TCt, SP1TFx, SP1TFy, SP1TFz, SP1TMx, SP1TMy, SP1TMz, SP1TPwr"  Starboard Pylon 1 Top rotor
+"SP1BSkew, SP1BRtSpd, SP1BVRel, SP1BCp, SP1BCq, SP1BCt, SP1BFx, SP1BFy, SP1BFz, SP1BMx, SP1BMy, SP1BMz, SP1BPwr"  Starboard Pylon 1 Bottom rotor
+"PP1TSkew, PP1TRtSpd, PP1TVRel, PP1TCp, PP1TCq, PP1TCt, PP1TFx, PP1TFy, PP1TFz, PP1TMx, PP1TMy, PP1TMz, PP1TPwr"  Port      Pylon 1 Top rotor
+"PP1BSkew, PP1BRtSpd, PP1BVRel, PP1BCp, PP1BCq, PP1BCt, PP1BFx, PP1BFy, PP1BFz, PP1BMx, PP1BMy, PP1BMz, PP1BPwr"  Port      Pylon 1 Bottom rotor
+"Fus1Alpha, Fus2Alpha, Fus3Alpha"          All the Fus Alphas
+"SWn1Alpha, SWn2Alpha, SWn3Alpha"          All the SWn Alphas
+"PWn1Alpha, PWn2Alpha, PWn3Alpha"           All the PWn Alphas
+"VS1Alpha, VS2Alpha, VS3Alpha"          All the VS Alphas
+"PHS1Alpha, PHS2Alpha, PHS3Alpha"           All the PHS Alphas
+"SHS1Alpha, SHS2Alpha, SHS3Alpha"          All the SHS Alphas
+"SP11Alpha, SP12Alpha, SP13Alpha"          All the SP1 Alphas
+"PP11Alpha, PP12Alpha, PP13Alpha"          All the PP1 Alphas
+"Fus1Vrel, Fus2Vrel, Fus3Vrel"          All the Fus Vrels
+"SWn1Vrel, SWn2Vrel, SWn3Vrel"          All the SWn Vrels
+"PWn1Vrel, PWn2Vrel, PWn3Vrel"           All the PWn Vrels
+"VS1Vrel, VS2Vrel, VS3Vrel"          All the VS Vrels
+"SHS1Vrel, SHS2Vrel, SHS3Vrel"          All the SHS Vrels
+"PHS1Vrel, PHS2Vrel, PHS3Vrel"           All the PHS Vrels
+"SP11Vrel, SP12Vrel, SP13Vrel"          All the SP1 Vrels
+"PP11Vrel, PP12Vrel, PP13Vrel"          All the PP1 Vrels
+"Fus1VIndn, Fus2VIndn, Fus3VIndn"          All the Fus VIndns
+"SWn1VIndn, SWn2VIndn, SWn3VIndn"          All the SWn VIndns
+"PWn1VIndn, PWn2VIndn, PWn3VIndn"           All the PWn VIndns
+"VS1VIndn, VS2VIndn, VS3VIndn"          All the VS VIndns
+"SHS1VIndn, SHS2VIndn, SHS3VIndn"          All the SHS VIndns
+"PHS1VIndn, PHS2VIndn, PHS3VIndn"           All the PHS VIndns
+"SP11VIndn, SP12VIndn, SP13VIndn"          All the SP1 VIndns
+"PP11VIndn, PP12VIndn, PP13VIndn"          All the PP1 VIndns
+"Fus1VIndc, Fus2VIndc, Fus3VIndc"          All the Fus VIndcs
+"SWn1VIndc, SWn2VIndc, SWn3VIndc"          All the SWn VIndcs
+"PWn1VIndc, PWn2VIndc, PWn3VIndc"           All the PWn VIndcs
+"VS1VIndc, VS2VIndc, VS3VIndc"          All the VS VIndcs
+"SHS1VIndc, SHS2VIndc, SHS3VIndc"          All the SHS VIndcs
+"PHS1VIndc, PHS2VIndc, PHS3VIndc"           All the PHS VIndcs
+"SP11VIndc, SP12VIndc, SP13VIndc"          All the SP1 VIndcs
+"PP11VIndc, PP12VIndc, PP13VIndc"          All the PP1 VIndcs
+"Fus1VInds, Fus2VInds, Fus3VInds"          All the Fus VIndss
+"SWn1VInds, SWn2VInds, SWn3VInds"          All the SWn VIndss
+"PWn1VInds, PWn2VInds, PWn3VInds"           All the PWn VIndss
+"VS1VInds, VS2VInds, VS3VInds"          All the VS VIndss
+"SHS1VInds, SHS2VInds, SHS3VInds"          All the SHS VIndss
+"PHS1VInds, PHS2VInds, PHS3VInds"           All the PHS VIndss
+"SP11VInds, SP12VInds, SP13VInds"          All the SP1 VIndss
+"PP11VInds, PP12VInds, PP13VInds"          All the PP1 VIndss
+"Fus1Cl, Fus2Cl, Fus3Cl"          All the Fus Cls
+"SWn1Cl, SWn2Cl, SWn3Cl"          All the SWn Cls
+"PWn1Cl, PWn2Cl, PWn3Cl"           All the PWn Cls
+"VS1Cl, VS2Cl, VS3Cl"          All the VS Cls
+"SHS1Cl, SHS2Cl, SHS3Cl"          All the SHS Cls
+"PHS1Cl, PHS2Cl, PHS3Cl"           All the PHS Cls
+"SP11Cl, SP12Cl, SP13Cl"          All the SP1 Cls
+"PP11Cl, PP12Cl, PP13Cl"          All the PP1 Cls
+"Fus1Cd, Fus2Cd, Fus3Cd"          All the Fus Cds
+"SWn1Cd, SWn2Cd, SWn3Cd"          All the SWn Cds
+"PWn1Cd, PWn2Cd, PWn3Cd"           All the PWn Cds
+"VS1Cd, VS2Cd, VS3Cd"          All the VS Cds
+"SHS1Cd, SHS2Cd, SHS3Cd"          All the SHS Cds
+"PHS1Cd, PHS2Cd, PHS3Cd"           All the PHS Cds
+"SP11Cd, SP12Cd, SP13Cd"          All the SP1 Cds
+"PP11Cd, PP12Cd, PP13Cd"          All the PP1 Cds
+END of input file (the word "END" must appear in the first 3 columns of this last OutList line)
