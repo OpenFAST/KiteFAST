@@ -39,3 +39,14 @@ vs-build/*
 # ide and system specific directories and files
 .DS_Store
 .vscode
+
+# mbdyn and kitefast output
+*.act
+*.frc
+*.ine
+*.jnt
+*.log
+*.mov
+*.out
+*.sum
+
