@@ -70,6 +70,7 @@ install_if_not_found "cmake"
 install_if_not_found "libblas-dev" # blas math library
 install_if_not_found "liblapack-dev" # lapack math library
 install_if_not_found "libltdl-dev" # libltdl headers, used in mbdyn for linking
+install_if_not_found "libgsl-dev" # used in the STI controller
 
 # remove lingering packages
 sudo apt-get autoremove
