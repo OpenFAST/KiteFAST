@@ -1,11 +1,11 @@
-#include "crosswind_frame.h"
+#include "control/crosswind/crosswind_frame.h"
 
 #include <math.h>
 
-#include "geometry.h"
-#include "mat3.h"
-#include "util.h"
-#include "vec3.h"
+#include "common/c_math/geometry.h"
+#include "common/c_math/mat3.h"
+#include "common/c_math/util.h"
+#include "common/c_math/vec3.h"
 
 void CalcDcmGToCw(const Vec3 *path_center_g, Mat3 *dcm_g2cw) {
   Vec3 ex = *path_center_g, ey, ez;

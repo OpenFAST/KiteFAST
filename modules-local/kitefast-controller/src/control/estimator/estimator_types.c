@@ -1,4 +1,4 @@
-#include "estimator_types.h"
+#include "control/estimator/estimator_types.h"
 
 #include <assert.h>
 #include <stdbool.h>

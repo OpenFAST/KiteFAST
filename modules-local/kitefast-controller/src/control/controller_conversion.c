@@ -1,9 +1,9 @@
-#include "controller_conversion.h"
+#include "control/controller_conversion.h"
 
-#include "mat3.h"
-#include "vec3.h"
-#include "control_types.h"
-#include "estimator_types.h"
+#include "common/c_math/mat3.h"
+#include "common/c_math/vec3.h"
+#include "control/control_types.h"
+#include "control/estimator/estimator_types.h"
 
 void AssignInputs(double dcm_g2b_c[], double pqr_c[], double *acc_norm_c,
 	double Xg_c[], double Vg_c[], double Vb_c[], double Ag_c[],
@@ -11,8 +11,6 @@ void AssignInputs(double dcm_g2b_c[], double pqr_c[], double *acc_norm_c,
 	double tether_force_c[], double wind_g_c[],
 	double kFlapA_c[], double Motor_c[],
 	int *errStat, char *errMsg, StateEstimate* state_est){
-
-
 
 	//dcm_2gb - convert and copy value into state_est->dcm_g2b
 	Mat3 dcm_g2b_tmp = { { { dcm_g2b_c[0], dcm_g2b_c[1], dcm_g2b_c[2] },

@@ -1,9 +1,9 @@
-#include "controller_util.h"
+#include "control/controller_util.h"
 
 
-#include "filter.h"
-#include "mat2.h"
-#include "vec2.h"
+#include "common/c_math/filter.h"
+#include "common/c_math/mat2.h"
+#include "common/c_math/vec2.h"
 #include <math.h>
 #include <stdio.h>
 #include <string.h>

@@ -315,12 +315,12 @@ joint: lrot2_node, revolute hinge,
       1,
       1,
       0,
-      0,
+      1,
     fast_submodule_input_files,
       "simple_m000_model_AD.txt", # kiteaerodyn
       "kiteInflowWind.dat", # inflow wind
       "kiteTether.dat", # moordyn
-      "", # controller
+      "/home/makani/Desktop/sandbox/build/modules-local/kitefast-controller/libkitefastcontroller_controller.so", # controller
     output_file_root,
       "KiteFast",
     initial_time,

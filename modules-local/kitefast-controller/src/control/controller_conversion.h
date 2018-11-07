@@ -5,7 +5,7 @@
 
 //#include "common\c_math\vec3.h"
 //#include "c_math/vec3.h"
-#include "control_types.h"
+#include "control/control_types.h"
 
 void AssignInputs(double dcm_g2b_c[], double pqr_c[], double *acc_norm_c,
 	double Xg_c[], double Vg_c[], double Vb_c[], double Ag_c[],

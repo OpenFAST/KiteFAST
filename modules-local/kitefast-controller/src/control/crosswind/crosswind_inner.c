@@ -1,4 +1,4 @@
-#include "crosswind_inner.h"
+#include "control/crosswind/crosswind_inner.h"
 
 #include <assert.h>
 #include <math.h>
@@ -7,17 +7,17 @@
 #include <stdint.h>
 #include <string.h>
 
-#include "filter.h"
-#include "mat2.h"
-#include "util.h"
-#include "vec2.h"
-#include "vec3.h"
-#include "macros.h"
+#include "common/c_math/filter.h"
+#include "common/c_math/mat2.h"
+#include "common/c_math/util.h"
+#include "common/c_math/vec2.h"
+#include "common/c_math/vec3.h"
+#include "common/macros.h"
 //#include "../actuator_util.h"
 //#include "../control_telemetry.h"
-#include "crosswind_util.h"
-#include "system_params.h"
-#include "system_types.h"
+#include "control/crosswind/crosswind_util.h"
+#include "control/system_params.h"
+#include "control/system_types.h"
 
 // Schedules the longitudinal gains based on airspeed.
 static void ScheduleLongitudinalGains(
@@ -473,7 +473,7 @@ static void ControlLateral(double tether_roll_cmd, double tether_roll,
   RateLimit(exp_config->enable_alternate_gains ? 1.0 : 0.0,
             -params->alt_gain_fade_rate, params->alt_gain_fade_rate, *g_sys.ts,
             alt_lateral_gains_0);
-
+printf("im in control Lateral!/n ");
   ScheduleLateralGains(airspeed, *alt_lateral_gains_0, params, lateral_gains);
 
   // Apply feedback law to determine the aileron, rudder, and motor

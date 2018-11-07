@@ -1,6 +1,6 @@
 
 #include "KiteFastController.h"
-#include "kfc.h"
+#include "control/kfc.h"
 
 void kfc_dll_init(int *errStat, char *errMsg)
 {

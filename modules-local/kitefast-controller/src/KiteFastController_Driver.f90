@@ -34,7 +34,7 @@ program KiteFastController_Driver
    InitInp%numFlaps = 3
    InitInp%numPylons = 2
    InitInp%DT  = 0.01_DbKi
-   InitInp%DLL_Filename = '/path/to/libkitefastcontroller_controller.so'
+   InitInp%DLL_Filename = '/home/makani/Desktop/sandbox/build/modules-local/kitefast-controller/libkitefastcontroller_controller.so'
    
    call KFC_Init(InitInp, p, InitOut, InitInp%DT, errStat, errMsg)
       print *, "KiteFastController_Driver calling KFC_Init received ErrStat=", errStat, " ErrMsg=" , trim(errMsg)

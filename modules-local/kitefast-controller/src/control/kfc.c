@@ -1,10 +1,9 @@
-#include "kfc.h"
-#include "crosswind.h"
-#include "controller_conversion.h"
-#include "controller_util.h"
-#include "crosswind_types.h"
-#include "control_types.h"
-#include "control_test.h"
+#include "control/kfc.h"
+#include "control/crosswind/crosswind.h"
+#include "control/controller_conversion.h"
+#include "control/controller_util.h"
+#include "control/crosswind/crosswind_types.h"
+#include "control/control_types.h"
 
 void controller_init(int *errStat, char *errMsg)
 {
@@ -34,16 +33,6 @@ void controller_step(double dcm_g2b_c[], double pqr_c[], double *acc_norm_c,
 					 int *errStat, char *errMsg)
 {
 	printf("   controller_step\n");
-	// this portion was for testing. no longer required
-	/*	
-	dcm_g2b_c[0] = 0.123;
-	dcm_g2b_c[1] = 1.234;
- 	dcm_g2b_c[2] = 2.345;
-	printf("KiteFastController_Controller in controller_step(test #28) - last baddie  retest \n");
-	printf("printing outside of control_test - dcm_g2b = [ ");
-	printf("%f, %f, %f ]\n",dcm_g2b_c[0], dcm_g2b_c[1], dcm_g2b_c[2]);
-	control_test(dcm_g2b_c); // this is a function to test functionality of c_math
-	*/
 
 	// this portion should be done in controller_init()
 	ControlParams params; // placeholder to avoid errors

@@ -1,4 +1,4 @@
-#include "crosswind_types.h"
+#include "control/crosswind/crosswind_types.h"
 
 #include <assert.h>
 #include <stdbool.h>

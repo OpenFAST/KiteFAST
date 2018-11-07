@@ -1,17 +1,17 @@
-#include "crosswind_util.h"
+#include "control/crosswind/crosswind_util.h"
 #include <assert.h>
 #include <float.h>
 #include <math.h>
 #include <stddef.h>
 
-#include "geometry.h"
-#include "quaternion.h"
-#include "util.h"
-#include "crosswind_frame.h"
-#include "sensor_util.h"
-#include "sensor_types.h"
-#include "system_params.h"
-#include "system_types.h"
+#include "common/c_math/geometry.h"
+#include "common/c_math/quaternion.h"
+#include "common/c_math/util.h"
+#include "control/crosswind/crosswind_frame.h"
+#include "control/sensor_util.h"
+#include "control/sensor_types.h"
+#include "control/system_params.h"
+#include "control/system_types.h"
 
 double CalcCurvature(const Vec3 *acc_b, const Vec3 *vel_b) {
   assert(acc_b != NULL && vel_b != NULL);

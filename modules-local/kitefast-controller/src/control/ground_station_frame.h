@@ -1,9 +1,9 @@
 #ifndef CONTROL_GROUND_STATION_FRAME_H_
 #define CONTROL_GROUND_STATION_FRAME_H_
 
-#include "mat3.h"
-#include "vec3.h"
-#include "system_types.h"
+#include "common/c_math/mat3.h"
+#include "common/c_math/vec3.h"
+#include "control/system_types.h"
 
 #ifdef __cplusplus
 extern "C" {

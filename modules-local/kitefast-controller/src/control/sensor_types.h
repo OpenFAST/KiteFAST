@@ -7,8 +7,8 @@
 //#include "avionics/common/novatel_types.h"
 //#include "avionics/common/plc_messages.h"
 //#include "avionics/network/aio_labels.h"
-#include "vec3.h"
-#include "labels.h"
+#include "common/c_math/vec3.h"
+#include "system/labels.h"
 
 typedef struct {
   double v;      // Airspeed [m/s] (always non-negative).

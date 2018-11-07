@@ -1,11 +1,11 @@
-#include "tether_util.h"
+#include "control/tether_util.h"
 
 #include <assert.h>
 #include <math.h>
 #include <stdbool.h>
 #include <stddef.h>
 
-#include "util.h"
+#include "common/c_math/util.h"
 
 // TODO(kennyjensen): Remove arbitrary 1e-6.
 void TensionAndPointToParabola(double tension_x, double r, double h, double mu,

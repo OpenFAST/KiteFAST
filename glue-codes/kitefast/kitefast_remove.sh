@@ -2,7 +2,7 @@
 
 ### configuration
 
-source_code_parent_directory="/home/raf/Desktop/"
+source_code_parent_directory="/home/makani/Desktop/"
 if [ ! -d $source_code_parent_directory ]; then
   echo "source_code_parent_directory does not exist as given: "$source_code_parent_directory
   exit 1
@@ -15,7 +15,7 @@ if [ ! -d $mbdyn_directory ]; then
   exit 1
 fi
 
-openfast_directory=$source_code_parent_directory"/nrel_source/"
+openfast_directory=$source_code_parent_directory"/sandbox/"
 if [ ! -d $openfast_directory ]; then
   echo "openfast_directory does not exist as given: "$openfast_directory
   exit 1

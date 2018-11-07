@@ -1,7 +1,7 @@
 #ifndef CONTROL_SYSTEM_PARAMS_H_
 #define CONTROL_SYSTEM_PARAMS_H_
 
-#include "system_types.h"
+#include "control/system_types.h"
 
 typedef struct {
   const double *ts;

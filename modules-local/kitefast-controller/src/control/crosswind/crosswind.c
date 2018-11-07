@@ -1,32 +1,32 @@
-#include "crosswind.h"
+#include "control/crosswind/crosswind.h"
 
 #include <assert.h>
 #include <math.h>
 #include <stdbool.h>
 #include <string.h>
 
-#include "geometry.h"
-#include "util.h"
-#include "vec3.h"
-#include "macros.h"
+#include "common/c_math/geometry.h"
+#include "common/c_math/util.h"
+#include "common/c_math/vec3.h"
+#include "common/macros.h"
 //#include "../actuator_util.h"
 //#include "../common.h"
-#include "control_params.h"
+#include "control/control_params.h"
 //#include "../control_telemetry.h"
-#include "control_types.h"
+#include "control/control_types.h"
 //#include "crosswind_curvature.h"
 //#include "crosswind_frame.h"
-#include "crosswind_inner.h"
+#include "control/crosswind/crosswind_inner.h"
 //#include "crosswind_mode.h"
 //#include "crosswind_output.h"
 //#include "crosswind_path.h"
 //#include "crosswind_power.h"
-#include "crosswind_types.h"
-#include "crosswind_util.h"
+#include "control/crosswind/crosswind_types.h"
+#include "control/crosswind/crosswind_util.h"
 //#include "../sensor_util.h"
-#include "simple_aero.h"
-#include "system_params.h"
-#include "system_types.h"
+#include "control/simple_aero.h"
+#include "control/system_params.h"
+#include "control/system_types.h"
 
 void CrosswindInit(const StateEstimate *state_est, const double *flaps_z1,
                    double previous_detwist_loop_angle,
@@ -313,7 +313,7 @@ path_center_g.z = -296.9814;// Added - jmiller
       &state->experimental_crosswind.current_config, &params->inner,
       &state->inner, lateral_gains, &deltas, &thrust_moment);
 
-
+printf("finished crosswind inner step!");
   //// Convert control variables to actuator commands.
   //CrosswindOutputStep(params->loop_dir, loop_angle, flaring, &thrust_moment,
   //                    &deltas, state_est, &path_center_g, &params->output,
