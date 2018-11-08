@@ -69,13 +69,18 @@ include_directories(
 add_library(kitefastcontroller_controller SHARED ${DYLIB_SOURCES})
 target_link_libraries(kitefastcontroller_controller C_MATH ${GSL_LIBRARIES})
 
+# kitefastcontroller-testexe
+set(TESTEXE_SOURCES src/main.c src/KiteFastController.c)
+add_executable(kitefastcontroller_testexe ${TESTEXE_SOURCES})
+target_link_libraries(kitefastcontroller_testexe kitefastcontroller_controller)
+
 # kitefastcontroller-driver
 set(DRIVER_SOURCES src/KiteFastController_Driver.f90)
 add_executable(kitefastcontroller_driver ${DRIVER_SOURCES})
 target_link_libraries(kitefastcontroller_driver kitefastcontroller_controller kitefastcontrollerlib ${CMAKE_DL_LIBS})
 
 # installation
-install(TARGETS kitefastcontrollerlib kitefastcontroller_controller kitefastcontroller_driver C_MATH
+install(TARGETS kitefastcontrollerlib kitefastcontroller_controller kitefastcontroller_driver C_MATH kitefastcontroller_testexe
   EXPORT "${CMAKE_PROJECT_NAME}Libraries"
   RUNTIME DESTINATION bin
   LIBRARY DESTINATION lib
