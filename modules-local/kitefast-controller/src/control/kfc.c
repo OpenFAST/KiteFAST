@@ -10,14 +10,15 @@ void controller_init(int *errStat, char *errMsg)
 	printf("   controller_init\n");
 
 	// Controller Version Number
-	const char controllerVerNumber[] = "0.0.1"; // major.minor[maintenance]
+	const char controllerVerNumber[] = "0.0.1"; // major.minor.[maintenance]
+	printf("   controller_version: %s \n", controllerVerNumber);
 
 	//ControlParams *params; // placeholder to avoid errors
 	//loadcontroller(params);
 
 	//initalize parameters here!! (outputs)
 	//CrosswindInit(state_est, flaps_z1, 0.0, 0, &params->crosswind, &state->crosswind);
-	char tmp[] = "controller initializing";
+	char tmp[] = "   controller initializing";
 	int i;
 	for (i = 0; i < sizeof(tmp); i++)
 	{
@@ -33,7 +34,6 @@ void controller_step(double dcm_g2b_c[], double pqr_c[], double *acc_norm_c,
 					 int *errStat, char *errMsg)
 {
 	printf("   controller_step\n");
-
 	// this portion should be done in controller_init()
 	ControlParams params; // placeholder to avoid errors
 	StateEstimate state_est; // placeholder to avoid errors
@@ -57,17 +57,17 @@ void controller_step(double dcm_g2b_c[], double pqr_c[], double *acc_norm_c,
 	// params -> struct ControlParams
 	// state -> struct ControlState
 	// control_output -> struct ControlOutput
-
+	printf("   debug marker - pre crosswindstep \n");
 	CrosswindStep(&flight_status, &state_est, &params.crosswind,
 				  &state.crosswind, &raw_control_output);
 
-	printf("CrosswindStep Finished!");
+	printf("   debug marker - post crosswindstep \n");
 	//void CrosswindStep(const FlightStatus *flight_status,
 	//	const StateEstimate *state_est,
 	//	const CrosswindParams *params, CrosswindState *state,
 	//	ControlOutput *control_output) {
 
-	char tmp[] = "controller stepping";
+	char tmp[] = "   controller stepping";
 	int i;
 	for (i = 0; i < sizeof(tmp); i++)
 	{

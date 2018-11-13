@@ -171,6 +171,7 @@ void CrosswindStep(const FlightStatus *flight_status,
                    const StateEstimate *state_est,
                    const CrosswindParams *params, CrosswindState *state,
                    ControlOutput *control_output) {
+  printf("    crosswindstep \n");
   CrosswindFlags flags;
   //GetFlags(state_est, flight_status->flight_mode, state->power.path_type, &flags);
 
@@ -303,7 +304,7 @@ path_center_g.z = -296.9814;// Added - jmiller
 	beta_cmd	 = -0.0256;	   // added by JMiller - STI
 	dCL_cmd 	 = -0.0025;	   // added by JMiller - STI
 	tether_roll_cmd = 0.0; // added by JMiller - STI
-
+printf("    debug marker - pre crosswind_inner \n");
   CrosswindInnerStep(
       tether_roll_cmd, tether_roll, alpha_cmd,
       state_est->apparent_wind.sph_f.alpha, dCL_cmd, beta_cmd,
@@ -313,7 +314,7 @@ path_center_g.z = -296.9814;// Added - jmiller
       &state->experimental_crosswind.current_config, &params->inner,
       &state->inner, lateral_gains, &deltas, &thrust_moment);
 
-printf("finished crosswind inner step!");
+printf("    debug marker - post crosswind_inner \n");
   //// Convert control variables to actuator commands.
   //CrosswindOutputStep(params->loop_dir, loop_angle, flaring, &thrust_moment,
   //                    &deltas, state_est, &path_center_g, &params->output,

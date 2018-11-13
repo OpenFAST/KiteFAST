@@ -1542,9 +1542,9 @@ subroutine KFAST_Init(dt_c, numFlaps, numPylons, numComp, numCompNds, modFlags, 
    if ( modFlags(4) > 0 ) then
       p%useKFC = .true.
          ! Validate some of the input data
-      if ( numFlaps /=  3 )  call SetErrStat( ErrID_FATAL, "Due to the Controller interface requirements, numFlaps must be set to 3", errStat, errMsg, routineName )
-      if ( numPylons /=  2 ) call SetErrStat( ErrID_FATAL, "Due to the Controller interface requirements, numPylons must be set to 2", errStat, errMsg, routineName )
-      if ( .not. EqualRealNos(REAL(dt, DbKi) ,0.01_DbKi) )  call SetErrStat( ErrID_FATAL, "Due to the Controller requirements, dt must be set to 0.01", errStat, errMsg, routineName )
+   !   if ( numFlaps /=  3 )  call SetErrStat( ErrID_FATAL, "Due to the Controller interface requirements, numFlaps must be set to 3", errStat, errMsg, routineName )
+   !   if ( numPylons /=  2 ) call SetErrStat( ErrID_FATAL, "Due to the Controller interface requirements, numPylons must be set to 2", errStat, errMsg, routineName )
+   !   if ( .not. EqualRealNos(REAL(dt, DbKi) ,0.01_DbKi) )  call SetErrStat( ErrID_FATAL, "Due to the Controller requirements, dt must be set to 0.01", errStat, errMsg, routineName )
    else
       p%useKFC = .false.
    end if
@@ -2124,50 +2124,7 @@ subroutine KFAST_AssRes(t_c, isInitialTime_c, numRtSpdRtrElem_c, RtSpd_PyRtr_c, 
             return
          end if
    end if
-   
-! -------------------------------------------------------------------------
-! Controller
-! -------------------------------------------------------------------------      
-   
-   if (OtherSt%NewTime) then
-      
-      if ( p%useKFC ) then         
-! TODO: Need to work out how we generate a controller output signal for the very first timestep (t=0.0)
-         
-            ! NOTE: The controller is stepping from t (GetXPrev in MBDyn) to t+dt (GetXCur in MBDyn)
-            !       therefore, all inputs to KFC needs to be at time, t.
-         m%KFC%u%dcm_g2b       = matmul(FusODCM_prev, transpose(p%DCM_Fast2Ctrl))
-         m%KFC%u%pqr           = matmul(FusODCM_prev, FusOomegas_prev)
-         m%KFC%u%acc_norm      = TwoNorm(FusOacc_prev)
-         m%KFC%u%Xg            = FusO_prev - p%anchorPt
-         m%KFC%u%Xg            = matmul(p%DCM_Fast2Ctrl, m%KFC%u%Xg)
-         m%KFC%u%Vg            = matmul(p%DCM_Fast2Ctrl, FusOv_prev)
-         m%KFC%u%Vb            = matmul(FusODCM_prev, FusOv_prev)
-         m%KFC%u%Ag            = matmul(p%DCM_Fast2Ctrl, FusOacc_prev)
-         m%KFC%u%Ab            = matmul(FusODCM_prev, FusOacc_prev)
-         m%KFC%u%rho           = p%AirDens
-         if ( isInitialTime > 0 ) then
-            m%KFC%u%apparent_wind = m%IfW%y%VelocityUVW(:,2) - FusOv_prev
-         else
-            m%KFC%u%apparent_wind = m%IfW_FusO_prev - FusOv_prev
-         end if
-         m%KFC%u%apparent_wind = matmul(p%DCM_Fast2Ctrl, m%KFC%u%apparent_wind)
-        ! m%KFC%u%tether_force  = 0 
-         m%KFC%u%wind_g        = matmul(p%DCM_Fast2Ctrl, m%IfW_ground_prev)
-      
-         call KFC_Step(utimes(1), m%KFC%u, m%KFC%p, m%KFC%y, errStat2, errMsg2 )
-            call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
-         if (errStat >= AbortErrLev ) then
-            call TransferErrors(errStat, errMsg, errStat_c, errMsg_c)
-            return
-         end if
-      
-      end if
-      
-      OtherSt%NewTime = .false. ! only call the controller once per timestep
-      
-   end if
-  
+
 ! -------------------------------------------------------------------------
 ! MoorDyn
 ! ------------------------------------------------------------------------- 
@@ -2211,15 +2168,12 @@ subroutine KFAST_AssRes(t_c, isInitialTime_c, numRtSpdRtrElem_c, RtSpd_PyRtr_c, 
             call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
 
       if ( isInitialTime < 1 ) then
-         
-         print *, "Beginning MD_UpdateStates" 
          call MD_UpdateStates( utimes(1), n, m%MD%u, utimes, m%MD%p, m%MD%x_copy, m%MD%xd, m%MD%z, m%MD%OtherSt, m%MD%m, errStat2, errMsg2 )
             call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
                if (errStat >= AbortErrLev ) then
                   call TransferErrors(errStat, errMsg, errStat_c, errMsg_c)
                   return
                end if
-         print *, "Finished MD_UpdateStates"
       end if
 
 !print *, "Beginning MD_CalcOutput"  
@@ -2234,8 +2188,8 @@ subroutine KFAST_AssRes(t_c, isInitialTime_c, numRtSpdRtrElem_c, RtSpd_PyRtr_c, 
          call TransferErrors(errStat, errMsg, errStat_c, errMsg_c)
          return
       end if
-print *, "Finished MD_CalcOutput" 
-print *, "m%MD%y%PtFairLeadLoad%Force(1,1): "//trim(num2lstr(m%MD%y%PtFairLeadLoad%Force(1,1)))//", m%MD%y%PtFairLeadLoad%Force(2,1): "//trim(num2lstr(m%MD%y%PtFairLeadLoad%Force(2,1)))//", m%MD%y%PtFairLeadLoad%Force(3,1): "//trim(num2lstr(m%MD%y%PtFairLeadLoad%Force(3,1)))
+!print *, "Finished MD_CalcOutput" 
+!print *, "m%MD%y%PtFairLeadLoad%Force(1,1): "//trim(num2lstr(m%MD%y%PtFairLeadLoad%Force(1,1)))//", m%MD%y%PtFairLeadLoad%Force(2,1): "//trim(num2lstr(m%MD%y%PtFairLeadLoad%Force(2,1)))//", m%MD%y%PtFairLeadLoad%Force(3,1): "//trim(num2lstr(m%MD%y%PtFairLeadLoad%Force(3,1)))
 !print *, "m%MD%y%PtFairLeadLoad%Force(1,2): "//trim(num2lstr(m%MD%y%PtFairLeadLoad%Force(1,2)))//", m%MD%y%PtFairLeadLoad%Force(2,2): "//trim(num2lstr(m%MD%y%PtFairLeadLoad%Force(2,2)))//", m%MD%y%PtFairLeadLoad%Force(3,2): "//trim(num2lstr(m%MD%y%PtFairLeadLoad%Force(3,2)))
 !print *, "m%MD%y%PtFairLeadLoad%Moment(1,1): "//trim(num2lstr(m%MD%y%PtFairLeadLoad%Moment(1,1)))//", m%MD%y%PtFairLeadLoad%Moment(2,1): "//trim(num2lstr(m%MD%y%PtFairLeadLoad%Moment(2,1)))//", m%MD%y%PtFairLeadLoad%Moment(3,1): "//trim(num2lstr(m%MD%y%PtFairLeadLoad%Moment(3,1)))
 !print *, "m%MD%y%PtFairLeadLoad%Moment(1,2): "//trim(num2lstr(m%MD%y%PtFairLeadLoad%Moment(1,2)))//", m%MD%y%PtFairLeadLoad%Moment(2,2): "//trim(num2lstr(m%MD%y%PtFairLeadLoad%Moment(2,2)))//", m%MD%y%PtFairLeadLoad%Moment(3,2): "//trim(num2lstr(m%MD%y%PtFairLeadLoad%Moment(3,2)))  
@@ -2243,8 +2197,13 @@ print *, "m%MD%y%PtFairLeadLoad%Force(1,1): "//trim(num2lstr(m%MD%y%PtFairLeadLo
 !m%MD%y%PtFairLeadLoad%Force(:,2)=0.0_ReKi
    end if
    
+        
+! -------------------------------------------------------------------------
+! Controller
+! -------------------------------------------------------------------------      
+   if (OtherSt%NewTime) then
       
-      if ( p%useKFC ) then         
+      if ( p%useKFC ) then 
 ! TODO: Need to work out how we generate a controller output signal for the very first timestep (t=0.0)
          
             ! NOTE: The controller is stepping from t (GetXPrev in MBDyn) to t+dt (GetXCur in MBDyn)
@@ -2280,7 +2239,6 @@ print *, "m%MD%y%PtFairLeadLoad%Force(1,1): "//trim(num2lstr(m%MD%y%PtFairLeadLo
       OtherSt%NewTime = .false. ! only call the controller once per timestep
       
    end if
-  
 
 ! -------------------------------------------------------------------------
 ! KiteAeroDyn

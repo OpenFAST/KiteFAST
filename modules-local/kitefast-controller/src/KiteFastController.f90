@@ -163,12 +163,11 @@ module KiteFastController
       call C_F_PROCPOINTER( p%DLL_Trgt%ProcAddr(1), DLL_KFC_Init_Subroutine) 
       call DLL_KFC_Init_Subroutine ( errStat, errMsg_c ) 
       call c_to_fortran_string(errMsg_c, errMsg)
-
       print *, " KFC_Init errStat - ", errStat, " errMsg - ", trim(errMsg)
-
       ! TODO: Check errors
+      print *, " debug marker - pre errStat >= Abort"
       if (errStat >= AbortErrLev ) return
-
+      print *, " debug marker - post errStat >= Abort"
    end subroutine KFC_Init
 
    subroutine KFC_Step(t, u, p, y, errStat, errMsg )
@@ -180,7 +179,6 @@ module KiteFastController
       integer(IntKi),                intent(  out)  :: errStat     !< Error status of the operation
       character(*),                  intent(  out)  :: errMsg      !< Error message if ErrStat /= ErrID_None
    
-      
       character(*), parameter                       :: routineName = 'KFC_Step'
       integer(IntKi)                                :: errStat2       ! The error status code
       character(ErrMsgLen)                          :: errMsg2        ! The error message, if an error occurred     
@@ -215,7 +213,7 @@ module KiteFastController
       Ab_c            = u%Ab
       rho_c           = u%rho
       apparent_wind_c = u%apparent_wind
-      tether_forceb_c  = u%tether_forceb
+      !tether_forceb_c  = u%tether_forceb
       wind_g_c        = u%wind_g
 
 

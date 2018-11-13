@@ -14,7 +14,6 @@ const Mat2 inter = {{{crosswind->inner.lateral_gains_min_airspeed[0][4], crosswi
 					 {crosswind->inner.lateral_gains_min_airspeed[1][4], crosswind->inner.lateral_gains_min_airspeed[1][5]}}};
 
 Mat2 inter_inv = {{{0,0},{0,0}}};
-printf("I made it to controller_util.c");
 const Mat2 *inter_inv_tmp = Mat2Inv(&inter, &inter_inv);
 const Vec2 firsthalf 	= {inter_inv.d[0][0], inter_inv.d[0][1]};
 const Vec2 sechalf 	= {inter_inv.d[1][0], inter_inv.d[1][1]};

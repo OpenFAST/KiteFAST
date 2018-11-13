@@ -473,7 +473,6 @@ static void ControlLateral(double tether_roll_cmd, double tether_roll,
   RateLimit(exp_config->enable_alternate_gains ? 1.0 : 0.0,
             -params->alt_gain_fade_rate, params->alt_gain_fade_rate, *g_sys.ts,
             alt_lateral_gains_0);
-printf("im in control Lateral!/n ");
   ScheduleLateralGains(airspeed, *alt_lateral_gains_0, params, lateral_gains);
 
   // Apply feedback law to determine the aileron, rudder, and motor
@@ -613,6 +612,7 @@ void CrosswindInnerStep(double tether_roll_cmd, double tether_roll,
                         CrosswindInnerState *state,
                         double lateral_gains[][kNumCrosswindLateralStates],
                         Deltas *deltas, ThrustMoment *thrust_moment) {
+    printf("     crosswind_inner \n");
   deltas->elevator = ControlAlpha(
       alpha_cmd, alpha, dCL_cmd, pqr_cmd->y, pqr->y, airspeed, flags, params,
       state, &deltas->inboard_flap, &thrust_moment->moment.y);
