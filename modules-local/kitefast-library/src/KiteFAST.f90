@@ -9,6 +9,7 @@ module KiteFAST
    use KiteAeroDyn
    use KiteFastController
    use KiteFAST_Types
+   use KiteFAST_IO
    
    implicit none 
 
@@ -58,6 +59,325 @@ end do
 end subroutine
 
 !====================================================================================================
+subroutine KFAST_ProcessMBD_Outputs()
+! This subroutine 
+!----------------------------------------------------------------------------------------------------
+
+   
+   integer(IntKi)  :: i, j, iNd
+   real(ReKi)      :: val3(3)
+   real(R8Ki)      :: dcm(3,3)
+
+   ! Process the outputs component by component
+   
+   do i = 1, p%NFusOuts
+      iNd = p%FusOutNds(i)
+
+      val3 = matmul( m%FusODCM, (m%mbdFusMotions%TranslationDisp(:,iNd)  +  m%mbdFusMotions%Position(:,iNd)  - m%FusO) ) - m%mbdFusMotions%Position(:,iNd)
+      
+      m%AllOuts(FusTDx(i)) = val3(1)
+      m%AllOuts(FusTDy(i)) = val3(2)
+      m%AllOuts(FusTDz(i)) = val3(3)
+      
+      dcm = matmul( transpose(m%mbdFusMotions%RefOrientation(:,:,iNd)), m%mbdFusMotions%Orientation(:,:,iNd)  )
+      dcm = matmul( transpose(m%FusODCM), dcm )
+      val3 = R2D_D*EulerExtract(dcm)
+      m%AllOuts(FusRDx(i)) = val3(1)
+      m%AllOuts(FusRDy(i)) = val3(2)
+      m%AllOuts(FusRDz(i)) = val3(3)
+      
+      
+      val3 = R2D_D*matmul( m%mbdFusMotions%Orientation(:,:,iNd), m%mbdFusMotions%RotationVel(:,iNd) )
+      m%AllOuts(FusRVn(i)) = val3(1)
+      m%AllOuts(FusRVc(i)) = val3(2)
+      m%AllOuts(FusRVs(i)) = val3(3)
+      
+      val3 = matmul( m%mbdFusMotions%Orientation(:,:,iNd), m%FusAccs(:,iNd) )
+      m%AllOuts(FusTAn(i)) = val3(1)
+      m%AllOuts(FusTAc(i)) = val3(2)
+      m%AllOuts(FusTAs(i)) = val3(3)
+      
+      if ( iNd < p%numFusNds ) then  ! there is no gauss pt associated with the last FE motion node from MBDyn
+         m%AllOuts(FusFRn(i)) = m%FusLoadInpts(1,iNd)
+         m%AllOuts(FusFRc(i)) = m%FusLoadInpts(2,iNd)
+         m%AllOuts(FusFRs(i)) = m%FusLoadInpts(3,iNd)
+         m%AllOuts(FusMRn(i)) = m%FusLoadInpts(4,iNd)
+         m%AllOuts(FusMRc(i)) = m%FusLoadInpts(5,iNd)
+         m%AllOuts(FusMRs(i)) = m%FusLoadInpts(6,iNd)
+      end if
+   end do
+
+
+   do i = 1, p%NSWnOuts
+      iNd = p%SWnOutNds(i)
+
+      val3 = matmul( m%FusODCM, (m%mbdSWnMotions%TranslationDisp(:,iNd)  +  m%mbdSWnMotions%Position(:,iNd)  - m%FusO) ) - m%mbdSWnMotions%Position(:,iNd)
+      
+      m%AllOuts(SWnTDx(i)) = val3(1)
+      m%AllOuts(SWnTDy(i)) = val3(2)
+      m%AllOuts(SWnTDz(i)) = val3(3)
+      
+      dcm = matmul( transpose(m%mbdSWnMotions%RefOrientation(:,:,iNd)), m%mbdSWnMotions%Orientation(:,:,iNd)  )
+      dcm = matmul( transpose(m%FusODCM), dcm )
+      val3 = R2D_D*EulerExtract(dcm)
+      m%AllOuts(SWnRDx(i)) = val3(1)
+      m%AllOuts(SWnRDy(i)) = val3(2)
+      m%AllOuts(SWnRDz(i)) = val3(3)
+      
+      val3 = R2D_D*matmul( m%mbdSWnMotions%Orientation(:,:,iNd), m%mbdSWnMotions%RotationVel(:,iNd) )
+      m%AllOuts(SWnRVn(i)) = val3(1)
+      m%AllOuts(SWnRVc(i)) = val3(2)
+      m%AllOuts(SWnRVs(i)) = val3(3)
+
+      val3 = matmul( m%mbdSWnMotions%Orientation(:,:,iNd), m%SWnAccs(:,iNd) )
+      m%AllOuts(SWnTAn(i)) = val3(1)
+      m%AllOuts(SWnTAc(i)) = val3(2)
+      m%AllOuts(SWnTAs(i)) = val3(3)
+      
+      if ( iNd < p%numSWnNds ) then  ! there is no gauss pt associated with the last FE motion node from MBDyn
+         m%AllOuts(SWnFRn(i)) = m%SWnLoadInpts(1,iNd)
+         m%AllOuts(SWnFRc(i)) = m%SWnLoadInpts(2,iNd)
+         m%AllOuts(SWnFRs(i)) = m%SWnLoadInpts(3,iNd)
+         m%AllOuts(SWnMRn(i)) = m%SWnLoadInpts(4,iNd)
+         m%AllOuts(SWnMRc(i)) = m%SWnLoadInpts(5,iNd)
+         m%AllOuts(SWnMRs(i)) = m%SWnLoadInpts(6,iNd)
+      end if
+      
+   end do
+
+   do i = 1, p%NPWnOuts
+      iNd = p%PWnOutNds(i)
+
+      val3 = matmul( m%FusODCM, (m%mbdPWnMotions%TranslationDisp(:,iNd)  +  m%mbdPWnMotions%Position(:,iNd)  - m%FusO) ) - m%mbdPWnMotions%Position(:,iNd)
+      
+      m%AllOuts(PWnTDx(i)) = val3(1)
+      m%AllOuts(PWnTDy(i)) = val3(2)
+      m%AllOuts(PWnTDz(i)) = val3(3)
+      
+      dcm = matmul( transpose(m%mbdPWnMotions%RefOrientation(:,:,iNd)), m%mbdPWnMotions%Orientation(:,:,iNd)  )
+      dcm = matmul( transpose(m%FusODCM), dcm )
+      val3 = R2D_D*EulerExtract(dcm)
+      m%AllOuts(PWnRDx(i)) = val3(1)
+      m%AllOuts(PWnRDy(i)) = val3(2)
+      m%AllOuts(PWnRDz(i)) = val3(3)
+      
+      val3 = R2D_D*matmul( m%mbdPWnMotions%Orientation(:,:,iNd), m%mbdPWnMotions%RotationVel(:,iNd) )
+      m%AllOuts(PWnRVn(i)) = val3(1)
+      m%AllOuts(PWnRVc(i)) = val3(2)
+      m%AllOuts(PWnRVs(i)) = val3(3)
+
+      val3 = matmul( m%mbdPWnMotions%Orientation(:,:,iNd), m%PWnAccs(:,iNd) )
+      m%AllOuts(PWnTAn(i)) = val3(1)
+      m%AllOuts(PWnTAc(i)) = val3(2)
+      m%AllOuts(PWnTAs(i)) = val3(3)
+      
+      if ( iNd < p%numPWnNds ) then  ! there is no gauss pt associated with the last FE motion node from MBDyn
+         m%AllOuts(PWnFRn(i)) = m%PWnLoadInpts(1,iNd)
+         m%AllOuts(PWnFRc(i)) = m%PWnLoadInpts(2,iNd)
+         m%AllOuts(PWnFRs(i)) = m%PWnLoadInpts(3,iNd)
+         m%AllOuts(PWnMRn(i)) = m%PWnLoadInpts(4,iNd)
+         m%AllOuts(PWnMRc(i)) = m%PWnLoadInpts(5,iNd)
+         m%AllOuts(PWnMRs(i)) = m%PWnLoadInpts(6,iNd)
+      end if
+      
+   end do
+   
+   do i = 1, p%NVSOuts
+      iNd = p%VSOutNds(i)
+
+      val3 = matmul( m%FusODCM, (m%mbdVSMotions%TranslationDisp(:,iNd)  +  m%mbdVSMotions%Position(:,iNd)  - m%FusO) ) - m%mbdVSMotions%Position(:,iNd)
+      
+      m%AllOuts(VSTDx(i)) = val3(1)
+      m%AllOuts(VSTDy(i)) = val3(2)
+      m%AllOuts(VSTDz(i)) = val3(3)
+      
+      dcm = matmul( transpose(m%mbdVSMotions%RefOrientation(:,:,iNd)), m%mbdVSMotions%Orientation(:,:,iNd)  )
+      dcm = matmul( transpose(m%FusODCM), dcm )
+      val3 = R2D_D*EulerExtract(dcm)
+      m%AllOuts(VSRDx(i)) = val3(1)
+      m%AllOuts(VSRDy(i)) = val3(2)
+      m%AllOuts(VSRDz(i)) = val3(3)
+      
+      val3 = R2D_D*matmul( m%mbdVSMotions%Orientation(:,:,iNd), m%mbdVSMotions%RotationVel(:,iNd) )
+      m%AllOuts(VSRVn(i)) = val3(1)
+      m%AllOuts(VSRVc(i)) = val3(2)
+      m%AllOuts(VSRVs(i)) = val3(3)
+
+      val3 = matmul( m%mbdVSMotions%Orientation(:,:,iNd), m%VSAccs(:,iNd) )
+      m%AllOuts(VSTAn(i)) = val3(1)
+      m%AllOuts(VSTAc(i)) = val3(2)
+      m%AllOuts(VSTAs(i)) = val3(3)
+      
+      if ( iNd < p%numVSNds ) then  ! there is no gauss pt associated with the last FE motion node from MBDyn
+         m%AllOuts(VSFRn(i)) = m%VSLoadInpts(1,iNd)
+         m%AllOuts(VSFRc(i)) = m%VSLoadInpts(2,iNd)
+         m%AllOuts(VSFRs(i)) = m%VSLoadInpts(3,iNd)
+         m%AllOuts(VSMRn(i)) = m%VSLoadInpts(4,iNd)
+         m%AllOuts(VSMRc(i)) = m%VSLoadInpts(5,iNd)
+         m%AllOuts(VSMRs(i)) = m%VSLoadInpts(6,iNd)
+      end if
+      
+   end do
+   
+   
+   do i = 1, p%NSHSOuts
+      iNd = p%SHSOutNds(i)
+
+      val3 = matmul( m%FusODCM, (m%mbdSHSMotions%TranslationDisp(:,iNd)  +  m%mbdSHSMotions%Position(:,iNd)  - m%FusO) ) - m%mbdSHSMotions%Position(:,iNd)
+      
+      m%AllOuts(SHSTDx(i)) = val3(1)
+      m%AllOuts(SHSTDy(i)) = val3(2)
+      m%AllOuts(SHSTDz(i)) = val3(3)
+      
+      dcm = matmul( transpose(m%mbdSHSMotions%RefOrientation(:,:,iNd)), m%mbdSHSMotions%Orientation(:,:,iNd)  )
+      dcm = matmul( transpose(m%FusODCM), dcm )
+      val3 = R2D_D*EulerExtract(dcm)
+      m%AllOuts(SHSRDx(i)) = val3(1)
+      m%AllOuts(SHSRDy(i)) = val3(2)
+      m%AllOuts(SHSRDz(i)) = val3(3)
+      
+      val3 = R2D_D*matmul( m%mbdSHSMotions%Orientation(:,:,iNd), m%mbdSHSMotions%RotationVel(:,iNd) )
+      m%AllOuts(SHSRVn(i)) = val3(1)
+      m%AllOuts(SHSRVc(i)) = val3(2)
+      m%AllOuts(SHSRVs(i)) = val3(3)
+
+      val3 = matmul( m%mbdSHSMotions%Orientation(:,:,iNd), m%SHSAccs(:,iNd) )
+      m%AllOuts(SHSTAn(i)) = val3(1)
+      m%AllOuts(SHSTAc(i)) = val3(2)
+      m%AllOuts(SHSTAs(i)) = val3(3)
+      
+      if ( iNd < p%numSHSNds ) then  ! there is no gauss pt associated with the last FE motion node from MBDyn
+         m%AllOuts(SHSFRn(i)) = m%SHSLoadInpts(1,iNd)
+         m%AllOuts(SHSFRc(i)) = m%SHSLoadInpts(2,iNd)
+         m%AllOuts(SHSFRs(i)) = m%SHSLoadInpts(3,iNd)
+         m%AllOuts(SHSMRn(i)) = m%SHSLoadInpts(4,iNd)
+         m%AllOuts(SHSMRc(i)) = m%SHSLoadInpts(5,iNd)
+         m%AllOuts(SHSMRs(i)) = m%SHSLoadInpts(6,iNd)
+      end if
+      
+   end do
+   
+   do i = 1, p%NPHSOuts
+      iNd = p%PHSOutNds(i)
+
+      val3 = matmul( m%FusODCM, (m%mbdPHSMotions%TranslationDisp(:,iNd)  +  m%mbdPHSMotions%Position(:,iNd)  - m%FusO) ) - m%mbdPHSMotions%Position(:,iNd)
+      
+      m%AllOuts(PHSTDx(i)) = val3(1)
+      m%AllOuts(PHSTDy(i)) = val3(2)
+      m%AllOuts(PHSTDz(i)) = val3(3)
+      
+      dcm = matmul( transpose(m%mbdPHSMotions%RefOrientation(:,:,iNd)), m%mbdPHSMotions%Orientation(:,:,iNd)  )
+      dcm = matmul( transpose(m%FusODCM), dcm )
+      val3 = R2D_D*EulerExtract(dcm)
+      m%AllOuts(PHSRDx(i)) = val3(1)
+      m%AllOuts(PHSRDy(i)) = val3(2)
+      m%AllOuts(PHSRDz(i)) = val3(3)
+      
+      val3 = R2D_D*matmul( m%mbdPHSMotions%Orientation(:,:,iNd), m%mbdPHSMotions%RotationVel(:,iNd) )
+      m%AllOuts(PHSRVn(i)) = val3(1)
+      m%AllOuts(PHSRVc(i)) = val3(2)
+      m%AllOuts(PHSRVs(i)) = val3(3)
+      
+      val3 = matmul( m%mbdPHSMotions%Orientation(:,:,iNd), m%PHSAccs(:,iNd) )
+      m%AllOuts(PHSTAn(i)) = val3(1)
+      m%AllOuts(PHSTAc(i)) = val3(2)
+      m%AllOuts(PHSTAs(i)) = val3(3)
+      
+      if ( iNd < p%numPHSNds ) then  ! there is no gauss pt associated with the last FE motion node from MBDyn
+         m%AllOuts(PHSFRn(i)) = m%PHSLoadInpts(1,iNd)
+         m%AllOuts(PHSFRc(i)) = m%PHSLoadInpts(2,iNd)
+         m%AllOuts(PHSFRs(i)) = m%PHSLoadInpts(3,iNd)
+         m%AllOuts(PHSMRn(i)) = m%PHSLoadInpts(4,iNd)
+         m%AllOuts(PHSMRc(i)) = m%PHSLoadInpts(5,iNd)
+         m%AllOuts(PHSMRs(i)) = m%PHSLoadInpts(6,iNd)
+      end if
+
+   end do
+   do j = 1, p%NumPylons
+      do i = 1, p%NPylOuts
+         iNd = p%PylOutNds(i)
+
+         val3 = matmul( m%FusODCM, (m%mbdSPyMotions(j)%TranslationDisp(:,iNd)  +  m%mbdSPyMotions(j)%Position(:,iNd)  - m%FusO) ) - m%mbdSPyMotions(j)%Position(:,iNd)
+      
+         m%AllOuts(SPTDx(i,j)) = val3(1)
+         m%AllOuts(SPTDy(i,j)) = val3(2)
+         m%AllOuts(SPTDz(i,j)) = val3(3)
+      
+         dcm = matmul( transpose(m%mbdSPyMotions(j)%RefOrientation(:,:,iNd)), m%mbdSPyMotions(j)%Orientation(:,:,iNd)  )
+         dcm = matmul( transpose(m%FusODCM), dcm )
+         val3 = EulerExtract(dcm)
+         m%AllOuts(SPRDx(i,j)) = val3(1)
+         m%AllOuts(SPRDy(i,j)) = val3(2)
+         m%AllOuts(SPRDz(i,j)) = val3(3)
+      
+         val3 = R2D_D*matmul( m%mbdSPyMotions(j)%Orientation(:,:,iNd), m%mbdSPyMotions(j)%RotationVel(:,iNd) )
+         m%AllOuts(SPRVn(i,j)) = val3(1)
+         m%AllOuts(SPRVc(i,j)) = val3(2)
+         m%AllOuts(SPRVs(i,j)) = val3(3)
+      
+         val3 = matmul( m%mbdSPyMotions(j)%Orientation(:,:,iNd), m%SPyAccs(:,iNd,j) )
+         m%AllOuts(SPTAn(i,j)) = val3(1)
+         m%AllOuts(SPTAc(i,j)) = val3(2)
+         m%AllOuts(SPTAs(i,j)) = val3(3)
+      
+         if ( iNd < p%numSPyNds(j) ) then  ! there is no gauss pt associated with the last FE motion node from MBDyn
+            m%AllOuts(SPFRn(i,j)) = m%SPyLoadInpts(1,iNd,j)
+            m%AllOuts(SPFRc(i,j)) = m%SPyLoadInpts(2,iNd,j)
+            m%AllOuts(SPFRs(i,j)) = m%SPyLoadInpts(3,iNd,j)
+            m%AllOuts(SPMRn(i,j)) = m%SPyLoadInpts(4,iNd,j)
+            m%AllOuts(SPMRc(i,j)) = m%SPyLoadInpts(5,iNd,j)
+            m%AllOuts(SPMRs(i,j)) = m%SPyLoadInpts(6,iNd,j)
+         end if
+         
+         val3 = matmul( m%FusODCM, (m%mbdPPyMotions(j)%TranslationDisp(:,iNd)  +  m%mbdPPyMotions(j)%Position(:,iNd)  - m%FusO) ) - m%mbdPPyMotions(j)%Position(:,iNd)
+      
+         m%AllOuts(PPTDx(i,j)) = val3(1)
+         m%AllOuts(PPTDy(i,j)) = val3(2)
+         m%AllOuts(PPTDz(i,j)) = val3(3)
+      
+         dcm = matmul( transpose(m%mbdPPyMotions(j)%RefOrientation(:,:,iNd)), m%mbdPPyMotions(j)%Orientation(:,:,iNd)  )
+         dcm = matmul( transpose(m%FusODCM), dcm )
+         val3 = EulerExtract(dcm)
+         m%AllOuts(PPRDx(i,j)) = val3(1)
+         m%AllOuts(PPRDy(i,j)) = val3(2)
+         m%AllOuts(PPRDz(i,j)) = val3(3)
+      
+         val3 = R2D_D*matmul( m%mbdPPyMotions(j)%Orientation(:,:,iNd), m%mbdPPyMotions(j)%RotationVel(:,iNd) )
+         m%AllOuts(PPRVn(i,j)) = val3(1)
+         m%AllOuts(PPRVc(i,j)) = val3(2)
+         m%AllOuts(PPRVs(i,j)) = val3(3)
+      
+         val3 = matmul( m%mbdPPyMotions(j)%Orientation(:,:,iNd), m%PPyAccs(:,iNd,j) )
+         m%AllOuts(PPTAn(i,j)) = val3(1)
+         m%AllOuts(PPTAc(i,j)) = val3(2)
+         m%AllOuts(PPTAs(i,j)) = val3(3)
+      
+         if ( iNd < p%numPPyNds(j) ) then  ! there is no gauss pt associated with the last FE motion node from MBDyn
+            m%AllOuts(PPFRn(i,j)) = m%PPyLoadInpts(1,iNd,j)
+            m%AllOuts(PPFRc(i,j)) = m%PPyLoadInpts(2,iNd,j)
+            m%AllOuts(PPFRs(i,j)) = m%PPyLoadInpts(3,iNd,j)
+            m%AllOuts(PPMRn(i,j)) = m%PPyLoadInpts(4,iNd,j)
+            m%AllOuts(PPMRc(i,j)) = m%PPyLoadInpts(5,iNd,j)
+            m%AllOuts(PPMRs(i,j)) = m%PPyLoadInpts(6,iNd,j)
+         end if
+         
+      end do
+   end do
+   
+
+
+
+   !...............................................................................................................................
+   ! Place the selected output channels into the WriteOutput(:) array with the proper sign:
+   !...............................................................................................................................
+
+   dO i = 1,p%numKFASTOuts  ! Loop through all selected output channels
+      m%WriteOutput(i) = p%OutParam(i)%SignM * m%AllOuts( p%OutParam(i)%Indx )
+   end do             ! i - All selected output channels
+
+end subroutine KFAST_ProcessMBD_Outputs
+
+!====================================================================================================
 subroutine KFAST_WriteOutput( t, p, y_KAD, y_MD, y_IfW, errStat, errMsg )
 ! This subroutine 
 !----------------------------------------------------------------------------------------------------
@@ -65,7 +385,7 @@ subroutine KFAST_WriteOutput( t, p, y_KAD, y_MD, y_IfW, errStat, errMsg )
       ! Passed variables
    real(DbKi),                    intent( in    ) :: t
    type(KFAST_ParameterType),     intent( inout ) :: p   
-   type(KAD_OutPutType ),         intent( in    ) :: y_KAD          !
+   type(KAD_OutPutType ),         intent( in    ) :: y_KAD         !
    type(MD_OutPutType ),          intent( in    ) :: y_MD          !
    type(InflowWind_OutPutType ),  intent( in    ) :: y_IfW              !
    integer,                       intent(   out ) :: errStat              ! a non-zero value indicates an error occurred           
@@ -87,15 +407,18 @@ subroutine KFAST_WriteOutput( t, p, y_KAD, y_MD, y_IfW, errStat, errMsg )
 
    if ( p%numOuts > 0 ) then   ! Output has been requested so let's write to the output file            
  
-             ! Write one line of tabular output:
+              ! Write one line of tabular output:
       Frmt = '"'//p%Delim//'"'//p%OutFmt      ! format for array elements from individual modules
 
-            ! time
+          ! time
       write( tmpStr, '(F10.6)' ) t
       call WrFileNR( p%UnOutFile, tmpStr )
 
          ! write the individual module output (convert to SiKi if necessary, so that we don't need to print so many digits in the exponent)
       
+      if (p%numKFASTOuts > 0 ) then  
+         call WrNumAryFileNR ( p%UnOutFile, real(m%WriteOutput,SiKi), Frmt, errStat2, errMsg2 )
+      endif
       
       if ( p%numKADOuts > 0 ) then
         call WrNumAryFileNR ( p%UnOutFile, real(y_KAD%WriteOutput,SiKi), Frmt, errStat2, errMsg2 )
@@ -166,7 +489,7 @@ subroutine KFAST_OpenOutput( ProgVer, OutRootName, p, KAD_InitOut, MD_InitOut, I
    else
       p%numIfWOuts = 0
    end if
-   p%numOuts = p%numKADOuts + p%numMDOuts + p%numIfWOuts
+   p%numOuts = p%numKFASTOuts + p%numKADOuts + p%numMDOuts + p%numIfWOuts
    
    if ( p%numOuts > 0 ) then   ! Output has been requested so let's open an output file            
       
@@ -191,7 +514,11 @@ subroutine KFAST_OpenOutput( ProgVer, OutRootName, p, KAD_InitOut, MD_InitOut, I
          ! Write the names of the output channels:
       
       call WrFileNR ( p%UnOutFile, '   Time   ' )
-      
+      if ( p%numKFASTOuts > 0 ) then
+         do i=1,p%numKFASTOuts
+            call WrFileNR ( p%UnOutFile, p%Delim//p%OutParam(i)%Name )
+         end do ! I
+      end if
       if ( p%numKADOuts > 0 ) then
          do i=1,p%numKADOuts
             call WrFileNR ( p%UnOutFile, p%Delim//KAD_InitOut%WriteOutputHdr(i) )
@@ -216,6 +543,11 @@ subroutine KFAST_OpenOutput( ProgVer, OutRootName, p, KAD_InitOut, MD_InitOut, I
       
       call WrFileNR ( p%UnOutFile, '    s     ' )
       
+      if ( p%numKFASTOuts > 0 ) then
+         do i=1,p%numKFASTOuts
+            call WrFileNR ( p%UnOutFile, p%Delim//p%OutParam(i)%Units )
+         end do ! I
+      end if
       if ( p%numKADOuts > 0 ) then
          do i=1,p%numKADOuts
             call WrFileNR ( p%UnOutFile, p%Delim//KAD_InitOut%WriteOutputUnt(i) )
@@ -497,7 +829,6 @@ subroutine CreateMBDynL2MotionsMesh(origin, numNodes, positions, alignDCM, nodeD
    if (errStat >= AbortErrLev) return
             
       ! set node initial position/orientation
-   position = 0.0_ReKi
    do j=1,numNodes       
       position = positions(:,j) - origin(:) 
       position = matmul(alignDCM, position) 
@@ -1001,7 +1332,7 @@ subroutine CreateMeshMappings(m, p, KAD, MD, errStat, errMsg)
    
 end subroutine CreateMeshMappings
 
-subroutine TransferMBDynInputs2KADMeshes( FusO, p, m, errStat, errMsg )
+subroutine TransferMBDynInputs2MBDMeshes( FusO, p, m, errStat, errMsg )
    real(ReKi),                intent(in   ) :: FusO(3)
    type(KFAST_ParameterType), intent(in   ) :: p
    type(KFAST_MiscVarType),   intent(inout) :: m
@@ -1082,6 +1413,26 @@ subroutine TransferMBDynInputs2KADMeshes( FusO, p, m, errStat, errMsg )
       end do
    end do
    
+end subroutine TransferMBDynInputs2MBDMeshes
+
+subroutine TransferMBDynInputs2KADMeshes( FusO, p, m, errStat, errMsg )
+   real(ReKi),                intent(in   ) :: FusO(3)
+   type(KFAST_ParameterType), intent(in   ) :: p
+   type(KFAST_MiscVarType),   intent(inout) :: m
+   integer(IntKi),            intent(  out) :: errStat                    ! Error status of the operation
+   character(*),              intent(  out) :: errMsg                     ! Error message if errStat /= ErrID_None
+
+   integer(IntKi)   :: i,j, c
+   character(*), parameter    :: routineName = 'TransferMBDynInputs2KADMeshes'
+   integer(intKi)             :: errStat2          ! temporary Error status
+   character(ErrMsgLen)       :: errMsg2           ! temporary Error message
+
+   
+   errStat = ErrID_None
+   errMsg  = ''
+   
+  
+   
    m%KAD%u(1)%FusOMotions%TranslationDisp(:,1) =  FusO 
    
       ! Map the motions over to the corresponding KAD input meshes
@@ -1122,11 +1473,7 @@ subroutine TransferMBDynInputs2KADMeshes( FusO, p, m, errStat, errMsg )
          m%KAD%u(1)%PPyRtrMotions(c)%TranslationVel(:,1)  = m%PPyRtrVels(:,i,j)
       end do
    end do
-   
-   
-      
-   
-   
+     
 end subroutine TransferMBDynInputs2KADMeshes
 
 
@@ -1144,11 +1491,23 @@ subroutine TransferMBDynInitInputs( WindPt_c, FusO, numNodePtElem_c, nodePts_c, 
    character(*),              intent(  out) :: errMsg                     ! Error message if errStat /= ErrID_None
 
 
-   integer(IntKi)   :: i, j, c, n, v
+   integer(IntKi)   :: i, j, c, n, v, tplynodes
 
    errStat = ErrID_None
    errMsg  = ''
    
+   
+   tplynodes = 0
+   do j = 1,p%numPylons
+      tplynodes = tplynodes + p%numPPyNds(j)
+      tplynodes = tplynodes + p%numSPyNds(j)
+   end do
+   
+   c = 9*( p%numFusNds + p%numSwnNds + p%numPwnNds + p%numVSNds +  p%numSHSNds + p%numPHSNds + p%numPylons*tplynodes )
+   if ( c /= numDCMElem_c ) then
+      errStat = ErrID_FATAL
+      errMsg  = 'The transferred number of DCM elements,'//trim(num2lstr(c-1))//' ,did not match the expected number, '//trim(num2lstr(numDCMElem_c))//'.'
+   end if
    
    c=1
    n=1
@@ -1158,6 +1517,7 @@ subroutine TransferMBDynInitInputs( WindPt_c, FusO, numNodePtElem_c, nodePts_c, 
       m%FusPts(:,i)            = nodePts_c(n:n+2)
       m%FusVels(:,i)           = 0.0_ReKi
       m%FusOmegas(:,i)         = 0.0_ReKi
+      m%FusAccs(:,i)            = 0.0_ReKi
       c = c + 9
       n = n + 3
    end do
@@ -1166,6 +1526,7 @@ subroutine TransferMBDynInitInputs( WindPt_c, FusO, numNodePtElem_c, nodePts_c, 
       m%SWnPts(:,i)            = nodePts_c(n:n+2)
       m%SWnVels(:,i)           = 0.0_ReKi
       m%SWnOmegas(:,i)         = 0.0_ReKi
+      m%SWnAccs(:,i)            = 0.0_ReKi
       c = c + 9
       n = n + 3
    end do
@@ -1174,6 +1535,7 @@ subroutine TransferMBDynInitInputs( WindPt_c, FusO, numNodePtElem_c, nodePts_c, 
       m%PWnPts(:,i)            = nodePts_c(n:n+2)
       m%PWnVels(:,i)           = 0.0_ReKi
       m%PWnOmegas(:,i)         = 0.0_ReKi
+      m%PWnAccs(:,i)            = 0.0_ReKi
       c = c + 9
       n = n + 3
    end do
@@ -1182,6 +1544,7 @@ subroutine TransferMBDynInitInputs( WindPt_c, FusO, numNodePtElem_c, nodePts_c, 
       m%VSPts(:,i)             = nodePts_c(n:n+2)
       m%VSVels(:,i)            = 0.0_ReKi
       m%VSOmegas(:,i)          = 0.0_ReKi
+      m%VSAccs(:,i)            = 0.0_ReKi
       c = c + 9
       n = n + 3
    end do
@@ -1190,6 +1553,7 @@ subroutine TransferMBDynInitInputs( WindPt_c, FusO, numNodePtElem_c, nodePts_c, 
       m%SHSPts(:,i)            = nodePts_c(n:n+2)
       m%SHSVels(:,i)           = 0.0_ReKi
       m%SHSOmegas(:,i)         = 0.0_ReKi
+      m%SHSAccs(:,i)            = 0.0_ReKi
       c = c + 9
       n = n + 3
    end do
@@ -1198,6 +1562,7 @@ subroutine TransferMBDynInitInputs( WindPt_c, FusO, numNodePtElem_c, nodePts_c, 
       m%PHSPts(:,i)            = nodePts_c(n:n+2)
       m%PHSVels(:,i)           = 0.0_ReKi
       m%PHSOmegas(:,i)         = 0.0_ReKi
+      m%PHSAccs(:,i)            = 0.0_ReKi
       c = c + 9
       n = n + 3
    end do
@@ -1207,6 +1572,7 @@ subroutine TransferMBDynInitInputs( WindPt_c, FusO, numNodePtElem_c, nodePts_c, 
          m%SPyPts(:,i,j)            = nodePts_c(n:n+2)
          m%SPyVels(:,i,j)           = 0.0_ReKi
          m%SPyOmegas(:,i,j)         = 0.0_ReKi
+         m%SPyAccs(:,i,j)            = 0.0_ReKi
          c = c + 9
          n = n + 3
       end do
@@ -1217,16 +1583,12 @@ subroutine TransferMBDynInitInputs( WindPt_c, FusO, numNodePtElem_c, nodePts_c, 
          m%PPyPts(:,i,j)            = nodePts_c(n:n+2)
          m%PPyVels(:,i,j)           = 0.0_ReKi
          m%PPyOmegas(:,i,j)         = 0.0_ReKi
+         m%PPyAccs(:,i,j)            = 0.0_ReKi
          c = c + 9
          n = n + 3
       end do
    end do
-   
-   if ( (c-1) /= numDCMElem_c ) then
-      errStat = ErrID_FATAL
-      errMsg  = 'The transferred number of DCM elements,'//trim(num2lstr(c-1))//' ,did not match the expected number, '//trim(num2lstr(numDCMElem_c))//'.'
-   end if
-   
+  
       ! Decode rotor positions
    c=1
    do i = 1, p%numPylons
@@ -1245,7 +1607,7 @@ subroutine TransferMBDynInitInputs( WindPt_c, FusO, numNodePtElem_c, nodePts_c, 
 end subroutine TransferMBDynInitInputs
 
 
-subroutine TransferMBDynToKAD( FusO, numNodePtElem_c, nodePts_c, numNodeVelElem_c, nodeVels_c, numNodeOmegaElem_c, nodeOmegas_c, numDCMElem_c, nodeDCMs_c, rtrPts_c, rtrVels_c, rtrDCMs_c, p, m, errStat, errMsg )
+subroutine TransferMBDynInputs( FusO, numNodePtElem_c, nodePts_c, numNodeVelElem_c, nodeVels_c, numNodeOmegaElem_c, nodeOmegas_c, numNodeAccElem_c, nodeAccs_c, numDCMElem_c, nodeDCMs_c, rtrPts_c, rtrVels_c, rtrDCMs_c, p, m, errStat, errMsg )
    real(ReKi),                intent(in   ) :: FusO(3)                          ! Location of principal kite reference point in global coordinates
    integer(C_INT),            intent(in   ) :: numNodePtElem_c                  ! total number of array elements in the nodal points array
    real(C_DOUBLE),            intent(in   ) :: nodePts_c(numNodePtElem_c)       ! 1D array containing all the nodal point coordinate data
@@ -1253,6 +1615,8 @@ subroutine TransferMBDynToKAD( FusO, numNodePtElem_c, nodePts_c, numNodeVelElem_
    real(C_DOUBLE),            intent(in   ) :: nodeVels_c(numNodeVelElem_c)     ! 1D array containing all the nodal translational velocities data
    integer(C_INT),            intent(in   ) :: numNodeOmegaElem_c               ! total number of array elements in the nodal angular velocities array
    real(C_DOUBLE),            intent(in   ) :: nodeOmegas_c(numNodeOmegaElem_c) ! 1D array containing all the nodal angular velocities data
+   integer(C_INT),            intent(in   ) :: numNodeAccElem_c                 ! total number of array elements in the nodal translational accelerations array
+   real(C_DOUBLE),            intent(in   ) :: nodeAccs_c(numNodeAccElem_c)     ! 1D array containing all the nodal translational accelerations data
    integer(C_INT),            intent(in   ) :: numDCMElem_c                     ! total number of array elements in the nodal DCM data
    real(C_DOUBLE),            intent(in   ) :: nodeDCMs_c(numDCMElem_c)         ! 1D array containing all the nodal DCM data
    real(C_DOUBLE),            intent(in   ) :: rtrPts_c(:)                      ! 1D array of the rotor positions in global coordinates (m)
@@ -1277,6 +1641,7 @@ subroutine TransferMBDynToKAD( FusO, numNodePtElem_c, nodePts_c, numNodeVelElem_
       m%FusPts(:,i)            = nodePts_c(n:n+2)
       m%FusVels(:,i)           = nodeVels_c(n:n+2)
       m%FusOmegas(:,i)         = nodeOmegas_c(n:n+2)
+      m%FusAccs(:,i)           = nodeAccs_c(n:n+2)
       c = c + 9
       n = n + 3
    end do
@@ -1285,6 +1650,7 @@ subroutine TransferMBDynToKAD( FusO, numNodePtElem_c, nodePts_c, numNodeVelElem_
       m%SWnPts(:,i)            = nodePts_c(n:n+2)
       m%SWnVels(:,i)           = nodeVels_c(n:n+2)
       m%SWnOmegas(:,i)         = nodeOmegas_c(n:n+2)
+      m%SWnAccs(:,i)            = nodeAccs_c(n:n+2)
       c = c + 9
       n = n + 3
    end do
@@ -1293,6 +1659,7 @@ subroutine TransferMBDynToKAD( FusO, numNodePtElem_c, nodePts_c, numNodeVelElem_
       m%PWnPts(:,i)            = nodePts_c(n:n+2)
       m%PWnVels(:,i)           = nodeVels_c(n:n+2)
       m%PWnOmegas(:,i)         = nodeOmegas_c(n:n+2)
+      m%PWnAccs(:,i)            = nodeAccs_c(n:n+2)
       c = c + 9
       n = n + 3
    end do
@@ -1301,6 +1668,7 @@ subroutine TransferMBDynToKAD( FusO, numNodePtElem_c, nodePts_c, numNodeVelElem_
       m%VSPts(:,i)             = nodePts_c(n:n+2)
       m%VSVels(:,i)            = nodeVels_c(n:n+2)
       m%VSOmegas(:,i)          = nodeOmegas_c(n:n+2)
+      m%VSAccs(:,i)             = nodeAccs_c(n:n+2)
       c = c + 9
       n = n + 3
    end do
@@ -1309,6 +1677,7 @@ subroutine TransferMBDynToKAD( FusO, numNodePtElem_c, nodePts_c, numNodeVelElem_
       m%SHSPts(:,i)            = nodePts_c(n:n+2)
       m%SHSVels(:,i)           = nodeVels_c(n:n+2)
       m%SHSOmegas(:,i)         = nodeOmegas_c(n:n+2)
+      m%SHSAccs(:,i)            = nodeAccs_c(n:n+2)
       c = c + 9
       n = n + 3
    end do
@@ -1317,6 +1686,7 @@ subroutine TransferMBDynToKAD( FusO, numNodePtElem_c, nodePts_c, numNodeVelElem_
       m%PHSPts(:,i)            = nodePts_c(n:n+2)
       m%PHSVels(:,i)           = nodeVels_c(n:n+2)
       m%PHSOmegas(:,i)         = nodeOmegas_c(n:n+2)
+      m%PHSAccs(:,i)            = nodeAccs_c(n:n+2)
       c = c + 9
       n = n + 3
    end do
@@ -1326,6 +1696,7 @@ subroutine TransferMBDynToKAD( FusO, numNodePtElem_c, nodePts_c, numNodeVelElem_
          m%SPyPts(:,i,j)            = nodePts_c(n:n+2)
          m%SPyVels(:,i,j)           = nodeVels_c(n:n+2)
          m%SPyOmegas(:,i,j)         = nodeOmegas_c(n:n+2)
+         m%SPyAccs(:,i,j)            = nodeAccs_c(n:n+2)
          c = c + 9
          n = n + 3
       end do
@@ -1336,6 +1707,7 @@ subroutine TransferMBDynToKAD( FusO, numNodePtElem_c, nodePts_c, numNodeVelElem_
          m%PPyPts(:,i,j)            = nodePts_c(n:n+2)
          m%PPyVels(:,i,j)           = nodeVels_c(n:n+2)
          m%PPyOmegas(:,i,j)         = nodeOmegas_c(n:n+2)
+         m%PPyAccs(:,i,j)            = nodeAccs_c(n:n+2)
          c = c + 9
          n = n + 3
       end do
@@ -1375,10 +1747,95 @@ subroutine TransferMBDynToKAD( FusO, numNodePtElem_c, nodePts_c, numNodeVelElem_
    end do
    
       ! Now attach this motion data to the MBDyn motion meshes and transfer motions to the corresponding KAD input meshes
-   call TransferMBDynInputs2KADMeshes( FusO, p, m, errStat, errMsg )
+   call TransferMBDynInputs2MBDMeshes( FusO, p, m, errStat, errMsg )
    
-end subroutine TransferMBDynToKAD
- 
+end subroutine TransferMBDynInputs
+subroutine TransferMBDynLoadInputs( numNodeLoadsElem_c, nodeLoads_c, p, m, errStat, errMsg )
+   integer(C_INT),            intent(in   ) :: numNodeLoadsElem_c                 ! total number of array elements in the nodal translational accelerations array
+   real(C_DOUBLE),            intent(in   ) :: nodeLoads_c(numNodeLoadsElem_c)                        ! 1D array containing all the nodal translational accelerations data
+   type(KFAST_ParameterType), intent(in   ) :: p
+   type(KFAST_MiscVarType),   intent(inout) :: m
+   integer(IntKi),            intent(  out) :: errStat                    ! Error status of the operation
+   character(*),              intent(  out) :: errMsg                     ! Error message if errStat /= ErrID_None
+
+
+   integer(IntKi)   :: i, j, n
+
+   errStat = ErrID_None
+   errMsg  = ''
+   
+   n=1
+   
+   do i = 1,p%numFusNds-1
+      m%FusLoadInpts(:,i)   = nodeLoads_c(n:n+5)
+      n = n + 6
+   end do
+   do i = 1,p%numSwnNds-1
+      m%SwnLoadInpts(:,i)   = nodeLoads_c(n:n+5)
+      n = n + 6
+   end do
+   do i = 1,p%numPwnNds-1
+      m%PWnLoadInpts(:,i)   = nodeLoads_c(n:n+5)
+      n = n + 6
+   end do
+   do i = 1,p%numVSNds-1
+      m%VSLoadInpts(:,i)    = nodeLoads_c(n:n+5)
+      n = n + 6
+   end do
+   do i = 1,p%numSHSNds-1
+      m%SHSLoadInpts(:,i)   = nodeLoads_c(n:n+5)
+      n = n + 6
+   end do
+   do i = 1,p%numPHSNds-1
+      m%PHSLoadInpts(:,i)   = nodeLoads_c(n:n+5)
+      n = n + 6
+   end do
+   do j = 1, p%numPylons
+      do i = 1, p%numSPyNds(j)-1
+         m%SPyLoadInpts(:,i,j)   = nodeLoads_c(n:n+5)
+         n = n + 6
+      end do
+   end do
+   do j = 1, p%numPylons
+      do i = 1, p%numPPyNds(j)-1
+         m%PPyLoadInpts(:,i,j)   = nodeLoads_c(n:n+5)
+         n = n + 6
+      end do
+   end do
+   
+   
+      ! Decode rotor positions
+   !c=1
+   !n=1
+   !do i = 1, p%numPylons
+   !   m%SPyRtrO(:,1,i)          = rtrPts_c(c:c+2)
+   !   m%SPyRtrDCMs(:,:,1,i)     = reshape(rtrDCMs_c(n:n+8),(/3,3/))
+   !   m%SPyRtrVels(:,1,i)       = rtrVels_c(c:c+2)
+   !   c = c + 3
+   !   n = n + 9
+   !   m%SPyRtrO(:,2,i)         = rtrPts_c(c:c+2)
+   !   m%SPyRtrDCMs(:,:,2,i)     = reshape(rtrDCMs_c(n:n+8),(/3,3/))
+   !   m%SPyRtrVels(:,2,i)       = rtrVels_c(c:c+2)
+   !   c = c + 3
+   !   n = n + 9
+   !end do
+   !do i = 1, p%numPylons
+   !   m%PPyRtrO(:,1,i)          = rtrPts_c(c:c+2)
+   !   m%PPyRtrDCMs(:,:,1,i)     = reshape(rtrDCMs_c(n:n+8),(/3,3/))
+   !   m%PPyRtrVels(:,1,i)       = rtrVels_c(c:c+2)
+   !   c = c + 3
+   !   n = n + 9
+   !   m%PPyRtrO(:,2,i)          = rtrPts_c(c:c+2)
+   !   m%PPyRtrDCMs(:,:,2,i)     = reshape(rtrDCMs_c(n:n+8),(/3,3/))
+   !   m%PPyRtrVels(:,2,i)       = rtrVels_c(c:c+2)
+   !   c = c + 3
+   !   n = n + 9
+   !end do
+   !
+   
+   
+end subroutine TransferMBDynLoadInputs
+  
 subroutine TransferMBDynToIfW( WindPt_c, FusO, numNodePtElem_c, nodePts_c, rtrPts_c, p, m, errStat, errMsg )
    real(C_DOUBLE),            intent(in   ) :: WindPt_c(3)                      ! The location of the ground station point where the freestream wind is measured [global coordinates] (m)
    real(ReKi),                intent(in   ) :: FusO(3)                          ! Location of principal kite reference point in global coordinates
@@ -1457,9 +1914,28 @@ subroutine TransferMBDynToIfW( WindPt_c, FusO, numNodePtElem_c, nodePts_c, rtrPt
 
 end subroutine TransferMBDynToIfW
 
+!> Calculates the length of a C string.
+function cstrlen(carray) result(res)
+   character(kind=c_char), intent(in) :: carray(:)
+   integer :: res
+
+   integer :: ii
+
+   do ii = 1, size(carray)
+   if (carray(ii) == c_null_char) then
+      res = ii - 1
+      return
+   end if
+   end do
+   res = ii
+
+end function cstrlen
+
+
 subroutine KFAST_Init(dt_c, numFlaps, numPylons, numComp, numCompNds, modFlags, KAD_FileName_c, IfW_FileName_c, MD_FileName_c, KFC_FileName_c, &
                        outFileRoot_c, gravity, WindPt_c, FusODCM_c, numRtrPtsElem_c, rtrPts_c, numRefPtElem_c, refPts_c, &
-                       numNodePtElem_c, nodePts_c, numDCMElem_c, nodeDCMs_c, errStat_c, errMsg_c ) BIND (C, NAME='KFAST_Init')
+                       numNodePtElem_c, nodePts_c, numDCMElem_c, nodeDCMs_c, nFusOuts_c, FusOutNd_c, nSWnOuts_c, SWnOutNd_c, &
+                       nPWnOuts_c, PWnOutNd_c, nVSOuts_c, VSOutNd_c, nSHSOuts_c, SHSOutNd_c, nPHSOuts_c, PHSOutNd_c, nPylOuts_c, PylOutNd_c, numOutChan_c, chanlist_c, errStat_c, errMsg_c ) BIND (C, NAME='KFAST_Init')
    IMPLICIT NONE
 
 
@@ -1485,6 +1961,24 @@ subroutine KFAST_Init(dt_c, numFlaps, numPylons, numComp, numCompNds, modFlags, 
    real(C_DOUBLE),         intent(in   ) :: nodePts_c(numNodePtElem_c) ! 1D array containing all the nodal point coordinate data
    integer(C_INT),         intent(in   ) :: numDCMElem_c               ! total number of array elements in the nodal DCM data
    real(C_DOUBLE),         intent(in   ) :: nodeDCMs_c(numDCMElem_c)   ! 1D array containing all the nodal DCM data
+   integer(C_INT),         intent(in   ) :: nFusOuts_c
+   integer(C_INT),         intent(in   ) :: FusOutNd_c(nFusOuts_c)
+   integer(C_INT),         intent(in   ) :: nSWnOuts_c
+   integer(C_INT),         intent(in   ) :: SWnOutNd_c(nSWnOuts_c)
+   integer(C_INT),         intent(in   ) :: nPWnOuts_c
+   integer(C_INT),         intent(in   ) :: PWnOutNd_c(nPWnOuts_c)
+   integer(C_INT),         intent(in   ) :: nVSOuts_c
+   integer(C_INT),         intent(in   ) :: VSOutNd_c(nVSOuts_c)
+   integer(C_INT),         intent(in   ) :: nSHSOuts_c
+   integer(C_INT),         intent(in   ) :: SHSOutNd_c(nSHSOuts_c)
+   integer(C_INT),         intent(in   ) :: nPHSOuts_c
+   integer(C_INT),         intent(in   ) :: PHSOutNd_c(nPHSOuts_c)
+   integer(C_INT),         intent(in   ) :: nPylOuts_c
+   integer(C_INT),         intent(in   ) :: PylOutNd_c(nPylOuts_c)
+   
+   integer(C_INT),         intent(in   ) :: numOutChan_c               ! total number of requested output channels
+   type(c_ptr)   ,target,   intent(in   ) :: chanlist_c(numOutChan_c)   !
+   ! type(c_ptr)   ,value,   intent(in   ) :: chanlist_c   !
    integer(C_INT),         intent(  out) :: errStat_c      
    character(kind=C_CHAR), intent(  out) :: errMsg_c(IntfStrLen)   
 
@@ -1506,6 +2000,11 @@ subroutine KFAST_Init(dt_c, numFlaps, numPylons, numComp, numCompNds, modFlags, 
    character(*), parameter         :: routineName = 'KFAST_Init'
    integer(IntKi)                  :: i,j,c, n, maxSPyNds, maxPPyNds
    real(DbKi)                      :: interval
+   CHARACTER(ChanLen)              :: OutList(MaxOutPts)              ! MaxOutPts is defined in KiteFAST_IO.f90, ChanLen defined in NWTC_Base.f90
+   character, pointer              :: chanName_f(:)            
+   character(kind=c_char), pointer :: fptr(:,:)
+   character(11), allocatable :: fstrings(:)
+   integer(IntKi) :: lenstr, maxPyNds
    
    ! Initialize all the sub-modules : MoorDyn, KiteAeroDyn, Controller, and InflowWind
    ! Set KiteFAST-level parameters, misc vars
@@ -1518,6 +2017,8 @@ subroutine KFAST_Init(dt_c, numFlaps, numPylons, numComp, numCompNds, modFlags, 
 
    dt = dt_c
 
+   
+   
    ! If a module's input file/dll file is empty, then turn off that module
    
    if ( modFlags(1) > 0 ) then
@@ -1612,6 +2113,8 @@ subroutine KFAST_Init(dt_c, numFlaps, numPylons, numComp, numCompNds, modFlags, 
       !KAD_InitInp%PHSOR =  PHSO - FusO
       !KAD_InitInp%PHSOR = matmul(m%FusODCM,KAD_InitInp%PHSOR)
 
+      ! Set the component reference point locations as expressed in the kite-local coordinate system
+      ! NOTE: The data coming from the Preprocessor is already in the kite-local system, so there are no transformation needed.
       KAD_InitInp%SWnOR =  SwnO 
       KAD_InitInp%PWnOR =  PwnO 
       KAD_InitInp%VSOR  =  VSO 
@@ -1773,6 +2276,81 @@ subroutine KFAST_Init(dt_c, numFlaps, numPylons, numComp, numCompNds, modFlags, 
          call TransferErrors(errStat, errMsg, errStat_c, errMsg_c)
          return
       end if
+
+! -------------------------------------------------------------------------
+! Process the KiteFAST requested output channels
+! -------------------------------------------------------------------------      
+   p%numKFASTOuts = numOutChan_c
+   p%NFusOuts     = nFusOuts_c
+   p%NSWnOuts     = nSWnOuts_c
+   p%NPWnOuts     = nPWnOuts_c
+   p%NVSOuts      = nVSOuts_c
+   p%NSHSOuts     = nSHSOuts_c
+   p%NPHSOuts     = nPHSOuts_c
+   p%NPWnOuts     = nPWnOuts_c
+   p%NPylOuts     = nPylOuts_c
+   
+   call AllocAry(m%FusLoadInpts,6, p%numFusNds-1, 'm%FusLoadInpts', errStat2, errMsg2)
+   call AllocAry(m%SWnLoadInpts,6, p%numSWnNds-1, 'm%SWnLoadInpts', errStat2, errMsg2)
+   call AllocAry(m%PWnLoadInpts,6, p%numPWnNds-1, 'm%PWnLoadInpts', errStat2, errMsg2)
+   call AllocAry(m%VSLoadInpts ,6, p%numVSNds -1, 'm%VSLoadInpts', errStat2, errMsg2)
+   call AllocAry(m%SHSLoadInpts,6, p%numSHSNds-1, 'm%SHSLoadInpts', errStat2, errMsg2)
+   call AllocAry(m%PHSLoadInpts,6, p%numPHSNds-1, 'm%PHSLoadInpts', errStat2, errMsg2)
+   maxPyNds = 0
+   do i = 1, p%numPylons
+      maxPyNds = max(maxPyNds, p%numSPyNds(i))
+   end do
+   
+   call AllocAry(m%SPyLoadInpts,6, maxPyNds-1, p%numPylons, 'm%SPyLoadInpts', errStat2, errMsg2)
+   maxPyNds = 0
+   do i = 1, p%numPylons
+      maxPyNds = max(maxPyNds, p%numPPyNds(i))
+   end do
+   call AllocAry(m%PPyLoadInpts,6, maxPyNds-1, p%numPylons, 'm%PPyLoadInpts', errStat2, errMsg2)
+   
+   do i = 1, p%NFusOuts
+      p%FusOutNds(i)  = FusOutNd_c(i)
+   end do
+   do i = 1, p%NSWnOuts
+      p%SWnOutNds(i)  = SWnOutNd_c(i)
+   end do
+   do i = 1, p%NPWnOuts
+      p%PWnOutNds(i)  = PWnOutNd_c(i)
+   end do
+   do i = 1, p%NVSOuts
+      p%VSOutNds(i)  = VSOutNd_c(i)
+   end do
+   do i = 1, p%NSHSOuts
+      p%SHSOutNds(i)  = SHSOutNd_c(i)
+   end do
+   do i = 1, p%NPHSOuts
+      p%PHSOutNds(i)  = PHSOutNd_c(i)
+   end do
+   do i = 1, p%NPylOuts
+      p%PylOutNds(i)  = PylOutNd_c(i)
+   end do
+   !call c_f_pointer(chanlist_c, fptr, [11, numOutChan_c ])
+   !!allocate(fstrings(numOutChan_c))
+   !do i = 1, numOutChan_c
+   !   lenstr = cstrlen(fptr(:,i))
+   !   OutList(i) = transfer(fptr(1:lenstr,i), OutList(i))
+   !end do
+!==========================================
+! TESTING TRANSFER OF OUTPUT CHANNEL NAMES
+   do i = 1,numOutChan_c
+      call c_f_pointer(chanlist_c(i),chanName_f, [ChanLen])
+      write(*,*) chanName_f
+      lenstr = cstrlen(chanName_f)
+      OutList(i) = transfer(chanName_f(1:lenstr-1), OutList(i))
+   end do
+   
+!==========================================
+      ! Set parameters for output channels:
+   call KFAST_SetOutParam(OutList, p%numKFASTOuts, p, errStat, errMsg ) ! requires:  sets: p%OutParam.
+      if (ErrStat >= AbortErrLev) return
+
+   call AllocAry( m%WriteOutput, p%numKFASTOuts, 'KFAST outputs', errStat, errMsg )
+      if (ErrStat >= AbortErrLev) return
 ! -------------------------------------------------------------------------
 ! Open the Output file and generate header data
 ! -------------------------------------------------------------------------      
@@ -1924,6 +2502,23 @@ contains
    call AllocAry( m%PPyOmegas, 3, maxPPyNds, p%numPylons, 'PPyOmegas', errStat2, errMsg2 )
       call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
 
+   call AllocAry( m%FusAccs, 3, p%numFusNds, 'FusAccs', errStat2, errMsg2 )
+      call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
+   call AllocAry( m%SWnAccs, 3, p%numSWnNds, 'SWnAccs', errStat2, errMsg2 )
+      call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
+   call AllocAry( m%PWnAccs, 3, p%numPWnNds, 'PWnAccs', errStat2, errMsg2 )
+      call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
+   call AllocAry( m%VSAccs, 3, p%numVSNds, 'VSAccs', errStat2, errMsg2 )
+      call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
+   call AllocAry( m%SHSAccs, 3, p%numSHSNds, 'SHSAccs', errStat2, errMsg2 )
+      call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
+   call AllocAry( m%PHSAccs, 3, p%numFusNds, 'PHSAccs', errStat2, errMsg2 )
+      call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
+   call AllocAry( m%SPyAccs, 3, maxSPyNds, p%numPylons, 'SPyAccs', errStat2, errMsg2 )
+      call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
+   call AllocAry( m%PPyAccs, 3, maxPPyNds, p%numPylons, 'PPyAccs', errStat2, errMsg2 )
+      call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
+      
    ! TODO : Check ording of c data to make sure we get the expected global to local DCM
    m%FusODCM = reshape(FusODCM_c,(/3,3/))
    
@@ -2018,8 +2613,8 @@ contains
                        
 end subroutine KFAST_Init
 
-subroutine KFAST_AssRes(t_c, isInitialTime_c, numRtSpdRtrElem_c, RtSpd_PyRtr_c, WindPt_c, FusO_prev_c, FusO_c, FusODCM_prev_c, FusOv_prev_c, FusOomegas_prev_c, FusOacc_prev_c, numNodePtElem_c, nodePts_c, &
-                          numNodeVelElem_c, nodeVels_c, numNodeOmegaElem_c, nodeOmegas_c, numDCMElem_c, nodeDCMs_c, numRtrPtsElem_c, rtrPts_c, &
+subroutine KFAST_AssRes(t_c, isInitialTime_c, numRtSpdRtrElem_c, RtSpd_PyRtr_c, WindPt_c, FusO_prev_c, FusO_c, FusODCM_prev_c, FusODCM_c, FusOv_prev_c, FusOomegas_prev_c, FusOacc_prev_c, numNodePtElem_c, nodePts_c, &
+                          numNodeVelElem_c, nodeVels_c, numNodeOmegaElem_c, nodeOmegas_c, numNodeAccElem_c, nodeAccs_c, numDCMElem_c, nodeDCMs_c, numRtrPtsElem_c, rtrPts_c, &
                           rtrVels_c, rtrDCMs_c, numNodeLoadsElem_c, nodeLoads_c, numRtrLoadsElem_c, rtrLoads_c, errStat_c, errMsg_c ) BIND (C, NAME='KFAST_AssRes')
    IMPLICIT NONE
 
@@ -2031,6 +2626,7 @@ subroutine KFAST_AssRes(t_c, isInitialTime_c, numRtSpdRtrElem_c, RtSpd_PyRtr_c, 
    real(C_DOUBLE),         intent(in   ) :: FusO_prev_c(3)                    ! The location of the principal Kite reference point [global coordinates] at time t (m)
    real(C_DOUBLE),         intent(in   ) :: FusO_c(3)                         ! The location of the principal Kite reference point [global coordinates] at time t+dt (m)
    real(C_DOUBLE),         intent(in   ) :: FusODCM_prev_c(9)                 ! Principal reference point DCM (MIP of kite) at time t
+   real(C_DOUBLE),         intent(in   ) :: FusODCM_c(9)                      ! Principal reference point DCM (MIP of kite) at time t + dt
    real(C_DOUBLE),         intent(in   ) :: FusOv_prev_c(3)                   ! Translational velocities at the principal reference point [global coordinates] at time t (m/s)
    real(C_DOUBLE),         intent(in   ) :: FusOomegas_prev_c(3)              ! Angular velocities at the principal reference point [global coordinates] at time t (rad/s)
    real(C_DOUBLE),         intent(in   ) :: FusOacc_prev_c(3)                 ! Accelerations at the principal reference point  [global coordinates] at time t (m/s^2)
@@ -2039,7 +2635,9 @@ subroutine KFAST_AssRes(t_c, isInitialTime_c, numRtSpdRtrElem_c, RtSpd_PyRtr_c, 
    integer(C_INT),         intent(in   ) :: numNodeVelElem_c                  ! total number of array elements in the nodal translational velocities array
    real(C_DOUBLE),         intent(in   ) :: nodeVels_c(numNodeVelElem_c)      ! 1D array containing all the nodal translational velocities data
    integer(C_INT),         intent(in   ) :: numNodeOmegaElem_c                ! total number of array elements in the nodal angular velocities array
-   real(C_DOUBLE),         intent(in   ) :: nodeOmegas_c(numNodeOmegaElem_c) ! 1D array containing all the nodal angular velocities data
+   real(C_DOUBLE),         intent(in   ) :: nodeOmegas_c(numNodeOmegaElem_c)  ! 1D array containing all the nodal angular velocities data
+   integer(C_INT),         intent(in   ) :: numNodeAccElem_c                  ! total number of array elements in the nodal translational accelerations array
+   real(C_DOUBLE),         intent(in   ) :: nodeAccs_c(numNodeAccElem_c)       ! 1D array containing all the nodal translational accelerations data
    integer(C_INT),         intent(in   ) :: numDCMElem_c                      ! total number of array elements in the nodal DCM data
    real(C_DOUBLE),         intent(in   ) :: nodeDCMs_c(numDCMElem_c)          ! 1D array containing all the nodal DCM data
    integer(C_INT),         intent(in   ) :: numRtrPtsElem_c                   ! total number of rotor point elements
@@ -2084,24 +2682,29 @@ subroutine KFAST_AssRes(t_c, isInitialTime_c, numRtSpdRtrElem_c, RtSpd_PyRtr_c, 
    n = utimes(1) / p%DT
    
       ! Transfer fuselage (kite) principal point inputs
-   FusO            = FusO_c
+   m%FusO          = FusO_c
    FusO_prev       = FusO_prev_c
    FusOv_prev      = FusOv_prev_c
    FusOomegas_prev = FusOomegas_prev_c
    FusOacc_prev    = FusOacc_prev_c
-   
-      ! Transfer C-based nodal and rotor quantities into Fortran-based data structures (but not meshes, yet)
+   FusODCM_prev    = reshape(FusODCM_prev_c,(/3,3/)) 
+   m%FusODCM       = reshape(FusODCM_c,(/3,3/)) 
+      ! Transfer C-based nodal and rotor quantities into Fortran-based data structures (and the MBD motion meshes)
       !   The resulting data resides inside the MiscVars data structure (m)
-   
-   FusODCM_prev = reshape(FusODCM_prev_c,(/3,3/))  
-   
-   if ( p%useKAD ) then
-      call TransferMBDynToKAD( FusO, numNodePtElem_c, nodePts_c, numNodeVelElem_c, nodeVels_c, numNodeOmegaElem_c, nodeOmegas_c, numDCMElem_c, nodeDCMs_c, rtrPts_c, rtrVels_c, rtrDCMs_c, p, m, errStat2, errMsg2 )
+
+   call TransferMBDynInputs( m%FusO, numNodePtElem_c, nodePts_c, numNodeVelElem_c, nodeVels_c, numNodeOmegaElem_c, nodeOmegas_c, numNodeAccElem_c, nodeAccs_c, numDCMElem_c, nodeDCMs_c, rtrPts_c, rtrVels_c, rtrDCMs_c, p, m, errStat2, errMsg2 )
          call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
          if (errStat >= AbortErrLev ) then
             call TransferErrors(errStat, errMsg, errStat_c, errMsg_c)
             return
          end if
+         
+   
+         
+   if ( p%useKAD ) then
+            ! Now transfer MBD motions mesh data to the corresponding KAD input meshes
+      call TransferMBDynInputs2KADMeshes( m%FusO, p, m, errStat, errMsg )
+   
    end if
    
 
@@ -2111,7 +2714,7 @@ subroutine KFAST_AssRes(t_c, isInitialTime_c, numRtSpdRtrElem_c, RtSpd_PyRtr_c, 
       ! The inputs to InflowWind are the positions where wind velocities [the outputs] are to be computed.  These inputs are set above by
       !  the TransferMBDynInputs() call.
    if ( p%useIfW ) then
-      call TransferMBDynToIfW( WindPt_c, FusO, numNodePtElem_c, nodePts_c, rtrPts_c, p, m, errStat2, errMsg2 )
+      call TransferMBDynToIfW( WindPt_c, m%FusO, numNodePtElem_c, nodePts_c, rtrPts_c, p, m, errStat2, errMsg2 )
          call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
          if (errStat >= AbortErrLev ) then
             call TransferErrors(errStat, errMsg, errStat_c, errMsg_c)
@@ -2152,7 +2755,7 @@ subroutine KFAST_AssRes(t_c, isInitialTime_c, numRtSpdRtrElem_c, RtSpd_PyRtr_c, 
             m%KFC%u%apparent_wind = m%IfW_FusO_prev - FusOv_prev
          end if
          m%KFC%u%apparent_wind = matmul(p%DCM_Fast2Ctrl, m%KFC%u%apparent_wind)
-        ! m%KFC%u%tether_force  = 0 
+        ! m%KFC%u%tether_forceb  = 0 
          m%KFC%u%wind_g        = matmul(p%DCM_Fast2Ctrl, m%IfW_ground_prev)
       
          call KFC_Step(utimes(1), m%KFC%u, m%KFC%p, m%KFC%y, errStat2, errMsg2 )
@@ -2420,9 +3023,11 @@ subroutine KFAST_AfterPredict(errStat_c, errMsg_c) BIND (C, NAME='KFAST_AfterPre
    
 end subroutine KFAST_AfterPredict
 
-subroutine KFAST_Output(t_c, errStat_c, errMsg_c) BIND (C, NAME='KFAST_Output')
+subroutine KFAST_Output(t_c, numGaussPtLoadsElem_c, gaussPtLoads_c, errStat_c, errMsg_c) BIND (C, NAME='KFAST_Output')
    IMPLICIT NONE
    real(C_DOUBLE),         intent(in   ) :: t_c
+   integer(C_INT),         intent(in   ) :: numGaussPtLoadsElem_c 
+   real(C_DOUBLE),         intent(in   ) :: gaussPtLoads_c(numGaussPtLoadsElem_c)
    integer(C_INT),         intent(  out) :: errStat_c      
    character(kind=C_CHAR), intent(  out) :: errMsg_c(IntfStrLen)   
 
@@ -2430,12 +3035,20 @@ subroutine KFAST_Output(t_c, errStat_c, errMsg_c) BIND (C, NAME='KFAST_Output')
    character(ErrMsgLen)            :: errMsg, errMsg2
    character(*), parameter         :: routineName = 'KFAST_Output'
    real(DbKi)                      :: t
+   
    errStat = ErrID_None
    errMsg  = ''
    t = real(t_c,DbKi)
 
+   call TransferMBDynLoadInputs( numGaussPtLoadsElem_c, gaussPtLoads_c, p, m, errStat2, errMsg2 )
+      call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
+   ! Compute the MBDyn-related outputs using the MBDyn load data and the most recently recieved motion data
+   
+   call KFAST_ProcessMBD_Outputs()
+   
+   
    ! Write any outputs to file
-   ! call KFAST_WriteOutput()
+
    call KFAST_WriteOutput( t, p, m%KAD%y, m%MD%y, m%IfW%y, errStat2, errMsg2 )
       call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
       

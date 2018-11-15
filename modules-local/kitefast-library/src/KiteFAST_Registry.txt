@@ -97,6 +97,7 @@ typedef   ^    MiscVarType    MeshMapType      SPy_P_P         {:}   -   -  "" -
 typedef   ^    MiscVarType    MeshMapType      PPy_P_P         {:}   -   -  "" - 
 typedef   ^    MiscVarType    MeshMapType      MD_L2_2_P        -    -  - "" -
 typedef   ^    MiscVarType    MeshMapType      MD_P_2_P         -    -  - "" -
+typedef   ^    MiscVarType    ReKi             FusO          {3}     -  - "" m
 typedef   ^    MiscVarType    ReKi             FusPts        {:}{:}  -  - "" m
 typedef   ^    MiscVarType    ReKi             SWnPts        {:}{:}  -  - "" m
 typedef   ^    MiscVarType    ReKi             PWnPts        {:}{:}  -  - "" m
@@ -121,6 +122,23 @@ typedef   ^    MiscVarType    ReKi             SHSOmegas     {:}{:}  -  - "" rad
 typedef   ^    MiscVarType    ReKi             PHSOmegas     {:}{:}  -  - "" rad/s
 typedef   ^    MiscVarType    ReKi             SPyOmegas   {:}{:}{:} -  - "" rad/s
 typedef   ^    MiscVarType    ReKi             PPyOmegas   {:}{:}{:} -  - "" rad/s
+typedef   ^    MiscVarType    ReKi             FusAccs       {:}{:}  -  - "" m/s^2
+typedef   ^    MiscVarType    ReKi             SWnAccs       {:}{:}  -  - "" m/s^2
+typedef   ^    MiscVarType    ReKi             PWnAccs       {:}{:}  -  - "" m/s^2
+typedef   ^    MiscVarType    ReKi             VSAccs        {:}{:}  -  - "" m/s^2
+typedef   ^    MiscVarType    ReKi             SHSAccs       {:}{:}  -  - "" m/s^2
+typedef   ^    MiscVarType    ReKi             PHSAccs       {:}{:}  -  - "" m/s^2
+typedef   ^    MiscVarType    ReKi             SPyAccs     {:}{:}{:} -  - "" m/s^2
+typedef   ^    MiscVarType    ReKi             PPyAccs     {:}{:}{:} -  - "" m/s^2
+typedef   ^    MiscVarType    ReKi             FusLoadInpts   {:}{:}  -  - "" N,Nm
+typedef   ^    MiscVarType    ReKi             SWnLoadInpts   {:}{:}  -  - "" N,Nm
+typedef   ^    MiscVarType    ReKi             PWnLoadInpts   {:}{:}  -  - "" N,Nm
+typedef   ^    MiscVarType    ReKi             VSLoadInpts    {:}{:}  -  - "" N,Nm
+typedef   ^    MiscVarType    ReKi             SHSLoadInpts   {:}{:}  -  - "" N,Nm
+typedef   ^    MiscVarType    ReKi             PHSLoadInpts   {:}{:}  -  - "" N,Nm
+typedef   ^    MiscVarType    ReKi             SPyLoadInpts {:}{:}{:} -  - "" N,Nm
+typedef   ^    MiscVarType    ReKi             PPyLoadInpts {:}{:}{:} -  - "" N,Nm
+
 typedef   ^    MiscVarType    ReKi             SPyRtrO     {:}{:}{:} -  - "" m
 typedef   ^    MiscVarType    ReKi             PPyRtrO     {:}{:}{:} -  - "" m
 typedef   ^    MiscVarType    ReKi             SPyRtrVels  {:}{:}{:} -  - "" m/s
@@ -136,7 +154,8 @@ typedef   ^    MiscVarType    R8Ki             SHSNdDCMs   {:}{:}{:} -  - "" -
 typedef   ^    MiscVarType    R8Ki             PHSNdDCMs   {:}{:}{:} -  - "" -
 typedef   ^    MiscVarType    R8Ki             SPyNdDCMs {:}{:}{:}{:} - - "" -
 typedef   ^    MiscVarType    R8Ki             PPyNdDCMs {:}{:}{:}{:} - - "" -
-
+typedef   ^    MiscVarType    ReKi             AllOuts     {3978} - - "" -
+typedef   ^    MiscVarType    ReKi             WriteOutput   {:}      - - "" -
 #
 # ..... Parameters ................................................................................................................
 # Define parameters here:
@@ -162,9 +181,25 @@ typedef   ^  ^              ReKi             anchorPt   {3} -  -  "Anchor point 
 typedef   ^  ^              ReKi             DCM_Fast2Ctrl {3}{3} - - "DCM between FAST inertial and the Controller's reference frame" -
 typedef	 ^	 ^	             CHARACTER(1024)	outFileRoot -	-	-	"Rootname of the KiteFAST output file(s)"	-
 typedef	 ^	 ^	             IntKi	         numOuts	   -	 0	   -	  "Total number of outputs requested (across all modules)"	-
+typedef	 ^	 ^	             IntKi	         numKFASTOuts  -	 0	   -	  "Number of KFAST-specific outputs requested"	-
 typedef	 ^	 ^	             IntKi	         numKADOuts	   -	 0	   -	  "Number of KAD outputs requested"	-
 typedef	 ^	 ^	             IntKi	         numMDOuts	   -	 0	   -	  "Number of MD outputs requested"	-
 typedef	 ^	 ^	             IntKi	         numIfWOuts	   -	 0	   -	  "Number of IfW outputs requested"	-
+typedef   ^  ^              IntKi            NFusOuts        -  0 - "" - 
+typedef   ^  ^              IntKi            FusOutNds     {9}  - - "" - 
+typedef   ^  ^              IntKi            NSWnOuts        -  0 - "" - 
+typedef   ^  ^              IntKi            SWnOutNds     {9}  - - "" - 
+typedef   ^  ^              IntKi            NPWnOuts        -  0 - "" - 
+typedef   ^  ^              IntKi            PWnOutNds     {9}  - - "" - 
+typedef   ^  ^              IntKi            NVSOuts        -  0 - "" - 
+typedef   ^  ^              IntKi            VSOutNds     {9}  - - "" - 
+typedef   ^  ^              IntKi            NSHSOuts        -  0 - "" - 
+typedef   ^  ^              IntKi            SHSOutNds     {9}  - - "" - 
+typedef   ^  ^              IntKi            NPHSOuts        -  0 - "" - 
+typedef   ^  ^              IntKi            PHSOutNds     {9}  - - "" - 
+typedef   ^  ^              IntKi            NPylOuts        -  0 - "" - 
+typedef   ^  ^              IntKi            PylOutNds     {9}  - - "" - 
+typedef	 ^	 ^	             OutParmType	        OutParam	  {:}	-	-	"Names and units (and other characteristics) of all requested output parameters"	-
 typedef	 ^	 ^              LOGICAL	         TabDelim	   -	 -	   -	  "Flag to cause tab-delimited text output (delimited by space otherwise)"	-
 typedef	 ^	 ^	             CHARACTER(20)	   OutFmt	   -	-	-	"Output format for tabular data"	-
 typedef	 ^	 ^	             CHARACTER(20)	   OutSFmt	   -	-	-	"Output format for channel labels and units"	-

@@ -24,8 +24,8 @@ int main(int argc, char *argv[])
     int isInitialTime;
     int nFinal;          // Last time increment for this simulation
     int numFlaps = 3;
-    int numPylons = 2;
-    int numComp = 10;
+    int numPylons = 1;
+    int numComp = 8;
     int *pNumCompNds = NULL;
     char KAD_FileName[INTERFACE_STRING_LENGTH];
     char IfW_FileName[INTERFACE_STRING_LENGTH];
@@ -57,6 +57,7 @@ int main(int argc, char *argv[])
     double *pFusOacc_prev;
     double *pNodeVels;
     double *pNodeOmegas;
+    double *pNodeAccs;
     int    *pModFlags;
     double *pRtrVels;
     double *pRtrDCMs;
@@ -65,6 +66,27 @@ int main(int argc, char *argv[])
     int numRtrLoadsElem;
     double *pRtrLoads;
     double *pKiteOffset;
+    int numGaussPtLoadsElem;
+    double *pGaussPtLoads;
+
+    //Outputs
+    int nFusOuts = 2;
+    int FusOutNd[] = { 2, 3 };
+    int nSWnOuts = 3;
+    int SWnOutNd[] = { 1, 2, 3 };
+    int nPWnOuts = 1;
+    int PWnOutNd[] = { 3 };
+    int nVSOuts  = 0;
+    int VSOutNd[] = { 1 };
+    int nSHSOuts = 0;
+    int SHSOutNd[] = { 1 };
+    int nPHSOuts = 0;
+    int PHSOutNd[] = { 1 };
+    int nPylOuts = 2;
+    int PylOutNd[] = { 1,2 };
+
+    int numOutChan = 7;
+    char* outChanList[] = { "Fus1TDx   ", "Fus1TDy   ", "Fus1TDz   ", "SWn1TDx   ", "SWn1TDy   ", "SWn1TDz   ", "PP12FRc   " };
 
 
    // Set module flags 0 = off, 1=on
@@ -75,31 +97,30 @@ int main(int argc, char *argv[])
     pModFlags[3] = 0;  // no KiteFAST controller
 
     // Set input file names
-    strcpy(KAD_FileName, "/path/to/simple_m600_model.inp");
-    strcpy(IfW_FileName, "/path/to/kiteInflowWind.dat");
-    strcpy(MD_FileName , "/path/to/kiteTether.dat");
-    strcpy(KFC_FileName, "/path/to/libkitefastcontroller_controller.so");
+    strcpy(KAD_FileName, "D:\\DEV\\makani\\google-repo\\nrel_source\\glue-codes\\kitefast\\m000\\simple_m000_model_AD.txt");
+    strcpy(IfW_FileName, "D:\\DEV\\makani\\kitefast_models\\kiteInflowWind.dat");
+    strcpy(MD_FileName , "D:\\DEV\\makani\\kitefast_models\\kiteTether.dat");
+    strcpy(KFC_FileName, "D:\\DEV\\makani\\kitefast_models\\libkitefastcontroller_controller.so");
     strcpy(outFileRoot , "KiteTest");
 
 
     // Set up the number of nodes per kite component
     pNumCompNds = (int *)malloc(numComp*sizeof(int));
     pNumCompNds[0] = 3; // Fuselage nodes
-    pNumCompNds[1] = 2; //  Starboard wing nodes
-    pNumCompNds[2] = 2; //  Port wing nodes
-    pNumCompNds[3] = 2; //  vertical stabilizer nodes
-    pNumCompNds[4] = 2; //  starboard horizontal stabilizer nodes
-    pNumCompNds[5] = 2; //  port horizontal stabilizer nodes
-    pNumCompNds[6] = 2; //  starboard inboard pylon nodes
-    pNumCompNds[7] = 2; //  starboard outboard pylon nodes
-    pNumCompNds[8] = 2; //  port inboard pylon nodes
-    pNumCompNds[9] = 2; //  port outboard pylon nodes
+    pNumCompNds[1] = 3; //  Starboard wing nodes
+    pNumCompNds[2] = 3; //  Port wing nodes
+    pNumCompNds[3] = 3; //  vertical stabilizer nodes
+    pNumCompNds[4] = 3; //  starboard horizontal stabilizer nodes
+    pNumCompNds[5] = 3; //  port horizontal stabilizer nodes
+    pNumCompNds[6] = 3; //  starboard inboard pylon nodes
+    pNumCompNds[7] = 3; //  port inboard pylon nodes
 
+    
     // Set the ground station point where the wind is measured
     pWindPt = (double *)malloc(3 * sizeof(double));
-    pWindPt[0] = 0.0;
-    pWindPt[1] = 0.0;
-    pWindPt[2] = 10.0;
+    pWindPt[0] = 100.0;
+    pWindPt[1] = 20.0;
+    pWindPt[2] = 0.0;
 
     //Test the FusODCM as a 1D array instead of a 2D array
     // The kite is aligned with the Global Coordinate system
@@ -115,12 +136,12 @@ int main(int argc, char *argv[])
     pFusODCM[8] =  -1.0;
 
     // Offset of kit in global coordinates (m)
-    // This offset needs to be added to all the regerence points.
+    // This offset needs to be added to all the reference points.
 
     pKiteOffset = (double *)malloc(3 * sizeof(double));
     pKiteOffset[0] = 0.0;
     pKiteOffset[1] = 0.0;
-    pKiteOffset[2] = 300.0;
+    pKiteOffset[2] = 100.0;
 
     // Rotor points
     numRtrPtsElem = numPylons * 4 * 3;
@@ -131,7 +152,7 @@ int main(int argc, char *argv[])
     numRtrLoadsElem = numRtrPtsElem*2;
     pRtrLoads = (double *)malloc(numRtrLoadsElem * sizeof(double));
 
-    // Starboard inner top
+    // Starboard inner top in global
     pRtrPts[0] = -1.861 + pKiteOffset[0];
     pRtrPts[1] = 1.213 + pKiteOffset[1];
     pRtrPts[2] = 1.221 + pKiteOffset[2];
@@ -139,30 +160,30 @@ int main(int argc, char *argv[])
     pRtrPts[3] = -1.515 + pKiteOffset[0];
     pRtrPts[4] = 1.213 + pKiteOffset[1];
     pRtrPts[5] = -1.593 + pKiteOffset[2];
-    // Starboard outer top
-    pRtrPts[6] = -1.861 + pKiteOffset[0];
-    pRtrPts[7] = 3.640 + pKiteOffset[1];
-    pRtrPts[8] = 1.221 + pKiteOffset[2];
-    // Starboard outer bottom
-    pRtrPts[9] = -1.515 + pKiteOffset[0];
-    pRtrPts[10] = 3.640 + pKiteOffset[1];
-    pRtrPts[11] = -1.593 + pKiteOffset[2];
+    //// Starboard outer top
+    //pRtrPts[6] = -1.861 + pKiteOffset[0];
+    //pRtrPts[7] = 3.640 + pKiteOffset[1];
+    //pRtrPts[8] = 1.221 + pKiteOffset[2];
+    //// Starboard outer bottom
+    //pRtrPts[9] = -1.515 + pKiteOffset[0];
+    //pRtrPts[10] = 3.640 + pKiteOffset[1];
+    //pRtrPts[11] = -1.593 + pKiteOffset[2];
     // Port inner top
-    pRtrPts[12] = -1.861 + pKiteOffset[0];
-    pRtrPts[13] = -1.213 + pKiteOffset[1];
-    pRtrPts[14] = 1.221 + pKiteOffset[2];
+    pRtrPts[6] = -1.861 + pKiteOffset[0];
+    pRtrPts[7] = -1.213 + pKiteOffset[1];
+    pRtrPts[8] = 1.221 + pKiteOffset[2];
     // Port inner bottom
-    pRtrPts[15] = -1.515 + pKiteOffset[0];
-    pRtrPts[16] = -1.213 + pKiteOffset[1];
-    pRtrPts[17] = -1.593 + pKiteOffset[2];
-    // Port outer top
-    pRtrPts[18] = -1.861 + pKiteOffset[0];
-    pRtrPts[19] = -3.639 + pKiteOffset[1];
-    pRtrPts[20] = 1.221 + pKiteOffset[2];
-    // Port outer bottom
-    pRtrPts[21] = -1.515 + pKiteOffset[0];
-    pRtrPts[22] = -3.639 + pKiteOffset[1];
-    pRtrPts[23] = -1.593 + pKiteOffset[2];
+    pRtrPts[9] = -1.515 + pKiteOffset[0];
+    pRtrPts[10] = -1.213 + pKiteOffset[1];
+    pRtrPts[11] = -1.593 + pKiteOffset[2];
+    //// Port outer top
+    //pRtrPts[18] = -1.861 + pKiteOffset[0];
+    //pRtrPts[19] = -3.639 + pKiteOffset[1];
+    //pRtrPts[20] = 1.221 + pKiteOffset[2];
+    //// Port outer bottom
+    //pRtrPts[21] = -1.515 + pKiteOffset[0];
+    //pRtrPts[22] = -3.639 + pKiteOffset[1];
+    //pRtrPts[23] = -1.593 + pKiteOffset[2];
 
 
 
@@ -175,71 +196,80 @@ int main(int argc, char *argv[])
         pRefPts[i] = 0.0;
     }
     c = 0;
+
     //Fuselage in global 
     pRefPts[c + 0] = pKiteOffset[0];
     pRefPts[c + 1] = pKiteOffset[1];
     pRefPts[c + 2] = pKiteOffset[2];
     c = c + 3;
+
     // Starboard Wing in kite coords
     pRefPts[c + 0] = 0.0;
-    pRefPts[c + 1] = 0.005;
+    pRefPts[c + 1] = 0.5;
     pRefPts[c + 2] = 0.0;
     c = c + 3;
+
     // Port Wing in kite coords
     pRefPts[c + 0] = 0.0;
-    pRefPts[c + 1] = -0.005;
+    pRefPts[c + 1] = -0.50;
     pRefPts[c + 2] = 0.0;
     c = c + 3;
+
     // Vertical Stabilizer in kite coords
-
-    pRefPts[c + 0] = -6.891;
+    pRefPts[c + 0] = -5.1;
     pRefPts[c + 1] = 0.0  ;
-    pRefPts[c + 2] = 0.0  ;
-    c = c + 3;
-    // Starboard Horizontal Stabilizer in kite coords
-    pRefPts[c + 0] = -6.555  ;
-    pRefPts[c + 1] = 0.0    ;
-    pRefPts[c + 2] = 0.817 ;
-    c = c + 3;
-    // Port Horizontal Stabilizer in kite coords
-    pRefPts[c + 0] = -6.555 ;
-    pRefPts[c + 1] = 0.0   ;
-    pRefPts[c + 2] = 0.817;
-    c = c + 3;
-    // Starboard Pylons in kite coords
-    pRefPts[c + 0] = 0.857 ;
-    pRefPts[c + 1] = 1.0 ;
-    pRefPts[c + 2] = 0.0 ;
+    pRefPts[c + 2] = -2.0  ;
     c = c + 3;
 
-    pRefPts[c + 0] = 0.857 ;
+    // Starboard Horizontal Stabilizer in kite coords
+    pRefPts[c + 0] = -5.1  ;
+    pRefPts[c + 1] = 0.1    ;
+    pRefPts[c + 2] = -2.0 ;
+    c = c + 3;
+
+    // Port Horizontal Stabilizer in kite coords
+    pRefPts[c + 0] = -5.1 ;
+    pRefPts[c + 1] = -0.1   ;
+    pRefPts[c + 2] = -2.0;
+    c = c + 3;
+
+    // Starboard Pylons in kite coords
+    pRefPts[c + 0] = 0.1 ;
+    pRefPts[c + 1] = 3.0 ;
+    pRefPts[c + 2] = -0.5 ;
+    c = c + 3;
+
+   /* pRefPts[c + 0] = 0.857 ;
     pRefPts[c + 1] = 3.5    ;
     pRefPts[c + 2] = 0.0    ;
-    c = c + 3;
+    c = c + 3;*/
 
     // Port Pylons in kite coords
-    pRefPts[c + 0] = 0.857 ;
-    pRefPts[c + 1] = -1.0 ;
-    pRefPts[c + 2] = 0.0 ;
+    pRefPts[c + 0] = 0.1;
+    pRefPts[c + 1] = -3.0 ;
+    pRefPts[c + 2] = -0.5 ;
     c = c + 3;
 
-    pRefPts[c + 0] = 0.857 ;
+   /* pRefPts[c + 0] = 0.857 ;
     pRefPts[c + 1] = -3.5;
     pRefPts[c + 2] = 0.0 ;
-    c = c + 3;
+    c = c + 3;*/
 
     // nodal DCMs
     numDCMElem = 0;
     numNodePtElem = 0;
+    numGaussPtLoadsElem = 0;
     for (i = 0; i < numComp; i++) 
     {
-        numDCMElem    = numDCMElem + 9 * pNumCompNds[i];
-        numNodePtElem = numNodePtElem + 3 * pNumCompNds[i];
+        numDCMElem          = numDCMElem + 9 * pNumCompNds[i];
+        numNodePtElem       = numNodePtElem + 3 * pNumCompNds[i];
+        numGaussPtLoadsElem = numGaussPtLoadsElem + 6 * (pNumCompNds[i] - 1);
     }
     pNodeDCMs = (double *)malloc(numDCMElem * sizeof(double));
     pNodePts  = (double *)malloc(numNodePtElem * sizeof(double));
     numNodeLoadsElem = numNodePtElem*2;
     pNodeLoads = (double *)malloc(numNodeLoadsElem * sizeof(double));
+    pGaussPtLoads = (double *)malloc(numGaussPtLoadsElem * sizeof(double));
 
     // Set all DCMs to FusO DCM
     for (i = 0; i < numDCMElem; i=i+9)
@@ -256,16 +286,20 @@ int main(int argc, char *argv[])
     }
     
     n = 0;
+
+    // The node positions are in Global, but the pRefPts are in Kite, pKiteOffset is in Global
+
+
     // Fuselage node positions
-    pNodePts[0] = 0.027 + pRefPts[n + 0] ;
+    pNodePts[0] = -5    - pRefPts[n + 0] ;
     pNodePts[1] = 0.000 + pRefPts[n + 1] ;
-    pNodePts[2] = -0.170 + pRefPts[n + 2];
-    pNodePts[3] = 3.400 + pRefPts[n + 0] ;
+    pNodePts[2] = 0     - pRefPts[n + 2];
+    pNodePts[3] = 0     - pRefPts[n + 0] ;
     pNodePts[4] = 0.000 + pRefPts[n + 1] ;
-    pNodePts[5] = 0.00 + pRefPts[n + 2]  ;
-    pNodePts[6] = 6.917 + pRefPts[n + 0] ;
+    pNodePts[5] = 0.00  - pRefPts[n + 2]  ;
+    pNodePts[6] = 5     - pRefPts[n + 0] ;
     pNodePts[7] = 0.000 + pRefPts[n + 1] ;
-    pNodePts[8] = -0.039 + pRefPts[n + 2];
+    pNodePts[8] = 0     - pRefPts[n + 2];
     c = 9;
     //  Starboard wing nodes
     n = 3;
@@ -273,28 +307,37 @@ int main(int argc, char *argv[])
     pNodePts[c + 1] = 0.000 + pRefPts[n + 1] + pKiteOffset[1];
     pNodePts[c + 2] = 0.000 - pRefPts[n + 2] + pKiteOffset[2];
     pNodePts[c + 3] = 0.000 - pRefPts[n + 0] + pKiteOffset[0];
-    pNodePts[c + 4] = 12.831 + pRefPts[n + 1] + pKiteOffset[1];
-    pNodePts[c + 5] = 0.384 - pRefPts[n + 2] + pKiteOffset[2];
+    pNodePts[c + 4] = 2.5   + pRefPts[n + 1] + pKiteOffset[1];
+    pNodePts[c + 5] = 0     -pRefPts[n + 2] + pKiteOffset[2];
+    pNodePts[c + 6] = 0.000 - pRefPts[n + 0] + pKiteOffset[0];
+    pNodePts[c + 7] = 5.5   + pRefPts[n + 1] + pKiteOffset[1];
+    pNodePts[c + 8] = 0     - pRefPts[n + 2] + pKiteOffset[2];
     n = n + 3;
-    c = c + 6;
+    c = c + 9;
     //  Port wing nodes
     pNodePts[c + 0] = 0.000 - pRefPts[n + 0] + pKiteOffset[0];
     pNodePts[c + 1] = 0.000 + pRefPts[n + 1] + pKiteOffset[1];
     pNodePts[c + 2] = 0.000 - pRefPts[n + 2] + pKiteOffset[2];
     pNodePts[c + 3] = 0.000 - pRefPts[n + 0] + pKiteOffset[0];
-    pNodePts[c + 4] = -12.831 + pRefPts[n + 1] + pKiteOffset[1];
-    pNodePts[c + 5] = 0.384 - pRefPts[n + 2] + pKiteOffset[2];
+    pNodePts[c + 4] = -2.5  + pRefPts[n + 1] + pKiteOffset[1];
+    pNodePts[c + 5] = 0.0   - pRefPts[n + 2] + pKiteOffset[2];
+    pNodePts[c + 6] = 0.000 - pRefPts[n + 0] + pKiteOffset[0];
+    pNodePts[c + 7] = -5.5  + pRefPts[n + 1] + pKiteOffset[1];
+    pNodePts[c + 8] = 0.0   - pRefPts[n + 2] + pKiteOffset[2];
     n = n + 3;
-    c = c + 6;
+    c = c + 9;
     //  vertical stabilizer nodes
-    pNodePts[c + 0] = 0.123 - pRefPts[n + 0] + pKiteOffset[0];
+    pNodePts[c + 0] = 0.000 - pRefPts[n + 0] + pKiteOffset[0];
     pNodePts[c + 1] = 0.000 + pRefPts[n + 1] + pKiteOffset[1];
-    pNodePts[c + 2] = 2.850 - pRefPts[n + 2] + pKiteOffset[2];
-    pNodePts[c + 3] = 0.044 - pRefPts[n + 0] + pKiteOffset[0];
+    pNodePts[c + 2] = 0.000 - pRefPts[n + 2] + pKiteOffset[2];
+    pNodePts[c + 3] = 0.000 - pRefPts[n + 0] + pKiteOffset[0];
     pNodePts[c + 4] = 0.000 + pRefPts[n + 1] + pKiteOffset[1];
-    pNodePts[c + 5] = -0.712 - pRefPts[n + 2] + pKiteOffset[2];
+    pNodePts[c + 5] = -1    - pRefPts[n + 2] + pKiteOffset[2];
+    pNodePts[c + 6] = 0.00  - pRefPts[n + 0] + pKiteOffset[0];
+    pNodePts[c + 7] = 0.000 + pRefPts[n + 1] + pKiteOffset[1];
+    pNodePts[c + 8] = -2    - pRefPts[n + 2] + pKiteOffset[2];
     n = n + 3;
-    c = c + 6;
+    c = c + 9;
     //  starboard horizontal stabilizer nodes
     pNodePts[c + 0] = 0.000 - pRefPts[n + 0] + pKiteOffset[0];
     pNodePts[c + 1] = 0.000 + pRefPts[n + 1] + pKiteOffset[1];
@@ -302,8 +345,11 @@ int main(int argc, char *argv[])
     pNodePts[c + 3] = 0.417 - pRefPts[n + 0] + pKiteOffset[0];
     pNodePts[c + 4] = 2.447 + pRefPts[n + 1] + pKiteOffset[1];
     pNodePts[c + 5] = 0.000 - pRefPts[n + 2] + pKiteOffset[2];
+    pNodePts[c + 6] = 0.417 - pRefPts[n + 0] + pKiteOffset[0];
+    pNodePts[c + 7] = 3.447 + pRefPts[n + 1] + pKiteOffset[1];
+    pNodePts[c + 8] = 0.000 - pRefPts[n + 2] + pKiteOffset[2];
     n = n + 3;
-    c = c + 6;
+    c = c + 9;
     //  port horizontal stabilizer nodes
     pNodePts[c + 0] = 0.000 - pRefPts[n + 0] + pKiteOffset[0];
     pNodePts[c + 1] = 0.000 + pRefPts[n + 1] + pKiteOffset[1];
@@ -311,8 +357,11 @@ int main(int argc, char *argv[])
     pNodePts[c + 3] = 0.417 - pRefPts[n + 0] + pKiteOffset[0];
     pNodePts[c + 4] = -2.447 + pRefPts[n + 1] + pKiteOffset[1];
     pNodePts[c + 5] = 0.000 - pRefPts[n + 2] + pKiteOffset[2];
+    pNodePts[c + 6] = 0.417 - pRefPts[n + 0] + pKiteOffset[0];
+    pNodePts[c + 7] = -3.447 + pRefPts[n + 1] + pKiteOffset[1];
+    pNodePts[c + 8] = 0.000 - pRefPts[n + 2] + pKiteOffset[2];
     n = n + 3;
-    c = c + 6;
+    c = c + 9;
     //  starboard inboard pylon nodes
     pNodePts[c + 0] = -0.729 - pRefPts[n + 0] + pKiteOffset[0];
     pNodePts[c + 1] = 0.000 + pRefPts[n + 1] + pKiteOffset[1];
@@ -320,17 +369,20 @@ int main(int argc, char *argv[])
     pNodePts[c + 3] = -0.510 - pRefPts[n + 0] + pKiteOffset[0];
     pNodePts[c + 4] = 0.000 + pRefPts[n + 1] + pKiteOffset[1];
     pNodePts[c + 5] = -1.832 - pRefPts[n + 2] + pKiteOffset[2];
+    pNodePts[c + 6] = -0.510 - pRefPts[n + 0] + pKiteOffset[0];
+    pNodePts[c + 7] = 0.000 + pRefPts[n + 1] + pKiteOffset[1];
+    pNodePts[c + 8] = -2.832 - pRefPts[n + 2] + pKiteOffset[2];
     n = n + 3;
-    c = c + 6;
+    c = c + 9;
     //  starboard outboard pylon nodes
-    pNodePts[c + 0] = -0.729 - pRefPts[n + 0] + pKiteOffset[0];
+   /* pNodePts[c + 0] = -0.729 - pRefPts[n + 0] + pKiteOffset[0];
     pNodePts[c + 1] = 0.000 + pRefPts[n + 1] + pKiteOffset[1];
     pNodePts[c + 2] = 1.470 - pRefPts[n + 2] + pKiteOffset[2];
     pNodePts[c + 3] = -0.510 - pRefPts[n + 0] + pKiteOffset[0];
     pNodePts[c + 4] = 0.000 + pRefPts[n + 1] + pKiteOffset[1];
     pNodePts[c + 5] = -1.832 - pRefPts[n + 2] + pKiteOffset[2];
     n = n + 3;
-    c = c + 6;
+    c = c + 6;*/
     //  port inboard pylon nodes
     pNodePts[c + 0] = -0.729 - pRefPts[n + 0] + pKiteOffset[0];
     pNodePts[c + 1] = 0.000 + pRefPts[n + 1] + pKiteOffset[1];
@@ -338,21 +390,25 @@ int main(int argc, char *argv[])
     pNodePts[c + 3] = -0.510 - pRefPts[n + 0] + pKiteOffset[0];
     pNodePts[c + 4] = 0.000 + pRefPts[n + 1] + pKiteOffset[1];
     pNodePts[c + 5] = -1.832 - pRefPts[n + 2] + pKiteOffset[2];
+    pNodePts[c + 6] = -0.510 - pRefPts[n + 0] + pKiteOffset[0];
+    pNodePts[c + 7] = 0.000 + pRefPts[n + 1] + pKiteOffset[1];
+    pNodePts[c + 8] = -2.832 - pRefPts[n + 2] + pKiteOffset[2];
     n = n + 3;
-    c = c + 6;
+    c = c + 9;
 
     //  port outboard pylon nodes
-    pNodePts[c + 0] = -0.729 - pRefPts[n + 0] + pKiteOffset[0];
+    /*pNodePts[c + 0] = -0.729 - pRefPts[n + 0] + pKiteOffset[0];
     pNodePts[c + 1] = 0.000 + pRefPts[n + 1] + pKiteOffset[1];
     pNodePts[c + 2] = 1.470 - pRefPts[n + 2] + pKiteOffset[2];
     pNodePts[c + 3] = -0.510 - pRefPts[n + 0] + pKiteOffset[0];
     pNodePts[c + 4] = 0.000 + pRefPts[n + 1] + pKiteOffset[1];
     pNodePts[c + 5] = -1.832 - pRefPts[n + 2] + pKiteOffset[2];
-
+*/
 
     // This is called as part of the user module constructor
     KFAST_Init(&dt, &numFlaps, &numPylons, &numComp, pNumCompNds, pModFlags, KAD_FileName, IfW_FileName, MD_FileName, KFC_FileName, outFileRoot, &gravity, pWindPt,
-        pFusODCM, &numRtrPtsElem, pRtrPts, &numRefPtElem, pRefPts, &numNodePtElem, pNodePts, &numDCMElem, pNodeDCMs, &errStat, errMsg);
+       pFusODCM, &numRtrPtsElem, pRtrPts, &numRefPtElem, pRefPts, &numNodePtElem, pNodePts, &numDCMElem, pNodeDCMs, 
+       &nFusOuts, FusOutNd, &nSWnOuts, SWnOutNd, &nPWnOuts, PWnOutNd, &nVSOuts, VSOutNd, &nSHSOuts, SHSOutNd, &nPHSOuts, PHSOutNd, &nPylOuts, PylOutNd, &numOutChan, outChanList, &errStat, errMsg);
     
     if (errStat != 0)
     {
@@ -400,6 +456,7 @@ int main(int argc, char *argv[])
 
     pNodeVels   = (double *)malloc(numNodePtElem * sizeof(double));
     pNodeOmegas = (double *)malloc(numNodePtElem * sizeof(double));
+    pNodeAccs   = (double *)malloc(numNodePtElem * sizeof(double));
     i = 0;
     for (n = 0; n < numNodePtElem / 3; n++)
     {
@@ -409,6 +466,9 @@ int main(int argc, char *argv[])
         pNodeOmegas[n * 3] = 0.0;
         pNodeOmegas[n * 3 + 1] = 0.0;
         pNodeOmegas[n * 3 + 2] = 0.0;
+        pNodeAccs[n * 3] = 1.0;
+        pNodeAccs[n * 3 + 1] = 2.0;
+        pNodeAccs[n * 3 + 2] = 3.0;
     }
     
     // Need to set rotor point velocities and orientations
@@ -434,9 +494,9 @@ int main(int argc, char *argv[])
 
     // This returns the loads from KiteFAST at the initial time
     isInitialTime = 1;  // we do not advance the states for the first call to KFAST_AssRes(), we only want to compute the output loads
-    KFAST_AssRes(&t, &isInitialTime, &numRtSpdRtrElem, pRtSpd_PyRtr, pWindPt, pFusO_prev, pFusO, pFusODCM_prev, pFusOv_prev,
+    KFAST_AssRes(&t, &isInitialTime, &numRtSpdRtrElem, pRtSpd_PyRtr, pWindPt, pFusO_prev, pFusO, pFusODCM_prev, pFusODCM, pFusOv_prev,
                     pFusOomegas_prev, pFusOacc_prev, &numNodePtElem, pNodePts,
-                    &numNodePtElem, pNodeVels, &numNodePtElem, pNodeOmegas,
+                    &numNodePtElem, pNodeVels, &numNodePtElem, pNodeOmegas, &numNodePtElem, pNodeAccs,
                     &numDCMElem, pNodeDCMs, &numRtrPtsElem, pRtrPts, pRtrVels, pRtrDCMs, 
                     &numNodeLoadsElem, pNodeLoads, &numRtrLoadsElem, pRtrLoads, & errStat, errMsg);
     for (n = 0; n < numNodeLoadsElem; n = n + 6)
@@ -451,9 +511,17 @@ int main(int argc, char *argv[])
         printf("%s\n", errMsg);
         return errStat;
     }
-
+    for (n = 0; n < numGaussPtLoadsElem; n = n + 6)
+    {
+       pGaussPtLoads[n] = 1.0;
+       pGaussPtLoads[n+1] = 2.0;
+       pGaussPtLoads[n+2] = 3.0;
+       pGaussPtLoads[n+3] = 4.0;
+       pGaussPtLoads[n+4] = 5.0;
+       pGaussPtLoads[n+5] = 6.0;
+    }
     // Output()
-    KFAST_Output(&t, &errStat, errMsg);
+    KFAST_Output(&t, &numGaussPtLoadsElem, pGaussPtLoads, &errStat, errMsg);
     if (errStat != 0)
     {
         printf("%s\n", errMsg);
@@ -475,9 +543,9 @@ int main(int argc, char *argv[])
         // For now we will simulate constant positions, velocities, and accelerations
 
         // AssRes()
-        KFAST_AssRes(&t, &isInitialTime, &numRtSpdRtrElem, pRtSpd_PyRtr, pWindPt, pFusO_prev, pFusO, pFusODCM_prev, pFusOv_prev,
+        KFAST_AssRes(&t, &isInitialTime, &numRtSpdRtrElem, pRtSpd_PyRtr, pWindPt, pFusO_prev, pFusO, pFusODCM_prev, pFusODCM, pFusOv_prev,
             pFusOomegas_prev, pFusOacc_prev, &numNodePtElem, pNodePts,
-            &numNodePtElem, pNodeVels, &numNodePtElem, pNodeOmegas,
+            &numNodePtElem, pNodeVels, &numNodePtElem, pNodeOmegas, &numNodePtElem, pNodeAccs,
             &numDCMElem, pNodeDCMs, &numRtrPtsElem, pRtrPts, pRtrVels, pRtrDCMs, 
             &numNodeLoadsElem, pNodeLoads, &numRtrLoadsElem, pRtrLoads, &errStat, errMsg);
         if (errStat != 0)
@@ -495,7 +563,7 @@ int main(int argc, char *argv[])
         }
 
         // Output()
-        KFAST_Output(&t, &errStat, errMsg);
+        KFAST_Output(&t, &numGaussPtLoadsElem, pGaussPtLoads, &errStat, errMsg);
         if (errStat != 0)
         {
             printf("%s\n", errMsg);

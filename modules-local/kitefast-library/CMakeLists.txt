@@ -29,8 +29,12 @@ target_link_libraries(kitefast_prelib
   kitefastcontrollerlib
   moordynlib
   )
+set(LIB_SOURCES
+  src/KiteFAST.f90
+  src/KiteFAST_IO.f90
+  )
+add_library(kitefastlib ${LIB_SOURCES})
 
-add_library(kitefastlib src/KiteFAST.f90)
 target_link_libraries(kitefastlib kitefast_prelib)
 
 install(TARGETS kitefastlib kitefast_prelib
