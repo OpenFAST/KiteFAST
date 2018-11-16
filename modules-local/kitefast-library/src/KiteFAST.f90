@@ -2224,7 +2224,12 @@ subroutine KFAST_AssRes(t_c, isInitialTime_c, numRtSpdRtrElem_c, RtSpd_PyRtr_c, 
             m%KFC%u%apparent_wind = m%IfW_FusO_prev - FusOv_prev
          end if
          m%KFC%u%apparent_wind = matmul(p%DCM_Fast2Ctrl, m%KFC%u%apparent_wind)
-         m%KFC%u%tether_forceb  = TwoNorm( m%MD%y%PtFairLeadLoad%Force(:,1) + m%MD%y%PtFairLeadLoad%Force(:,2) )
+         if ( p%useMD ) then
+            m%KFC%u%tether_forceb  = TwoNorm( m%MD%y%PtFairLeadLoad%Force(:,1) + m%MD%y%PtFairLeadLoad%Force(:,2) )
+         else
+            m%KFC%u%tether_forceb = 0
+         endif
+
          m%KFC%u%wind_g        = matmul(p%DCM_Fast2Ctrl, m%IfW_ground_prev)
       
          call KFC_Step(utimes(1), m%KFC%u, m%KFC%p, m%KFC%y, errStat2, errMsg2 )
