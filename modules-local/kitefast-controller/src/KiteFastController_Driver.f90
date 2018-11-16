@@ -51,7 +51,7 @@ program KiteFastController_Driver
    u%Ag = (/ 1, 2, 3 /) !reshape((/ 1, 2, 3 /), shape(u%Ag))
    u%Ab = (/ 1, 2, 3 /) !reshape((/ 1, 2, 3 /), shape(u%Ab))
    u%rho = 1.0        
-   u%apparent_wind = (/ 1, 1, 1 /) !reshape((/ 1, 2, 3 /), shape(u%apparent_wind))
+   u%apparent_wind = (/ -30, 1, 1 /) !reshape((/ 1, 2, 3 /), shape(u%apparent_wind))
    u%tether_forceb = (/ 1, 1, 1 /) !reshape((/ 1, 2, 3 /), shape(u%tether_forceb))
    u%wind_g = 1.0 !reshape((/ 1, 2, 3 /), shape(u%wind_g))
 !    y%GenSPyRtr = reshape((/ 1, 2, 3, 4 /), shape(y%GenSPyRtr))

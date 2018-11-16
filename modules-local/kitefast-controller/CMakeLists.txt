@@ -49,6 +49,7 @@ set(DYLIB_SOURCES
 	src/control/system_types.c
 	src/control/tether_util.c
 	src/control/system_params.c
+	src/control/control_log.c
 	src/control/crosswind/crosswind.c
 	src/control/crosswind/crosswind_inner.c
 	src/control/crosswind/crosswind_types.c

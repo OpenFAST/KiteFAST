@@ -100,7 +100,7 @@ ln -s $openfast_directory/build/modules-local/kitefast-controller/libkitefastcon
 # configure and build mbdyn
 export LDFLAGS=-rdynamic
 cd $mbdyn_directory
-./configure --enable-runtime-loading --with-module="kitefastmbd"
+./configure --enable-runtime-loading --with-module="kitefastmbd" --enable-debug
 sudo make                      # build mbdyn
 cd modules                     # move to the module directory
 sudo make                      # build the user defined element

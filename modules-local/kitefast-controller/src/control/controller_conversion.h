@@ -14,5 +14,7 @@ void AssignInputs(double dcm_g2b_c[], double pqr_c[], double *acc_norm_c,
 	double kFlapA_c[], double Motor_c[],
 	int *errStat, char *errMsg, StateEstimate *state_est);
 
+void AssignOutputs(double kFlapA_c[], double Motor_c[],
+	int *errStat, char *errMsg, ControlOutput* raw_control_output);
 
 #endif

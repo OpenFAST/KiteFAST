@@ -23,6 +23,7 @@
 static void ScheduleLongitudinalGains(
     double airspeed, const CrosswindInnerParams *params,
     double longitudinal_gains[][kNumCrosswindLongitudinalStates]) {
+  printf("airpseed = %0.4f\n",airspeed );
   assert(airspeed >= 0.0);
   assert(params != NULL && longitudinal_gains != NULL);
 
@@ -192,6 +193,7 @@ static void CalcLateralFeedback(
     const Vec3 *pqr_cmd, const Vec3 *pqr, double int_tether_roll_error,
     double int_beta_error, double lateral_gains[][kNumCrosswindLateralStates],
     double *delta_aileron, double *delta_rudder, double *moment_z) {
+    printf("beta = %0.4f, beta_cmd = %0.4f\n",beta, beta_cmd);
   assert(-PI / 2.0 <= tether_roll_cmd && tether_roll_cmd <= PI / 2.0);
   assert(-PI / 2.0 <= tether_roll && tether_roll <= PI / 2.0);
   assert(-PI / 2.0 <= beta_cmd && beta_cmd <= PI / 2.0);

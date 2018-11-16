@@ -24,8 +24,6 @@ void kfc_dll_step(double dcm_g2b_c[], double pqr_c[], double *acc_norm_c,
                   int *errStat, char *errMsg)
 {
     printf("  debug marker - pre controller_step() \n");
-    printf("  value dcm_g2b_c = %d \n",&dcm_g2b_c[0]);
-	printf("  value pqr_c = %d \n",&pqr_c);
     controller_step(dcm_g2b_c, pqr_c, acc_norm_c,
                  Xg_c, Vg_c, Vb_c, Ag_c,
                  Ab_c, rho_c, apparent_wind_c,

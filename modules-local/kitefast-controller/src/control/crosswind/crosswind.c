@@ -315,6 +315,26 @@ printf("    debug marker - pre crosswind_inner \n");
       &state->inner, lateral_gains, &deltas, &thrust_moment);
 
 printf("    debug marker - post crosswind_inner \n");
+
+// PLACE HOLDER FOR CONTROL OUTPUTS
+control_output->flaps[0] = 0;
+control_output->flaps[1] = 0;
+control_output->flaps[2] = 0;
+control_output->flaps[3] = 0;
+control_output->flaps[4] = 0;
+control_output->flaps[5] = 0;
+control_output->flaps[6] = 0;
+control_output->flaps[7] = 0;
+
+control_output->rotors[0] = 0;
+control_output->rotors[1] = 0;
+control_output->rotors[2] = 0;
+control_output->rotors[3] = 0;
+control_output->rotors[4] = 0;
+control_output->rotors[5] = 0;
+control_output->rotors[6] = 0;
+control_output->rotors[7] = 0;
+// end placeholder - Justin Miller - STI
   //// Convert control variables to actuator commands.
   //CrosswindOutputStep(params->loop_dir, loop_angle, flaring, &thrust_moment,
   //                    &deltas, state_est, &path_center_g, &params->output,
