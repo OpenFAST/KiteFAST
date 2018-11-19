@@ -53,7 +53,7 @@ program KiteFastController_Driver
    u%Ab = 1.0
    u%rho = 1.0
    u%apparent_wind = 1.0
-   u%tether_force = 1.0
+   u%tether_forceb = 1.0
    u%wind_g = 1.0
    y%GenSPyRtr = reshape((/ 1, 2, 3, 4 /), shape(y%GenSPyRtr))
    y%GenPPyRtr = reshape((/ 1, 2, 3, 4 /), shape(y%GenPPyRtr))

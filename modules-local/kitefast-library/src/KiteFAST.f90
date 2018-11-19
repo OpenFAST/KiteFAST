@@ -2244,6 +2244,44 @@ print *, "m%MD%y%PtFairLeadLoad%Force(1,1): "//trim(num2lstr(m%MD%y%PtFairLeadLo
    end if
    
       
+      if ( p%useKFC ) then         
+! TODO: Need to work out how we generate a controller output signal for the very first timestep (t=0.0)
+         
+            ! NOTE: The controller is stepping from t (GetXPrev in MBDyn) to t+dt (GetXCur in MBDyn)
+            !       therefore, all inputs to KFC needs to be at time, t.
+         m%KFC%u%dcm_g2b       = matmul(FusODCM_prev, transpose(p%DCM_Fast2Ctrl))
+         m%KFC%u%pqr           = matmul(FusODCM_prev, FusOomegas_prev)
+         m%KFC%u%acc_norm      = TwoNorm(FusOacc_prev)
+         m%KFC%u%Xg            = FusO_prev - p%anchorPt
+         m%KFC%u%Xg            = matmul(p%DCM_Fast2Ctrl, m%KFC%u%Xg)
+         m%KFC%u%Vg            = matmul(p%DCM_Fast2Ctrl, FusOv_prev)
+         m%KFC%u%Vb            = matmul(FusODCM_prev, FusOv_prev)
+         m%KFC%u%Ag            = matmul(p%DCM_Fast2Ctrl, FusOacc_prev)
+         m%KFC%u%Ab            = matmul(FusODCM_prev, FusOacc_prev)
+         m%KFC%u%rho           = p%AirDens
+         if ( isInitialTime > 0 ) then
+            m%KFC%u%apparent_wind = m%IfW%y%VelocityUVW(:,2) - FusOv_prev
+         else
+            m%KFC%u%apparent_wind = m%IfW_FusO_prev - FusOv_prev
+         end if
+         m%KFC%u%apparent_wind = matmul(p%DCM_Fast2Ctrl, m%KFC%u%apparent_wind)
+         m%KFC%u%tether_forceb  = TwoNorm( m%MD%y%PtFairLeadLoad%Force(:,1) + m%MD%y%PtFairLeadLoad%Force(:,2) )
+         m%KFC%u%wind_g        = matmul(p%DCM_Fast2Ctrl, m%IfW_ground_prev)
+      
+         call KFC_Step(utimes(1), m%KFC%u, m%KFC%p, m%KFC%y, errStat2, errMsg2 )
+            call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
+         if (errStat >= AbortErrLev ) then
+            call TransferErrors(errStat, errMsg, errStat_c, errMsg_c)
+            return
+         end if
+      
+      end if
+      
+      OtherSt%NewTime = .false. ! only call the controller once per timestep
+      
+   end if
+  
+
 ! -------------------------------------------------------------------------
 ! KiteAeroDyn
 ! -------------------------------------------------------------------------      
