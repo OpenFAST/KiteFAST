@@ -4,6 +4,7 @@
 #include "control/controller_conversion.h"
 #include "control/controller_util.h"
 #include "control/crosswind/crosswind_types.h"
+#include "control/control_params.h"
 #include "control/control_types.h"
 #include "control/control_log.h"
 
@@ -12,6 +13,9 @@ void controller_init(int *errStat, char *errMsg)
 	printf("   controller_init\n");
 
 	// Controller Version Number
+	// Version Log:
+	// 0.0.1 - Inner Crosswind Step working
+	// 
 	const char controllerVerNumber[] = "0.0.1"; // major.minor.[maintenance]
 	printf("   controller_version: %s \n", controllerVerNumber);
 
@@ -41,14 +45,14 @@ void controller_step(double dcm_g2b_c[], double pqr_c[], double *acc_norm_c,
 {
 	printf("   controller_step\n");
 	// this portion should be done in controller_init()
-	ControlParams params; // placeholder to avoid errors
+	// ControlParams params; // placeholder to avoid errors
 	StateEstimate state_est; // placeholder to avoid errors
 	ControlState state = {};
 	ControlOutput raw_control_output = {};
 	FlightStatus flight_status = {};
 	ControlLog control_log;
-	loadcontroller(&params);
-
+	// loadcontroller(&params);
+	ControlParams *params = GetControlParamsUnsafe();
 	//Convert the inputs from controller_step and assins the values that correspond to the inputs of CSim
 	AssignInputs(dcm_g2b_c, pqr_c, acc_norm_c,
 				 Xg_c, Vg_c, Vb_c, Ag_c,
@@ -66,7 +70,7 @@ void controller_step(double dcm_g2b_c[], double pqr_c[], double *acc_norm_c,
 	// state -> struct ControlState
 	// control_output -> struct ControlOutput
 	printf("   debug marker - pre crosswindstep \n");
-	CrosswindStep(&flight_status, &state_est, &params.crosswind,
+	CrosswindStep(&flight_status, &state_est, &params->crosswind,
 				  &state.crosswind, &raw_control_output);
 
 	printf("   debug marker - post crosswindstep \n");

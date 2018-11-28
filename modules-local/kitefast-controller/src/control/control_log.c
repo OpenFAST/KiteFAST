@@ -13,10 +13,10 @@ void ControlLogInit(char* controllerVerNumber){
 	fprintf(fp, "Controller Output Text File \nFile Created on: %s",timeStr);
 	fprintf(fp, "controller version: %s \n", controllerVerNumber);
     fprintf(fp, "Header:  ");
-    fprintf(fp, "dcm[0,0], dcm[0,1], dcm[0,2], dcm[1,0], dcm[1,1], dcm[1,2], dcm[2,0], dcm[2,1], dcm[2,2],");
-    fprintf(fp, "pqr_f.x, pqr_f.y, pqr_f.z, Xg.x, Xg.y, Xg.z, Vg.x, Vg.y, Vg.z, Vb.x, Vb.y, Vb.z, Ag.x, Ag.y, Ag.z,");
-    fprintf(fp, "Ab_f.x, Ab_f.y, Ab_f.z, rho, sph_f.v, sph_f.alpha, sph_f.beta, tether_force_b.vector_f.x, tether_force_b.vector_f.y, tether_force_b.vector_f.z,");
-    fprintf(fp, "wind_g.vector.x, wind_g.vector.y, wind_g.vector.z, flaps[0], flaps[1], flaps[2], flaps[3], flaps[4], flaps[5], flaps[6], flaps[7],");
+    fprintf(fp, "dcm[0,0], dcm[0,1], dcm[0,2], dcm[1,0], dcm[1,1], dcm[1,2], dcm[2,0], dcm[2,1], dcm[2,2], ");
+    fprintf(fp, "pqr_f.x, pqr_f.y, pqr_f.z, Xg.x, Xg.y, Xg.z, Vg.x, Vg.y, Vg.z, Vb.x, Vb.y, Vb.z, Ag.x, Ag.y, Ag.z, ");
+    fprintf(fp, "Ab_f.x, Ab_f.y, Ab_f.z, rho, sph_f.v, sph_f.alpha, sph_f.beta, tether_force_b.vector_f.x, tether_force_b.vector_f.y, tether_force_b.vector_f.z, ");
+    fprintf(fp, "wind_g.vector.x, wind_g.vector.y, wind_g.vector.z, flaps[0], flaps[1], flaps[2], flaps[3], flaps[4], flaps[5], flaps[6], flaps[7], ");
     fprintf(fp, "rotors[0], rotors[1], rotors[2], rotors[3], rotors[4], rotors[5], rotors[6], rotors[7]");  
     fprintf(fp, "\n");
 	fclose(fp);
@@ -102,25 +102,25 @@ void ControlLogEntry(ControlLog* control_log){
     strcat( assembledStr, tempStr);   
     // kFlaps[]
     sprintf(tempStr, "%0.4f\t%0.4f\t%0.4f\t%0.4f\t%0.4f\t%0.4f\t%0.4f\t%0.4f\t",
-        control_log->controlOutputLog.flaps[0],    
-        control_log->controlOutputLog.flaps[1],
-        control_log->controlOutputLog.flaps[2],
-        control_log->controlOutputLog.flaps[3],
-        control_log->controlOutputLog.flaps[4],
-        control_log->controlOutputLog.flaps[5],
-        control_log->controlOutputLog.flaps[6],
-        control_log->controlOutputLog.flaps[7]);
+        control_log->controlOutputLog.flaps[kFlapA1],    
+        control_log->controlOutputLog.flaps[kFlapA2],
+        control_log->controlOutputLog.flaps[kFlapA4],
+        control_log->controlOutputLog.flaps[kFlapA5],
+        control_log->controlOutputLog.flaps[kFlapA7],
+        control_log->controlOutputLog.flaps[kFlapA8],
+        control_log->controlOutputLog.flaps[kFlapEle],
+        control_log->controlOutputLog.flaps[kFlapRud]);
     strcat( assembledStr, tempStr);
     // rotors 
     sprintf(tempStr, "%0.4f\t%0.4f\t%0.4f\t%0.4f\t%0.4f\t%0.4f\t%0.4f\t%0.4f\t",
-        control_log->controlOutputLog.rotors[0],    
-        control_log->controlOutputLog.rotors[1],
-        control_log->controlOutputLog.rotors[2],
-        control_log->controlOutputLog.rotors[3],
-        control_log->controlOutputLog.rotors[4],
-        control_log->controlOutputLog.rotors[5],
-        control_log->controlOutputLog.rotors[6],
-        control_log->controlOutputLog.rotors[7]);
+        control_log->controlOutputLog.rotors[kMotor1],    
+        control_log->controlOutputLog.rotors[kMotor2],
+        control_log->controlOutputLog.rotors[kMotor3],
+        control_log->controlOutputLog.rotors[kMotor4],
+        control_log->controlOutputLog.rotors[kMotor5],
+        control_log->controlOutputLog.rotors[kMotor6],
+        control_log->controlOutputLog.rotors[kMotor7],
+        control_log->controlOutputLog.rotors[kMotor8]);
     strcat( assembledStr, tempStr); 
     
     FILE * fp;

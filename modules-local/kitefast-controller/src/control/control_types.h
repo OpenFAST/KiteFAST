@@ -178,7 +178,7 @@ typedef struct {
   CrosswindParams crosswind;
   //ManualParams manual;
   ControlOutputParams control_output;
-  JoystickControlParams joystick_control;
+  //JoystickControlParams joystick_control;
   //FaultDetectionParams fault_detection;
   HitlControlParams hitl;
 } ControlParams;

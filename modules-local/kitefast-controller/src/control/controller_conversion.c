@@ -62,7 +62,7 @@ void AssignInputs(double dcm_g2b_c[], double pqr_c[], double *acc_norm_c,
 	//apparent_wind_c_v
 	if(apparent_wind_c[0] <= 0.0){  //added by Justin Miller - STI 
       apparent_wind_c[0] = -apparent_wind_c[0];
-    } // TODO - Check reference frames of kitefast vs CSIM - Airspeed is coming in (-), assertions fail if airspeed is (-)
+    } // TODO - Check reference frames of kitefast vs CSim- Airspeed is coming in (-), assertions fail if airspeed is (-)
 	state_est->apparent_wind.sph_f.v = apparent_wind_c[0];
 	state_est->apparent_wind.sph_f.alpha = apparent_wind_c[1];
 	state_est->apparent_wind.sph_f.beta = apparent_wind_c[2];
@@ -83,22 +83,23 @@ void AssignOutputs(double kFlapA_c[], double Motor_c[],
 	int *errStat, char *errMsg, ControlOutput* raw_control_output){
 
 		//kFlap_A
-		kFlapA_c[0] = raw_control_output->flaps[0];
-		kFlapA_c[1] = raw_control_output->flaps[1];
-		kFlapA_c[2] = raw_control_output->flaps[2];
-		kFlapA_c[3] = raw_control_output->flaps[3];
-		kFlapA_c[4] = raw_control_output->flaps[4];
-		kFlapA_c[5] = raw_control_output->flaps[5];
-		kFlapA_c[6] = raw_control_output->flaps[6];
-		kFlapA_c[7] = raw_control_output->flaps[7];
+		kFlapA_c[0] = raw_control_output->flaps[kFlapA1];
+		kFlapA_c[1] = raw_control_output->flaps[kFlapA2];
+		kFlapA_c[2] = raw_control_output->flaps[kFlapA4];
+		kFlapA_c[3] = raw_control_output->flaps[kFlapA5];
+		kFlapA_c[4] = raw_control_output->flaps[kFlapA7];
+		kFlapA_c[5] = raw_control_output->flaps[kFlapA8];
+		kFlapA_c[6] = raw_control_output->flaps[kFlapEle];
+		kFlapA_c[7] = raw_control_output->flaps[kFlapRud];
 
 		//Motor_c
-		Motor_c[0] = raw_control_output->rotors[0];
-		Motor_c[1] = raw_control_output->rotors[1];
-		Motor_c[2] = raw_control_output->rotors[2];
-		Motor_c[3] = raw_control_output->rotors[3];
-		Motor_c[4] = raw_control_output->rotors[4];
-		Motor_c[5] = raw_control_output->rotors[5];
-		Motor_c[6] = raw_control_output->rotors[6];
-		Motor_c[7] = raw_control_output->rotors[7];
+		Motor_c[0] = raw_control_output->rotors[kMotor1];
+		Motor_c[1] = raw_control_output->rotors[kMotor2];
+		Motor_c[2] = raw_control_output->rotors[kMotor3];
+		Motor_c[3] = raw_control_output->rotors[kMotor4];
+		Motor_c[4] = raw_control_output->rotors[kMotor5];
+		Motor_c[5] = raw_control_output->rotors[kMotor6];
+		Motor_c[6] = raw_control_output->rotors[kMotor7];
+		Motor_c[7] = raw_control_output->rotors[kMotor8];
+
 	}

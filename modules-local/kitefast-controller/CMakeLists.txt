@@ -40,7 +40,7 @@ add_library(C_MATH ${C_MATH_SOURCES})
 set(DYLIB_SOURCES
 	src/KiteFastController.c 
 	src/control/controller_conversion.c
-	src/control/controller_util.c
+#	src/control/controller_util.c
 	src/control/ground_station_frame.c
 	src/control/kfc.c
 	src/control/perch_frame.c
@@ -50,6 +50,7 @@ set(DYLIB_SOURCES
 	src/control/tether_util.c
 	src/control/system_params.c
 	src/control/control_log.c
+	src/control/control_params.c
 	src/control/crosswind/crosswind.c
 	src/control/crosswind/crosswind_inner.c
 	src/control/crosswind/crosswind_types.c
