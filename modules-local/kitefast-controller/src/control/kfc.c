@@ -49,7 +49,9 @@ void controller_step(double dcm_g2b_c[], double pqr_c[], double *acc_norm_c,
 	StateEstimate state_est; // placeholder to avoid errors
 	ControlState state = {};
 	ControlOutput raw_control_output = {};
-	FlightStatus flight_status = {};
+	FlightStatus flight_status = {	.flight_mode = kFlightModeCrosswindNormal,
+								  	.last_flight_mode = kFlightModeCrosswindNormal,
+									.flight_mode_first_entry = false };
 	ControlLog control_log;
 	// loadcontroller(&params);
 	ControlParams *params = GetControlParamsUnsafe();
@@ -81,7 +83,9 @@ void controller_step(double dcm_g2b_c[], double pqr_c[], double *acc_norm_c,
 	{
 		errMsg[i] = tmp[i];
 	}
+	printf("   debug marker : made it out of CrosswindStep with Active Powerloop!\n");
 	// Saves all variables for this time step in ControlLog struct to txt file for analysis
+	control_log.controlOutputLog = raw_control_output;
 	ControlLogEntry(&control_log);
 	// Connects values that are in ControlOutput data struct to the final outputs that Kitefast is expecting.
 	AssignOutputs(kFlapA_c, Motor_c,

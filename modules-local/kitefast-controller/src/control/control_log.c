@@ -101,6 +101,7 @@ void ControlLogEntry(ControlLog* control_log){
         control_log->stateEstLog.wind_g.vector.z);
     strcat( assembledStr, tempStr);   
     // kFlaps[]
+    printf("   Control Logging : saving flaps\n");
     sprintf(tempStr, "%0.4f\t%0.4f\t%0.4f\t%0.4f\t%0.4f\t%0.4f\t%0.4f\t%0.4f\t",
         control_log->controlOutputLog.flaps[kFlapA1],    
         control_log->controlOutputLog.flaps[kFlapA2],
@@ -111,6 +112,7 @@ void ControlLogEntry(ControlLog* control_log){
         control_log->controlOutputLog.flaps[kFlapEle],
         control_log->controlOutputLog.flaps[kFlapRud]);
     strcat( assembledStr, tempStr);
+    printf("   Control Logging : saving rotors\n");
     // rotors 
     sprintf(tempStr, "%0.4f\t%0.4f\t%0.4f\t%0.4f\t%0.4f\t%0.4f\t%0.4f\t%0.4f\t",
         control_log->controlOutputLog.rotors[kMotor1],    

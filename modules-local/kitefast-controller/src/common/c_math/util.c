@@ -8,7 +8,7 @@
 #include <stdint.h>
 #include <string.h>
 
-//#include "cal_params.h"
+#include "common/c_math/cal_params.h"
 #include "common/c_math/mat3.h"
 #include "common/c_math/vec2.h"
 #include "common/c_math/vec3.h"
@@ -269,6 +269,47 @@ uint32_t SaturateUnsigned(uint32_t x, int32_t bits) {
   return SaturateUint32(x, 0U, MaxUnsignedValue(bits));
 }
 
+double SaturateWrapped(double x, double range_start, double range_end,
+                       double wrap_left, double wrap_right) {
+  // All inputs must be between wrap_left and wrap_right.
+  assert(x >= wrap_left && x <= wrap_right);
+  assert(range_start >= wrap_left && range_start <= wrap_right);
+  assert(range_end >= wrap_left && range_end <= wrap_right);
+  assert(range_start != range_end);
+
+  double wrap_range = wrap_right - wrap_left;
+
+  double x_sat;
+  if (range_end > range_start) {
+    x_sat = Saturate(x, range_start, range_end);
+  } else {
+    // Range crosses wrap, so unwrap range_end.
+    if (x < range_end) {
+      // x is in range, both x and range_end need to be unwrapped.
+      x_sat = Saturate(x + wrap_range, range_start, range_end + wrap_range);
+    } else {
+      // x may be in range without unwrap.
+      x_sat = Saturate(x, range_start, range_end + wrap_range);
+    }
+  }
+
+  // Find shortest distance from x to range_start and range_end.
+  double x_start_dist =
+      fmin(fabs(x - range_start), fabs(x + wrap_range - range_start));
+  double x_end_dist =
+      fmin(fabs(x - range_end), fabs(x + wrap_range - range_end));
+
+  // Saturation may not pick closest end of range.
+  // If saturated, check that it picked closest end.
+  if (x_sat == range_start && x_end_dist < x_start_dist) {
+    x_sat = range_end;
+  } else if (x_sat == range_end && x_start_dist <= x_end_dist) {
+    x_sat = range_start;
+  }
+
+  return Wrap(x_sat, wrap_left, wrap_right);
+}
+
 const Vec3 *FabsVec3(const Vec3 *v_in, Vec3 *v_out) {
   assert(v_in != NULL && v_out != NULL);
 
@@ -381,11 +422,30 @@ double Interp1WarpY(const double x[], const double y[], int32_t n, double x_i,
   return unwarp_func(z0 + (z1 - z0) * (s - (double)s0));
 }
 
+double Interp2(const double x[], const double y[], int32_t nx, int32_t ny,
+               const double *z, double x_i, double y_i, InterpOption opt) {
+  // Find the rows above and below the target coordinates.  Here s0 is the
+  // index of the row above the target.
+  int32_t s0;
+  double s = InterpIndex(y, ny, y_i, opt, &s0);
+
+  // For the rows directly above and below the datapoint, interpolate
+  // "horizontally" to find the value at the target x-coordinate.
+  double z0 = Interp1(x, z + s0 * nx, nx, x_i, opt);
+  double z1 = Interp1(x, z + (s0 + 1) * nx, nx, x_i, opt);
+
+  // Interpolate "vertically" between z0 and z1.
+  return z0 + (z1 - z0) * (s - (double)s0);
+}
+
+// Interpolates a periodic function defined by a lookup table.  The input x_i is
+// wrapped into the lookup table's domain.
 double CircularInterp1(const double x[], const double y[], int32_t n,
                        double x_i) {
   assert(n > 0);
   assert(y != NULL && y[0] == y[n - 1]);
-  assert(x != NULL && x[0] <= x_i && x_i <= x[n - 1]);
+  assert(x != NULL);
+  x_i = Wrap(x_i, x[0], x[n - 1]);
   return Interp1(x, y, n, x_i, kInterpOptionSaturate);
 }
 

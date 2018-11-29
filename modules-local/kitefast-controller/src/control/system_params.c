@@ -1205,6 +1205,11 @@ static SystemParams system_params = {
     .azi_ref_offset = 0.0,
     .heading = 0.0,
     .ground_z = 6.122
+  },
+  .test_site_params = { // Added this due to outdated system_params.c file - Jmiller STI
+    .azi_allow_start = 0.0,
+    .azi_allow_end = 1.0,
+    .azi_no_go_size = 0.35
   }
 };
 

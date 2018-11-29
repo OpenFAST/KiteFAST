@@ -13,8 +13,8 @@
 #include "common/c_math/vec2.h"
 #include "common/c_math/vec3.h"
 #include "common/macros.h"
-//#include "../actuator_util.h"
-//#include "../control_telemetry.h"
+// #include "control/actuator_util.h"
+// #include "control/control_telemetry.h"
 #include "control/crosswind/crosswind_util.h"
 #include "control/system_params.h"
 #include "control/system_types.h"
@@ -23,7 +23,6 @@
 static void ScheduleLongitudinalGains(
     double airspeed, const CrosswindInnerParams *params,
     double longitudinal_gains[][kNumCrosswindLongitudinalStates]) {
-  printf("airpseed = %0.4f\n",airspeed );
   assert(airspeed >= 0.0);
   assert(params != NULL && longitudinal_gains != NULL);
 
@@ -193,7 +192,6 @@ static void CalcLateralFeedback(
     const Vec3 *pqr_cmd, const Vec3 *pqr, double int_tether_roll_error,
     double int_beta_error, double lateral_gains[][kNumCrosswindLateralStates],
     double *delta_aileron, double *delta_rudder, double *moment_z) {
-    printf("beta = %0.4f, beta_cmd = %0.4f\n",beta, beta_cmd);
   assert(-PI / 2.0 <= tether_roll_cmd && tether_roll_cmd <= PI / 2.0);
   assert(-PI / 2.0 <= tether_roll && tether_roll <= PI / 2.0);
   assert(-PI / 2.0 <= beta_cmd && beta_cmd <= PI / 2.0);
@@ -412,13 +410,13 @@ static double ControlAlpha(double alpha_cmd, double alpha, double dCL_cmd,
   double delta_elevator_ff =
       CalcLongitudinalFeedForward(alpha_cmd, dCL_cmd, params, delta_flap);
 
-  //// Update telemetry.
-  //CrosswindTelemetry *cwt = GetCrosswindTelemetry();
-  //cwt->alpha_cmd = alpha_cmd;
-  //cwt->int_elevator =
-  //    state->int_alpha_error *
-  //    longitudinal_gains[kCrosswindLongitudinalInputElevator]
-  //                      [kCrosswindLongitudinalStateIntegratedAngleOfAttack];
+  // Update telemetry.
+//   CrosswindTelemetry *cwt = GetCrosswindTelemetry();
+//   cwt->alpha_cmd = alpha_cmd;
+//   cwt->int_elevator =
+//       state->int_alpha_error *
+//       longitudinal_gains[kCrosswindLongitudinalInputElevator]
+//                         [kCrosswindLongitudinalStateIntegratedAngleOfAttack];
 
   return delta_elevator_ff + delta_elevator_fb;
 }
@@ -475,6 +473,7 @@ static void ControlLateral(double tether_roll_cmd, double tether_roll,
   RateLimit(exp_config->enable_alternate_gains ? 1.0 : 0.0,
             -params->alt_gain_fade_rate, params->alt_gain_fade_rate, *g_sys.ts,
             alt_lateral_gains_0);
+
   ScheduleLateralGains(airspeed, *alt_lateral_gains_0, params, lateral_gains);
 
   // Apply feedback law to determine the aileron, rudder, and motor
@@ -494,28 +493,28 @@ static void ControlLateral(double tether_roll_cmd, double tether_roll,
       &deltas->aileron, &deltas->rudder, moment_z);
 
   // Update telemetry.
- /* CrosswindTelemetry *cwt = GetCrosswindTelemetry();
-  cwt->tether_roll_cmd = tether_roll_cmd;
-  cwt->beta_cmd = beta_cmd;
-  cwt->pqr_cmd = *pqr_cmd;
-  cwt->int_aileron = lateral_gains[kCrosswindLateralInputAileron]
-                                  [kCrosswindLateralStateIntegratedTetherRoll] *
-                         -state->int_tether_roll_error +
-                     lateral_gains[kCrosswindLateralInputAileron]
-                                  [kCrosswindLateralStateIntegratedSideslip] *
-                         -state->int_beta_error;
-  cwt->int_rudder = lateral_gains[kCrosswindLateralInputRudder]
-                                 [kCrosswindLateralStateIntegratedTetherRoll] *
-                        -state->int_tether_roll_error +
-                    lateral_gains[kCrosswindLateralInputRudder]
-                                 [kCrosswindLateralStateIntegratedSideslip] *
-                        -state->int_beta_error;
-  cwt->int_tether_roll_error = state->int_tether_roll_error;
-  cwt->int_beta_error = state->int_beta_error;*/
+//   CrosswindTelemetry *cwt = GetCrosswindTelemetry();
+//   cwt->tether_roll_cmd = tether_roll_cmd;
+//   cwt->beta_cmd = beta_cmd;
+//   cwt->pqr_cmd = *pqr_cmd;
+//   cwt->int_aileron = lateral_gains[kCrosswindLateralInputAileron]
+//                                   [kCrosswindLateralStateIntegratedTetherRoll] *
+//                          -state->int_tether_roll_error +
+//                      lateral_gains[kCrosswindLateralInputAileron]
+//                                   [kCrosswindLateralStateIntegratedSideslip] *
+//                          -state->int_beta_error;
+//   cwt->int_rudder = lateral_gains[kCrosswindLateralInputRudder]
+//                                  [kCrosswindLateralStateIntegratedTetherRoll] *
+//                         -state->int_tether_roll_error +
+//                     lateral_gains[kCrosswindLateralInputRudder]
+//                                  [kCrosswindLateralStateIntegratedSideslip] *
+//                         -state->int_beta_error;
+//   cwt->int_tether_roll_error = state->int_tether_roll_error;
+//   cwt->int_beta_error = state->int_beta_error;
 
-  //for (int i = 0; i < ARRAYSIZE(state->beta_harmonic_state); ++i) {
-  //  cwt->beta_harmonic_state[i] = state->beta_harmonic_state[i];
-  //}
+//   for (int i = 0; i < ARRAYSIZE(state->beta_harmonic_state); ++i) {
+//     cwt->beta_harmonic_state[i] = state->beta_harmonic_state[i];
+//   }
 }
 
 // Returns the thrust necessary to balance gravity along the body
@@ -587,11 +586,11 @@ static double ControlAirspeed(double airspeed_cmd, double airspeed,
           &state->int_thrust);
 
   // Update telemetry.
-  //CrosswindTelemetry *cwt = GetCrosswindTelemetry();
-  //cwt->airspeed_cmd = airspeed_cmd;
-  //cwt->thrust_ff = thrust_ff;
-  //cwt->thrust_fb = thrust_fb;
-  //cwt->int_thrust = state->int_thrust;
+//   CrosswindTelemetry *cwt = GetCrosswindTelemetry();
+//   cwt->airspeed_cmd = airspeed_cmd;
+//   cwt->thrust_ff = thrust_ff;
+//   cwt->thrust_fb = thrust_fb;
+//   cwt->int_thrust = state->int_thrust;
 
   double thrust_cmd =
       Saturate(thrust_ff + thrust_fb,
@@ -614,7 +613,6 @@ void CrosswindInnerStep(double tether_roll_cmd, double tether_roll,
                         CrosswindInnerState *state,
                         double lateral_gains[][kNumCrosswindLateralStates],
                         Deltas *deltas, ThrustMoment *thrust_moment) {
-    printf("     crosswind_inner \n");
   deltas->elevator = ControlAlpha(
       alpha_cmd, alpha, dCL_cmd, pqr_cmd->y, pqr->y, airspeed, flags, params,
       state, &deltas->inboard_flap, &thrust_moment->moment.y);

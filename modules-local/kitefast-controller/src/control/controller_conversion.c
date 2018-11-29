@@ -4,6 +4,7 @@
 #include "common/c_math/vec3.h"
 #include "control/control_types.h"
 #include "control/estimator/estimator_types.h"
+#include "control/ground_station_frame.h"
 
 
 
@@ -76,7 +77,7 @@ void AssignInputs(double dcm_g2b_c[], double pqr_c[], double *acc_norm_c,
 	state_est->wind_g.vector.x = wind_g_c[0];
 	state_est->wind_g.vector.y = wind_g_c[1];
 	state_est->wind_g.vector.z = wind_g_c[2];
-
+	state_est->wind_g.dir_f = VecGToAzimuth(&state_est->wind_g.vector);
 }
 
 void AssignOutputs(double kFlapA_c[], double Motor_c[],

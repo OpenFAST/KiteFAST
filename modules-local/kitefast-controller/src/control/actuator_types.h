@@ -1,7 +1,7 @@
 #ifndef CONTROL_ACTUATOR_TYPES_H_
 #define CONTROL_ACTUATOR_TYPES_H_
 
-//#include "avionics/network/aio_labels.h"
+// #include "avionics/network/aio_labels.h"
 #include "common/c_math/vec3.h"
 #include "control/simple_aero_types.h"
 

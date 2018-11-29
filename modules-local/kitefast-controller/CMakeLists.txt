@@ -39,6 +39,8 @@ add_library(C_MATH ${C_MATH_SOURCES})
 
 set(DYLIB_SOURCES
 	src/KiteFastController.c 
+	src/control/control_log.c
+	src/control/control_params.c
 	src/control/controller_conversion.c
 #	src/control/controller_util.c
 	src/control/ground_station_frame.c
@@ -46,16 +48,16 @@ set(DYLIB_SOURCES
 	src/control/perch_frame.c
 	src/control/sensor_util.c
 	src/control/simple_aero.c
+	src/control/system_params.c
 	src/control/system_types.c
 	src/control/tether_util.c
-	src/control/system_params.c
-	src/control/control_log.c
-	src/control/control_params.c
-	src/control/crosswind/crosswind.c
+	src/control/crosswind/crosswind_frame.c
 	src/control/crosswind/crosswind_inner.c
+	src/control/crosswind/crosswind_playbook.c
+	src/control/crosswind/crosswind_power.c
 	src/control/crosswind/crosswind_types.c
 	src/control/crosswind/crosswind_util.c
-	src/control/crosswind/crosswind_frame.c
+	src/control/crosswind/crosswind.c
 	src/control/estimator/estimator_types.c
 ) 
 include_directories(

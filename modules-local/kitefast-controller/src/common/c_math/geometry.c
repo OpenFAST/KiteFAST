@@ -320,12 +320,31 @@ const Vec3 *InversePoseTransform(const Mat3 *dcm_a2b, const Vec3 *R_a_b_origin,
 }
 
 // Returns the axis and angle of the rotation that rotates v1 to v2.
+//
+// Input arguments:
+//
+// v1:    The first vector.
+// v2:    The second vector, representing the direction to which we
+//        want to rotate the first vector.
+//
+// Output arguments:
+//
+// axis:  The axis of rotation required to rotate v1 to v2, or NULL
+//        if this output is not required.
+//
+// Return value: The magnitude (angle) of the rotation [rad].
 double Vec3ToAxisAngle(const Vec3 *v1, const Vec3 *v2, Vec3 *axis) {
-  Vec3 v1n = *v1, v2n = *v2;
-  Vec3Cross(Vec3Normalize(&v1n, &v1n), Vec3Normalize(&v2n, &v2n), axis);
-  if (Vec3Norm(axis) > 0.0) {
-    Vec3Normalize(axis, axis);
+  Vec3 v1n, v2n;
+  Vec3Normalize(v1, &v1n);
+  Vec3Normalize(v2, &v2n);
+
+  if (axis != NULL) {
+    Vec3Cross(&v1n, &v2n, axis);
+    if (Vec3Norm(axis) > 0.0) {
+      Vec3Normalize(axis, axis);
+    }
   }
+
   return Acos(Vec3Dot(&v1n, &v2n));
 }
 

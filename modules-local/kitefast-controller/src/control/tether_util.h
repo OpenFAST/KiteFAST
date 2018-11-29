@@ -37,6 +37,8 @@
 #ifndef CONTROL_TETHER_UTIL_H_
 #define CONTROL_TETHER_UTIL_H_
 
+#include "common/c_math/vec3.h"
+
 typedef struct { double a, b; } TetherParabola;
 
 #ifdef __cplusplus
@@ -100,6 +102,20 @@ double ParabolaVerticalTension(const TetherParabola *tp, double mu, double r);
 
 // Returns the total tension at a point in the catenary.
 double ParabolaTension(const TetherParabola *tp, double mu, double r);
+
+// By modeling the tether as a parabola, this converts a horizontal
+// tension command to an equivalent elevation angle assuming we are
+// controlling the tether to leave the levelwind at a target angle.
+double ConvertTensionToElevation(double horizontal_tension_cmd,
+                                 const Vec3 *wing_pos_g,
+                                 double target_tether_elevation);
+
+// By modeling the tether as a parabola, this converts a horizontal
+// tension command and radial distance to an altitude target that
+// controls the tether to leave the levelwind at a target angle.
+double ConvertTensionToHeight(double horizontal_tension_cmd,
+                              double wing_radial_distance,
+                              double target_tether_elevation);
 
 #ifdef __cplusplus
 }  // extern "C"

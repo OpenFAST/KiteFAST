@@ -4,8 +4,8 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-//#include "avionics/network/aio_labels.h"
-//#include "avionics/network/aio_node.h"
+// #include "avionics/network/aio_labels.h"
+// #include "avionics/network/aio_node.h"
 #include "common/c_math/mat2.h"
 #include "common/c_math/mat3.h"
 #include "common/c_math/util.h"
@@ -27,7 +27,7 @@ typedef enum {
 typedef enum {
   kFlightPlanForceSigned = -1,
   kFlightPlanDisengageEngage,
-  kFlightPlanHoverAndAccel,
+  kFlightPlanHighHover,
   kFlightPlanHoverInPlace,
   kFlightPlanLaunchPerch,
   kFlightPlanManual,
@@ -84,6 +84,17 @@ typedef enum {
   kNumTestSites
 } TestSite;
 
+// A minimum no go azimuth size [rad] ensures that the snap through checks work
+// correctly. It should be large enough to ensure the normal command azimuth
+// changes are smaller than this value.
+#define MIN_AZI_NO_GO_SIZE 0.35
+
+typedef struct {
+  double azi_allow_start;
+  double azi_allow_end;
+  double azi_no_go_size;
+} TestSiteParams;
+
 typedef enum {
   kWingModelForceSigned = -1,
   kWingModelYm600,
@@ -136,17 +147,20 @@ typedef struct {
   Vec3 proboscis_pos;
   Vec3 pylon_pos[4];
   double b_pylon;
+  double mean_rotor_diameter;
 } WingParams;
 
 typedef struct {
   Vec3 gsg_pos_drum;
   double drum_radius;
   Vec3 drum_origin_p;
+  double max_drum_accel_in_reel;
   Vec3 perched_wing_pos_p;
   double racetrack_tether_length;
   double anchor_arm_length;
   double boom_azimuth_p;
   double detwist_elevation;
+  double reel_azi_offset_from_wing;
 } Gs02Params;
 
 typedef struct {
@@ -315,9 +329,9 @@ typedef struct {
   uint16_t aio_port;
 } CommsParams;
 
-//typedef struct {
-//  //FlightComputerLabel pitot_fc_labels[kNumPitotSensors];
-//} SensorLayoutParams;
+// typedef struct {
+//   FlightComputerLabel pitot_fc_labels[kNumPitotSensors];
+// } SensorLayoutParams;
 
 typedef struct {
   Vec3 origin_g;
@@ -332,6 +346,7 @@ typedef struct {
 
 typedef struct {
   TestSite test_site;
+  TestSiteParams test_site_params;
   WingModel wing_model;
   WingSerial wing_serial;
   GroundStationModel gs_model;
@@ -358,7 +373,7 @@ typedef struct {
   PerchParams perch;
   WinchParams winch;
   CommsParams comms;
-  //SensorLayoutParams sensor_layout;
+  // SensorLayoutParams sensor_layout;
   RemotePerchParams remote_perch;
 } SystemParams;
 

@@ -15,6 +15,8 @@ const char *ApparentWindSolutionTypeToString(ApparentWindSolutionType type) {
       return "Loadcell";
     case kApparentWindSolutionTypePitot:
       return "Pitot";
+    case kApparentWindSolutionTypeComplementary:
+      return "Complementary";
     default:
     case kApparentWindSolutionTypeForceSigned:
     case kNumApparentWindSolutionTypes:

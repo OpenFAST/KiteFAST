@@ -2,15 +2,15 @@
 #define CONTROL_ESTIMATOR_ESTIMATOR_TYPES_H_
 
 #include <stdint.h>
-//#include "avionics/common/plc_messages.h"
-//#include "../../common/c_math/kalman.h"
+
+// #include "avionics/common/plc_messages.h"
+#include "common/c_math/kalman.h"
 #include "common/c_math/mat3.h"
 #include "common/c_math/quaternion.h"
-#include "common/c_math/vec3.h"
 #include "common/c_math/vec2.h"
+#include "common/c_math/vec3.h"
 #include "control/sensor_types.h"
 #include "control/system_types.h"
-#include "common/c_math/vec3.h"
 
 typedef enum {
   kEstimatorVelocitySolutionTypeGps,
@@ -95,6 +95,7 @@ typedef enum {
   kApparentWindSolutionTypeFixedAngles,
   kApparentWindSolutionTypeLoadcell,
   kApparentWindSolutionTypePitot,
+  kApparentWindSolutionTypeComplementary,
   kNumApparentWindSolutionTypes
 } ApparentWindSolutionType;
 
@@ -230,8 +231,9 @@ typedef struct {
   // Rotatation matrix from ECEF to g.
   Mat3 dcm_ecef2g;
 
-  //int32_t mode_counts[kNumGroundStationModes];
-  //GroundStationMode last_confirmed_mode;
+  // int32_t mode_counts[kNumGroundStationModes];
+  // GroundStationMode last_confirmed_mode;
+  uint8_t last_valid_transform_stage;
 } EstimatorGroundStationState;
 
 typedef struct {
@@ -288,7 +290,7 @@ typedef struct {
 } EstimatorPositionGpsParams;
 
 typedef struct {
-  //BoundedKalman1dEstimatorParams kalman_est;
+  BoundedKalman1dEstimatorParams kalman_est;
   double sigma_Xg_z_bias_0;
   double sigma_Xg_z;
 } EstimatorPositionBaroParams;
@@ -384,7 +386,7 @@ typedef struct {
   // Center GPS receiver chosen on the previous iteration.
   WingGpsReceiverLabel last_center_gps_receiver;
   // GPS estimate state.
-  //EstimatorPositionGpsState gps[kNumWingGpsReceivers];
+  EstimatorPositionGpsState gps[kNumWingGpsReceivers];
   // Adaptive complementary filter state.
   EstimatorPositionFilterState filter;
 } EstimatorPositionState;
@@ -471,7 +473,10 @@ typedef struct {
 #undef ESTIMATOR_VIBRATION_FILTER_ORDER
 #undef ESTIMATOR_VB_FILTER_ORDER
 
-typedef struct { double last_valid_position; } EstimatorTetherElevationState;
+typedef struct {
+  double last_valid_position;
+  double last_valid_detwist_angle;
+} EstimatorTetherGroundAnglesState;
 
 typedef struct {
   // Most recent loadcell measurement when no fault was reported.
@@ -521,11 +526,11 @@ typedef struct {
   double t_initialize;
   double hard_coded_initial_payout;
   EstimatorApparentWindParams apparent_wind;
-  //EstimatorGroundStationParams ground_station;
-  //EstimatorJoystickParams joystick;
-  //EstimatorNavParams nav;
-  ////EstimatorPerchAziParams perch_azi;
-  //EstimatorTetherForceParams tether_force;
+  EstimatorGroundStationParams ground_station;
+  EstimatorJoystickParams joystick;
+  EstimatorNavParams nav;
+  EstimatorPerchAziParams perch_azi;
+  EstimatorTetherForceParams tether_force;
   EstimatorWindParams wind;
 } EstimatorParams;
 
@@ -553,14 +558,17 @@ typedef struct {
 
 typedef struct {
   GroundStationPoseEstimate pose;
-  //GroundStationMode mode;
+  // GroundStationMode mode;
+  uint8_t transform_stage;
+  double detwist_angle;
+  bool detwist_angle_valid;
 } GroundStationEstimate;
 
 typedef struct {
   // Whether to trust this estimate.
   bool valid;
   // Most recent valid joystick data.
-  //JoystickData data;
+  JoystickData data;
   // Low-pass filtered throttle.
   double throttle_f;
   // Low-pass filtered pitch stick.
@@ -613,9 +621,10 @@ typedef struct {
 } WinchEstimate;
 
 typedef struct {
-  bool valid;
-  double position;
-} TetherElevationEstimate;
+  bool elevation_valid;
+  double elevation;
+  double departure_detwist_angle;
+} TetherGroundAnglesEstimate;
 
 typedef struct {
   // Whether to trust this estimate.
@@ -651,12 +660,13 @@ typedef struct {
   EstimatorJoystickState joystick;
   EstimatorNavState nav;
   EstimatorPerchAziState perch_azi;
-  EstimatorTetherElevationState tether_elevation;
+  EstimatorTetherGroundAnglesState tether_ground_angles;
   EstimatorTetherForceState tether_force;
   EstimatorWinchState winch;
   EstimatorWindState wind;
   EstimatorWindState wind_aloft;
   double rho_z1;
+  int32_t gs_unpause_transform_count;
 } EstimatorState;
 
 typedef struct {
@@ -678,6 +688,14 @@ typedef struct {
   // true when an unfaulted loadcell indicates that release has occurred.
   bool tether_released;
 
+  // Whether the gs mode has been forced to high tension or reel by the
+  // operator.
+  bool force_high_tension;
+  bool force_reel;
+
+  // Whether the operator has commanded a GS unpause using flight_command.
+  bool gs_unpause_transform;
+
   // Air density at weather station (on ground station) [kg/m^3].
   // This value is not used by the controller, but is provided for
   // convenience of flight data analysis.
@@ -694,19 +712,19 @@ typedef struct {
   ApparentWindEstimate apparent_wind;
 
   // Joystick estimate.
-  //JoystickEstimate joystick;
+  JoystickEstimate joystick;
 
   // Perch azimuth estimate.
-  //PerchAziEstimate perch_azi;
+  PerchAziEstimate perch_azi;
 
   // Tether tension information resolved in body coordinates.
   TetherForceEstimate tether_force_b;
 
   // Winch position / payout estimate.
-  //WinchEstimate winch;
+  WinchEstimate winch;
 
   // Tether elevation.
-  //TetherElevationEstimate tether_elevation;
+  TetherGroundAnglesEstimate tether_ground_angles;
 
   // Wind estimates resolved in ground coordinates.
   WindEstimate wind_g;
@@ -718,7 +736,8 @@ typedef struct {
   uint8_t experimental_crosswind_config;
 
   // Ground station mode.
-  //GroundStationMode gs_mode;
+  // GroundStationMode gs_mode;
+  uint8_t gs_transform_stage;
 } StateEstimate;
 
 #ifdef __cplusplus

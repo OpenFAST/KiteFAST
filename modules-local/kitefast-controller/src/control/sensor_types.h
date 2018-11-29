@@ -4,9 +4,9 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-//#include "avionics/common/novatel_types.h"
-//#include "avionics/common/plc_messages.h"
-//#include "avionics/network/aio_labels.h"
+// #include "avionics/common/novatel_types.h"
+// #include "avionics/common/plc_messages.h"
+// #include "avionics/network/aio_labels.h"
 #include "common/c_math/vec3.h"
 #include "system/labels.h"
 
@@ -64,8 +64,8 @@ typedef struct {
 } GpsData;
 
 typedef struct {
-  //GroundStationMode mode;
-  double platform_azi;
+  // GroundStationMode mode;
+  uint8_t transform_stage;
   double winch_pos;
   double detwist_pos;
   bool proximity;
@@ -91,13 +91,13 @@ typedef struct {
   bool release;
   bool engage_auto_glide;
 } JoystickData;
-//
-//typedef struct {
-//  double winch_pos;
-//  double perch_heading;
-//  double perch_azi[kNumPlatforms];
-//  double levelwind_ele[kNumPlatforms];
-//} PerchData;
+
+// typedef struct {
+//   double winch_pos;
+//   double perch_heading;
+//   double perch_azi[kNumPlatforms];
+//   double levelwind_ele[kNumPlatforms];
+// } PerchData;
 
 typedef struct {
   double alpha_press;

@@ -150,11 +150,6 @@ void CalcCrosswindPqrDot(const Vec3 *wind_g, const Vec3 *path_center_g,
 // Harmonic integrator.
 double HarmonicIntegrator(double u, double angle, double d_angle, double ki,
                           double int_max, double state[]);
-
-void GetPlaybookEntry(const Playbook *playbook, const PlaybookEntry *fallback,
-                      double wind_speed, double fallback_crossfade,
-                      PlaybookEntry *pb_entry_interp);
-
 #ifdef __cplusplus
 }  // extern "C"
 #endif

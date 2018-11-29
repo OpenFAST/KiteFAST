@@ -20,10 +20,11 @@
 //#include "crosswind_mode.h"
 //#include "crosswind_output.h"
 //#include "crosswind_path.h"
-//#include "crosswind_power.h"
+#include "control/crosswind/crosswind_playbook.h"
+#include "control/crosswind/crosswind_power.h"
 #include "control/crosswind/crosswind_types.h"
 #include "control/crosswind/crosswind_util.h"
-//#include "../sensor_util.h"
+#include "control/sensor_util.h"
 #include "control/simple_aero.h"
 #include "control/system_params.h"
 #include "control/system_types.h"
@@ -179,7 +180,7 @@ void CrosswindStep(const FlightStatus *flight_status,
   //                         state_est->joystick.pitch_f, params,
   //                         &state->experimental_crosswind);
 
-  //PlaybookEntry playbook_entry;
+  PlaybookEntry playbook_entry;
   // Crossfade to fallback playbook when throttle is sufficiently high.  Stop
   // crossfade in place when mode changes to PrepTransOut to allow pilot to
   // trans out in fallback configuration.
@@ -192,23 +193,23 @@ void CrosswindStep(const FlightStatus *flight_status,
   //            -crossfade_rate, crossfade_rate, *g_sys.ts,
   //            &state->playbook_fallback_crossfade);
   //}
-  //GetPlaybookEntry(&params->playbook, &params->playbook_fallback.entry,
-  //                state_est->wind_aloft_g.speed_f_playbook,
-  //                 state->playbook_fallback_crossfade, &playbook_entry);
+  GetPlaybookEntry(&params->playbook, &params->playbook_fallback.entry,
+                 state_est->wind_aloft_g.speed_f_playbook,
+                  state->playbook_fallback_crossfade, &playbook_entry);
 
  
- //CrosswindPathType path_type;
+ CrosswindPathType path_type;
  Vec3 path_center_g;
-  double airspeed_cmd, d_airspeed_d_loopangle, alpha_nom, beta_nom;
-  /*
+double airspeed_cmd, d_airspeed_d_loopangle, alpha_nom, beta_nom;
+
  CrosswindPowerStep(flight_status, state_est, &flags, &params->power,
                      &playbook_entry, &state->power, &path_type, &path_center_g,
                      &airspeed_cmd, &d_airspeed_d_loopangle, &alpha_nom,
                      &beta_nom);
-*/
-path_center_g.x = -266.0922; // Added - jmiller
-path_center_g.y = -149.3406;// Added - jmiller
-path_center_g.z = -296.9814;// Added - jmiller
+
+// path_center_g.x = -266.0922; // Added - jmiller
+// path_center_g.y = -149.3406;// Added - jmiller
+// path_center_g.z = -296.9814;// Added - jmiller
   double loop_angle = CalcLoopAngle(&path_center_g, &state_est->Xg);
 
  /* double k_aero_cmd, k_geom_cmd, k_aero_curr, k_geom_curr;
@@ -315,16 +316,15 @@ printf("    debug marker - pre crosswind_inner \n");
       &state->inner, lateral_gains, &deltas, &thrust_moment);
 
 printf("    debug marker - post crosswind_inner \n");
-
 // PLACE HOLDER FOR CONTROL OUTPUTS
-control_output->flaps[0] = 0;
-control_output->flaps[1] = 0;
-control_output->flaps[2] = 0;
-control_output->flaps[3] = 0;
-control_output->flaps[4] = 0;
-control_output->flaps[5] = 0;
-control_output->flaps[6] = 0;
-control_output->flaps[7] = 0;
+control_output->flaps[kFlapA1] = 0;
+control_output->flaps[kFlapA2] = 0;
+control_output->flaps[kFlapA4] = 0;
+control_output->flaps[kFlapA5] = 0;
+control_output->flaps[kFlapA7] = 0;
+control_output->flaps[kFlapA8] = 0;
+control_output->flaps[kFlapEle] = 0;
+control_output->flaps[kFlapRud] = 0;
 
 control_output->rotors[0] = 0;
 control_output->rotors[1] = 0;

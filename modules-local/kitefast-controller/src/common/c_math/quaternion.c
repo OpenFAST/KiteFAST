@@ -569,17 +569,29 @@ void MrpToQuat(const Vec3 *mrp, Quat *q) {
   q->q3 = 2.0 * mrp->z / s;
 }
 
-void Vec3Vec3ToDcm(const Vec3 *a, const Vec3 *b, Mat3 *dcm_a2b){
- assert(a != NULL);
- assert(b != NULL);
- assert(dcm_a2b != NULL);
+// Compute the transformation matrix that rotates vector "a" to be
+// parallel to vector "b".
+//
+// Input arguments:
+//
+// a:       The first vector.
+// b:       The second vector, representing the direction to which we
+//          want to rotate the first vector.
+//
+// Output arguments:
+//
+// dcm_a2b: The matrix that rotates vector a to point in the direction
+//          of vector b.
+void Vec3Vec3ToDcm(const Vec3 *a, const Vec3 *b, Mat3 *dcm_a2b) {
+  assert(a != NULL);
+  assert(b != NULL);
+  assert(dcm_a2b != NULL);
 
- Vec3 axis;
- const double angle = Vec3ToAxisAngle(b,a, &axis);
+  Vec3 axis;
+  const double angle = Vec3ToAxisAngle(b, a, &axis);
 
- Quat q;
- AxisAngleToQuat(&axis, angle, &q);
+  Quat q;
+  AxisAngleToQuat(&axis, angle, &q);
 
- QuatToDcm(&q, dcm_a2b);
+  QuatToDcm(&q, dcm_a2b);
 }
-
