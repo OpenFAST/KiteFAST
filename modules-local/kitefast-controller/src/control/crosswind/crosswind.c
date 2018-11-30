@@ -37,19 +37,18 @@ void CrosswindInit(const StateEstimate *state_est, const double *flaps_z1,
 
   memset(state, 0, sizeof(*state));
 
-  //PlaybookEntry playbook_entry;
+  PlaybookEntry playbook_entry;
   // TODO(scarito): Handle the wind_aloft_g valid flag here.
-  //GetPlaybookEntry(&params->playbook, NULL,
-  //                 state_est->wind_aloft_g.speed_f_playbook, 0.0,
-  //                 &playbook_entry);
-  //CrosswindPowerInit(&state_est->Xg, &state_est->Vg, state_est->wind_g.dir_f,
-  //                   &playbook_entry, &params->power, &state->power);
+  GetPlaybookEntry(&params->playbook, NULL,
+                  state_est->wind_aloft_g.speed_f_playbook, 0.0,
+                  &playbook_entry);
+  CrosswindPowerInit(&state_est->Xg, &state_est->Vg, state_est->wind_g.dir_f,
+                    &playbook_entry, &params->power, &state->power);
 
   // Calculate the initial loop angle.
-  //Vec3 path_center_g;
-  //CrosswindPowerGetPathCenter(&state->power, &path_center_g);
-  //const double loop_angle = CalcLoopAngle(&path_center_g, &state_est->Xg);
-  const double loop_angle = 0; // added by Jmiller STI
+  Vec3 path_center_g;
+  CrosswindPowerGetPathCenter(&state->power, &path_center_g);
+  const double loop_angle = CalcLoopAngle(&path_center_g, &state_est->Xg);
   //CrosswindPathInit(state_est, &params->path, playbook_entry.path_radius_target,
   //                  &state->path);
   //CrosswindCurvatureInit(state_est->tether_force_b.sph.tension,
@@ -68,18 +67,18 @@ void CrosswindInit(const StateEstimate *state_est, const double *flaps_z1,
 	  .elevator = flaps_z1[kFlapEle] - params->output.flap_offsets[kFlapEle],
 	  .rudder = flaps_z1[kFlapRud] - params->output.flap_offsets[kFlapRud] };
 
-  //double alpha_0 = SetAlpha(loop_angle, &playbook_entry);
-  double alpha_0 = 0; // added by Jmiller STI
+  double alpha_0 = SetAlpha(loop_angle, &playbook_entry);
+  // double alpha_0 = 0; // added by Jmiller STI
   CrosswindInnerInit(state_est, &deltas_0, alpha_0, loop_angle, &params->inner,
                      &state->inner);
   //CrosswindOutputInit(&params->output, &state->output,
   //                    previous_detwist_loop_angle, previous_detwist_rev_count);
 
-  //state->experimental_crosswind.mode_active = false;
-  //state->experimental_crosswind.current_config =
-  //    params->experimental_crosswind_config[0];
+  state->experimental_crosswind.mode_active = false;
+  state->experimental_crosswind.current_config =
+     params->experimental_crosswind_config[0];
 
-  //state->playbook_fallback_crossfade = 0.0;
+  state->playbook_fallback_crossfade = 0.0;
 }
 
 //bool CrosswindIsReadyForMode(FlightMode proposed_flight_mode,
@@ -96,77 +95,77 @@ void CrosswindInit(const StateEstimate *state_est, const double *flaps_z1,
 
 // Returns control flags that are used throughout the crosswind
 // controller.
-//static void GetFlags(const StateEstimate *state_est, FlightMode flight_mode,
-//                     CrosswindPathType path_type, CrosswindFlags *flags) {
-//  // These flags simplify what constitutes a fault in the crosswind controller.
-//  //
-//  // The control features that are tied directly to the loadcells are
-//  // turned off if there is a fault.
-//  flags->loadcell_fault = !state_est->tether_force_b.valid;
-//
-//  // When true, this flag indicates that we should trust our alpha / beta
-//  // estimates less (e.g. by turning off integrators).
-//  switch (state_est->apparent_wind.solution_type) {
-//    case kApparentWindSolutionTypeLoadcell:
-//    case kApparentWindSolutionTypePitot:
-//      flags->alpha_beta_fault = false;
-//      break;
-//    default:
-//    case kNumApparentWindSolutionTypes:
-//    case kApparentWindSolutionTypeForceSigned:
-//    case kApparentWindSolutionTypeInertialAndWind:
-//    case kApparentWindSolutionTypeMixed:
-//    case kApparentWindSolutionTypeFixedAngles:
-//      flags->alpha_beta_fault = true;
-//      break;
-//  }
-//
-//  // This is somewhat of a hack that was necessary to pass the extreme
-//  // gust IEC cases.  The extreme wind flag forces a high elevation,
-//  // high azimuth path, and faster wind direction tracking.  This must
-//  // use the unfiltered wind speed value or it cannot respond to
-//  // extreme wind events quickly enough.
-//  //
-//  // NOTE(kennyjensen): This is turned off for the first flights,
-//  // which will be in low wind, for simplicity.  If it is activated
-//  // again, hysteresis should be added.
-//  flags->extreme_wind = false;
-//
-//  // Only use the spoiler when we are preparing to transition out.  In
-//  // the future, we may want to try using it during normal crosswind
-//  // flight to slow down the wing to put it in sync with the ideal
-//  // velocity curve around the loop.
-//  if (flight_mode == kFlightModeCrosswindPrepTransOut &&
-//      path_type == kCrosswindPathPrepareTransitionOut) {
-//    flags->spoiler_enabled = true;
-//  } else {
-//    flags->spoiler_enabled = false;
-//  }
-//}
+static void GetFlags(const StateEstimate *state_est, FlightMode flight_mode,
+                    CrosswindPathType path_type, CrosswindFlags *flags) {
+ // These flags simplify what constitutes a fault in the crosswind controller.
+ //
+ // The control features that are tied directly to the loadcells are
+ // turned off if there is a fault.
+ flags->loadcell_fault = !state_est->tether_force_b.valid;
 
-//static void UpdateExperimentalConfig(uint8_t config_index, double pitch_f,
-//                                     const CrosswindParams *params,
-//                                     ExperimentalCrosswindState *exp_state) {
-//  assert(-1.0 <= pitch_f && pitch_f <= 1.0);
-//
-//  ExperimentalCrosswindConfig *config = &exp_state->current_config;
-//  if (pitch_f < -0.7 && !exp_state->mode_active) {
-//    // Turn on experimental crosswind mode.
-//    assert(config_index < NUM_EXPERIMENTAL_CROSSWIND_CONFIGS);
-//    if (config_index < NUM_EXPERIMENTAL_CROSSWIND_CONFIGS) {
-//      exp_state->mode_active = true;
-//      *config = params->experimental_crosswind_config[config_index];
-//    }
-//  } else if (pitch_f > -0.3 && exp_state->mode_active) {
-//    // Turn off experimental crosswind mode.
-//    exp_state->mode_active = false;
-//    *config = params->experimental_crosswind_config[0];
-//  }
-//
-//  // Update telemetry.
-//  //CrosswindTelemetry *cwt = GetCrosswindTelemetry();
-//  //cwt->experimental_config_active = exp_state->mode_active;
-//}
+ // When true, this flag indicates that we should trust our alpha / beta
+ // estimates less (e.g. by turning off integrators).
+ switch (state_est->apparent_wind.solution_type) {
+   case kApparentWindSolutionTypeLoadcell:
+   case kApparentWindSolutionTypePitot:
+     flags->alpha_beta_fault = false;
+     break;
+   default:
+   case kNumApparentWindSolutionTypes:
+   case kApparentWindSolutionTypeForceSigned:
+   case kApparentWindSolutionTypeInertialAndWind:
+   case kApparentWindSolutionTypeMixed:
+   case kApparentWindSolutionTypeFixedAngles:
+     flags->alpha_beta_fault = true;
+     break;
+ }
+
+ // This is somewhat of a hack that was necessary to pass the extreme
+ // gust IEC cases.  The extreme wind flag forces a high elevation,
+ // high azimuth path, and faster wind direction tracking.  This must
+ // use the unfiltered wind speed value or it cannot respond to
+ // extreme wind events quickly enough.
+ //
+ // NOTE(kennyjensen): This is turned off for the first flights,
+ // which will be in low wind, for simplicity.  If it is activated
+ // again, hysteresis should be added.
+ // flags->extreme_wind = false;
+
+ // Only use the spoiler when we are preparing to transition out.  In
+ // the future, we may want to try using it during normal crosswind
+ // flight to slow down the wing to put it in sync with the ideal
+ // velocity curve around the loop.
+ if (flight_mode == kFlightModeCrosswindPrepTransOut &&
+     path_type == kCrosswindPathPrepareTransitionOut) {
+   flags->spoiler_enabled = true;
+ } else {
+   flags->spoiler_enabled = false;
+ }
+}
+
+static void UpdateExperimentalConfig(uint8_t config_index, double pitch_f,
+                                    const CrosswindParams *params,
+                                    ExperimentalCrosswindState *exp_state) {
+ assert(-1.0 <= pitch_f && pitch_f <= 1.0);
+
+ ExperimentalCrosswindConfig *config = &exp_state->current_config;
+ if (pitch_f < -0.7 && !exp_state->mode_active) {
+   // Turn on experimental crosswind mode.
+   assert(config_index < NUM_EXPERIMENTAL_CROSSWIND_CONFIGS);
+   if (config_index < NUM_EXPERIMENTAL_CROSSWIND_CONFIGS) {
+     exp_state->mode_active = true;
+     *config = params->experimental_crosswind_config[config_index];
+   }
+ } else if (pitch_f > -0.3 && exp_state->mode_active) {
+   // Turn off experimental crosswind mode.
+   exp_state->mode_active = false;
+   *config = params->experimental_crosswind_config[0];
+ }
+
+ // Update telemetry.
+ //CrosswindTelemetry *cwt = GetCrosswindTelemetry();
+ //cwt->experimental_config_active = exp_state->mode_active;
+}
 
 void CrosswindStep(const FlightStatus *flight_status,
                    const StateEstimate *state_est,
@@ -174,11 +173,11 @@ void CrosswindStep(const FlightStatus *flight_status,
                    ControlOutput *control_output) {
   printf("    crosswindstep \n");
   CrosswindFlags flags;
-  //GetFlags(state_est, flight_status->flight_mode, state->power.path_type, &flags);
+  GetFlags(state_est, flight_status->flight_mode, state->power.path_type, &flags);
 
-  //UpdateExperimentalConfig(state_est->experimental_crosswind_config,
-  //                         state_est->joystick.pitch_f, params,
-  //                         &state->experimental_crosswind);
+  UpdateExperimentalConfig(state_est->experimental_crosswind_config,
+                          state_est->joystick.pitch_f, params,
+                          &state->experimental_crosswind);
 
   PlaybookEntry playbook_entry;
   // Crossfade to fallback playbook when throttle is sufficiently high.  Stop
@@ -198,11 +197,11 @@ void CrosswindStep(const FlightStatus *flight_status,
                   state->playbook_fallback_crossfade, &playbook_entry);
 
  
- CrosswindPathType path_type;
- Vec3 path_center_g;
-double airspeed_cmd, d_airspeed_d_loopangle, alpha_nom, beta_nom;
+  CrosswindPathType path_type;
+  Vec3 path_center_g;
+  double airspeed_cmd, d_airspeed_d_loopangle, alpha_nom, beta_nom;
 
- CrosswindPowerStep(flight_status, state_est, &flags, &params->power,
+  CrosswindPowerStep(flight_status, state_est, &flags, &params->power,
                      &playbook_entry, &state->power, &path_type, &path_center_g,
                      &airspeed_cmd, &d_airspeed_d_loopangle, &alpha_nom,
                      &beta_nom);

@@ -67,12 +67,12 @@ void AssignInputs(double dcm_g2b_c[], double pqr_c[], double *acc_norm_c,
 	state_est->apparent_wind.sph_f.v = apparent_wind_c[0];
 	state_est->apparent_wind.sph_f.alpha = apparent_wind_c[1];
 	state_est->apparent_wind.sph_f.beta = apparent_wind_c[2];
-	
+	state_est->apparent_wind.solution_type = kApparentWindSolutionTypePitot; // Done to clear alpha/beta fault in GetFlags()
 	//tether_force_c
 	state_est->tether_force_b.vector_f.x = tether_force_c[0];
 	state_est->tether_force_b.vector_f.y = tether_force_c[1];
 	state_est->tether_force_b.vector_f.z = tether_force_c[2];
-
+	state_est->tether_force_b.valid = true;
 	//wind_g_c
 	state_est->wind_g.vector.x = wind_g_c[0];
 	state_est->wind_g.vector.y = wind_g_c[1];

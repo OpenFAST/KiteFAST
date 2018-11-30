@@ -15,15 +15,17 @@ void controller_init(int *errStat, char *errMsg)
 	// Controller Version Number
 	// Version Log:
 	// 0.0.1 - Inner Crosswind Step working
-	// 
-	const char controllerVerNumber[] = "0.0.1"; // major.minor.[maintenance]
+	// 0.0.2 - Power Loop Step working
+	const char controllerVerNumber[] = "0.0.2"; // major.minor.[maintenance]
 	printf("   controller_version: %s \n", controllerVerNumber);
 
-	//ControlParams *params; // placeholder to avoid errors
 	//loadcontroller(params);
-
-	//initalize parameters here!! (outputs)
-	//CrosswindInit(state_est, flaps_z1, 0.0, 0, &params->crosswind, &state->crosswind);
+	// Init Data structures and variables
+	const StateEstimate state_est = {}; 
+	ControlState state = {};
+	const double flaps_z1[kNumFlaps] = {}; // Last flap command from previous mode - Can link up to previous 'delta' - Added Jmiller - STI
+	
+	CrosswindInit(&state_est, flaps_z1, 0.0, 0, &GetControlParams()->crosswind, &state.crosswind);
 
 	// Init Control Logging
 	ControlLogInit((char*)controllerVerNumber);
