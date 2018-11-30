@@ -1,5 +1,6 @@
 #include "control/controller_conversion.h"
 
+#include <math.h>
 #include "common/c_math/mat3.h"
 #include "common/c_math/vec3.h"
 #include "control/control_types.h"
@@ -72,7 +73,7 @@ void AssignInputs(double dcm_g2b_c[], double pqr_c[], double *acc_norm_c,
 	state_est->tether_force_b.vector_f.x = tether_force_c[0];
 	state_est->tether_force_b.vector_f.y = tether_force_c[1];
 	state_est->tether_force_b.vector_f.z = tether_force_c[2];
-	state_est->tether_force_b.valid = true;
+	state_est->tether_force_b.valid = false;
 	// assumed tension is magnitude of tether force inputs - Jmiller - STI
 	state_est->tether_force_b.sph.tension = sqrt(pow(tether_force_c[0],2) + pow(tether_force_c[1],2) + pow(tether_force_c[2],2));
 	//wind_g_c

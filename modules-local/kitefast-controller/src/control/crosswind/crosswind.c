@@ -231,37 +231,37 @@ void CrosswindStep(const FlightStatus *flight_status,
   // as a fallback to the loadcell-based tether roll calculation.
   double tether_roll = state_est->tether_force_b.sph.roll;
   // tether_roll = -0.0072; // Added - jmiller
-  //if (flags.loadcell_fault) {
-  //  tether_roll = CurvatureToTetherRoll(
-  //      k_aero_curr, AlphaToCL(state_est->apparent_wind.sph_f.alpha,
-  //                             g_cont.simple_aero_model),
-  //      BetaToCY(state_est->apparent_wind.sph_f.beta,
-  //               g_cont.simple_aero_model));
-  //}
+  if (flags.loadcell_fault) {
+   tether_roll = CurvatureToTetherRoll(
+       k_aero_curr, AlphaToCL(state_est->apparent_wind.sph_f.alpha,
+                              g_cont.simple_aero_model),
+       BetaToCY(state_est->apparent_wind.sph_f.beta,
+                g_cont.simple_aero_model));
+  }
 
-  //const double path_radius = playbook_entry.path_radius_target;
+  const double path_radius = playbook_entry.path_radius_target;
 
   // Calculate the required acceleration to track the airspeed schedule.
   // TODO(tfricke): Check that wind_g is valid and do something
   // sensible if it is not.
-  //Vec3 wing_vel_g;
-  const double kite_accel_ff = 0; // Added - jmiller
-	/*
+  Vec3 wing_vel_g;
+  //const double kite_accel_ff = 0; // Added - jmiller
+	
   const double kite_accel_ff = CalcLoopKinematics(
       &state_est->wind_g.vector_f, &path_center_g, loop_angle, path_radius,
-      airspeed_cmd, d_airspeed_d_loopangle, &wing_vel_g, NULL);*/
+      airspeed_cmd, d_airspeed_d_loopangle, &wing_vel_g, NULL);
 
   // TODO(tfricke): Estimate the derivative of the tether roll command
   // analytically instead of numerically.
- /* const double tether_roll_dot =
-      DiffLpf2(tether_roll_cmd, 1.0, 0.7, *g_sys.ts, state->tether_roll_cmd_zs);*/
+  const double tether_roll_dot =
+      DiffLpf2(tether_roll_cmd, 1.0, 0.7, *g_sys.ts, state->tether_roll_cmd_zs);
 
- /* Vec3 pqr_cmd_new;
+  Vec3 pqr_cmd_new;
   const double kitespeed = Vec3Norm(&wing_vel_g);
   CalcCrosswindPqr(&state_est->wind_g.vector_f, &path_center_g, loop_angle,
                    path_radius, tether_roll, tether_roll_dot, alpha_cmd,
                    beta_cmd, airspeed_cmd, d_airspeed_d_loopangle, kitespeed,
-                   &pqr_cmd_new);*/
+                   &pqr_cmd_new);
 
   //GetCrosswindTelemetry()->pqr_cmd_old = pqr_cmd;
   //GetCrosswindTelemetry()->pqr_cmd_new = pqr_cmd_new;
@@ -269,29 +269,29 @@ void CrosswindStep(const FlightStatus *flight_status,
   //  pqr_cmd = pqr_cmd_new;
   //}
 
-  //// Calculate pqr_cmd_dot.
-  //Vec3 pqr_cmd_dot;
-  //CalcCrosswindPqrDot(&state_est->wind_g.vector_f, &path_center_g, loop_angle,
-  //                    path_radius, tether_roll, tether_roll_dot, alpha_cmd,
-  //                    beta_cmd, airspeed_cmd, d_airspeed_d_loopangle, kitespeed,
-  //                    &pqr_cmd_dot);
+  // Calculate pqr_cmd_dot.
+  Vec3 pqr_cmd_dot;
+  CalcCrosswindPqrDot(&state_est->wind_g.vector_f, &path_center_g, loop_angle,
+                     path_radius, tether_roll, tether_roll_dot, alpha_cmd,
+                     beta_cmd, airspeed_cmd, d_airspeed_d_loopangle, kitespeed,
+                     &pqr_cmd_dot);
   //GetCrosswindTelemetry()->pqr_cmd_dot = pqr_cmd_dot;
 
   // Estimate aero forces.
   // TODO(tfricke): Currently this uses as-measured quantities;
   // instead, consider using as-predicted quantities, which may be
   // cleaner.
- /* Vec3 aero_force_b;
+  Vec3 aero_force_b;
   CalcAeroForce(&state_est->apparent_wind.vector, g_sys.phys->rho,
                 g_sys.wing->A, g_cont.simple_aero_model, &aero_force_b);
-  GetCrosswindTelemetry()->aero_force_b = aero_force_b;*/
+  // GetCrosswindTelemetry()->aero_force_b = aero_force_b;
 
   Deltas deltas;
   ThrustMoment thrust_moment;
-  thrust_moment.thrust = 27850; // Added - jmiller
-  thrust_moment.moment.x = 0; // Added - jmiller
-  thrust_moment.moment.y = -211.4173; // Added - jmiller
-  thrust_moment.moment.z = 5314.1; // Added - jmiller
+  // thrust_moment.thrust = 27850; // Added - jmiller
+  // thrust_moment.moment.x = 0; // Added - jmiller
+  // thrust_moment.moment.y = -211.4173; // Added - jmiller
+  // thrust_moment.moment.z = 5314.1; // Added - jmiller
 
   double lateral_gains[kNumCrosswindLateralInputs][kNumCrosswindLateralStates];
 
