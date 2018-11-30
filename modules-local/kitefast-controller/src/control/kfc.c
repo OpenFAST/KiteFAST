@@ -25,7 +25,8 @@ void controller_init(int *errStat, char *errMsg)
 	// 0.2.0 - Power Loop Step included and working
 	// 0.2.1 - added Global structs to handle passing between init and step functions
 	// 0.3.0 - Path Loop included and working
-	const char controllerVerNumber[] = "0.3.0"; // major.minor.[maintenance]
+	// 0.4.0 - Curvature Loop included and working
+	const char controllerVerNumber[] = "0.4.0"; // major.minor.[maintenance]
 	printf("   controller_version: %s \n", controllerVerNumber);
 
 	// Init Data structures and variables
@@ -76,7 +77,7 @@ void controller_step(double dcm_g2b_c[], double pqr_c[], double *acc_norm_c,
 	{
 		errMsg[i] = tmp[i];
 	}
-	printf("   debug marker : made it out of CrosswindStep with Active Path Loop!\n");
+	printf("   debug marker : made it out of CrosswindStep with Active Curvature Loop!\n");
 	// Saves all variables for this time step in ControlLog struct to txt file for analysis
 	control_log.controlOutputLog = controlglob.raw_control_output;
 	ControlLogEntry(&control_log);

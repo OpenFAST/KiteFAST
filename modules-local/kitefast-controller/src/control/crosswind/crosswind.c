@@ -14,7 +14,7 @@
 #include "control/control_params.h"
 //#include "../control_telemetry.h"
 #include "control/control_types.h"
-//#include "crosswind_curvature.h"
+#include "control/crosswind/crosswind_curvature.h"
 #include "crosswind_frame.h"
 #include "control/crosswind/crosswind_inner.h"
 //#include "crosswind_mode.h"
@@ -51,10 +51,10 @@ void CrosswindInit(const StateEstimate *state_est, const double *flaps_z1,
   const double loop_angle = CalcLoopAngle(&path_center_g, &state_est->Xg);
   CrosswindPathInit(state_est, &params->path, playbook_entry.path_radius_target,
                    &state->path);
-  //CrosswindCurvatureInit(state_est->tether_force_b.sph.tension,
-  //                       state_est->apparent_wind.sph_f.alpha,
-  //                       state_est->apparent_wind.sph_f.beta,
-  //                       &params->curvature, &state->curvature);
+  CrosswindCurvatureInit(state_est->tether_force_b.sph.tension,
+                        state_est->apparent_wind.sph_f.alpha,
+                        state_est->apparent_wind.sph_f.beta,
+                        &params->curvature, &state->curvature);
 
   // Calculate the aileron, elevator, and rudder commands that produce
   // equivalent deflections to the final deflections from the
@@ -219,18 +219,18 @@ void CrosswindStep(const FlightStatus *flight_status,
   double dCL_cmd, alpha_cmd, beta_cmd, tether_roll_cmd;
 
   bool flaring = false;
-  /*
+  
   CrosswindCurvatureStep(
       k_aero_cmd, k_geom_cmd, state_est->tether_force_b.sph.tension,
       state_est->apparent_wind.sph_f.v, alpha_nom, beta_nom, loop_angle,
       path_type, &state_est->Vg, flight_status, &flags, &params->curvature,
       &state->curvature, &pqr_cmd, &flaring, &alpha_cmd, &dCL_cmd, &beta_cmd,
-      &tether_roll_cmd);*/
-
+      &tether_roll_cmd);
+  
   // TODO(kennyjensen): Eventually, this should go in state_estimation
   // as a fallback to the loadcell-based tether roll calculation.
   double tether_roll = state_est->tether_force_b.sph.roll;
-  tether_roll = -0.0072; // Added - jmiller
+  // tether_roll = -0.0072; // Added - jmiller
   //if (flags.loadcell_fault) {
   //  tether_roll = CurvatureToTetherRoll(
   //      k_aero_curr, AlphaToCL(state_est->apparent_wind.sph_f.alpha,
@@ -295,11 +295,11 @@ void CrosswindStep(const FlightStatus *flight_status,
 
   double lateral_gains[kNumCrosswindLateralInputs][kNumCrosswindLateralStates];
 
-	airspeed_cmd = 38.7523;	   // added by JMiller - STI
-	alpha_cmd	 = -0.0381;	   // added by JMiller - STI
-	beta_cmd	 = -0.0256;	   // added by JMiller - STI
-	dCL_cmd 	 = -0.0025;	   // added by JMiller - STI
-	tether_roll_cmd = 0.0; // added by JMiller - STI
+	// airspeed_cmd = 38.7523;	   // added by JMiller - STI
+	// alpha_cmd	 = -0.0381;	   // added by JMiller - STI
+	// beta_cmd	 = -0.0256;	   // added by JMiller - STI
+	// dCL_cmd 	 = -0.0025;	   // added by JMiller - STI
+	// tether_roll_cmd = 0.0; // added by JMiller - STI
 printf("    debug marker - pre crosswind_inner \n");
   CrosswindInnerStep(
       tether_roll_cmd, tether_roll, alpha_cmd,

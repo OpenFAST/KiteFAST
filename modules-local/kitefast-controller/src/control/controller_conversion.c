@@ -73,6 +73,8 @@ void AssignInputs(double dcm_g2b_c[], double pqr_c[], double *acc_norm_c,
 	state_est->tether_force_b.vector_f.y = tether_force_c[1];
 	state_est->tether_force_b.vector_f.z = tether_force_c[2];
 	state_est->tether_force_b.valid = true;
+	// assumed tension is magnitude of tether force inputs - Jmiller - STI
+	state_est->tether_force_b.sph.tension = sqrt(pow(tether_force_c[0],2) + pow(tether_force_c[1],2) + pow(tether_force_c[2],2));
 	//wind_g_c
 	state_est->wind_g.vector.x = wind_g_c[0];
 	state_est->wind_g.vector.y = wind_g_c[1];

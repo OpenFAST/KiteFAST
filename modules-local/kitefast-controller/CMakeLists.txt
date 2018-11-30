@@ -51,6 +51,7 @@ set(DYLIB_SOURCES
 	src/control/system_params.c
 	src/control/system_types.c
 	src/control/tether_util.c
+	src/control/crosswind/crosswind_curvature.c
 	src/control/crosswind/crosswind_frame.c
 	src/control/crosswind/crosswind_inner.c
 	src/control/crosswind/crosswind_path.c
