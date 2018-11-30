@@ -53,6 +53,7 @@ set(DYLIB_SOURCES
 	src/control/tether_util.c
 	src/control/crosswind/crosswind_frame.c
 	src/control/crosswind/crosswind_inner.c
+	src/control/crosswind/crosswind_path.c
 	src/control/crosswind/crosswind_playbook.c
 	src/control/crosswind/crosswind_power.c
 	src/control/crosswind/crosswind_types.c
@@ -60,16 +61,7 @@ set(DYLIB_SOURCES
 	src/control/crosswind/crosswind.c
 	src/control/estimator/estimator_types.c
 ) 
-include_directories(
-#	"src/common/"
-#	"src/control/"
-#	"src/control/crosswind/"
-#	"src/control/estimator/"
-#	"src/system/"
-#	"dependencies/c_math/"
-	"src/"
-#	"dependencies/"
-)
+include_directories("src/")
 add_library(kitefastcontroller_controller SHARED ${DYLIB_SOURCES})
 target_link_libraries(kitefastcontroller_controller C_MATH ${GSL_LIBRARIES})
 

@@ -15,11 +15,11 @@
 //#include "../control_telemetry.h"
 #include "control/control_types.h"
 //#include "crosswind_curvature.h"
-//#include "crosswind_frame.h"
+#include "crosswind_frame.h"
 #include "control/crosswind/crosswind_inner.h"
 //#include "crosswind_mode.h"
 //#include "crosswind_output.h"
-//#include "crosswind_path.h"
+#include "crosswind_path.h"
 #include "control/crosswind/crosswind_playbook.h"
 #include "control/crosswind/crosswind_power.h"
 #include "control/crosswind/crosswind_types.h"
@@ -49,8 +49,8 @@ void CrosswindInit(const StateEstimate *state_est, const double *flaps_z1,
   Vec3 path_center_g;
   CrosswindPowerGetPathCenter(&state->power, &path_center_g);
   const double loop_angle = CalcLoopAngle(&path_center_g, &state_est->Xg);
-  //CrosswindPathInit(state_est, &params->path, playbook_entry.path_radius_target,
-  //                  &state->path);
+  CrosswindPathInit(state_est, &params->path, playbook_entry.path_radius_target,
+                   &state->path);
   //CrosswindCurvatureInit(state_est->tether_force_b.sph.tension,
   //                       state_est->apparent_wind.sph_f.alpha,
   //                       state_est->apparent_wind.sph_f.beta,
@@ -183,19 +183,18 @@ void CrosswindStep(const FlightStatus *flight_status,
   // Crossfade to fallback playbook when throttle is sufficiently high.  Stop
   // crossfade in place when mode changes to PrepTransOut to allow pilot to
   // trans out in fallback configuration.
-  //if (flight_status->flight_mode == kFlightModeCrosswindNormal) {
-  //  double crossfade_rate = params->playbook_fallback.crossfade_rate;
-  //  double crossfade_throttle = params->playbook_fallback.crossfade_throttle;
-  //  assert(crossfade_rate > 0.0);
-  //  assert(crossfade_throttle >= 0.0 && crossfade_throttle <= 1.0);
-  //  RateLimit(state_est->joystick.throttle_f > crossfade_throttle,
-  //            -crossfade_rate, crossfade_rate, *g_sys.ts,
-  //            &state->playbook_fallback_crossfade);
-  //}
+  if (flight_status->flight_mode == kFlightModeCrosswindNormal) {
+   double crossfade_rate = params->playbook_fallback.crossfade_rate;
+   double crossfade_throttle = params->playbook_fallback.crossfade_throttle;
+   assert(crossfade_rate > 0.0);
+   assert(crossfade_throttle >= 0.0 && crossfade_throttle <= 1.0);
+   RateLimit(state_est->joystick.throttle_f > crossfade_throttle,
+             -crossfade_rate, crossfade_rate, *g_sys.ts,
+             &state->playbook_fallback_crossfade);
+  }
   GetPlaybookEntry(&params->playbook, &params->playbook_fallback.entry,
                  state_est->wind_aloft_g.speed_f_playbook,
                   state->playbook_fallback_crossfade, &playbook_entry);
-
  
   CrosswindPathType path_type;
   Vec3 path_center_g;
@@ -206,16 +205,13 @@ void CrosswindStep(const FlightStatus *flight_status,
                      &airspeed_cmd, &d_airspeed_d_loopangle, &alpha_nom,
                      &beta_nom);
 
-// path_center_g.x = -266.0922; // Added - jmiller
-// path_center_g.y = -149.3406;// Added - jmiller
-// path_center_g.z = -296.9814;// Added - jmiller
   double loop_angle = CalcLoopAngle(&path_center_g, &state_est->Xg);
 
- /* double k_aero_cmd, k_geom_cmd, k_aero_curr, k_geom_curr;
-  CrosswindPathStep(&path_center_g, state_est, &playbook_entry, &params->path,
-                    &state->path, &k_aero_cmd, &k_geom_cmd, &k_aero_curr,
-                    &k_geom_curr);
-*/
+  double k_aero_cmd, k_geom_cmd, k_aero_curr, k_geom_curr;
+  CrosswindPathStep(flight_status->flight_mode, &path_center_g, path_type,
+                    state_est, &playbook_entry, &params->path, &state->path,
+                    &k_aero_cmd, &k_geom_cmd, &k_aero_curr, &k_geom_curr);
+
   Vec3 pqr_cmd;
   pqr_cmd.x = 0; // added by JMiller - STI
   pqr_cmd.y = -0.0845; // added by JMiller - STI
