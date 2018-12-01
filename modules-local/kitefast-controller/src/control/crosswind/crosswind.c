@@ -18,7 +18,7 @@
 #include "crosswind_frame.h"
 #include "control/crosswind/crosswind_inner.h"
 //#include "crosswind_mode.h"
-//#include "crosswind_output.h"
+#include "control/crosswind/crosswind_output.h"
 #include "crosswind_path.h"
 #include "control/crosswind/crosswind_playbook.h"
 #include "control/crosswind/crosswind_power.h"
@@ -71,8 +71,8 @@ void CrosswindInit(const StateEstimate *state_est, const double *flaps_z1,
   // double alpha_0 = 0; // added by Jmiller STI
   CrosswindInnerInit(state_est, &deltas_0, alpha_0, loop_angle, &params->inner,
                      &state->inner);
-  //CrosswindOutputInit(&params->output, &state->output,
-  //                    previous_detwist_loop_angle, previous_detwist_rev_count);
+  CrosswindOutputInit(&params->output, &state->output,
+                     previous_detwist_loop_angle, previous_detwist_rev_count);
 
   state->experimental_crosswind.mode_active = false;
   state->experimental_crosswind.current_config =
@@ -81,17 +81,17 @@ void CrosswindInit(const StateEstimate *state_est, const double *flaps_z1,
   state->playbook_fallback_crossfade = 0.0;
 }
 
-//bool CrosswindIsReadyForMode(FlightMode proposed_flight_mode,
+// bool CrosswindIsReadyForMode(FlightMode proposed_flight_mode,
 //                             const FlightStatus *flight_status,
 //                             const StateEstimate *state_est,
 //                             const CrosswindParams *params,
 //                             const CrosswindState *state) {
 //  double trans_out_flare_time = CrosswindCurvatureFlareTimer(&state->curvature);
-//
+
 //  return CrosswindModeIsReadyFor(proposed_flight_mode, flight_status, state_est,
 //                                 trans_out_flare_time, state->power.path_type,
 //                                 &params->mode);
-//}
+// }
 
 // Returns control flags that are used throughout the crosswind
 // controller.
@@ -311,38 +311,38 @@ printf("    debug marker - pre crosswind_inner \n");
       &state->inner, lateral_gains, &deltas, &thrust_moment);
 
 printf("    debug marker - post crosswind_inner \n");
-// PLACE HOLDER FOR CONTROL OUTPUTS
-control_output->flaps[kFlapA1] = 0;
-control_output->flaps[kFlapA2] = 0;
-control_output->flaps[kFlapA4] = 0;
-control_output->flaps[kFlapA5] = 0;
-control_output->flaps[kFlapA7] = 0;
-control_output->flaps[kFlapA8] = 0;
-control_output->flaps[kFlapEle] = 0;
-control_output->flaps[kFlapRud] = 0;
+// // PLACE HOLDER FOR CONTROL OUTPUTS
+// control_output->flaps[kFlapA1] = 0;
+// control_output->flaps[kFlapA2] = 0;
+// control_output->flaps[kFlapA4] = 0;
+// control_output->flaps[kFlapA5] = 0;
+// control_output->flaps[kFlapA7] = 0;
+// control_output->flaps[kFlapA8] = 0;
+// control_output->flaps[kFlapEle] = 0;
+// control_output->flaps[kFlapRud] = 0;
 
-control_output->rotors[0] = 0;
-control_output->rotors[1] = 0;
-control_output->rotors[2] = 0;
-control_output->rotors[3] = 0;
-control_output->rotors[4] = 0;
-control_output->rotors[5] = 0;
-control_output->rotors[6] = 0;
-control_output->rotors[7] = 0;
-// end placeholder - Justin Miller - STI
-  //// Convert control variables to actuator commands.
-  //CrosswindOutputStep(params->loop_dir, loop_angle, flaring, &thrust_moment,
-  //                    &deltas, state_est, &path_center_g, &params->output,
-  //                    &state->output, control_output);
+// control_output->rotors[0] = 0;
+// control_output->rotors[1] = 0;
+// control_output->rotors[2] = 0;
+// control_output->rotors[3] = 0;
+// control_output->rotors[4] = 0;
+// control_output->rotors[5] = 0;
+// control_output->rotors[6] = 0;
+// control_output->rotors[7] = 0;
+// // end placeholder - Justin Miller - STI
+  // Convert control variables to actuator commands.
+  CrosswindOutputStep(params->loop_dir, loop_angle, flaring, &thrust_moment,
+                     &deltas, state_est, &path_center_g, &params->output,
+                     &state->output, control_output);
 
-  // Backsolve for the crosswind lateral integrators.
-  //double delta_aileron_avail, delta_rudder_avail;
-  //UnmixFlaps(control_output->flaps, &deltas, params->output.flap_offsets,
-  //           &delta_aileron_avail, &delta_rudder_avail);
-  //BacksolveLateralIntegrators(
-  //    delta_aileron_avail, deltas.aileron, delta_rudder_avail, deltas.rudder,
-  //    lateral_gains, &params->inner, &state->inner.int_tether_roll_error,
-  //    &state->inner.int_beta_error);
+  //Backsolve for the crosswind lateral integrators.
+  double delta_aileron_avail, delta_rudder_avail;
+  UnmixFlaps(control_output->flaps, &deltas, params->output.flap_offsets,
+            &delta_aileron_avail, &delta_rudder_avail);
+  BacksolveLateralIntegrators(
+     delta_aileron_avail, deltas.aileron, delta_rudder_avail, deltas.rudder,
+     lateral_gains, &params->inner, &state->inner.int_tether_roll_error,
+     &state->inner.int_beta_error);
   //GetCrosswindTelemetry()->int_tether_roll_error =
   //    state->inner.int_tether_roll_error;
   //GetCrosswindTelemetry()->int_beta_error = state->inner.int_beta_error;

@@ -25,10 +25,10 @@ void controller_init(int *errStat, char *errMsg)
 	// 0.2.0 - Power Loop Step included and working
 	// 0.2.1 - added Global structs to handle passing between init and step functions
 	// 0.3.0 - Path Loop included and working
-	// 0.4.0 - Curvature Loop included and workingloadcell_fault 
+	// 0.4.0 - Curvature Loop included and working 
 	// 0.4.1 - Added pre-inner step preparation functions (CalcCrosswindPqr()/CalcCrosswindPqrDot()/CalcAeroForce())
-	//
-	const char controllerVerNumber[] = "0.4.1"; // major.minor.[maintenance]
+	// 0.5.0 - Output Step icluded and working
+	const char controllerVerNumber[] = "0.5.0"; // major.minor.[maintenance]
 	printf("   controller_version: %s \n", controllerVerNumber);
 
 	// Init Data structures and variables
