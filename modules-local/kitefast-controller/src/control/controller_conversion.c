@@ -62,7 +62,7 @@ void AssignInputs(double dcm_g2b_c[], double pqr_c[], double *acc_norm_c,
 	memcpy(&state_est->rho, &rho_tmp, sizeof(state_est->rho));
 
 	//apparent_wind_c_v
-	if(apparent_wind_c[0] <= 0.0){  //added by Justin Miller - STI 
+	if(apparent_wind_c[0] < 0.0){  //added by Justin Miller - STI 
       apparent_wind_c[0] = -apparent_wind_c[0];
     } // TODO - Check reference frames of kitefast vs CSim- Airspeed is coming in (-), assertions fail if airspeed is (-)
 	state_est->apparent_wind.sph_f.v = apparent_wind_c[0];

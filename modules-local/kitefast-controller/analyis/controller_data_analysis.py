@@ -10,7 +10,7 @@ plot_vars = ["sph_f.v","sph_f.alpha","flaps[0]", "rotors[7]"]
 file_name = "controller_save_data.csv"
 dT = 0.02 #sec
 row_count = 9 # total rows found in .csv
-header_count = 4
+header_count = 4 # total number of rows that are headers
 
 # initialize variables
 plot_ind = []

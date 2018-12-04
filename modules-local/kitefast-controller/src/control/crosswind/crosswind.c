@@ -213,9 +213,9 @@ void CrosswindStep(const FlightStatus *flight_status,
                     &k_aero_cmd, &k_geom_cmd, &k_aero_curr, &k_geom_curr);
 
   Vec3 pqr_cmd;
-  pqr_cmd.x = 0; // added by JMiller - STI
-  pqr_cmd.y = -0.0845; // added by JMiller - STI
-  pqr_cmd.z = -0.1711; // added by JMiller - STI
+  // pqr_cmd.x = 0; // added by JMiller - STI
+  // pqr_cmd.y = -0.0845; // added by JMiller - STI
+  // pqr_cmd.z = -0.1711; // added by JMiller - STI
   double dCL_cmd, alpha_cmd, beta_cmd, tether_roll_cmd;
 
   bool flaring = false;
@@ -311,25 +311,7 @@ printf("    debug marker - pre crosswind_inner \n");
       &state->inner, lateral_gains, &deltas, &thrust_moment);
 
 printf("    debug marker - post crosswind_inner \n");
-// // PLACE HOLDER FOR CONTROL OUTPUTS
-// control_output->flaps[kFlapA1] = 0;
-// control_output->flaps[kFlapA2] = 0;
-// control_output->flaps[kFlapA4] = 0;
-// control_output->flaps[kFlapA5] = 0;
-// control_output->flaps[kFlapA7] = 0;
-// control_output->flaps[kFlapA8] = 0;
-// control_output->flaps[kFlapEle] = 0;
-// control_output->flaps[kFlapRud] = 0;
 
-// control_output->rotors[0] = 0;
-// control_output->rotors[1] = 0;
-// control_output->rotors[2] = 0;
-// control_output->rotors[3] = 0;
-// control_output->rotors[4] = 0;
-// control_output->rotors[5] = 0;
-// control_output->rotors[6] = 0;
-// control_output->rotors[7] = 0;
-// // end placeholder - Justin Miller - STI
   // Convert control variables to actuator commands.
   CrosswindOutputStep(params->loop_dir, loop_angle, flaring, &thrust_moment,
                      &deltas, state_est, &path_center_g, &params->output,

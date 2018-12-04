@@ -28,6 +28,7 @@ void controller_init(int *errStat, char *errMsg)
 	// 0.4.0 - Curvature Loop included and working 
 	// 0.4.1 - Added pre-inner step preparation functions (CalcCrosswindPqr()/CalcCrosswindPqrDot()/CalcAeroForce())
 	// 0.5.0 - Output Step icluded and working
+	// 1.0.0 - First working draft of Controller - all minor steps are working
 	const char controllerVerNumber[] = "0.5.0"; // major.minor.[maintenance]
 	printf("   controller_version: %s \n", controllerVerNumber);
 
@@ -35,7 +36,8 @@ void controller_init(int *errStat, char *errMsg)
 	const double flaps_z1[kNumFlaps] = {}; // Last flap command from previous mode - Can link up to previous 'delta' - Added Jmiller - STI
 	
 	CrosswindInit(&controlglob.state_est, flaps_z1, 0.0, 0, &GetControlParams()->crosswind, &controlglob.state.crosswind);
-
+	ControlState controlstate_test = controlglob.state;
+	StateEstimate stateest_test = controlglob.state_est;
 	// Init Control Logging
 	ControlLogInit((char*)controllerVerNumber);
 
@@ -55,7 +57,8 @@ void controller_step(double dcm_g2b_c[], double pqr_c[], double *acc_norm_c,
 					 int *errStat, char *errMsg)
 {
 	printf("   controller_step\n");
-
+	ControlState controlstate_test = controlglob.state;
+	StateEstimate stateest_test = controlglob.state_est;
 	//Convert the inputs from controller_step and assins the values that correspond to the inputs of CSim
 	AssignInputs(dcm_g2b_c, pqr_c, acc_norm_c,
 				 Xg_c, Vg_c, Vb_c, Ag_c,
@@ -79,7 +82,6 @@ void controller_step(double dcm_g2b_c[], double pqr_c[], double *acc_norm_c,
 	{
 		errMsg[i] = tmp[i];
 	}
-	// printf("   debug marker : made it out of CrosswindStep with Active Curvature Loop!\n");
 	// Saves all variables for this time step in ControlLog struct to txt file for analysis
 	control_log.controlOutputLog = controlglob.raw_control_output;
 	ControlLogEntry(&control_log);
