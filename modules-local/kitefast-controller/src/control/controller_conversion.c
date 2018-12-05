@@ -18,7 +18,19 @@ void AssignInputs(double dcm_g2b_c[], double pqr_c[], double *acc_norm_c,
 
 	bool printInputs = true;
 	if (printInputs){
-		
+		printf("  dcm_g2b_c = [%0.4f, %0.4f, %0.4f],[%0.4f, %0.4f, %0.4f],[%0.4f, %0.4f, %0.4f] \n",
+					dcm_g2b_c[0], dcm_g2b_c[1], dcm_g2b_c[2], dcm_g2b_c[3], dcm_g2b_c[4], dcm_g2b_c[5], dcm_g2b_c[6], dcm_g2b_c[7], dcm_g2b_c[8]);
+		printf("  pqr_c = [%0.4f, %0.4f, %0.4f] \n",pqr_c[0],pqr_c[1],pqr_c[2]);
+		printf("  acc_norm_c = %0.4f \n",acc_norm_c);
+		printf("  Xg_c = [%0.4f, %0.4f, %0.4f] \n",Xg_c[0],Xg_c[1],Xg_c[2]);
+		printf("  Vg_c = [%0.4f, %0.4f, %0.4f] \n",Vg_c[0],Vg_c[1],Vg_c[2]);
+		printf("  Vb_c = [%0.4f, %0.4f, %0.4f] \n",Vb_c[0],Vb_c[1],Vb_c[2]);
+		printf("  Ag_c = [%0.4f, %0.4f, %0.4f] \n",Ag_c[0],Ag_c[1],Ag_c[2]);
+		printf("  Ab_c = [%0.4f, %0.4f, %0.4f] \n",Ab_c[0],Ab_c[1],Ab_c[2]);
+		printf("  rho_c = %0.4f \n",rho_c);
+		printf("  apparent_wind_c = [%0.4f, %0.4f, %0.4f] \n",apparent_wind_c[0],apparent_wind_c[1],apparent_wind_c[2]);
+		printf("  tether_force_c = [%0.4f, %0.4f, %0.4f] \n",tether_force_c[0],tether_force_c[1],tether_force_c[2]);
+		printf("  wind_g_c = [%0.4f, %0.4f, %0.4f] \n",wind_g_c[0],wind_g_c[1],wind_g_c[2]);
 	}
 
 	//dcm_2gb - convert and copy value into state_est->dcm_g2b
@@ -26,8 +38,6 @@ void AssignInputs(double dcm_g2b_c[], double pqr_c[], double *acc_norm_c,
 						   { dcm_g2b_c[3], dcm_g2b_c[4], dcm_g2b_c[5] },
 						   { dcm_g2b_c[6], dcm_g2b_c[7], dcm_g2b_c[8] } } };;
 	memcpy(&state_est->dcm_g2b, &dcm_g2b_tmp, sizeof(state_est->dcm_g2b));
-	printf("  value dcm_g2b_c = %0.4f \n",dcm_g2b_c[0]);
-	printf("  value pqr_c = %0.4f \n",&pqr_c[0]);
 	
 	//pqr_c - convert and copy value into state_est->pqr_c
 	Vec3 pqr_c_tmp = { pqr_c[0], pqr_c[1], pqr_c[2] };

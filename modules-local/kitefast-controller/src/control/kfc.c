@@ -29,7 +29,7 @@ void controller_init(int *errStat, char *errMsg)
 	// 0.4.1 - Added pre-inner step preparation functions (CalcCrosswindPqr()/CalcCrosswindPqrDot()/CalcAeroForce())
 	// 0.5.0 - Output Step icluded and working
 	// 1.0.0 - First working draft of Controller - all minor steps are working
-	const char controllerVerNumber[] = "0.5.0"; // major.minor.[maintenance]
+	const char controllerVerNumber[] = "1.0.0"; // major.minor.[maintenance]
 	printf("   controller_version: %s \n", controllerVerNumber);
 
 	// Init Data structures and variables
@@ -69,13 +69,14 @@ void controller_step(double dcm_g2b_c[], double pqr_c[], double *acc_norm_c,
 	ControlLog control_log;
 	control_log.stateEstLog = controlglob.state_est; 
 	// Other modes to be added here
-
-	printf("   debug marker - pre crosswindstep \n");
+	#ifdef DEBUG
+		printf("   debug marker - pre crosswindstep \n");
+	#endif
 	CrosswindStep(&controlglob.flight_status, &controlglob.state_est, &GetControlParamsUnsafe()->crosswind,
 				  &controlglob.state.crosswind, &controlglob.raw_control_output);
-
-	printf("   debug marker - post crosswindstep \n");
-
+	#ifdef DEBUG
+		printf("   debug marker - post crosswindstep \n");
+	#endif
 	char tmp[] = "   controller stepping";
 	int i;
 	for (i = 0; i < sizeof(tmp); i++)
