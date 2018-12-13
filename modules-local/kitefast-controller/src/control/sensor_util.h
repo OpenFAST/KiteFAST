@@ -112,6 +112,22 @@ bool IsLevelwindEngaged(double drum_angle, const LevelwindParams *params);
 void LevelwindToXp(double payout, double drum_angle, double levelwind_ele,
                    double tension, const LevelwindParams *params, Vec3 *Xp);
 
+// Compute the DCM to rotate Drum frame to Gsg0 frame.
+const Mat3 *CalcDcmWdToGsg0(double detwist_ele, double detwist_pos,
+                            Mat3 *dcm_wd2gsg0);
+
+// Estimates tether elevation angle, and the detwist angle that places all
+// tether deflection into the GSG yoke DOF.
+//
+// Requires measurements from platform azi, drum angle, detwist angle,
+// and gsg angles. We also need detwist elevation which is the elevation angle
+// between the schnozz and the drum's XY plane.
+void CalcTetherAnglesFromGsg(double perch_azi, double drum_angle,
+                             double detwist_ele, double detwist_angle,
+                             double gsg_yoke, double gsg_termination,
+                             double *tether_elevation,
+                             double *tether_detwist_angle);
+
 // Converts a position based on a straight line assumption from
 // line-angle sensing to a position that also accounts for the
 // catenary in the tether.  This function may be used with any

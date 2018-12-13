@@ -25,8 +25,6 @@ const char *CrosswindNormalGateToString(CrosswindNormalGate gate) {
 
 const char *CrosswindPrepTransOutGateToString(CrosswindPrepTransOutGate gate) {
   switch (gate) {
-    case kCrosswindPrepTransOutGateWindSpeed:
-      return "WindSpeed";
     default:
     case kCrosswindPrepTransOutGateForceSigned:
     case kNumCrosswindPrepTransOutGates:

@@ -4,7 +4,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-//#include "cal_params.h"
+#include "common/c_math/cal_params.h"
 #include "common/c_math/linalg.h"
 #include "common/c_math/mat3.h"
 #include "common/c_math/quaternion.h"
@@ -33,12 +33,6 @@ typedef struct {
   double bias;
   int32_t bias_count;
 } CalParams;
-
-typedef struct {
-  float scale;
-  float bias;
-  int32_t bias_count;
-} CalParams32;
 
 typedef struct {
   CalParams cal;
@@ -149,6 +143,19 @@ uint64_t SaturateUint64(uint64_t x, uint64_t low, uint64_t high);
 int32_t SaturateSigned(int32_t x, int32_t bits);
 uint32_t SaturateUnsigned(uint32_t x, int32_t bits);
 
+// Saturates into a range that may be wrapped.
+// All inputs must be between wrap_left and wrap_right.
+// Output snaps to closest end of range.
+//
+// Args:
+//   x: Value to saturate.
+//   range_start: Beginning value for allowed range.
+//   range_end: End value for allowed range.
+//   wrap_left: Left of wrapping interval.
+//   wrap_right: Right of wrapping interval.
+double SaturateWrapped(double x, double range_start, double range_end,
+                       double wrap_left, double wrap_right);
+
 const Vec3 *FabsVec3(const Vec3 *v_in, Vec3 *v_out);
 
 // Implements the mixing function:
@@ -226,6 +233,31 @@ double Interp1(const double x[], const double y[], int32_t n, double x_i,
 double Interp1WarpY(const double x[], const double y[], int32_t n, double x_i,
                     InterpOption opt, double (*warp_func)(double),
                     double (*unwarp_func)(double));
+
+// Performs bilinear interpolation on a two-dimensional data table z.
+// The coordinates of the columns are listed in array x, and the
+// coordinates of the rows are listed in array y.  These arrays must
+// each be monotonically increasing, but need not be evenly spaced.
+//
+// For information on bilinear interpolation, please see:
+// https://en.wikipedia.org/wiki/Bilinear_interpolation
+//
+// Input arguments:
+//
+// x:   Array containing x-coordinates of data points
+// y:   Array containing y-coordinates of data points
+// nx:  Length of array x
+// ny:  Length of array y
+// z:   Data table (array of size [ny][nx], cast to const double *).
+// xi:  x coordinate to interpolate
+// yi:  y coordinate to interpolate
+// opt: Extrapolation mode; see Interp1.
+//
+// Return value:
+//
+// The interpolated value.
+double Interp2(const double x[], const double y[], int32_t nx, int32_t ny,
+               const double *z, double x_i, double y_i, InterpOption opt);
 
 // Interpolation on circular topology of interval [left, right].
 // The first and last elements of the lookup tables must be at the edge

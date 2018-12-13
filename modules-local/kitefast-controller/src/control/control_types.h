@@ -5,20 +5,17 @@
 #include <stdint.h>
 
 #include "common/c_math/vec3.h"
-//#include "vec3.h"
-//#include "vec3.h"
-//#include "vec3.h"
 #include "control/actuator_types.h"
-//#include "control/avionics/avionics_interface_types.h"
+// #include "control/avionics/avionics_interface_types.h"
 #include "control/crosswind/crosswind_types.h"
 #include "control/estimator/estimator_types.h"
-//#include "control/fault_detection/fault_detection_types.h"
-//#include "control/hover/hover_types.h"
-//#include "control/manual/manual_types.h"
+// #include "control/fault_detection/fault_detection_types.h"
+// #include "control/hover/hover_types.h"
+// #include "control/manual/manual_types.h"
 #include "control/sensor_types.h"
 #include "control/simple_aero_types.h"
 #include "control/system_types.h"
-//#include "control/trans_in/trans_in_types.h"
+// #include "control/trans_in/trans_in_types.h"
 #include "system/labels.h"
 
 typedef enum {
@@ -61,6 +58,8 @@ typedef enum {
   kFlightModeOffTether = 12,
   kFlightModeHoverTransformGsUp = 13,
   kFlightModeHoverTransformGsDown = 14,
+  kFlightModeHoverPrepTransformGsUp = 15,
+  kFlightModeHoverPrepTransformGsDown = 16,
   kNumFlightModes
 } FlightMode;
 
@@ -83,8 +82,8 @@ typedef struct {
 } GsWeather;
 
 typedef struct {
-  //ControlSyncData sync[kNumControllers];
-  //GsgData gsg[kNumDrums];
+  // ControlSyncData sync[kNumControllers];
+  // GsgData gsg[kNumDrums];
   GsSensorData gs_sensors;
   GpsData wing_gps[kNumWingGpsReceivers];
   JoystickData joystick;
@@ -97,11 +96,24 @@ typedef struct {
   int32_t stacking_state;     // See StackingState.
   Vec3 wind_ws;
   GsGpsData gs_gps;
-  //PerchData perch;
+  // PerchData perch;
   GsWeather weather;
   bool force_hover_accel;
+  bool force_high_tension;
+  bool force_reel;
+  bool gs_unpause_transform;
   uint8_t experimental_crosswind_config;
 } ControlInput;
+
+typedef struct {
+  // Note that "target" is not a direct command for the GS azimuth, but rather
+  // the angle the GS should point its "pointing thing" at. The identity of the
+  // pointing thing is dependendent on the GS mode. During Reel mode, it's the
+  // perch panels; during HighTension mode, it's the GSG; during Transform mode,
+  // it's one or the other, depending on the transform stage.
+  double target;     // [rad]
+  double dead_zone;  // [rad]
+} GsAzimuthCommand;
 
 typedef struct {
   ControlSyncData sync;
@@ -113,15 +125,13 @@ typedef struct {
   bool run_motors;            // Set by outer loop.
   bool tether_release;
   bool light;
-  //GroundStationMode gs_mode_request;
-
-  // Target azimuth [rad], tether elevation [rad], and dead zone [rad].
-  // TODO(claridge): Separate this into named fields.
-  Vec3 gs_targeting_data;
+  // GroundStationMode gs_mode_request;
+  bool gs_unpause_transform;
+  GsAzimuthCommand gs_azi_cmd;
 
   // When this is set by one of the controllers, ControlOutputStep will hold the
-  // value of gs_targeting_data.
-  bool hold_gs_targeting_data;
+  // value of gs_azi_cmd.
+  bool hold_gs_azi_cmd;
 } ControlOutput;
 
 // Common parameters.
@@ -145,6 +155,7 @@ typedef struct {
   FlightMode autonomous_flight_mode;
   double flight_mode_zero_throttle_timer;
   uint8_t controller_sync_sequence;
+  bool force_hover_accel_latched;
 } PlannerState;
 
 typedef struct {
@@ -157,8 +168,8 @@ typedef struct {
 typedef struct {
   bool run_motors_latched;
   double flaps_z1[kNumFlaps];
-  double last_valid_detwist_cmd;
-  Vec3 gs_targeting_data_z1;
+  GsAzimuthCommand gs_azi_cmd_z1;
+  bool last_gs_azi_cmd_valid;
 } ControlOutputState;
 
 typedef struct {
@@ -173,13 +184,13 @@ typedef struct {
   RotorControlParams rotor_control;
   SensorLimitsParams sensor_limits;
   EstimatorParams estimator;
-  //HoverParams hover;
-  //TransInParams trans_in;
+  // HoverParams hover;
+  // TransInParams trans_in;
   CrosswindParams crosswind;
-  //ManualParams manual;
+  // ManualParams manual;
   ControlOutputParams control_output;
   JoystickControlParams joystick_control;
-  //FaultDetectionParams fault_detection;
+  // FaultDetectionParams fault_detection;
   HitlControlParams hitl;
 } ControlParams;
 
@@ -191,16 +202,16 @@ typedef struct {
 typedef struct {
   InitializationState init_state;
   FlightStatus flight_status;
-  //ControlInputMessages input_messages;
+  // ControlInputMessages input_messages;
   double time;
-  //FaultMask faults[kNumSubsystems];
-  //AvionicsInterfaceState avionics_interface;
+  // FaultMask faults[kNumSubsystems];
+  // AvionicsInterfaceState avionics_interface;
   PlannerState planner;
   EstimatorState estimator;
-  //HoverState hover;
-  //TransInState trans_in;
+  // HoverState hover;
+  // TransInState trans_in;
   CrosswindState crosswind;
-  //ManualState manual;
+  // ManualState manual;
   ControlOutputState control_output;
   LoopTimeState loop_time;
 } ControlState;
@@ -209,9 +220,9 @@ typedef struct {
 extern "C" {
 #endif
 
-//int32_t GetNumFlightModeGates(FlightMode flight_mode);
-//const char *InitializationStateToString(InitializationState init_state);
-//const char *FlightModeToString(FlightMode flight_mode);
+int32_t GetNumFlightModeGates(FlightMode flight_mode);
+const char *InitializationStateToString(InitializationState init_state);
+const char *FlightModeToString(FlightMode flight_mode);
 
 #ifdef __cplusplus
 }  // extern "C"

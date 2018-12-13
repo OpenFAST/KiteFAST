@@ -37,7 +37,9 @@ const Vec3 *RotGToEcef(const Vec3 *Vg, const Vec3 *gs_pos, double gs_heading,
 // NOTE: We'd more naturally have PosGToCyl in place of VecGToAzimuth, but as it
 // stands, we would never use the other outputs.
 double VecGToAzimuth(const Vec3 *pos_g);
+double VecGToElevation(const Vec3 *pos_g);
 void CylToVecG(double azi, double r, double z, Vec3 *pos_g);
+void VecGToCyl(const Vec3 *pos_g, double *azi, double *r, double *z);
 void SphToVecG(double azi, double ele, double r, Vec3 *pos_g);
 void VecGToSph(const Vec3 *pos_g, double *azi, double *ele, double *r);
 

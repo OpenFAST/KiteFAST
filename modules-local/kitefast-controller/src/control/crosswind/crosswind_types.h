@@ -7,6 +7,7 @@
 #include "common/c_math/filter.h"
 #include "common/c_math/vec3.h"
 #include "control/actuator_types.h"
+#include "control/crosswind/crosswind_playbook_types.h"
 #include "control/system_types.h"
 #include "system/labels.h"
 
@@ -22,7 +23,6 @@ typedef enum {
 
 typedef enum {
   kCrosswindPrepTransOutGateForceSigned = -1,
-  kCrosswindPrepTransOutGateWindSpeed,
   kNumCrosswindPrepTransOutGates
 } CrosswindPrepTransOutGate;
 
@@ -84,47 +84,22 @@ typedef enum {
   kCrosswindPathPrepareTransitionOut
 } CrosswindPathType;
 
-#define CROSSWIND_SCHEDULE_TABLE_LENGTH 50
-typedef struct {
-  double wind_speed;
-  double alpha_lookup[CROSSWIND_SCHEDULE_TABLE_LENGTH];
-  double beta_lookup[CROSSWIND_SCHEDULE_TABLE_LENGTH];
-  double airspeed_lookup[CROSSWIND_SCHEDULE_TABLE_LENGTH];
-  double path_radius_target;
-  double elevation;
-  double azi_offset;
-  double lookup_loop_angle[CROSSWIND_SCHEDULE_TABLE_LENGTH];
-} PlaybookEntry;
-
-#define NUM_PLAYBOOK_ENTRIES 15
-typedef struct {
-  int num_entries;
-  PlaybookEntry entries[NUM_PLAYBOOK_ENTRIES];
-} Playbook;
-
 typedef struct { bool enable_alternate_gains; } ExperimentalCrosswindConfig;
 
 #define NUM_EXPERIMENTAL_CROSSWIND_CONFIGS 64
 typedef struct {
   double transition_smooth_time;
-  double ele_tuner_safe;
   double min_airspeed;
   double max_airspeed;
   double ele_min;
-  double ele_safe;
   double ele_max;
   double ele_rate_lim;
   double azi_rate_lim;
-  double azi_rate_lim_high_wind;
-  double azi_min;
-  double azi_max;
   double loop_angle_path_switch_max;
   double loop_angle_path_switch_min;
-  double transout_airspeed_cmd_high;
-  double transout_airspeed_cmd_low;
+  double transout_airspeed_target;
   double transout_airspeed_crossfade_angle_end;
   double transout_elevation_cmd;
-  double experimental_crosswind_airspeed_rate;
 } CrosswindPowerParams;
 
 typedef struct {
@@ -136,6 +111,7 @@ typedef struct {
   double path_azimuth;
   double path_elevation;
   CrosswindPathType path_type;
+  double azi_setpoint;
   double dloop_angle;
 } CrosswindPowerState;
 
@@ -147,6 +123,7 @@ typedef struct {
   double current_curvature_time;
   double time_horizon_speed_limit;
   double min_turning_radius;
+  double preptransout_radius_cmd;
   double fc_k_geom_curr;
   double fc_speed;
   double fc_k_aero_cmd;
@@ -300,7 +277,6 @@ typedef struct {
   bool reset_int;
   bool loadcell_fault;
   bool alpha_beta_fault;
-  bool extreme_wind;
   bool spoiler_enabled;
   bool alternate_gains;
 } CrosswindFlags;
@@ -310,7 +286,6 @@ typedef struct {
   double min_wing_speed;
   double min_tension;
   double max_wing_pos_g_z;
-  double high_wind_speed;
   double loop_angle_table[CROSSWIND_TRANS_OUT_SPEED_TABLE_LENGTH];
   double max_trans_out_speed_table[CROSSWIND_TRANS_OUT_SPEED_TABLE_LENGTH];
   double min_time_in_accel;
@@ -321,12 +296,6 @@ typedef struct {
   double transout_airspeed;
   double transout_alpha;
 } CrosswindModeParams;
-
-typedef struct {
-  PlaybookEntry entry;
-  double crossfade_rate;
-  double crossfade_throttle;
-} PlaybookFallbackParams;
 
 typedef struct {
   LoopDirection loop_dir;
@@ -340,7 +309,7 @@ typedef struct {
       experimental_crosswind_config[NUM_EXPERIMENTAL_CROSSWIND_CONFIGS];
   Playbook playbook;
   PlaybookFallbackParams playbook_fallback;
-  bool enable_new_pqr_cmd;
+  bool enable_new_pitch_rate_cmd;
 } CrosswindParams;
 
 typedef struct {

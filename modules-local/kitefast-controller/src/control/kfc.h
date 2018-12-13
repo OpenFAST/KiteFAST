@@ -1,6 +1,8 @@
 #ifndef __KFC_H__
 #define __KFC_H__
 
+#define DEBUG //Comment out to take out of debug mode
+
 #ifdef __cplusplus
 extern "C" {
 #endif

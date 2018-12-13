@@ -7,8 +7,8 @@ const char *FlightPlanToString(FlightPlan flight_plan) {
   switch (flight_plan) {
     case kFlightPlanDisengageEngage:
       return "DisengageEngage";
-    case kFlightPlanHoverAndAccel:
-      return "HoverAndAccel";
+    case kFlightPlanHighHover:
+      return "HighHover";
     case kFlightPlanHoverInPlace:
       return "HoverInPlace";
     case kFlightPlanLaunchPerch:
@@ -128,7 +128,7 @@ bool IsLowAltitudeFlightPlan(FlightPlan flight_plan) {
     case kFlightPlanManual:
     case kFlightPlanRemotePerchHover:
       return true;
-    case kFlightPlanHoverAndAccel:
+    case kFlightPlanHighHover:
     case kFlightPlanTurnKey:
     case kFlightPlanRemotePerchCrosswind:
     case kFlightPlanStartDownwind:

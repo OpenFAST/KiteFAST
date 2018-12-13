@@ -167,3 +167,10 @@ double Vec3XyNorm(const Vec3 *v) { return hypot(v->x, v->y); }
 double Vec3XzNorm(const Vec3 *v) { return hypot(v->x, v->z); }
 
 double Vec3YzNorm(const Vec3 *v) { return hypot(v->y, v->z); }
+
+// Calculate the norm of the difference between two vectors.
+double Vec3Distance(const Vec3 *a, const Vec3 *b) {
+  Vec3 dx;
+  Vec3Sub(a, b, &dx);
+  return Vec3Norm(&dx);
+}

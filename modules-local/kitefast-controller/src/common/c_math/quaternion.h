@@ -84,6 +84,9 @@ void AngleToQuat(double r1, double r2, double r3, RotationOrder order,
 void QuatToMrp(const Quat *q, Vec3 *mrp);
 void MrpToQuat(const Vec3 *mrp, Quat *q);
 
+// This function is only located in the quaternion library because it
+// uses quaternions internally, and placing it in geometry.h would
+// introduce a circular dependency.
 void Vec3Vec3ToDcm(const Vec3 *a, const Vec3 *b, Mat3 *dcm_a2b);
 
 #ifdef __cplusplus

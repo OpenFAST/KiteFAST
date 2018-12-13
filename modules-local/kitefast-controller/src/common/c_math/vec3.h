@@ -44,6 +44,7 @@ const Vec3 *Vec3Normalize(const Vec3 *v_in, Vec3 *v_out);
 double Vec3XyNorm(const Vec3 *v);
 double Vec3XzNorm(const Vec3 *v);
 double Vec3YzNorm(const Vec3 *v);
+double Vec3Distance(const Vec3 *a, const Vec3 *b);
 
 #ifdef __cplusplus
 }  // extern "C"

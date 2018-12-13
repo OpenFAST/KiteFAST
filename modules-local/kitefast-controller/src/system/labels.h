@@ -19,35 +19,35 @@ typedef enum {
   kNumFlaps
 } FlapLabel;
 
-typedef enum {  // added here becuase definition not found elesewhere - Jmiller - STI
-  kMotorForceSigned = -1,
-  kMotor1,
-  kMotor2,
-  kMotor3,
-  kMotor4,
-  kMotor5,
-  kMotor6,
-  kMotor7,
-  kMotor8,
-  kNumMotors
-} MotorLabel;
+typedef enum { // added here because definition not found elsewhere - Jmiller - STI
+kMotorForceSigned = -1,
+kMotor1,
+kMotor2,
+kMotor3,
+kMotor4,
+kMotor5,
+kMotor6,
+kMotor7,
+kMotor8,
+kNumMotors
+}MotorLabel;
 
-typedef enum { // // added here becuase definition not found elesewhere - Jmiller - STI
-  kServoForceSigned = -1,
-  kServoA1,
-  kServoA2,
-  kServoA3,
-  kServoA4,
-  kServoA5,
-  kServoA6,
-  kServoA7,
-  kServoA8,
-  kServoE1,
-  kServoE2,
-  kServoR1,
-  kServoR2,
-  kNumServos
-} ServoLabel;
+typedef enum { // added here because definition not found elsewhere - Jmiller - STI
+kServoForceSigned = -1,
+kServoA1,
+kServoA2,
+kServoA3,
+kServoA4,
+kServoA5,
+kServoA6,
+kServoA7,
+kServoA8,
+kServoE1,
+kServoE2,
+kServoR1,
+kServoR2,
+kNumServos
+}ServoLabel;
 
 typedef enum {
   kImuLabelForceSigned = -1,

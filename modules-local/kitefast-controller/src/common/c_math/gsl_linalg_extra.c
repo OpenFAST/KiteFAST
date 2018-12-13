@@ -13,7 +13,7 @@
 #include <gsl/gsl_matrix.h>
 #include <gsl/gsl_permute_vector.h>
 #include <gsl/gsl_vector.h>
-#include <gsl/gsl_matrix_double.h>
+
 // TODO(kennyjensen): Remove these and allocate arrays in calling
 // library.
 #define MAX_VECTOR_SIZE (32U)

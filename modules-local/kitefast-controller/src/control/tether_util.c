@@ -6,6 +6,7 @@
 #include <stddef.h>
 
 #include "common/c_math/util.h"
+#include "control/system_params.h"
 
 // TODO(kennyjensen): Remove arbitrary 1e-6.
 void TensionAndPointToParabola(double tension_x, double r, double h, double mu,
@@ -70,4 +71,35 @@ double ParabolaTension(const TetherParabola *tp, double mu, double r) {
   assert(tp != NULL && tp->a > 0.0 && mu > 0.0);
   return hypot(ParabolaHorizontalTension(tp, mu),
                ParabolaVerticalTension(tp, mu, r));
+}
+
+// By modeling the tether as a parabola, this converts a horizontal
+// tension command and radial distance to an altitude target that
+// controls the tether to leave the levelwind at a target angle.
+double ConvertTensionToHeight(double horizontal_tension_cmd,
+                              double wing_radial_distance,
+                              double target_tether_elevation) {
+  assert(horizontal_tension_cmd >= 0.0);
+
+  // Find the tether parabola parameters that fit the feed-forward
+  // tension and target levelwind angle.
+  TetherParabola tether_parabola;
+  TensionAndAngleToParabola(
+      horizontal_tension_cmd, 0.0, target_tether_elevation,
+      g_sys.phys->g * g_sys.tether->linear_density, &tether_parabola);
+
+  return ParabolaHeight(&tether_parabola, wing_radial_distance);
+}
+
+// By modeling the tether as a parabola, this converts a horizontal
+// tension command to an equivalent elevation angle assuming we are
+// controlling the tether to leave the levelwind at a target angle.
+double ConvertTensionToElevation(double horizontal_tension_cmd,
+                                 const Vec3 *wing_pos_g,
+                                 double target_tether_elevation) {
+  assert(wing_pos_g);
+  double xy_norm = Vec3XyNorm(wing_pos_g);
+  double height = ConvertTensionToHeight(horizontal_tension_cmd, xy_norm,
+                                         target_tether_elevation);
+  return atan2(height, xy_norm);
 }

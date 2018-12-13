@@ -373,6 +373,65 @@ void LevelwindToXp(double payout, double drum_angle, double levelwind_ele,
   LwToP(&X_lw, levelwind_ele, drum_angle, Xp);
 }
 
+const Mat3 *CalcDcmWdToGsg0(double detwist_ele, double detwist_pos,
+                            Mat3 *dcm_wd2gsg0) {
+  return AngleToDcm(0.0, PI * 0.5 - detwist_ele, detwist_pos + PI,
+                    kRotationOrderXyz, dcm_wd2gsg0);
+}
+
+void CalcTetherAnglesFromGsg(double perch_azi, double drum_position,
+                             double detwist_ele, double detwist_angle,
+                             double gsg_yoke, double gsg_termination,
+                             double *tether_elevation,
+                             double *tether_detwist_angle) {
+  // Estimate tether elevation using gsg measurements.
+  // Apply rotation matrices all the way from the platform, drum,
+  // to gsg frames. Frame gsg0 is the detwist frame, and frame
+  // gsg2 is the tether termination frame.
+  Mat3 dcm_ned2platform, dcm_platform2drum, dcm_drum_to_gsg0, dcm_gsg0_to_gsg2;
+  AngleToDcm(perch_azi, 0.0, 0.0, kRotationOrderZyx, &dcm_ned2platform);
+  AngleToDcm(0.0, 0.0, drum_position, kRotationOrderZyx, &dcm_platform2drum);
+  CalcDcmWdToGsg0(detwist_ele, detwist_angle, &dcm_drum_to_gsg0);
+  AngleToDcm(gsg_yoke, gsg_termination, 0.0, kRotationOrderXyz,
+             &dcm_gsg0_to_gsg2);
+
+  Mat3 dcm_ned_to_gsg2, dcm_ned_to_drum, dcm_ned_to_gsg0;
+  Mat3Mat3Mult(&dcm_platform2drum, &dcm_ned2platform, &dcm_ned_to_drum);
+  Mat3Mat3Mult(&dcm_drum_to_gsg0, &dcm_ned_to_drum, &dcm_ned_to_gsg0);
+  Mat3Mat3Mult(&dcm_gsg0_to_gsg2, &dcm_ned_to_gsg0, &dcm_ned_to_gsg2);
+
+  Vec3 tether_dir_gsg2 = {0.0, 0.0, -1.0};
+  Vec3 tether_dir_ned;
+  Mat3TransVec3Mult(&dcm_ned_to_gsg2, &tether_dir_gsg2, &tether_dir_ned);
+  *tether_elevation = VecGToElevation(&tether_dir_ned);
+
+  // Rotate the tether direction vector to the "detwist0" frame, which is the
+  // GSG0 frame when the detwist angle is zero.
+  Vec3 tether_dir_detwist0;
+  {
+    Mat3 dcm_drum_to_detwist0;
+    CalcDcmWdToGsg0(detwist_ele, 0.0, &dcm_drum_to_detwist0);
+    Vec3 tether_dir_drum;
+    Mat3Vec3Mult(&dcm_ned_to_drum, &tether_dir_ned, &tether_dir_drum);
+    Mat3Vec3Mult(&dcm_drum_to_detwist0, &tether_dir_drum, &tether_dir_detwist0);
+  }
+
+  // The deflection axis is the axis, in the plane of the GSG yoke and
+  // termination axes, about which the tether is deflected from alignment with
+  // the detwist axis.
+  //
+  // The sign is chosen so that the deflection axis will equal the GSG0 x-axis
+  // if no detwist rotation is required.
+  Vec3 deflection_axis_detwist0;
+  Vec3Cross(&kVec3Z, &tether_dir_detwist0, &deflection_axis_detwist0);
+
+  // The "tether detwist angle" aligns the deflection axis with the GSG yoke
+  // axis.
+  *tether_detwist_angle =
+      Wrap(atan2(deflection_axis_detwist0.y, deflection_axis_detwist0.x), 0.0,
+           2.0 * PI);
+}
+
 void IncludeCatenary(const Vec3 *X_no_cat, double tension, double free_len,
                      Vec3 *X_including_cat) {
   Vec3 X = *X_no_cat;  // Ensure safe for argument reuse.

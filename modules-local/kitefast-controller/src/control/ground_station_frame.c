@@ -79,9 +79,18 @@ double VecGToAzimuth(const Vec3 *pos_g) {
               -PI, PI);
 }
 
+double VecGToElevation(const Vec3 *pos_g) {
+  return atan2(-pos_g->z, Vec3XyNorm(pos_g));
+}
+
 void CylToVecG(double azi, double r, double z, Vec3 *pos_g) {
   CylToCart(azi - GetSystemParams()->ground_station.azi_ref_offset, r, z,
             pos_g);
+}
+
+void VecGToCyl(const Vec3 *pos_g, double *azi, double *r, double *z) {
+  CartToCyl(pos_g, azi, r, z);
+  *azi = Wrap(*azi + GetSystemParams()->ground_station.azi_ref_offset, -PI, PI);
 }
 
 void SphToVecG(double azi, double ele, double r, Vec3 *pos_g) {

@@ -89,7 +89,6 @@ set(OPENFAST_MODULES_LOCAL
   kiteaerodyn
   aerodyn
   aerodyn14
-  airfoilinfo
   servodyn
   elastodyn
   beamdyn
