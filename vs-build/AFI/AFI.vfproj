@@ -140,8 +140,6 @@
 				<Tool Name="VFCustomBuildTool" CommandLine="CALL ..\RunRegistry.bat AFI" Description="Running Registry for AirfoilInfo" Outputs="..\..\build\types-files\AirfoilInfo_Types.f90"/></FileConfiguration></File>
 		<File RelativePath="..\..\build\types-files\AirfoilInfo_Types.f90"/></Filter>
 		<Filter Name="NetLib">
-		<File RelativePath="..\..\modules-local\nwtc-library\src\NetLib\Dierckx_FitPack\dierckx_fitpack.f"/>
-		<File RelativePath="..\..\modules-local\nwtc-library\src\NetLib\Dierckx_FitPack\NWTC_FitPack.f90"/>
 		<File RelativePath="..\..\modules-local\nwtc-library\src\NetLib\lapack\NWTC_LAPACK.f90"/></Filter>
 		<Filter Name="NWTC_Library">
 		<File RelativePath="..\..\modules-local\nwtc-library\src\ModMesh.f90">

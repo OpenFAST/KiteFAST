@@ -607,10 +607,11 @@ subroutine VSM_Compute( AirDens, numVolElem, numElem, elemLens, PtA, PtB, U_Inf_
    integer(IntKi),          intent(  out) :: errStat    !< Error status
    character(*),            intent(  out) :: errMsg     !< Error message
   
-   integer(IntKi)   :: i,j
-   real(ReKi)  :: U_rel_v(3)
-   real(ReKi)  :: Ux, Uy, Cpmin, U_2D, U_Infx, U_Infy, U_Inf_2D , Factor, elemLen, diff(3)
-   character(*), parameter                  :: routineName = 'VSM_Compute'
+   integer(IntKi)          :: i,j
+   real(ReKi)              :: U_rel_v(3)
+   real(ReKi)              :: Ux, Uy, Cpmin, U_2D, U_Infx, U_Infy, U_Inf_2D , Factor, elemLen, diff(3)
+   type(AFI_OutputType)    :: AFI_Interp
+   character(*), parameter :: routineName = 'VSM_Compute'
    
    
    do j = 1, numElem
@@ -632,10 +633,13 @@ subroutine VSM_Compute( AirDens, numVolElem, numElem, elemLens, PtA, PtB, U_Inf_
       Ux      = dot_product( U_rel_v, x_hat(:,j))
       Uy      = dot_product( U_rel_v, y_hat(:,j))
       alpha(j)   = atan2( Ux, Uy )  ! atan2 ( vert, horiz )
-   
-      call AFI_ComputeAirfoilCoefs2D( 2, alpha(j), deltaf(j), p_AFI(AFIDs(j)), &
-                         Cl(j), Cd(j), Cm(j), Cpmin, errStat, errMsg )
-   
+      
+      call AFI_ComputeAirfoilCoefs( alpha(j), 0.0_ReKi, deltaf(j), p_AFI(AFIDs(j)), &
+                         AFI_Interp, errStat, errMsg )
+      Cl(j) = AFI_Interp%Cl
+      Cd(j) = AFI_Interp%Cd
+      Cm(j) = AFI_Interp%Cm
+      
       U_2D = Ux**2+Uy**2
       U_Infx =  dot_product( U_Inf_v(:,j), x_hat(:,j))
       U_Infy  = dot_product( U_Inf_v(:,j), y_hat(:,j))

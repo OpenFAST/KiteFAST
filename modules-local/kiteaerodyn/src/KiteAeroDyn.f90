@@ -2651,12 +2651,12 @@ SUBROUTINE Transfer_Motions_Line2_to_Point( Src, Dest, MeshMap, ErrStat, ErrMsg 
 
             ! bjj: added this IF statement because of numerical issues when the angle of rotation is pi, 
             !      (where DCM_exp( DCM_logmap (x) ) isn't quite x
-         if ( EqualRealNos( MeshMap%MapMotions(i)%shape_fn(1), 1.0_ReKi ) ) then
+         if ( EqualRealNos( MeshMap%MapMotions(i)%shape_fn(1), 1.0_R8Ki ) ) then
             
             RotationMatrixD = MATMUL( TRANSPOSE( Src%RefOrientation(:,:,n1) ), Src%Orientation(:,:,n1) )
             RotationMatrixD = MATMUL( Dest%RefOrientation(:,:,i), RotationMatrixD )
       
-         elseif ( EqualRealNos( MeshMap%MapMotions(i)%shape_fn(2), 1.0_ReKi ) ) then
+         elseif ( EqualRealNos( MeshMap%MapMotions(i)%shape_fn(2), 1.0_R8Ki ) ) then
             
             RotationMatrixD = MATMUL( TRANSPOSE( Src%RefOrientation(:,:,n2) ), Src%Orientation(:,:,n2) )
             RotationMatrixD = MATMUL( Dest%RefOrientation(:,:,i), RotationMatrixD )
@@ -2879,13 +2879,13 @@ subroutine Transfer_Orientation(Src, Dest, MeshMap, ErrStat, ErrMsg )
 
             ! bjj: added this IF statement because of numerical issues when the angle of rotation is pi, 
             !      (where DCM_exp( DCM_logmap (x) ) isn't quite x
-         if ( EqualRealNos( MeshMap%MapMotions(i)%shape_fn(1), 1.0_ReKi ) ) then
+         if ( EqualRealNos( MeshMap%MapMotions(i)%shape_fn(1), 1.0_R8Ki ) ) then
             !MeshMap%MapMotions(i)%shape_fn(1) = 0.5
             !MeshMap%MapMotions(i)%shape_fn(2) = 0.5
             RotationMatrixD = MATMUL( TRANSPOSE( Src%RefOrientation(:,:,n1) ), Src%Orientation(:,:,n1) )
             RotationMatrixD = MATMUL( Dest%RefOrientation(:,:,i), RotationMatrixD )
       
-         elseif ( EqualRealNos( MeshMap%MapMotions(i)%shape_fn(2), 1.0_ReKi ) ) then
+         elseif ( EqualRealNos( MeshMap%MapMotions(i)%shape_fn(2), 1.0_R8Ki ) ) then
             !MeshMap%MapMotions(i)%shape_fn(1) = 0.5
             !MeshMap%MapMotions(i)%shape_fn(2) = 0.5
             RotationMatrixD = MATMUL( TRANSPOSE( Src%RefOrientation(:,:,n2) ), Src%Orientation(:,:,n2) )
