@@ -1,0 +1,400 @@
+
+title:
+    m000
+
+constants:
+    gravity:
+        # SI units, global reference frame
+        # x        y        z
+        0.0        0.0      -9.81
+
+simulation_controls:
+    fast_submodules:
+        kiteaerodyn: true
+        inflowwind: false
+        moordyn: false
+        controller: false
+
+    fast_submodule_input_files:
+        kiteaerodyn_input: "simple_m000_model_AD.txt"
+        inflowwind_input: "kiteInflowWind.dat"
+        moordyn_input: "path/to/file"
+        controller_input: "path/to/file"
+
+    time:
+        timestep:
+            1e-3
+
+        final:
+            1
+
+    tolerance:
+        1e-3
+
+    max_iterations:
+        60
+
+    derivatives:
+        tolerance:
+            10e0
+
+        max_iteration:
+            200
+
+        coefficient:
+            1e-3
+
+    linear_solver:
+        naive
+
+    rigid_model:
+        # true | false
+        false
+
+    debug:
+        # true | false
+        false
+
+    ground_weather_station:
+        location:
+            # locates the weather station; this point is passed directly to
+            # KiteFAST which uses it to interface with the controller
+            # x     y       z
+            -0.202  -1.627  19.860
+
+    initial_conditions:
+        location:
+            # locates the kite coordinate system (MIP point) in the global frame
+            # x     y       z
+            0.0   0.0     100.0
+
+        orientation:
+            # roll  pitch   yaw
+            0.0     180.0   0.0
+
+        velocity:
+            translational:
+                # x     y       z
+                -50.0   0.0     0.0
+
+            rotational:
+                # roll  pitch   yaw
+                0.0     0.0     0.0
+
+keypoints:
+    # component label                    X      Y      Z
+    #                                    m      m      m
+    # fuselage:                          0.0    0.0    0.0 # (0,0,0) is required
+    wing/starboard:                      0.000  0.050  0.000
+    wing/port:                           0.000 -0.050  0.000
+    stabilizer/vertical:                -5.100  0.000 -2.000
+    stabilizer/horizontal/starboard:    -5.100  0.100 -2.000
+    stabilizer/horizontal/port:         -5.100 -0.100 -2.000
+    pylon/starboard/1:                   0.100  3.000 -0.500
+    pylon/port/1:                        0.100 -3.000 -0.500
+    rotor_assembly/starboard/1/upper:    0.200  3.000 -0.500
+    rotor_assembly/starboard/1/lower:    0.200  3.000  0.500
+    rotor_assembly/port/1/upper:         0.200 -3.000 -0.500
+    rotor_assembly/port/1/lower:         0.200 -3.000  0.500
+
+fuselage:
+    element_end_nodes:
+        # x        y        z        twist    attached component   point mass
+        # m        m        m        deg                           kg
+        - -5.000   0.000    0.000    0.0      none                 0.0
+        -  0.000   0.000    0.000    0.0      wing                 0.0
+        -  5.000   0.000    0.000    0.0      stabilizer/vertical  0.0
+
+    stiffness_matrix:
+        # EA                                                                                                                                   GJ                         EIcc             EInn
+        # K11      K12      K13      K14      K15      K16      K22      K23     K24      K25      K26      K33      K34      K35     K36      K44      K45      K46      K55      K56     K66
+        - 1.0e8    0.0      0.0      0.0      0.0      0.0      1.0e8    0.0     0.0      0.0      0.0      1.0e8    0.0      0.0     0.0      1.0e8    0.0      0.0      1.0e8    0.0     1.0e8
+        - 1.0e8    0.0      0.0      0.0      0.0      0.0      1.0e8    0.0     0.0      0.0      0.0      1.0e8    0.0      0.0     0.0      1.0e8    0.0      0.0      1.0e8    0.0     1.0e8
+        - 1.0e8    0.0      0.0      0.0      0.0      0.0      1.0e8    0.0     0.0      0.0      0.0      1.0e8    0.0      0.0     0.0      1.0e8    0.0      0.0      1.0e8    0.0     1.0e8
+
+    mass_distribution:
+        # mass/l   Cmy      Cmz      Ixx      Iyy      Izz      Ixy      Ixz      Iyz
+        # kg/m     m        m        kg*m     kg*m     kg*m     kg*m     kg*m     kg*m
+        - 1.000    0.0      0.000    0.000    0.000    0.000    0.0      0.0      0.0
+        - 1.000    0.0      0.000    0.000    0.000    0.000    0.0      0.0      0.0
+        - 1.000    0.0      0.000    0.000    0.000    0.000    0.0      0.0      0.0
+
+wing:
+    number_of_flaps_per_wing:
+        1
+
+    starboard:
+        element_end_nodes:
+            # x        y        z        twist    attached component   point mass
+            # m        m        m        deg                           kg
+            - 0.000    0.000    0.000    0.0      fuselage             0.000
+            - 0.000    2.500    0.000    0.0      pylon/starboard/1    0.000
+            - 0.000    5.500    0.000    0.0      none                 0.000
+            
+        stiffness_matrix:
+            #                                                       EA                                                                             EIcc                       GJ               EInn
+            # K11      K12      K13      K14      K15      K16      K22      K23     K24      K25      K26      K33      K34      K35     K36      K44      K45      K46      K55      K56     K66
+            - 1.0e8    0.0      0.0      0.0      0.0      0.0      1.0e8    0.0     0.0      0.0      0.0      1.0e8    0.0      0.0     0.0      1.0e8    0.0      0.0      1.0e8    0.0     1.0e8
+            - 1.0e8    0.0      0.0      0.0      0.0      0.0      1.0e8    0.0     0.0      0.0      0.0      1.0e8    0.0      0.0     0.0      1.0e8    0.0      0.0      1.0e8    0.0     1.0e8
+            - 1.0e8    0.0      0.0      0.0      0.0      0.0      1.0e8    0.0     0.0      0.0      0.0      1.0e8    0.0      0.0     0.0      1.0e8    0.0      0.0      1.0e8    0.0     1.0e8
+            
+        mass_distribution:
+            # mass/l   Cmx      Cmz      Ixx      Iyy      Izz      Ixy      Ixz      Iyz
+            # kg/m     m        m        kg*m     kg*m     kg*m     kg*m     kg*m     kg*m
+            - 1.000    0.0      0.000    0.000    0.000    0.000    0.0      0.0      0.0
+            - 1.000    0.0      0.000    0.000    0.000    0.000    0.0      0.0      0.0
+            - 1.000    0.0      0.000    0.000    0.000    0.000    0.0      0.0      0.0
+            
+    port:
+        element_end_nodes:
+            # x        y        z        twist    attached component   point mass
+            # m        m        m        deg                           kg
+            - 0.000    0.000    0.000    0.0      fuselage             0.000
+            - 0.000   -2.500    0.000    0.0      pylon/port/1         0.000
+            - 0.000   -5.500    0.000    0.0      none                 0.000
+            
+        stiffness_matrix:
+            #                                                       EA                                                                             EIcc                       GJ               EInn
+            # K11      K12      K13      K14      K15      K16      K22      K23     K24      K25      K26      K33      K34      K35     K36      K44      K45      K46      K55      K56     K66
+            - 1.0e8    0.0      0.0      0.0      0.0      0.0      1.0e8    0.0     0.0      0.0      0.0      1.0e8    0.0      0.0     0.0      1.0e8    0.0      0.0      1.0e8    0.0     1.0e8
+            - 1.0e8    0.0      0.0      0.0      0.0      0.0      1.0e8    0.0     0.0      0.0      0.0      1.0e8    0.0      0.0     0.0      1.0e8    0.0      0.0      1.0e8    0.0     1.0e8
+            - 1.0e8    0.0      0.0      0.0      0.0      0.0      1.0e8    0.0     0.0      0.0      0.0      1.0e8    0.0      0.0     0.0      1.0e8    0.0      0.0      1.0e8    0.0     1.0e8
+            
+        mass_distribution:
+            # mass/l   Cmx      Cmz      Ixx      Iyy      Izz      Ixy      Ixz      Iyz
+            # kg/m     m        m        kg*m     kg*m     kg*m     kg*m     kg*m     kg*m
+            - 1.000    0.0      0.000    0.000    0.000    0.000    0.0      0.0      0.0
+            - 1.000    0.0      0.000    0.000    0.000    0.000    0.0      0.0      0.0
+            - 1.000    0.0      0.000    0.000    0.000    0.000    0.0      0.0      0.0
+            
+stabilizer:
+    vertical:
+        element_end_nodes:
+            # x        y        z        twist    attached component    point mass
+            # m        m        m        deg                            kg
+            -  0.000   0.000    0.000    0.0      fuselage               0.000
+            -  0.000   0.000    2.000    0.0      stabilizer/horizontal  0.000
+
+        stiffness_matrix:
+            #                                                                                                   EA                                 EIcc                       EInn             GJ
+            # K11      K12      K13      K14      K15      K16      K22      K23     K24      K25      K26      K33      K34      K35     K36      K44      K45      K46      K55      K56     K66
+            - 1.0e8    0.0      0.0      0.0      0.0      0.0      1.0e8    0.0     0.0      0.0      0.0      1.0e8    0.0      0.0     0.0      1.0e8    0.0      0.0      1.0e8    0.0     1.0e8
+            - 1.0e8    0.0      0.0      0.0      0.0      0.0      1.0e8    0.0     0.0      0.0      0.0      1.0e8    0.0      0.0     0.0      1.0e8    0.0      0.0      1.0e8    0.0     1.0e8
+
+        mass_distribution:
+            # mass/l   Cmx      Cmy      Ixx      Iyy      Izz      Ixy      Ixz      Iyz
+            # kg/m     m        m        kg*m     kg*m     kg*m     kg*m     kg*m     kg*m
+            - 1.000    0.0      0.000    0.000    0.000    0.000    0.0      0.0      0.0
+            - 1.000    0.0      0.000    0.000    0.000    0.000    0.0      0.0      0.0
+
+    horizontal:
+        starboard:
+            element_end_nodes:
+                # x        y        z        twist    attached component   point mass
+                # m        m        m        deg                           kg
+                -  0.000   0.000    0.000    0.0      stabilizer/vertical  0
+                -  0.000   1.000    0.000    0.0      none                 0
+
+            stiffness_matrix:
+                #                                                       EA                                                                             EIcc                       GJ               EInn
+                # K11      K12      K13      K14      K15      K16      K22      K23     K24      K25      K26      K33      K34      K35     K36      K44      K45      K46      K55      K56     K66
+                - 1.0e8    0.0      0.0      0.0      0.0      0.0      1.0e8    0.0     0.0      0.0      0.0      1.0e8    0.0      0.0     0.0      1.0e8    0.0      0.0      1.0e8    0.0     1.0e8
+                - 1.0e8    0.0      0.0      0.0      0.0      0.0      1.0e8    0.0     0.0      0.0      0.0      1.0e8    0.0      0.0     0.0      1.0e8    0.0      0.0      1.0e8    0.0     1.0e8
+
+            mass_distribution:
+                # mass/l   Cmx      Cmz      Ixx      Iyy      Izz      Ixy      Ixz      Iyz
+                # kg/m     m        m        kg*m     kg*m     kg*m     kg*m     kg*m     kg*m
+                - 1.000    0.0      0.000    0.000    0.000    0.000    0.0      0.0      0.0
+                - 1.000    0.0      0.000    0.000    0.000    0.000    0.0      0.0      0.0
+
+        port:
+            element_end_nodes:
+                # x        y        z        twist    attached component   point mass
+                # m        m        m        deg                           kg
+                -  0.000   0.000    0.000    0.0      stabilizer/vertical  0
+                -  0.000  -1.000    0.000    0.0      none                 0
+
+            stiffness_matrix:
+                #                                                       EA                                                                             EIcc                       GJ               EInn
+                # K11      K12      K13      K14      K15      K16      K22      K23     K24      K25      K26      K33      K34      K35     K36      K44      K45      K46      K55      K56     K66
+                - 1.0e8    0.0      0.0      0.0      0.0      0.0      1.0e8    0.0     0.0      0.0      0.0      1.0e8    0.0      0.0     0.0      1.0e8    0.0      0.0      1.0e8    0.0     1.0e8
+                - 1.0e8    0.0      0.0      0.0      0.0      0.0      1.0e8    0.0     0.0      0.0      0.0      1.0e8    0.0      0.0     0.0      1.0e8    0.0      0.0      1.0e8    0.0     1.0e8
+
+            mass_distribution:
+                # mass/l   Cmx      Cmz      Ixx      Iyy      Izz      Ixy      Ixz      Iyz
+                # kg/m     m        m        kg*m     kg*m     kg*m     kg*m     kg*m     kg*m
+                - 1.000    0.0      0.000    0.000    0.000    0.000    0.0      0.0      0.0
+                - 1.000    0.0      0.000    0.000    0.000    0.000    0.0      0.0      0.0
+
+pylon:
+    starboard:
+        1: # starboard inner
+            element_end_nodes:
+                # x        y        z        twist    attached component                point mass
+                # m        m        m        deg                                        kg
+                - 0.000    0.000    0.000    0.0      rotor_assembly/starboard/1/upper  0.000      # top
+                - 0.000    0.000    0.500    0.0      wing/starboard                    0.000
+                - 0.000    0.000    1.000    0.0      rotor_assembly/starboard/1/lower  0.000      # bottom
+
+            stiffness_matrix:
+                #                                                                                                   EA                                 EIcc                       EInn             GJ
+                # K11      K12      K13      K14      K15      K16      K22      K23     K24      K25      K26      K33      K34      K35     K36      K44      K45      K46      K55      K56     K66
+                - 1.0e8    0.0      0.0      0.0      0.0      0.0      1.0e8    0.0     0.0      0.0      0.0      1.0e8    0.0      0.0     0.0      1.0e8    0.0      0.0      1.0e8    0.0     1.0e8
+                - 1.0e8    0.0      0.0      0.0      0.0      0.0      1.0e8    0.0     0.0      0.0      0.0      1.0e8    0.0      0.0     0.0      1.0e8    0.0      0.0      1.0e8    0.0     1.0e8
+                - 1.0e8    0.0      0.0      0.0      0.0      0.0      1.0e8    0.0     0.0      0.0      0.0      1.0e8    0.0      0.0     0.0      1.0e8    0.0      0.0      1.0e8    0.0     1.0e8
+
+            mass_distribution:
+                # mass/l   Cmx      Cmy      Ixx      Iyy      Izz      Ixy      Ixz      Iyz
+                # kg/m     m        m        kg*m     kg*m     kg*m     kg*m     kg*m     kg*m
+                - 1.000    0.0      0.000    0.000    0.000    0.000    0.0      0.0      0.0
+                - 1.000    0.0      0.000    0.000    0.000    0.000    0.0      0.0      0.0
+                - 1.000    0.0      0.000    0.000    0.000    0.000    0.0      0.0      0.0
+
+    port:
+        1: # port inner
+            element_end_nodes:
+                # x        y        z        twist    attached component                point mass
+                # m        m        m        deg                                        kg
+                - 0.000    0.000    0.000    0.0      rotor_assembly/port/1/upper       0.000      # top
+                - 0.000    0.000    0.500    0.0      wing/port                         0.000
+                - 0.000    0.000    1.000    0.0      rotor_assembly/port/1/lower       0.000      # bottom
+
+            stiffness_matrix:
+                #                                                                                                   EA                                 EIcc                       EInn             GJ
+                # K11      K12      K13      K14      K15      K16      K22      K23     K24      K25      K26      K33      K34      K35     K36      K44      K45      K46      K55      K56     K66
+                - 1.0e8    0.0      0.0      0.0      0.0      0.0      1.0e8    0.0     0.0      0.0      0.0      1.0e8    0.0      0.0     0.0      1.0e8    0.0      0.0      1.0e8    0.0     1.0e8
+                - 1.0e8    0.0      0.0      0.0      0.0      0.0      1.0e8    0.0     0.0      0.0      0.0      1.0e8    0.0      0.0     0.0      1.0e8    0.0      0.0      1.0e8    0.0     1.0e8
+                - 1.0e8    0.0      0.0      0.0      0.0      0.0      1.0e8    0.0     0.0      0.0      0.0      1.0e8    0.0      0.0     0.0      1.0e8    0.0      0.0      1.0e8    0.0     1.0e8
+
+            mass_distribution:
+                # mass/l   Cmx      Cmy      Ixx      Iyy      Izz      Ixy      Ixz      Iyz
+                # kg/m     m        m        kg*m     kg*m     kg*m     kg*m     kg*m     kg*m
+                - 1.000    0.0      0.000    0.000    0.000    0.000    0.0      0.0      0.0
+                - 1.000    0.0      0.000    0.000    0.000    0.000    0.0      0.0      0.0
+                - 1.000    0.0      0.000    0.000    0.000    0.000    0.0      0.0      0.0
+
+rotor_assembly:
+    starboard:
+        1:
+            upper: # STI
+                rotor:
+                    initial_rpm:
+                        20 #rad/s
+
+                    mass_properties:
+                        # mass   Cmx      Cmy      Cmz      Ixx      Iyy      Izz      Ixy     Ixz      Iyz
+                        # kg     m        m        m        kg*m^2   kg*m^2   kg*m^2   kg*m^2  kg*m^2   kg*m^2
+                        1.000    0.0      0.0      0.0      10.0     0.0      0.0      0.0     0.0      0.0
+
+                nacelle:
+                    mass_properties:
+                        # mass   Cmx      Cmy      Cmz      Ixx      Iyy      Izz      Ixy     Ixz      Iyz
+                        # kg     m        m        m        kg*m^2   kg*m^2   kg*m^2   kg*m^2  kg*m^2   kg*m^2
+                        1.000    0.0      0.0      0.0      10.0     0.0      0.0      0.0     0.0      0.0
+
+            lower: # SBI
+                rotor:
+                    initial_rpm:
+                        20 #rad/s
+
+                    mass_properties:
+                        # mass   Cmx      Cmy      Cmz      Ixx      Iyy      Izz      Ixy     Ixz      Iyz
+                        # kg     m        m        m        kg*m^2   kg*m^2   kg*m^2   kg*m^2  kg*m^2   kg*m^2
+                        1.000    0.0      0.0      0.0      10.0     0.0      0.0      0.0     0.0      0.0
+
+                nacelle:
+                    mass_properties:
+                        # mass   Cmx      Cmy      Cmz      Ixx      Iyy      Izz      Ixy     Ixz      Iyz
+                        # kg     m        m        m        kg*m^2   kg*m^2   kg*m^2   kg*m^2  kg*m^2   kg*m^2
+                        1.000    0.0      0.0      0.0      10.0     0.0      0.0      0.0     0.0      0.0
+
+    port:
+        1:
+            upper: # PTI
+                rotor:
+                    initial_rpm:
+                        20 #rad/s
+
+                    mass_properties:
+                        # mass   Cmx      Cmy      Cmz      Ixx      Iyy      Izz      Ixy     Ixz      Iyz
+                        # kg     m        m        m        kg*m^2   kg*m^2   kg*m^2   kg*m^2  kg*m^2   kg*m^2
+                        1.000    0.0      0.0      0.0      10.0     0.0      0.0      0.0     0.0      0.0
+
+                nacelle:
+                    mass_properties:
+                        # mass   Cmx      Cmy      Cmz      Ixx      Iyy      Izz      Ixy     Ixz      Iyz
+                        # kg     m        m        m        kg*m^2   kg*m^2   kg*m^2   kg*m^2  kg*m^2   kg*m^2
+                        1.000    0.0      0.0      0.0      10.0     0.0      0.0      0.0     0.0      0.0
+
+            lower: # PBI
+                rotor:
+                    initial_rpm:
+                        20 #rad/s
+
+                    mass_properties:
+                        # mass   Cmx      Cmy      Cmz      Ixx      Iyy      Izz      Ixy     Ixz      Iyz
+                        # kg     m        m        m        kg*m^2   kg*m^2   kg*m^2   kg*m^2  kg*m^2   kg*m^2
+                        1.000    0.0      0.0      0.0      10.0     0.0      0.0      0.0     0.0      0.0
+
+                nacelle:
+                    mass_properties:
+                        # mass   Cmx      Cmy      Cmz      Ixx      Iyy      Izz      Ixy     Ixz      Iyz
+                        # kg     m        m        m        kg*m^2   kg*m^2   kg*m^2   kg*m^2  kg*m^2   kg*m^2
+                        1.000    0.0      0.0      0.0      10.0     0.0      0.0      0.0     0.0      0.0
+
+output:
+    # these are optional keywords which turn on output for all nodes in the
+    # component outputs from mbdyn module (nodal quantities).
+    fuselage:
+        true
+
+    wing/starboard:
+        false
+
+    wing/port:
+        false
+
+    stabilizer/vertical:
+        false
+
+    stabilizer/horizontal/starboard:
+        false
+
+    stabilizer/horizontal/port:
+        false
+
+    pylon/starboard/1:
+        false
+
+    pylon/starboard/2:
+        false
+
+    pylon/port/1:
+        false
+
+    pylon/port/2:
+        false
+
+    rotor_assembly/upper/starboard/1:
+        false
+
+    rotor_assembly/lower/starboard/1:
+        false
+
+    rotor_assembly/upper/starboard/2:
+        false
+
+    rotor_assembly/lower/starboard/2:
+        false
+
+    rotor_assembly/upper/port/1:
+        false
+
+    rotor_assembly/lower/port/1:
+        false
+
+    rotor_assembly/upper/port/2:
+        false
+
+    rotor_assembly/lower/port/2:
+        false
