@@ -27,18 +27,19 @@
 *.exe
 *.out
 *.app
+__pycache__/*
 *.pyc
 
-# CMake specific files
-build
-install
+# Build specific files
+build*/
+install/
+vs-build/
 
-# vs-build specific folders and files
-vs-build/*
-
-# ide and system specific directories and files
+# OS and IDE specific files
 .DS_Store
 .vscode
+.atom
+.fortls
 
 # mbdyn and kitefast output
 *.act
