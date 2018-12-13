@@ -2,8 +2,8 @@
 #define CONTROL_ACTUATOR_TYPES_H_
 
 //#include "avionics/network/aio_labels.h"
-#include "vec3.h"
-#include "simple_aero_types.h"
+#include "common/c_math/vec3.h"
+#include "control/simple_aero_types.h"
 
 typedef enum {
   kStackingStateForceSigned = -1,

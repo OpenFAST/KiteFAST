@@ -1,28 +1,28 @@
 // This file is for stateless, math-like transformations to sensor
 // data.
 
-#include "sensor_util.h"
+#include "control/sensor_util.h"
 
 #include <assert.h>
 #include <math.h>
 #include <stdbool.h>
 #include <stdint.h>
 
-#include "coord_trans.h"
-#include "geometry.h"
-#include "mat3.h"
-#include "quaternion.h"
-#include "util.h"
-#include "vec2.h"
-#include "vec3.h"
-#include "macros.h"
-#include "ground_station_frame.h"
-#include "perch_frame.h"
-#include "sensor_types.h"
-#include "system_params.h"
-#include "system_types.h"
-#include "tether_util.h"
-#include "labels.h"
+#include "common/c_math/coord_trans.h"
+#include "common/c_math/geometry.h"
+#include "common/c_math/mat3.h"
+#include "common/c_math/quaternion.h"
+#include "common/c_math/util.h"
+#include "common/c_math/vec2.h"
+#include "common/c_math/vec3.h"
+#include "common/macros.h"
+#include "control/ground_station_frame.h"
+#include "control/perch_frame.h"
+#include "control/sensor_types.h"
+#include "control/system_params.h"
+#include "control/system_types.h"
+#include "control/tether_util.h"
+#include "system/labels.h"
 
 void GsGpsPosEcefToGsPosEcef(const Vec3 *gs_gps_pos_ecef,
                              const Vec3 *gs_gps_pos_g, double gs_heading,

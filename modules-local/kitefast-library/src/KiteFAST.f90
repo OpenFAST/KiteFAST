@@ -2043,9 +2043,9 @@ subroutine KFAST_Init(dt_c, numFlaps, numPylons, numComp, numCompNds, modFlags, 
    if ( modFlags(4) > 0 ) then
       p%useKFC = .true.
          ! Validate some of the input data
-      if ( numFlaps /=  3 )  call SetErrStat( ErrID_FATAL, "Due to the Controller interface requirements, numFlaps must be set to 3", errStat, errMsg, routineName )
-      if ( numPylons /=  2 ) call SetErrStat( ErrID_FATAL, "Due to the Controller interface requirements, numPylons must be set to 2", errStat, errMsg, routineName )
-      if ( .not. EqualRealNos(REAL(dt, DbKi) ,0.01_DbKi) )  call SetErrStat( ErrID_FATAL, "Due to the Controller requirements, dt must be set to 0.01", errStat, errMsg, routineName )
+   !   if ( numFlaps /=  3 )  call SetErrStat( ErrID_FATAL, "Due to the Controller interface requirements, numFlaps must be set to 3", errStat, errMsg, routineName )
+   !   if ( numPylons /=  2 ) call SetErrStat( ErrID_FATAL, "Due to the Controller interface requirements, numPylons must be set to 2", errStat, errMsg, routineName )
+   !   if ( .not. EqualRealNos(REAL(dt, DbKi) ,0.01_DbKi) )  call SetErrStat( ErrID_FATAL, "Due to the Controller requirements, dt must be set to 0.01", errStat, errMsg, routineName )
    else
       p%useKFC = .false.
    end if
@@ -2727,7 +2727,7 @@ subroutine KFAST_AssRes(t_c, isInitialTime_c, numRtSpdRtrElem_c, RtSpd_PyRtr_c, 
             return
          end if
    end if
-   
+
 ! -------------------------------------------------------------------------
 ! Controller
 ! -------------------------------------------------------------------------      
@@ -2814,15 +2814,12 @@ subroutine KFAST_AssRes(t_c, isInitialTime_c, numRtSpdRtrElem_c, RtSpd_PyRtr_c, 
             call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
 
       if ( isInitialTime < 1 ) then
-         
-         print *, "Beginning MD_UpdateStates" 
          call MD_UpdateStates( utimes(1), n, m%MD%u, utimes, m%MD%p, m%MD%x_copy, m%MD%xd, m%MD%z, m%MD%OtherSt, m%MD%m, errStat2, errMsg2 )
             call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
                if (errStat >= AbortErrLev ) then
                   call TransferErrors(errStat, errMsg, errStat_c, errMsg_c)
                   return
                end if
-         print *, "Finished MD_UpdateStates"
       end if
 
 !print *, "Beginning MD_CalcOutput"  
@@ -2837,16 +2834,16 @@ subroutine KFAST_AssRes(t_c, isInitialTime_c, numRtSpdRtrElem_c, RtSpd_PyRtr_c, 
          call TransferErrors(errStat, errMsg, errStat_c, errMsg_c)
          return
       end if
-print *, "Finished MD_CalcOutput" 
-print *, "m%MD%y%PtFairLeadLoad%Force(1,1): "//trim(num2lstr(m%MD%y%PtFairLeadLoad%Force(1,1)))//", m%MD%y%PtFairLeadLoad%Force(2,1): "//trim(num2lstr(m%MD%y%PtFairLeadLoad%Force(2,1)))//", m%MD%y%PtFairLeadLoad%Force(3,1): "//trim(num2lstr(m%MD%y%PtFairLeadLoad%Force(3,1)))
+!print *, "Finished MD_CalcOutput" 
+!print *, "m%MD%y%PtFairLeadLoad%Force(1,1): "//trim(num2lstr(m%MD%y%PtFairLeadLoad%Force(1,1)))//", m%MD%y%PtFairLeadLoad%Force(2,1): "//trim(num2lstr(m%MD%y%PtFairLeadLoad%Force(2,1)))//", m%MD%y%PtFairLeadLoad%Force(3,1): "//trim(num2lstr(m%MD%y%PtFairLeadLoad%Force(3,1)))
 !print *, "m%MD%y%PtFairLeadLoad%Force(1,2): "//trim(num2lstr(m%MD%y%PtFairLeadLoad%Force(1,2)))//", m%MD%y%PtFairLeadLoad%Force(2,2): "//trim(num2lstr(m%MD%y%PtFairLeadLoad%Force(2,2)))//", m%MD%y%PtFairLeadLoad%Force(3,2): "//trim(num2lstr(m%MD%y%PtFairLeadLoad%Force(3,2)))
 !print *, "m%MD%y%PtFairLeadLoad%Moment(1,1): "//trim(num2lstr(m%MD%y%PtFairLeadLoad%Moment(1,1)))//", m%MD%y%PtFairLeadLoad%Moment(2,1): "//trim(num2lstr(m%MD%y%PtFairLeadLoad%Moment(2,1)))//", m%MD%y%PtFairLeadLoad%Moment(3,1): "//trim(num2lstr(m%MD%y%PtFairLeadLoad%Moment(3,1)))
 !print *, "m%MD%y%PtFairLeadLoad%Moment(1,2): "//trim(num2lstr(m%MD%y%PtFairLeadLoad%Moment(1,2)))//", m%MD%y%PtFairLeadLoad%Moment(2,2): "//trim(num2lstr(m%MD%y%PtFairLeadLoad%Moment(2,2)))//", m%MD%y%PtFairLeadLoad%Moment(3,2): "//trim(num2lstr(m%MD%y%PtFairLeadLoad%Moment(3,2)))  
 !m%MD%y%PtFairLeadLoad%Force(:,1)=0.0_ReKi
 !m%MD%y%PtFairLeadLoad%Force(:,2)=0.0_ReKi
    end if
-   
-      
+
+
 ! -------------------------------------------------------------------------
 ! KiteAeroDyn
 ! -------------------------------------------------------------------------      

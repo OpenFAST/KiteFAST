@@ -4,11 +4,11 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include "filter.h"
-#include "vec3.h"
-#include "actuator_types.h"
-#include "system_types.h"
-#include "labels.h"
+#include "common/c_math/filter.h"
+#include "common/c_math/vec3.h"
+#include "control/actuator_types.h"
+#include "control/system_types.h"
+#include "system/labels.h"
 
 typedef enum {
   kCrosswindNormalGateForceSigned = -1,

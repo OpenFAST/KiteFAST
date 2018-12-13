@@ -1,25 +1,45 @@
 ! A module for performing one-dimensional root finding via 
 ! 
 !  brent's method (see sub_brent)
-! 
-! The function interface must be like
-!     interface
-!         function f(x, fcnArgs)
-!         implicit none
-!         real(ReKi), intent(in) :: x
-!         real(ReKi) :: f
-!         end function f
-!     end interface
 !
 ! Grey Gordon, 2013
 ! This code may be reproduced and modified provided it is not sold and the author's 
 ! name and this notice remain intact.
 ! 
+! modified by Bonnie Jonkman, Envision Energy, 2016
+! 
 module mod_root1dim
-    use NWTC_Library
+   use NWTC_Library
+   use AirFoilInfo_Types
+   use BEMTUnCoupled, only: BEMTU_InductionWithResidual
+   
     implicit none
-    integer, parameter, private :: SolveKi = ReKi
-    real(SolveKi), parameter, private :: xtoler_def = 1d-6, toler_def = 1d-6, printmod_def = -1, maxiter_def = 100
+   
+   type, public :: fmin_fcnArgs 
+      real(ReKi)           :: nu
+      integer              :: numBlades
+      real(ReKi)           :: rlocal      
+      real(ReKi)           :: chord 
+      real(ReKi)           :: theta
+      real(ReKi)           :: Vx
+      real(ReKi)           :: Vy
+      real(ReKi)           :: UserProp
+      logical              :: useTanInd
+      logical              :: useAIDrag
+      logical              :: useTIDrag
+      logical              :: useHubLoss
+      logical              :: useTipLoss 
+      real(ReKi)           :: hubLossConst 
+      real(ReKi)           :: tipLossConst
+      logical              :: IsValidSolution
+      integer(IntKi)       :: errStat       ! Error status of the operation
+      character(ErrMsgLen) :: errMsg        ! Error message if ErrStat /= ErrID_None
+   end type fmin_fcnArgs
+   
+   integer, parameter, private :: SolveKi = ReKi
+   real(SolveKi), parameter, private :: xtoler_def = 1d-6, toler_def = 1d-6, printmod_def = -1, maxiter_def = 100
+    
+    
 contains
 
 ! Tests whether the two functions values bracket a root -- i.e., have different signs
@@ -30,7 +50,6 @@ function bracketsRoot(fa,fb) result(tf)
 end function bracketsRoot
 
 
-
 ! Written using the FORTRAN program zero in "Algorithms for Minimization 
 ! without Derivatives" by Brent. 
 ! 
@@ -38,23 +57,11 @@ end function bracketsRoot
 !       Returns a zero x of the function f in the given interval [a,b], to within a tolerance 6macheps|x| + 2t, 
 ! where macheps is the relative machine precision and t is a positive tolerance. The procedure assumes that 
 ! f(a) and f(b) have different signs.
-subroutine sub_brent(x,f,a_in,b_in, toler_in,maxiter_in,fcnArgs,AFInfo,fa_in,fb_in,xtoler_in,printmod_in)
-    use fminfcn
+subroutine sub_brent(x,a_in,b_in, toler_in,maxiter_in,fcnArgs,AFInfo,fa_in,fb_in,xtoler_in,printmod_in)
     
     implicit none 
     
     real(ReKi), intent(out) :: x !< solution
-    interface
-        function f(x, fcnArgs, AFInfo)
-        use fminfcn
-        implicit none
-        real(ReKi),         intent(in)           :: x
-        type(fmin_fcnArgs), intent(inout)        :: fcnArgs
-        TYPE (AFI_ParameterType),  INTENT(IN   )        :: AFInfo          ! The derived type for holding the constant parameters for this airfoil.
-        real(ReKi) :: f
-        end function f
-    end interface
-    
     real(ReKi), intent(in) :: a_in  !< lower bound of solution region
     real(ReKi), intent(in) :: b_in  !< upper bound of solution region
     
@@ -73,6 +80,9 @@ subroutine sub_brent(x,f,a_in,b_in, toler_in,maxiter_in,fcnArgs,AFInfo,fa_in,fb_
     integer :: maxiter,printmod,iter
     character(len=6) :: step
 
+    integer                 :: ErrStat_a
+    character(ErrMsgLen)    :: ErrMsg_a
+    logical                 :: ValidPhi_a
     ! Set of get parameters
     toler = 0.0_SolveKi; if (present(toler_in)) toler = toler_in ! Better to use custom toler here
     xtoler = xtoler_def; if (present(xtoler_in)) xtoler = xtoler_in
@@ -92,12 +102,16 @@ subroutine sub_brent(x,f,a_in,b_in, toler_in,maxiter_in,fcnArgs,AFInfo,fa_in,fb_
     if (present(fa_in)) then
         fa = fa_in
     else
-        fa = f(a, fcnArgs, AFInfo)
+        fa = BEMTU_InductionWithResidual( a,  fcnArgs%theta, fcnArgs%nu, fcnArgs%UserProp, fcnArgs%numBlades,  fcnArgs%rlocal, fcnArgs%chord, AFInfo, &
+                            fcnArgs%Vx, fcnArgs%Vy, fcnArgs%useTanInd, fcnArgs%useAIDrag, fcnArgs%useTIDrag, fcnArgs%useHubLoss, fcnArgs%useTipLoss,  fcnArgs%hubLossConst, fcnArgs%tipLossConst,  &
+                            ValidPhi_a, errStat_a, errMsg_a)
     end if
     if (present(fb_in)) then
         fb = fb_in
     else
-        fb = f(b, fcnArgs, AFInfo)
+        fb = BEMTU_InductionWithResidual( b,  fcnArgs%theta, fcnArgs%nu, fcnArgs%UserProp, fcnArgs%numBlades,  fcnArgs%rlocal, fcnArgs%chord, AFInfo, &
+                            fcnArgs%Vx, fcnArgs%Vy, fcnArgs%useTanInd, fcnArgs%useAIDrag, fcnArgs%useTIDrag, fcnArgs%useHubLoss, fcnArgs%useTipLoss,  fcnArgs%hubLossConst, fcnArgs%tipLossConst,  &
+                            fcnArgs%IsValidSolution, fcnArgs%errStat, fcnArgs%errMsg)
     end if
 
     ! Test whether root is bracketed
@@ -105,6 +119,9 @@ subroutine sub_brent(x,f,a_in,b_in, toler_in,maxiter_in,fcnArgs,AFInfo,fa_in,fb_
         if (abs(fa)<abs(fb)) then
             call WrScr( 'brent: WARNING: root is not bracketed, returning best endpoint a = '//trim(Num2Lstr(a))//' fa = '//trim(Num2Lstr(fa)) )
             x = a
+            fcnArgs%IsValidSolution = ValidPhi_a
+            fcnArgs%errStat         = ErrStat_a
+            fcnArgs%errMsg          = ErrMsg_a
         else
             call WrScr( 'brent: WARNING: root is not bracketed, returning best endpoint b = '//trim(Num2Lstr(b))//' fb = '//trim(Num2Lstr(fb)) )
             x = b
@@ -217,7 +234,9 @@ subroutine sub_brent(x,f,a_in,b_in, toler_in,maxiter_in,fcnArgs,AFInfo,fa_in,fb_
         end if
 
         !!! Evaluate at the new point
-        fb = f(b, fcnArgs, AFInfo)
+        fb = BEMTU_InductionWithResidual( b,  fcnArgs%theta, fcnArgs%nu, fcnArgs%UserProp, fcnArgs%numBlades,  fcnArgs%rlocal, fcnArgs%chord, AFInfo, &
+                            fcnArgs%Vx, fcnArgs%Vy, fcnArgs%useTanInd, fcnArgs%useAIDrag, fcnArgs%useTIDrag, fcnArgs%useHubLoss, fcnArgs%useTipLoss,  fcnArgs%hubLossConst, fcnArgs%tipLossConst,  &
+                            fcnArgs%IsValidSolution, fcnArgs%errStat, fcnArgs%errMsg)
 
         ! Check my custom tolerance 
         if (abs(fb)<toler) then
@@ -230,84 +249,3 @@ subroutine sub_brent(x,f,a_in,b_in, toler_in,maxiter_in,fcnArgs,AFInfo,fa_in,fb_
 end subroutine sub_brent
 
 end module mod_root1dim
-
-! Contains test routines for mod_root1dim
-module mod_root1dim_test
-    use mod_root1dim
-    implicit none
-contains
-    
-    ! One dimensional test functions
-    function f0(x)
-        implicit none
-        real(ReKi) :: f0
-        real(ReKi), intent(in) :: x
-        f0 = sin(x) + cos(x)
-    end function 
-    function f1(x)
-        real(ReKi) :: f1
-        real(ReKi), intent(in) :: x
-        f1 = sign(sqrt(abs(x-5d0)),x-5d0)
-    end function 
-    function f2(x) 
-        real(ReKi) :: f2
-        real(ReKi), intent(in) :: x
-        f2 = -10d0 + 2d0*x + x**2 
-    end function 
-    function f3(x)
-        real(ReKi) :: f3
-        real(ReKi), intent(in) :: x
-        f3 = exp(x) - 2d0 
-    end function 
-
-!   ! type
-!
-!    ! Main routine
-!    subroutine test_root1dim() 
-!        implicit none
-!        real(ReKi) :: a,b,x
-!        logical :: tf(3)
-!        
-!        a = -10; b = 20; if (.not. all(passed(f0))) STOP 'test_root1dim: f0 test failed'
-!        a = -100; b = 1000; if (.not. all(passed(f1))) STOP 'test_root1dim: f1 test failed'
-!        a = -6; b = 2; if (.not. all(passed(f2))) STOP 'test_root1dim: f2 test failed' 
-!        a = -100; b = 100; if (.not. all(passed(f3))) STOP 'test_root1dim: f3 test failed' 
-!
-!        print*, 'test_root1dim: passed'
-!
-!    contains 
-!        function passed(f) result(tfout)
-!            implicit none
-!            logical :: tf(3), tfout(3)
-!            real(ReKi) :: xstar(3)
-!           
-!            interface
-!                  function f(x, fcnArgs)
-!                 use fminfcn
-!                 implicit none
-!                 real(ReKi),            intent(in)           :: x
-!                 type(fmin_fcnArgs), intent(in)              :: fcnArgs
-!                 real(ReKi) :: f
-!                 end function f
-!            end interface
-!            
-!            tf = .true.
-!            
-!            call sub_bisect( xstar(1),f,a,b,xtoler_in=2d0*epsilon(0d0),printmod_in=1) 
-!            call sub_brent(  xstar(2),f,a,b,xtoler_in=2d0*epsilon(0d0),printmod_in=1) 
-!            
-!            if (abs(f(xstar(1)))>1d-4) tf(1) = .false.
-!            if (abs(f(xstar(2)))>1d-3) tf(2) = .false.
-!            if (abs(f(xstar(3)))>1d-4) tf(3) = .false.
-!
-!!             print*,'xstar',xstar
-!!             print*,'f(xstar)',f(xstar(1)),f(xstar(2)),f(xstar(3))
-!!             print*,'tf',tf
-!
-!            tfout = tf
-!
-!        end function passed
-!        
-!    end subroutine test_root1dim
-
-end module mod_root1dim_test

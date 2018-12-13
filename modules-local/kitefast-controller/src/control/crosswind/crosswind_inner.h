@@ -23,11 +23,11 @@
 
 #include <stdbool.h>
 
-#include "mat3.h"
-#include "vec3.h"
+#include "common/c_math/mat3.h"
+#include "common/c_math/vec3.h"
 //#include "../actuator_util.h"
-#include "crosswind_types.h"
-#include "estimator_types.h"
+#include "control/crosswind/crosswind_types.h"
+#include "control/estimator/estimator_types.h"
 
 #ifdef __cplusplus
 extern "C" {

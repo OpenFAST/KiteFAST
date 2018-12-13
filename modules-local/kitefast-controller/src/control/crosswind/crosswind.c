@@ -1,32 +1,32 @@
-#include "crosswind.h"
+#include "control/crosswind/crosswind.h"
 
 #include <assert.h>
 #include <math.h>
 #include <stdbool.h>
 #include <string.h>
 
-#include "geometry.h"
-#include "util.h"
-#include "vec3.h"
-#include "macros.h"
+#include "common/c_math/geometry.h"
+#include "common/c_math/util.h"
+#include "common/c_math/vec3.h"
+#include "common/macros.h"
 //#include "../actuator_util.h"
 //#include "../common.h"
-#include "control_params.h"
+#include "control/control_params.h"
 //#include "../control_telemetry.h"
-#include "control_types.h"
+#include "control/control_types.h"
 //#include "crosswind_curvature.h"
 //#include "crosswind_frame.h"
-#include "crosswind_inner.h"
+#include "control/crosswind/crosswind_inner.h"
 //#include "crosswind_mode.h"
 //#include "crosswind_output.h"
 //#include "crosswind_path.h"
 //#include "crosswind_power.h"
-#include "crosswind_types.h"
-#include "crosswind_util.h"
+#include "control/crosswind/crosswind_types.h"
+#include "control/crosswind/crosswind_util.h"
 //#include "../sensor_util.h"
-#include "simple_aero.h"
-#include "system_params.h"
-#include "system_types.h"
+#include "control/simple_aero.h"
+#include "control/system_params.h"
+#include "control/system_types.h"
 
 void CrosswindInit(const StateEstimate *state_est, const double *flaps_z1,
                    double previous_detwist_loop_angle,
@@ -171,6 +171,7 @@ void CrosswindStep(const FlightStatus *flight_status,
                    const StateEstimate *state_est,
                    const CrosswindParams *params, CrosswindState *state,
                    ControlOutput *control_output) {
+  printf("    crosswindstep \n");
   CrosswindFlags flags;
   //GetFlags(state_est, flight_status->flight_mode, state->power.path_type, &flags);
 
@@ -303,7 +304,7 @@ path_center_g.z = -296.9814;// Added - jmiller
 	beta_cmd	 = -0.0256;	   // added by JMiller - STI
 	dCL_cmd 	 = -0.0025;	   // added by JMiller - STI
 	tether_roll_cmd = 0.0; // added by JMiller - STI
-
+printf("    debug marker - pre crosswind_inner \n");
   CrosswindInnerStep(
       tether_roll_cmd, tether_roll, alpha_cmd,
       state_est->apparent_wind.sph_f.alpha, dCL_cmd, beta_cmd,
@@ -313,7 +314,27 @@ path_center_g.z = -296.9814;// Added - jmiller
       &state->experimental_crosswind.current_config, &params->inner,
       &state->inner, lateral_gains, &deltas, &thrust_moment);
 
+printf("    debug marker - post crosswind_inner \n");
 
+// PLACE HOLDER FOR CONTROL OUTPUTS
+control_output->flaps[0] = 0;
+control_output->flaps[1] = 0;
+control_output->flaps[2] = 0;
+control_output->flaps[3] = 0;
+control_output->flaps[4] = 0;
+control_output->flaps[5] = 0;
+control_output->flaps[6] = 0;
+control_output->flaps[7] = 0;
+
+control_output->rotors[0] = 0;
+control_output->rotors[1] = 0;
+control_output->rotors[2] = 0;
+control_output->rotors[3] = 0;
+control_output->rotors[4] = 0;
+control_output->rotors[5] = 0;
+control_output->rotors[6] = 0;
+control_output->rotors[7] = 0;
+// end placeholder - Justin Miller - STI
   //// Convert control variables to actuator commands.
   //CrosswindOutputStep(params->loop_dir, loop_angle, flaring, &thrust_moment,
   //                    &deltas, state_est, &path_center_g, &params->output,

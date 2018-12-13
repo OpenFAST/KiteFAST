@@ -1,5 +1,5 @@
-#include "system_params.h" 
-#include "system_types.h"
+#include "control/system_params.h" 
+#include "control/system_types.h"
 
 static SystemParams system_params = { .ts = 0.01 }; //ts added by JMiller - STI
 const GlobalSystemParams g_sys = {

@@ -1,7 +1,7 @@
 #ifndef CONTROL_SIMPLE_AERO_TYPES_H_
 #define CONTROL_SIMPLE_AERO_TYPES_H_
 
-#include "labels.h"
+#include "system/labels.h"
 
 #define NUM_SIMPLE_ROTOR_MODEL_COEFFS 3
 

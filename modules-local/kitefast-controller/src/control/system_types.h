@@ -6,11 +6,11 @@
 
 //#include "avionics/network/aio_labels.h"
 //#include "avionics/network/aio_node.h"
-#include "mat2.h"
-#include "mat3.h"
-#include "util.h"
-#include "vec3.h"
-#include "labels.h"
+#include "common/c_math/mat2.h"
+#include "common/c_math/mat3.h"
+#include "common/c_math/util.h"
+#include "common/c_math/vec3.h"
+#include "system/labels.h"
 
 typedef enum {
   kActuatorHitlLevelReal,

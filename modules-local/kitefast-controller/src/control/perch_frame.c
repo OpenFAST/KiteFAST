@@ -1,14 +1,14 @@
-#include "perch_frame.h"
+#include "control/perch_frame.h"
 
 #include <math.h>
 
-#include "coord_trans.h"
-#include "geometry.h"
-#include "mat3.h"
-#include "util.h"
-#include "vec3.h"
-#include "system_params.h"
-#include "system_types.h"
+#include "common/c_math/coord_trans.h"
+#include "common/c_math/geometry.h"
+#include "common/c_math/mat3.h"
+#include "common/c_math/util.h"
+#include "common/c_math/vec3.h"
+#include "control/system_params.h"
+#include "control/system_types.h"
 
 // Conversions between Ground-station and Perch.
 

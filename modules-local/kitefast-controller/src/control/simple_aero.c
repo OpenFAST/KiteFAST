@@ -1,13 +1,13 @@
-#include "simple_aero.h"
+#include "control/simple_aero.h"
 
 #include <assert.h>
 #include <float.h>
 #include <math.h>
 
-#include "optim.h"
-#include "util.h"
-#include "vec3.h"
-#include "macros.h"
+#include "common/c_math/optim.h"
+#include "common/c_math/util.h"
+#include "common/c_math/vec3.h"
+#include "common/macros.h"
 
 double CalcLocalAirspeed(double airspeed, double local_pressure_coeff,
                          const Vec3 *pos, const Vec3 *pqr) {

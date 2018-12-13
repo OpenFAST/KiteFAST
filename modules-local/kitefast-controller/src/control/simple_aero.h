@@ -1,8 +1,8 @@
 #ifndef CONTROL_SIMPLE_AERO_H_
 #define CONTROL_SIMPLE_AERO_H_
 
-#include "vec3.h"
-#include "simple_aero_types.h"
+#include "common/c_math/vec3.h"
+#include "control/simple_aero_types.h"
 
 #ifdef __cplusplus
 extern "C" {

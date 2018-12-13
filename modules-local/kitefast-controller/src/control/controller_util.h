@@ -1,8 +1,8 @@
 #ifndef CONTORLLER_UTIL_H
 #define CONTROLLER_UTIL_H
 
-#include "crosswind_types.h"
-#include "control_types.h"
+#include "control/crosswind/crosswind_types.h"
+#include "control/control_types.h"
 //#include "system_params.h"
 
 #ifdef __cplusplus

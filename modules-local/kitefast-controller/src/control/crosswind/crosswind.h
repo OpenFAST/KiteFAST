@@ -28,10 +28,10 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include "vec3.h"
-#include "control_types.h"
-#include "crosswind_types.h"
-#include "estimator_types.h"
+#include "common/c_math/vec3.h"
+#include "control/control_types.h"
+#include "control/crosswind/crosswind_types.h"
+#include "control/estimator/estimator_types.h"
 
 #ifdef __cplusplus
 extern "C" {

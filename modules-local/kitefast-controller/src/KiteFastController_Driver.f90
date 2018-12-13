@@ -34,29 +34,28 @@ program KiteFastController_Driver
    InitInp%numFlaps = 3
    InitInp%numPylons = 2
    InitInp%DT  = 0.01_DbKi
-   InitInp%DLL_Filename = '/path/to/libkitefastcontroller_controller.so'
+   InitInp%DLL_Filename = '/home/makani/Desktop/sandbox/build/modules-local/kitefast-controller/libkitefastcontroller_controller.so'
    
    call KFC_Init(InitInp, p, InitOut, InitInp%DT, errStat, errMsg)
       print *, "KiteFastController_Driver calling KFC_Init received ErrStat=", errStat, " ErrMsg=" , trim(errMsg)
       if ( errStat >= AbortErrLev ) call Cleanup()
       ! Establish the KiteFastController inputs
-
       ! Step the controller
    t = 1.0
    u%dcm_g2b = reshape((/ 1, 2, 3, 4, 5, 6, 7, 8, 9 /), shape(u%dcm_g2b))
-   u%pqr = 1.0
+   u%pqr = (/ 1, 1, 1 /)
    u%acc_norm = 1.0
-   u%Xg = 1.0
-   u%Vg = 1.0
-   u%Vb = 1.0
-   u%Ag = 1.0
-   u%Ab = 1.0
-   u%rho = 1.0
-   u%apparent_wind = 1.0
-   u%tether_force = 1.0
-   u%wind_g = 1.0
-   y%GenSPyRtr = reshape((/ 1, 2, 3, 4 /), shape(y%GenSPyRtr))
-   y%GenPPyRtr = reshape((/ 1, 2, 3, 4 /), shape(y%GenPPyRtr))
+   u%Xg = (/ 1, 2, 3 /)
+   u%Vg = (/ 1, 2, 3 /) !reshape((/ 1, 2, 3 /), shape(u%Vg))
+   u%Vb = (/ 1, 2, 3 /) !reshape((/ 1, 2, 3 /), shape(u%Vb))
+   u%Ag = (/ 1, 2, 3 /) !reshape((/ 1, 2, 3 /), shape(u%Ag))
+   u%Ab = (/ 1, 2, 3 /) !reshape((/ 1, 2, 3 /), shape(u%Ab))
+   u%rho = 1.0        
+   u%apparent_wind = (/ -30, 1, 1 /) !reshape((/ 1, 2, 3 /), shape(u%apparent_wind))
+   u%tether_forceb = (/ 1, 1, 1 /) !reshape((/ 1, 2, 3 /), shape(u%tether_forceb))
+   u%wind_g = 1.0 !reshape((/ 1, 2, 3 /), shape(u%wind_g))
+!    y%GenSPyRtr = reshape((/ 1, 2, 3, 4 /), shape(y%GenSPyRtr))
+!    y%GenPPyRtr = reshape((/ 1, 2, 3, 4 /), shape(y%GenPPyRtr))
 
    call KFC_Step(t, u, p, y, errStat, errMsg )
       print *, "KiteFastController_Driver calling KFC_Step received ErrStat=", errStat, " ErrMsg=" , trim(errMsg)

@@ -4,10 +4,10 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include "mat3.h"
-#include "vec3.h"
-#include "sensor_types.h"
-#include "system_types.h"
+#include "common/c_math/mat3.h"
+#include "common/c_math/vec3.h"
+#include "control/sensor_types.h"
+#include "control/system_types.h"
 
 #ifdef __cplusplus
 extern "C" {

@@ -1,9 +1,11 @@
-#include "controller_conversion.h"
+#include "control/controller_conversion.h"
 
-#include "mat3.h"
-#include "vec3.h"
-#include "control_types.h"
-#include "estimator_types.h"
+#include "common/c_math/mat3.h"
+#include "common/c_math/vec3.h"
+#include "control/control_types.h"
+#include "control/estimator/estimator_types.h"
+
+
 
 void AssignInputs(double dcm_g2b_c[], double pqr_c[], double *acc_norm_c,
 	double Xg_c[], double Vg_c[], double Vb_c[], double Ag_c[],
@@ -12,14 +14,19 @@ void AssignInputs(double dcm_g2b_c[], double pqr_c[], double *acc_norm_c,
 	double kFlapA_c[], double Motor_c[],
 	int *errStat, char *errMsg, StateEstimate* state_est){
 
-
+	bool printInputs = true;
+	if (printInputs){
+		
+	}
 
 	//dcm_2gb - convert and copy value into state_est->dcm_g2b
 	Mat3 dcm_g2b_tmp = { { { dcm_g2b_c[0], dcm_g2b_c[1], dcm_g2b_c[2] },
 						   { dcm_g2b_c[3], dcm_g2b_c[4], dcm_g2b_c[5] },
 						   { dcm_g2b_c[6], dcm_g2b_c[7], dcm_g2b_c[8] } } };;
 	memcpy(&state_est->dcm_g2b, &dcm_g2b_tmp, sizeof(state_est->dcm_g2b));
-
+	printf("  value dcm_g2b_c = %0.4f \n",dcm_g2b_c[0]);
+	printf("  value pqr_c = %0.4f \n",&pqr_c[0]);
+	
 	//pqr_c - convert and copy value into state_est->pqr_c
 	Vec3 pqr_c_tmp = { pqr_c[0], pqr_c[1], pqr_c[2] };
 	memcpy(&state_est->pqr_f, &pqr_c_tmp, sizeof(state_est->pqr_f));
@@ -53,6 +60,9 @@ void AssignInputs(double dcm_g2b_c[], double pqr_c[], double *acc_norm_c,
 	memcpy(&state_est->rho, &rho_tmp, sizeof(state_est->rho));
 
 	//apparent_wind_c_v
+	if(apparent_wind_c[0] <= 0.0){  //added by Justin Miller - STI 
+      apparent_wind_c[0] = -apparent_wind_c[0];
+    } // TODO - Check reference frames of kitefast vs CSIM - Airspeed is coming in (-), assertions fail if airspeed is (-)
 	state_est->apparent_wind.sph_f.v = apparent_wind_c[0];
 	state_est->apparent_wind.sph_f.alpha = apparent_wind_c[1];
 	state_est->apparent_wind.sph_f.beta = apparent_wind_c[2];
@@ -69,3 +79,26 @@ void AssignInputs(double dcm_g2b_c[], double pqr_c[], double *acc_norm_c,
 
 }
 
+void AssignOutputs(double kFlapA_c[], double Motor_c[],
+	int *errStat, char *errMsg, ControlOutput* raw_control_output){
+
+		//kFlap_A
+		kFlapA_c[0] = raw_control_output->flaps[0];
+		kFlapA_c[1] = raw_control_output->flaps[1];
+		kFlapA_c[2] = raw_control_output->flaps[2];
+		kFlapA_c[3] = raw_control_output->flaps[3];
+		kFlapA_c[4] = raw_control_output->flaps[4];
+		kFlapA_c[5] = raw_control_output->flaps[5];
+		kFlapA_c[6] = raw_control_output->flaps[6];
+		kFlapA_c[7] = raw_control_output->flaps[7];
+
+		//Motor_c
+		Motor_c[0] = raw_control_output->rotors[0];
+		Motor_c[1] = raw_control_output->rotors[1];
+		Motor_c[2] = raw_control_output->rotors[2];
+		Motor_c[3] = raw_control_output->rotors[3];
+		Motor_c[4] = raw_control_output->rotors[4];
+		Motor_c[5] = raw_control_output->rotors[5];
+		Motor_c[6] = raw_control_output->rotors[6];
+		Motor_c[7] = raw_control_output->rotors[7];
+	}

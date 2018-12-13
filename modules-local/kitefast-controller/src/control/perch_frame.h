@@ -1,8 +1,8 @@
 #ifndef CONTROL_PERCH_FRAME_H_
 #define CONTROL_PERCH_FRAME_H_
 
-#include "mat3.h"
-#include "vec3.h"
+#include "common/c_math/mat3.h"
+#include "common/c_math/vec3.h"
 
 #ifdef __cplusplus
 extern "C" {

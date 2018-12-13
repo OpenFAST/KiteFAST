@@ -1,7 +1,7 @@
 #ifndef CONTROL_CONTROL_PARAMS_H_
 #define CONTROL_CONTROL_PARAMS_H_
 
-#include "control_types.h"
+#include "control/control_types.h"
 
 typedef struct {
   const FlightPlan *flight_plan;

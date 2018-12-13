@@ -23,7 +23,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 endif()
 
 # required to build the dependencies (C_MATH)
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c99")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c99 -g")
 find_package(GSL REQUIRED)
 
 generate_f90_types(src/KiteFastController_Registry.txt KiteFastController_Types.f90 -noextrap)
@@ -34,7 +34,7 @@ add_library(kitefastcontrollerlib ${LIB_SOURCES})
 target_link_libraries(kitefastcontrollerlib nwtclibs)
 
 # kitefastcontroller-controller
-file(GLOB C_MATH_SOURCES "dependencies/c_math/*")
+file(GLOB C_MATH_SOURCES "src/common/c_math/*")
 add_library(C_MATH ${C_MATH_SOURCES})
 
 set(DYLIB_SOURCES
@@ -43,13 +43,13 @@ set(DYLIB_SOURCES
 	src/control/controller_util.c
 	src/control/ground_station_frame.c
 	src/control/kfc.c
-	src/control/control_test.c
 	src/control/perch_frame.c
 	src/control/sensor_util.c
 	src/control/simple_aero.c
 	src/control/system_types.c
 	src/control/tether_util.c
 	src/control/system_params.c
+	src/control/control_log.c
 	src/control/crosswind/crosswind.c
 	src/control/crosswind/crosswind_inner.c
 	src/control/crosswind/crosswind_types.c
@@ -58,15 +58,22 @@ set(DYLIB_SOURCES
 	src/control/estimator/estimator_types.c
 ) 
 include_directories(
-	"src/common/"
-	"src/control/"
-	"src/control/crosswind/"
-	"src/control/estimator/"
-	"src/system/"
-	"dependencies/c_math/"
+#	"src/common/"
+#	"src/control/"
+#	"src/control/crosswind/"
+#	"src/control/estimator/"
+#	"src/system/"
+#	"dependencies/c_math/"
+	"src/"
+#	"dependencies/"
 )
 add_library(kitefastcontroller_controller SHARED ${DYLIB_SOURCES})
 target_link_libraries(kitefastcontroller_controller C_MATH ${GSL_LIBRARIES})
+
+# kitefastcontroller-testexe
+set(TESTEXE_SOURCES src/main.c src/KiteFastController.c)
+add_executable(kitefastcontroller_testexe ${TESTEXE_SOURCES})
+target_link_libraries(kitefastcontroller_testexe kitefastcontroller_controller)
 
 # kitefastcontroller-driver
 set(DRIVER_SOURCES src/KiteFastController_Driver.f90)
@@ -74,7 +81,7 @@ add_executable(kitefastcontroller_driver ${DRIVER_SOURCES})
 target_link_libraries(kitefastcontroller_driver kitefastcontroller_controller kitefastcontrollerlib ${CMAKE_DL_LIBS})
 
 # installation
-install(TARGETS kitefastcontrollerlib kitefastcontroller_controller kitefastcontroller_driver C_MATH
+install(TARGETS kitefastcontrollerlib kitefastcontroller_controller kitefastcontroller_driver C_MATH kitefastcontroller_testexe
   EXPORT "${CMAKE_PROJECT_NAME}Libraries"
   RUNTIME DESTINATION bin
   LIBRARY DESTINATION lib

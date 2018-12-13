@@ -1,4 +1,4 @@
-#include "crosswind_inner.h"
+#include "control/crosswind/crosswind_inner.h"
 
 #include <assert.h>
 #include <math.h>
@@ -7,22 +7,23 @@
 #include <stdint.h>
 #include <string.h>
 
-#include "filter.h"
-#include "mat2.h"
-#include "util.h"
-#include "vec2.h"
-#include "vec3.h"
-#include "macros.h"
+#include "common/c_math/filter.h"
+#include "common/c_math/mat2.h"
+#include "common/c_math/util.h"
+#include "common/c_math/vec2.h"
+#include "common/c_math/vec3.h"
+#include "common/macros.h"
 //#include "../actuator_util.h"
 //#include "../control_telemetry.h"
-#include "crosswind_util.h"
-#include "system_params.h"
-#include "system_types.h"
+#include "control/crosswind/crosswind_util.h"
+#include "control/system_params.h"
+#include "control/system_types.h"
 
 // Schedules the longitudinal gains based on airspeed.
 static void ScheduleLongitudinalGains(
     double airspeed, const CrosswindInnerParams *params,
     double longitudinal_gains[][kNumCrosswindLongitudinalStates]) {
+  printf("airpseed = %0.4f\n",airspeed );
   assert(airspeed >= 0.0);
   assert(params != NULL && longitudinal_gains != NULL);
 
@@ -192,6 +193,7 @@ static void CalcLateralFeedback(
     const Vec3 *pqr_cmd, const Vec3 *pqr, double int_tether_roll_error,
     double int_beta_error, double lateral_gains[][kNumCrosswindLateralStates],
     double *delta_aileron, double *delta_rudder, double *moment_z) {
+    printf("beta = %0.4f, beta_cmd = %0.4f\n",beta, beta_cmd);
   assert(-PI / 2.0 <= tether_roll_cmd && tether_roll_cmd <= PI / 2.0);
   assert(-PI / 2.0 <= tether_roll && tether_roll <= PI / 2.0);
   assert(-PI / 2.0 <= beta_cmd && beta_cmd <= PI / 2.0);
@@ -473,7 +475,6 @@ static void ControlLateral(double tether_roll_cmd, double tether_roll,
   RateLimit(exp_config->enable_alternate_gains ? 1.0 : 0.0,
             -params->alt_gain_fade_rate, params->alt_gain_fade_rate, *g_sys.ts,
             alt_lateral_gains_0);
-
   ScheduleLateralGains(airspeed, *alt_lateral_gains_0, params, lateral_gains);
 
   // Apply feedback law to determine the aileron, rudder, and motor
@@ -613,6 +614,7 @@ void CrosswindInnerStep(double tether_roll_cmd, double tether_roll,
                         CrosswindInnerState *state,
                         double lateral_gains[][kNumCrosswindLateralStates],
                         Deltas *deltas, ThrustMoment *thrust_moment) {
+    printf("     crosswind_inner \n");
   deltas->elevator = ControlAlpha(
       alpha_cmd, alpha, dCL_cmd, pqr_cmd->y, pqr->y, airspeed, flags, params,
       state, &deltas->inboard_flap, &thrust_moment->moment.y);

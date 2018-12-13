@@ -4,19 +4,22 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include "vec3.h"
-#include "actuator_types.h"
+#include "common/c_math/vec3.h"
+//#include "vec3.h"
+//#include "vec3.h"
+//#include "vec3.h"
+#include "control/actuator_types.h"
 //#include "control/avionics/avionics_interface_types.h"
-#include "crosswind_types.h"
-#include "estimator_types.h"
+#include "control/crosswind/crosswind_types.h"
+#include "control/estimator/estimator_types.h"
 //#include "control/fault_detection/fault_detection_types.h"
 //#include "control/hover/hover_types.h"
 //#include "control/manual/manual_types.h"
-#include "sensor_types.h"
-#include "simple_aero_types.h"
-#include "system_types.h"
+#include "control/sensor_types.h"
+#include "control/simple_aero_types.h"
+#include "control/system_types.h"
 //#include "control/trans_in/trans_in_types.h"
-#include "labels.h"
+#include "system/labels.h"
 
 typedef enum {
   kControllerForceSigned = -1,
