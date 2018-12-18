@@ -1,0 +1,36 @@
+#Structural Nodes for the fuselage
+
+# Set basic counters and parameters
+
+
+# ************* fuselage ************** #
+# MIP = reference point at intersection of wings and fuse
+
+reference: MIP_RF,
+        reference, global, 0.,0., 100.,
+        reference, global, 1, -1., 0., 0.,
+                           3,  0., 0., -1,
+	reference, global, null,
+	reference, global, null;
+
+#nodes
+structural: MIP_node-1, dynamic,
+        reference, MIP_RF, 5, 0., 0.,
+        reference, MIP_RF, eye,
+        reference, MIP_RF, null,
+        reference, MIP_RF, null;
+
+structural: MIP_node, dynamic,
+        reference, MIP_RF, null,
+        reference, MIP_RF, eye,
+        reference, MIP_RF, 30.0,0.,0.,
+        reference, MIP_RF, null;
+
+structural: MIP_node+1, dynamic,
+        reference, MIP_RF, -5.0, 0., 0.0,
+        reference, MIP_RF, eye,
+        reference, MIP_RF, null,
+        reference, MIP_RF, null;
+
+structural: 1, dummy,
+        MIP_node, offset, 0, 0, 0, eye;
