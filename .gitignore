@@ -50,4 +50,9 @@ vs-build/
 *.mov
 *.out
 *.sum
-
+*.beam
+*.nodes
+*.structural
+*.elements
+*.mbd
+*.set
