@@ -59,6 +59,52 @@ end do
 end subroutine
 
 !====================================================================================================
+subroutine KFAST_RotorCalcs(NacDCM, NacOmega, NacAcc, RtrSpd, GenTorq, F_Aero, M_Aero, g, mass, Irot, Itran, Xcm, Freact, Mreact, errStat, errMsg )
+! This subroutine computes the reaction loads/moments on the a single rotor nacelle point 
+!----------------------------------------------------------------------------------------------------
+   real(R8Ki),             intent(in   ) :: NacDCM(3,3) ! Displaced rotation (absolute orientation of the nacelle) (-)
+   real(ReKi),             intent(in   ) :: NacOmega(3)
+   real(ReKi),             intent(in   ) :: NacAcc(3)
+   real(ReKi),             intent(in   ) :: RtrSpd
+   real(ReKi),             intent(in   ) :: GenTorq
+   real(ReKi),             intent(in   ) :: F_Aero(3)
+   real(ReKi),             intent(in   ) :: M_Aero(3)
+   real(ReKi),             intent(in   ) :: g
+   real(ReKi),             intent(in   ) :: mass
+   real(ReKi),             intent(in   ) :: Irot
+   real(ReKi),             intent(in   ) :: Itran
+   real(ReKi),             intent(in   ) :: Xcm
+   real(ReKi),             intent(  out) :: Freact(3)
+   real(ReKi),             intent(  out) :: Mreact(3)
+   integer(IntKi),         intent(  out) :: errStat    ! Error status of the operation
+   character(*),           intent(  out) :: errMsg     ! Error message if ErrStat /= ErrID_None
+
+   integer(IntKi)  :: i, j, iNd
+ 
+   real(R8Ki)      :: xhat(3)           ! rotor system x-axis expressed in the global inertial system
+   real(R8Ki)      :: cm_r(3)           ! vector from rotor reference point to the rotor center of mass (cm) expressed in the global system
+   real(R8Ki)      :: Icm_Tran
+   real(R8Ki)      :: Fcm_Aero(3)
+   real(R8Ki)      :: tmp(3)
+   real(R8Ki)      :: Mcm_Aero(3)
+   
+      ! Initialize local variables      
+   ErrStat = ErrID_None  
+   ErrMsg  = ""
+   xhat(1) = NacDCM(1,1)
+   xhat(2) = NacDCM(1,2)
+   xhat(3) = NacDCM(1,3)
+   
+      ! Compute the inputs relative to the rotor/drivetrain CM and expressed in the local nacelle coordinate system
+   cm_r     = Xcm*xhat
+   Icm_Tran = Itran - mass*Xcm*Xcm
+   Fcm_Aero = matmul(NacDCM, F_Aero)
+   tmp      = M_Aero - cross_product(cm_r, F_Aero)
+   Mcm_Aero = matmul(NacDCM, tmp)
+   
+end subroutine KFAST_RotorCalcs
+
+!====================================================================================================
 subroutine KFAST_ProcessMBD_Outputs()
 ! This subroutine 
 !----------------------------------------------------------------------------------------------------
@@ -1477,13 +1523,12 @@ subroutine TransferMBDynInputs2KADMeshes( FusO, p, m, errStat, errMsg )
 end subroutine TransferMBDynInputs2KADMeshes
 
 
-subroutine TransferMBDynInitInputs( WindPt_c, FusO, numNodePtElem_c, nodePts_c, numDCMElem_c, nodeDCMs_c, rtrPts_c, p, m, errStat, errMsg )
+subroutine TransferMBDynInitInputs( WindPt_c, FusO, numNodePts_c, nodePts_c, nodeDCMs_c, rtrPts_c, p, m, errStat, errMsg )
    real(C_DOUBLE),            intent(in   ) :: WindPt_c(3)                      ! The location of the ground station point where the freestream wind is measured [global coordinates] (m)
    real(ReKi),                intent(in   ) :: FusO(3)                          ! Location of principal kite reference point in global coordinates
-   integer(C_INT),            intent(in   ) :: numNodePtElem_c                  ! total number of array elements in the nodal points array
-   real(C_DOUBLE),            intent(in   ) :: nodePts_c(numNodePtElem_c)       ! 1D array containing all the nodal point coordinate data
-   integer(C_INT),            intent(in   ) :: numDCMElem_c                     ! total number of array elements in the nodal DCM data
-   real(C_DOUBLE),            intent(in   ) :: nodeDCMs_c(numDCMElem_c)         ! 1D array containing all the nodal DCM data
+   integer(C_INT),            intent(in   ) :: numNodePts_c                  ! total number of array elements in the nodal points array
+   real(C_DOUBLE),            intent(in   ) :: nodePts_c(:)       ! 1D array containing all the nodal point coordinate data
+   real(C_DOUBLE),            intent(in   ) :: nodeDCMs_c(:)         ! 1D array containing all the nodal DCM data
    real(C_DOUBLE),            intent(in   ) :: rtrPts_c(:)                      ! 1D array of the rotor positions in global coordinates (m)
    type(KFAST_ParameterType), intent(in   ) :: p
    type(KFAST_MiscVarType),   intent(inout) :: m
@@ -1504,9 +1549,9 @@ subroutine TransferMBDynInitInputs( WindPt_c, FusO, numNodePtElem_c, nodePts_c, 
    end do
    
    c = 9*( p%numFusNds + p%numSwnNds + p%numPwnNds + p%numVSNds +  p%numSHSNds + p%numPHSNds + p%numPylons*tplynodes )
-   if ( c /= numDCMElem_c ) then
+   if ( c /= numNodePts_c*9 ) then
       errStat = ErrID_FATAL
-      errMsg  = 'The transferred number of DCM elements,'//trim(num2lstr(c-1))//' ,did not match the expected number, '//trim(num2lstr(numDCMElem_c))//'.'
+      errMsg  = 'The transferred number of DCM elements,'//trim(num2lstr(c-1))//' ,did not match the expected number, '//trim(num2lstr(numNodePts_c*9))//'.'
    end if
    
    c=1
@@ -1607,18 +1652,14 @@ subroutine TransferMBDynInitInputs( WindPt_c, FusO, numNodePtElem_c, nodePts_c, 
 end subroutine TransferMBDynInitInputs
 
 
-subroutine TransferMBDynInputs( FusO, numNodePtElem_c, nodePts_c, numNodeVelElem_c, nodeVels_c, numNodeOmegaElem_c, nodeOmegas_c, numNodeAccElem_c, nodeAccs_c, numDCMElem_c, nodeDCMs_c, rtrPts_c, rtrVels_c, rtrDCMs_c, p, m, errStat, errMsg )
+subroutine TransferMBDynInputs( FusO, numNodePts_c, nodePts_c, nodeVels_c, nodeOmegas_c, nodeAccs_c, nodeDCMs_c, rtrPts_c, rtrVels_c, rtrDCMs_c, p, m, errStat, errMsg )
    real(ReKi),                intent(in   ) :: FusO(3)                          ! Location of principal kite reference point in global coordinates
-   integer(C_INT),            intent(in   ) :: numNodePtElem_c                  ! total number of array elements in the nodal points array
-   real(C_DOUBLE),            intent(in   ) :: nodePts_c(numNodePtElem_c)       ! 1D array containing all the nodal point coordinate data
-   integer(C_INT),            intent(in   ) :: numNodeVelElem_c                 ! total number of array elements in the nodal translationalvelocities array
-   real(C_DOUBLE),            intent(in   ) :: nodeVels_c(numNodeVelElem_c)     ! 1D array containing all the nodal translational velocities data
-   integer(C_INT),            intent(in   ) :: numNodeOmegaElem_c               ! total number of array elements in the nodal angular velocities array
-   real(C_DOUBLE),            intent(in   ) :: nodeOmegas_c(numNodeOmegaElem_c) ! 1D array containing all the nodal angular velocities data
-   integer(C_INT),            intent(in   ) :: numNodeAccElem_c                 ! total number of array elements in the nodal translational accelerations array
-   real(C_DOUBLE),            intent(in   ) :: nodeAccs_c(numNodeAccElem_c)     ! 1D array containing all the nodal translational accelerations data
-   integer(C_INT),            intent(in   ) :: numDCMElem_c                     ! total number of array elements in the nodal DCM data
-   real(C_DOUBLE),            intent(in   ) :: nodeDCMs_c(numDCMElem_c)         ! 1D array containing all the nodal DCM data
+   integer(C_INT),            intent(in   ) :: numNodePts_c                     ! total number of array elements in the nodal points array
+   real(C_DOUBLE),            intent(in   ) :: nodePts_c(:)       ! 1D array containing all the nodal point coordinate data
+   real(C_DOUBLE),            intent(in   ) :: nodeVels_c(:)     ! 1D array containing all the nodal translational velocities data
+   real(C_DOUBLE),            intent(in   ) :: nodeOmegas_c(:) ! 1D array containing all the nodal angular velocities data
+   real(C_DOUBLE),            intent(in   ) :: nodeAccs_c(:)     ! 1D array containing all the nodal translational accelerations data
+   real(C_DOUBLE),            intent(in   ) :: nodeDCMs_c(:)         ! 1D array containing all the nodal DCM data
    real(C_DOUBLE),            intent(in   ) :: rtrPts_c(:)                      ! 1D array of the rotor positions in global coordinates (m)
    real(C_DOUBLE),            intent(in   ) :: rtrVels_c(:)                      ! 1D array of the rotor point velocities in global coordinates (m/s)
    real(C_DOUBLE),            intent(in   ) :: rtrDCMs_c(:)                      ! 1D array of the rotor point DCMs
@@ -1713,9 +1754,9 @@ subroutine TransferMBDynInputs( FusO, numNodePtElem_c, nodePts_c, numNodeVelElem
       end do
    end do
    
-   if ( (c-1) /= numDCMElem_c ) then
+   if ( (c-1) /= numNodePts_c*9 ) then
       errStat = ErrID_FATAL
-      errMsg  = 'The transferred number of DCM elements,'//trim(num2lstr(c-1))//' ,did not match the expected number, '//trim(num2lstr(numDCMElem_c))//'.'
+      errMsg  = 'The transferred number of DCM elements,'//trim(num2lstr(c-1))//' ,did not match the expected number, '//trim(num2lstr(numNodePts_c*9))//'.'
    end if
    
       ! Decode rotor positions
@@ -1933,54 +1974,55 @@ end function cstrlen
 
 
 subroutine KFAST_Init(dt_c, numFlaps, numPylons, numComp, numCompNds, modFlags, KAD_FileName_c, IfW_FileName_c, MD_FileName_c, KFC_FileName_c, &
-                       outFileRoot_c, gravity, WindPt_c, FusODCM_c, numRtrPtsElem_c, rtrPts_c, numRefPtElem_c, refPts_c, &
-                       numNodePtElem_c, nodePts_c, numDCMElem_c, nodeDCMs_c, nFusOuts_c, FusOutNd_c, nSWnOuts_c, SWnOutNd_c, &
+                       outFileRoot_c, gravity, WindPt_c, FusODCM_c, numRtrPts_c, rtrPts_c, rtrMass_c, rtrI_Rot_c, rtrI_trans_c, rtrXcm_c, refPts_c, &
+                       numNodePts_c, nodePts_c, nodeDCMs_c, nFusOuts_c, FusOutNd_c, nSWnOuts_c, SWnOutNd_c, &
                        nPWnOuts_c, PWnOutNd_c, nVSOuts_c, VSOutNd_c, nSHSOuts_c, SHSOutNd_c, nPHSOuts_c, PHSOutNd_c, nPylOuts_c, PylOutNd_c, numOutChan_c, chanlist_c, errStat_c, errMsg_c ) BIND (C, NAME='KFAST_Init')
    IMPLICIT NONE
 
 
-   real(C_DOUBLE),         intent(in   ) :: dt_c                       ! simulation time step size (s)
-   integer(C_INT),         intent(in   ) :: numFlaps                   ! number of flaps per wing
-   integer(C_INT),         intent(in   ) :: numPylons                  ! number of pylons per wing
-   integer(C_INT),         intent(in   ) :: numComp                    ! number of individual components in the kite
-   integer(C_INT),         intent(in   ) :: numCompNds(numComp)        ! number of nodes per kite component
-   integer(C_INT),         intent(in   ) :: modFlags(4)                ! flags indicating which modules are being used [ Index: 1=KAD, 2=IfW, 3=MD, 4=KFC; Value: 0=off,1=on]
-   character(kind=C_CHAR), intent(in   ) :: KAD_FileName_c(IntfStrLen) ! name of KiteAeroDyn input file
-   character(kind=C_CHAR), intent(in   ) :: IfW_FileName_c(IntfStrLen) ! name of InflowWind input file
-   character(kind=C_CHAR), intent(in   ) :: MD_FileName_c(IntfStrLen)  ! name of MoorDyn input file
-   character(kind=C_CHAR), intent(in   ) :: KFC_FileName_c(IntfStrLen) ! name of KiteFAST controller Shared Library file
-   character(kind=C_CHAR), intent(in   ) :: outFileRoot_c(IntfStrLen)  ! root name of any output file generated by KiteFAST
-   real(C_DOUBLE),         intent(in   ) :: gravity                    ! gravitational constant (m/s^2)
-   real(C_DOUBLE),         intent(in   ) :: WindPt_c(3)                ! The location of the ground station point where the freestream wind is measured [global coordinates] (m)
-   real(C_DOUBLE),         intent(in   ) :: FusODCM_c(9)               ! fuselage principal reference point DCM (MIP of kite)
-   integer(C_INT),         intent(in   ) :: numRtrPtsElem_c            ! total number of rotor point elements
-   real(C_DOUBLE),         intent(in   ) :: rtrPts_c(numRtrPtsElem_c)  ! location of the rotor points
-   integer(C_INT),         intent(in   ) :: numRefPtElem_c             ! total number of array elements in the reference points array
-   real(C_DOUBLE),         intent(in   ) :: refPts_c(numRefPtElem_c)   ! 1D array containing all the reference point data
-   integer(C_INT),         intent(in   ) :: numNodePtElem_c            ! total number of array elements in the nodal points array
-   real(C_DOUBLE),         intent(in   ) :: nodePts_c(numNodePtElem_c) ! 1D array containing all the nodal point coordinate data
-   integer(C_INT),         intent(in   ) :: numDCMElem_c               ! total number of array elements in the nodal DCM data
-   real(C_DOUBLE),         intent(in   ) :: nodeDCMs_c(numDCMElem_c)   ! 1D array containing all the nodal DCM data
-   integer(C_INT),         intent(in   ) :: nFusOuts_c
-   integer(C_INT),         intent(in   ) :: FusOutNd_c(nFusOuts_c)
-   integer(C_INT),         intent(in   ) :: nSWnOuts_c
-   integer(C_INT),         intent(in   ) :: SWnOutNd_c(nSWnOuts_c)
-   integer(C_INT),         intent(in   ) :: nPWnOuts_c
-   integer(C_INT),         intent(in   ) :: PWnOutNd_c(nPWnOuts_c)
-   integer(C_INT),         intent(in   ) :: nVSOuts_c
-   integer(C_INT),         intent(in   ) :: VSOutNd_c(nVSOuts_c)
-   integer(C_INT),         intent(in   ) :: nSHSOuts_c
-   integer(C_INT),         intent(in   ) :: SHSOutNd_c(nSHSOuts_c)
-   integer(C_INT),         intent(in   ) :: nPHSOuts_c
-   integer(C_INT),         intent(in   ) :: PHSOutNd_c(nPHSOuts_c)
-   integer(C_INT),         intent(in   ) :: nPylOuts_c
-   integer(C_INT),         intent(in   ) :: PylOutNd_c(nPylOuts_c)
-   
-   integer(C_INT),         intent(in   ) :: numOutChan_c               ! total number of requested output channels
-   type(c_ptr)   ,target,   intent(in   ) :: chanlist_c(numOutChan_c)   !
-   ! type(c_ptr)   ,value,   intent(in   ) :: chanlist_c   !
-   integer(C_INT),         intent(  out) :: errStat_c      
-   character(kind=C_CHAR), intent(  out) :: errMsg_c(IntfStrLen)   
+   real(C_DOUBLE),         intent(in   ) :: dt_c                           ! Timestep size (s)
+   integer(C_INT),         intent(in   ) :: numFlaps                       ! Number of flaps
+   integer(C_INT),         intent(in   ) :: numPylons                      ! Number of pylons, per wing
+   integer(C_INT),         intent(in   ) :: numComp                        ! Number of kite components
+   integer(C_INT),         intent(in   ) :: numCompNds(numComp)            ! MBDyn nodes per component.  The array is populated in the following order: Fuselage, Starboard Wing, Port Wing, Vertical Stabilizer, 
+                                                                           !    Starboard Horizontal Stabilizer, Port Horizontal Stabilizer, Starboard pylon, from inner to outer, and then Port pylon, from inner to outer.
+   integer(C_INT),         intent(in   ) :: modFlags(4)                    ! Four element array of module flags.  0 = inactive, 1 = active. Module indices are: 0 = KiteAeroDyn, 1 = InflowWind, 2 = MoorDyn, 3 = KiteFAST Controller
+   character(kind=C_CHAR), intent(in   ) :: KAD_FileName_c(IntfStrLen)     ! Full path and name of the KiteAeroDyn input file.
+   character(kind=C_CHAR), intent(in   ) :: IfW_FileName_c(IntfStrLen)     ! Full path and name of the InflowWind input file.
+   character(kind=C_CHAR), intent(in   ) :: MD_FileName_c(IntfStrLen)      ! Full path and name of the MoorDyn input file.
+   character(kind=C_CHAR), intent(in   ) :: KFC_FileName_c(IntfStrLen)     ! Full path and name of the KiteFAST controller shared object file.
+   character(kind=C_CHAR), intent(in   ) :: outFileRoot_c(IntfStrLen)      ! Full path and basename of the KiteFAST output file.
+   real(C_DOUBLE),         intent(in   ) :: gravity                        ! Scalar gravity constant.  (m/s^2)
+   real(C_DOUBLE),         intent(in   ) :: WindPt_c(3)                    ! Initial position of the ground station where the fixed wind measurement is taken, expressed in global coordinates. (m)
+   real(C_DOUBLE),         intent(in   ) :: FusODCM_c(9)                   ! Initial DCM matrix to transform the location of the Kite Fuselage reference point from global to kite coordinates.
+   integer(C_INT),         intent(in   ) :: numRtrPts_c                    ! Total number of rotor points (both wings).
+   real(C_DOUBLE),         intent(in   ) :: rtrPts_c(numRtrPts_c*3)                    ! Initial location of each rotor's reference point [RRP] in global coordinates. (m)
+   real(C_DOUBLE),         intent(in   ) :: rtrMass_c(numRtrPts_c)                   ! Mass of the rotor/drivetrain (kg)
+   real(C_DOUBLE),         intent(in   ) :: rtrI_Rot_c(numRtrPts_c)                  ! Rotational inertia about the shaft axis of the top and bottom rotors/drivetrains on the pylons on the wing meshes (kg·m2)
+   real(C_DOUBLE),         intent(in   ) :: rtrI_trans_c(numRtrPts_c)                ! Transverse inertia about the rotor reference point of the top and bottom rotors/drivetrains on the pylons on the wing meshes (kg·m2)
+   real(C_DOUBLE),         intent(in   ) :: rtrXcm_c(numRtrPts_c)                    ! Distance along the shaft from the rotor reference point of the top and bottom rotors/drivetrains on the pylons on the wing meshes to the center of mass of the rotor/drivetrain (positive along positive x) (m)
+   real(C_DOUBLE),         intent(in   ) :: refPts_c(numComp*3)                    ! Initial location of the MBDyn component reference points in the global coordinates. (m)  The length of this array comes from  numComp * 3.
+   integer(C_INT),         intent(in   ) :: numNodePts_c                   ! The total number of MBDyn structural nodes.  We need this total number (which could be derived from the numCompNds array) to size the following arrays in the Fortran code. 
+   real(C_DOUBLE),         intent(in   ) :: nodePts_c(numNodePts_c*3)                   ! Initial location of the MBDyn structural nodes in the global coordinates. (m)  The array is populated in the same order at the numCompNds array.
+   real(C_DOUBLE),         intent(in   ) :: nodeDCMs_c(numNodePts_c*9)                  ! Initial DCMs matrices to transform each nodal point from global to kite coordinates.
+   integer(C_INT),         intent(in   ) :: nFusOuts_c                     ! Number of user-requested output locations on the fuselage  ( 0-9 )
+   integer(C_INT),         intent(in   ) :: FusOutNd_c(nFusOuts_c)         ! Node number(s) (within the component) of the requested output locations.  Structural node index for motions and KiteAeroDyn quantities,  and Gauss point index for MBDyn structural loads
+   integer(C_INT),         intent(in   ) :: nSWnOuts_c                     ! Number of user-requested output locations on the starboard wing  ( 0-9 )
+   integer(C_INT),         intent(in   ) :: SWnOutNd_c(nSWnOuts_c)         ! Node number(s) (within the component) of the requested output locations.
+   integer(C_INT),         intent(in   ) :: nPWnOuts_c                     ! Number of user-requested output locations on the port wing  ( 0-9 )
+   integer(C_INT),         intent(in   ) :: PWnOutNd_c(nPWnOuts_c)         ! Node number(s) (within the component) of the requested output locations.
+   integer(C_INT),         intent(in   ) :: nVSOuts_c                      ! Number of user-requested output locations on the vertical stabilizer  ( 0-9 )
+   integer(C_INT),         intent(in   ) :: VSOutNd_c(nVSOuts_c)           ! Node number(s) (within the component) of the requested output locations.
+   integer(C_INT),         intent(in   ) :: nSHSOuts_c                     ! Number of user-requested output locations on the starboard horizontal stabilizer  ( 0-9 )
+   integer(C_INT),         intent(in   ) :: SHSOutNd_c(nSHSOuts_c)         ! Node number(s) (within the component) of the requested output locations.
+   integer(C_INT),         intent(in   ) :: nPHSOuts_c                     ! Number of user-requested output locations on the port horizontal stabilizer  ( 0-9 )
+   integer(C_INT),         intent(in   ) :: PHSOutNd_c(nPHSOuts_c)         ! Node number(s) (within the component) of the requested output locations.
+   integer(C_INT),         intent(in   ) :: nPylOuts_c                     ! Number of user-requested output locations on each pylon  ( 0-9 )
+   integer(C_INT),         intent(in   ) :: PylOutNd_c(nPylOuts_c)         ! Node number(s) (within the component) of the requested output locations.
+   integer(C_INT),         intent(in   ) :: numOutChan_c                   ! Number of user-requested output channel names
+   type(c_ptr)   ,target,  intent(in   ) :: chanlist_c(numOutChan_c)       ! Array of output channel names (strings)
+   integer(C_INT),         intent(  out) :: errStat_c                      ! Error code coming from KiteFAST
+   character(kind=C_CHAR), intent(  out) :: errMsg_c(IntfStrLen)           ! Error message
 
       ! Local variables
    real(DbKi)                      :: dt
@@ -2427,9 +2469,9 @@ contains
       c = c + 3
    end do
  
-   if ( (c-1) /= numRefPtElem_c ) then
+   if ( (c-1) /= numComp*3 ) then
       errStat = ErrID_FATAL
-      errMsg  = 'The transferred number of reference point elements,'//trim(num2lstr(c-1))//' ,did not match the expected number, '//trim(num2lstr(numRefPtElem_c))//'.'
+      errMsg  = 'The transferred number of reference point elements,'//trim(num2lstr(c-1))//' ,did not match the expected number, '//trim(num2lstr(numComp*3))//'.'
    end if
    
       ! Decode the nodal DCMs
@@ -2522,7 +2564,7 @@ contains
    ! TODO : Check ording of c data to make sure we get the expected global to local DCM
    m%FusODCM = reshape(FusODCM_c,(/3,3/))
    
-   call TransferMBDynInitInputs( WindPt_c, FusO, numNodePtElem_c, nodePts_c, numDCMElem_c, nodeDCMs_c, rtrPts_c, p, m, errStat2, errMsg2 )
+   call TransferMBDynInitInputs( WindPt_c, FusO, numNodePts_c, nodePts_c, nodeDCMs_c, rtrPts_c, p, m, errStat2, errMsg2 )
       call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
   
 !----------------------------------------------------------------
@@ -2613,45 +2655,51 @@ contains
                        
 end subroutine KFAST_Init
 
-subroutine KFAST_AssRes(t_c, isInitialTime_c, numRtSpdRtrElem_c, RtSpd_PyRtr_c, WindPt_c, FusO_prev_c, FusO_c, FusODCM_prev_c, FusODCM_c, FusOv_prev_c, FusOomegas_prev_c, FusOacc_prev_c, numNodePtElem_c, nodePts_c, &
-                          numNodeVelElem_c, nodeVels_c, numNodeOmegaElem_c, nodeOmegas_c, numNodeAccElem_c, nodeAccs_c, numDCMElem_c, nodeDCMs_c, numRtrPtsElem_c, rtrPts_c, &
-                          rtrVels_c, rtrDCMs_c, numNodeLoadsElem_c, nodeLoads_c, numRtrLoadsElem_c, rtrLoads_c, errStat_c, errMsg_c ) BIND (C, NAME='KFAST_AssRes')
+subroutine KFAST_AssRes(t_c, isInitialTime_c, WindPt_c, FusO_prev_c, FusO_c, FusODCM_prev_c, FusODCM_c, FusOv_prev_c, FusOv_c, FusOomegas_prev_c, FusOomegas_c, FusOacc_prev_c, FusOacc_c, FusOalphas_c, numNodePts_c, nodePts_c, &
+                          nodeDCMs_c, nodeVels_c, nodeOmegas_c, nodeAccs_c,  numRtrPts_c, rtrPts_c, &
+                          rtrDCMs_c, rtrVels_c, rtrOmegas_c, rtrAccs_c, rtrAlphas_c, nodeLoads_c, rtrLoads_c, errStat_c, errMsg_c ) BIND (C, NAME='KFAST_AssRes')
    IMPLICIT NONE
 
-   real(C_DOUBLE),         intent(in   ) :: t_c                               ! simulation time  (s)
-   integer(C_INT),         intent(in   ) :: isInitialTime_c                   ! Is this the initial time of the simulation 1=Yes, should we update the states? 0=yes, 1=no
-   integer(C_INT),         intent(in   ) :: numRtSpdRtrElem_c                 ! total number of array elements in the rotor rotor speeds array
-   real(C_DOUBLE),         intent(in   ) :: RtSpd_PyRtr_c(numRtSpdRtrElem_c)  ! 1D array containing all the rotor speeds for the kite 
-   real(C_DOUBLE),         intent(in   ) :: WindPt_c(3)                       ! The location of the ground station point where the freestream wind is measured [global coordinates] (m)
-   real(C_DOUBLE),         intent(in   ) :: FusO_prev_c(3)                    ! The location of the principal Kite reference point [global coordinates] at time t (m)
-   real(C_DOUBLE),         intent(in   ) :: FusO_c(3)                         ! The location of the principal Kite reference point [global coordinates] at time t+dt (m)
-   real(C_DOUBLE),         intent(in   ) :: FusODCM_prev_c(9)                 ! Principal reference point DCM (MIP of kite) at time t
-   real(C_DOUBLE),         intent(in   ) :: FusODCM_c(9)                      ! Principal reference point DCM (MIP of kite) at time t + dt
-   real(C_DOUBLE),         intent(in   ) :: FusOv_prev_c(3)                   ! Translational velocities at the principal reference point [global coordinates] at time t (m/s)
-   real(C_DOUBLE),         intent(in   ) :: FusOomegas_prev_c(3)              ! Angular velocities at the principal reference point [global coordinates] at time t (rad/s)
-   real(C_DOUBLE),         intent(in   ) :: FusOacc_prev_c(3)                 ! Accelerations at the principal reference point  [global coordinates] at time t (m/s^2)
-   integer(C_INT),         intent(in   ) :: numNodePtElem_c                   ! total number of array elements in the nodal points array
-   real(C_DOUBLE),         intent(in   ) :: nodePts_c(numNodePtElem_c)        ! 1D array containing all the nodal point coordinate data
-   integer(C_INT),         intent(in   ) :: numNodeVelElem_c                  ! total number of array elements in the nodal translational velocities array
-   real(C_DOUBLE),         intent(in   ) :: nodeVels_c(numNodeVelElem_c)      ! 1D array containing all the nodal translational velocities data
-   integer(C_INT),         intent(in   ) :: numNodeOmegaElem_c                ! total number of array elements in the nodal angular velocities array
-   real(C_DOUBLE),         intent(in   ) :: nodeOmegas_c(numNodeOmegaElem_c)  ! 1D array containing all the nodal angular velocities data
-   integer(C_INT),         intent(in   ) :: numNodeAccElem_c                  ! total number of array elements in the nodal translational accelerations array
-   real(C_DOUBLE),         intent(in   ) :: nodeAccs_c(numNodeAccElem_c)       ! 1D array containing all the nodal translational accelerations data
-   integer(C_INT),         intent(in   ) :: numDCMElem_c                      ! total number of array elements in the nodal DCM data
-   real(C_DOUBLE),         intent(in   ) :: nodeDCMs_c(numDCMElem_c)          ! 1D array containing all the nodal DCM data
-   integer(C_INT),         intent(in   ) :: numRtrPtsElem_c                   ! total number of rotor point elements
-   real(C_DOUBLE),         intent(in   ) :: rtrPts_c(numRtrPtsElem_c)         ! location of the rotor points
-   real(C_DOUBLE),         intent(in   ) :: rtrVels_c(numRtrPtsElem_c)        ! 1D array of the rotor point velocities in global coordinates (m/s)
-   real(C_DOUBLE),         intent(in   ) :: rtrDCMs_c(numRtrPtsElem_c*3)      ! 1D array of the rotor point DCMs
-   integer(C_INT),         intent(in   ) :: numNodeLoadsElem_c                ! total number of nodel point load elements
-   real(C_DOUBLE),         intent(  out) :: nodeLoads_c(numNodeLoadsElem_c)   ! 1D array of the nodal point loads
-   integer(C_INT),         intent(in   ) :: numRtrLoadsElem_c                 ! total number of rotor point load elements
-   real(C_DOUBLE),         intent(  out) :: rtrLoads_c(numRtrLoadsElem_c)     ! 1D array of the rotor point loads
-
-   integer(C_INT),         intent(  out) :: errStat_c      
-   character(kind=C_CHAR), intent(  out) :: errMsg_c(IntfStrLen)   
-
+   real(C_DOUBLE),         intent(in   ) :: t_c                    !  simulation time for the current timestep (s)
+   integer(C_INT),         intent(in   ) :: isInitialTime_c        !  1 = first time KFAST_AssRes has been called for this particular timestep, 0 = otherwise
+   real(C_DOUBLE),         intent(in   ) :: WindPt_c(3)            !  Position of the ground station where the fixed wind measurement is taken, expressed in global coordinates. (m)
+   real(C_DOUBLE),         intent(in   ) :: FusO_prev_c(3)         !  Previous timestep position of the Fuselage reference point, expressed in global coordinates. (m) 
+   real(C_DOUBLE),         intent(in   ) :: FusO_c(3)              !  Current  timestep position of the Fuselage reference point, expressed in global coordinates. (m) 
+   real(C_DOUBLE),         intent(in   ) :: FusODCM_prev_c(9)      !  Previous timestep DCM matrix to transform the location of the Fuselage reference point from global to kite coordinates.
+   real(C_DOUBLE),         intent(in   ) :: FusODCM_c(9)           !  Current  timestep DCM matrix to transform the location of the Fuselage reference point from global to kite coordinates.
+   real(C_DOUBLE),         intent(in   ) :: FusOv_prev_c(3)        !  Previous timestep velocity of the Fuselage reference point, expressed in global coordinates. (m/s) 
+   real(C_DOUBLE),         intent(in   ) :: FusOv_c(3)             !  Current timestep velocity of the Fuselage reference point, expressed in global coordinates. (m/s)
+   real(C_DOUBLE),         intent(in   ) :: FusOomegas_prev_c(3)   !  Previous timestep rotational velocity of the Fuselage reference point, expressed in global coordinates. (rad/s) 
+   real(C_DOUBLE),         intent(in   ) :: FusOomegas_c(3)        !  Current timestep rotational velocity of the Fuselage reference point, expressed in global coordinates. (rad/s) 
+   real(C_DOUBLE),         intent(in   ) :: FusOacc_prev_c(3)      !  Previous timestep translational acceleration of the Fuselage reference point, expressed in global coordinates. (m/s^2) 
+   real(C_DOUBLE),         intent(in   ) :: FusOacc_c(3)           !  Current timestep translational acceleration of the Fuselage reference point, expressed in global coordinates. (m/s^2) 
+   real(C_DOUBLE),         intent(in   ) :: FusOalphas_c(3)        !  Current timestep rotational acceleration of the Fuselage reference point, expressed in global coordinates. (rad/s^2) 
+   integer(C_INT),         intent(in   ) :: numNodePts_c           !  Total umber of MBDyn structural nodes. This must match what was sent during KFAST_Init, but is useful here for sizing Fortran arrays.
+   real(C_DOUBLE),         intent(in   ) :: nodePts_c(numNodePts_c*3)           !  Location of the MBDyn structural nodes for the current timestep, expressed in the global coordinates. (m)  
+                                                                   !     The array is populated in the following order: Fuselage, Starboard Wing, Port Wing, Vertical Stabilizer, 
+                                                                   !       Starboard Horizontal Stabilizer, Port Horizontal Stabilizer, Starboard pylon, from inner to outer, and then
+                                                                   !       Port pylon, from inner to outer.
+   real(C_DOUBLE),         intent(in   ) :: nodeDCMs_c(numNodePts_c*9)          !  DCMs matrices to transform each nodal point from global to kite coordinates.
+   real(C_DOUBLE),         intent(in   ) :: nodeVels_c(numNodePts_c*3)          !  Translational velocities of each nodal point in global coordinates. (m/s)
+   real(C_DOUBLE),         intent(in   ) :: nodeOmegas_c(numNodePts_c*3)        !  Rotational velocities of each nodal point in global coordinates. (rad/s)
+   real(C_DOUBLE),         intent(in   ) :: nodeAccs_c(numNodePts_c*3)          !  Translational accelerations of each nodal point in global coordinates. (m/s^2)
+   integer(C_INT),         intent(in   ) :: numRtrPts_c            !  Total number of rotor points.  This must match what was sent during KFAST_Init, but is used here for straigh-forward declaration of array sizes on the Fortran side.
+   real(C_DOUBLE),         intent(in   ) :: rtrPts_c(numRtrPts_c*3)            !  Location of each rotor's reference point [RRP] in global coordinates. (m)  The order of these points follows this sequence:
+                                                                   !     Start on starboard side moving from the inner pylon outward to the most outboard pylon.  Within a plyon, start with the top rotor and then the bottom rotor
+                                                                   !       then repeat this sequence for the port side.
+   real(C_DOUBLE),         intent(in   ) :: rtrDCMs_c(numRtrPts_c*9)           !  DCMs matrices to transform each RRP point from global to kite coordinates.
+   real(C_DOUBLE),         intent(in   ) :: rtrVels_c(numRtrPts_c*3)           !  Translational velocity of the nacelle (RRP) in global coordinates. (m/s)
+   real(C_DOUBLE),         intent(in   ) :: rtrOmegas_c(numRtrPts_c*3)         !  Rotational velocity of the nacelle (RRP) in global coordinates. (rad/s)
+   real(C_DOUBLE),         intent(in   ) :: rtrAccs_c(numRtrPts_c*3)           !  Translational accelerations of the nacelle (RRP) in global coordinates. (m/s^2)
+   real(C_DOUBLE),         intent(in   ) :: rtrAlphas_c(numRtrPts_c*3)         !  Rotational accelerations of the nacelle (RRP) in global coordinates. (rad/s^2)
+   real(C_DOUBLE),         intent(  out) :: nodeLoads_c(numNodePts_c*6)         !  KiteFAST loads (3 forces + 3 moments) in global coordinates ( N, N-m ) at the MBDyn structural nodes.  Sequence follows the pattern used for MBDyn structural node array.  Returned from KiteFAST to MBDyn.
+   real(C_DOUBLE),         intent(  out) :: rtrLoads_c(numRtrPts_c*6)          !  Concentrated reaction loads at the nacelles on the pylons at the RRPs in global coordinates.  Length is 6 loads per rotor * number of RRPs. Returned from KiteFAST to MBDyn.
+   integer(C_INT),         intent(  out) :: errStat_c              !  Error code coming from KiteFAST
+   character(kind=C_CHAR), intent(  out) :: errMsg_c(IntfStrLen)   !  Error message
+   
+   
+   ! Local variables
+   
    integer(IntKi)           :: n, c, i, j                     ! counters
    integer(IntKi)           :: isInitialTime                  ! Is this the initial time of the simulation 1=Yes, should we update the states? 0=yes, 1=no
    real(DbKi)               :: t                              ! simulations time (s)
@@ -2692,7 +2740,7 @@ subroutine KFAST_AssRes(t_c, isInitialTime_c, numRtSpdRtrElem_c, RtSpd_PyRtr_c, 
       ! Transfer C-based nodal and rotor quantities into Fortran-based data structures (and the MBD motion meshes)
       !   The resulting data resides inside the MiscVars data structure (m)
 
-   call TransferMBDynInputs( m%FusO, numNodePtElem_c, nodePts_c, numNodeVelElem_c, nodeVels_c, numNodeOmegaElem_c, nodeOmegas_c, numNodeAccElem_c, nodeAccs_c, numDCMElem_c, nodeDCMs_c, rtrPts_c, rtrVels_c, rtrDCMs_c, p, m, errStat2, errMsg2 )
+   call TransferMBDynInputs( m%FusO, numNodePts_c, nodePts_c, nodeVels_c, nodeOmegas_c, nodeAccs_c, nodeDCMs_c, rtrPts_c, rtrVels_c, rtrDCMs_c, p, m, errStat2, errMsg2 )
          call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
          if (errStat >= AbortErrLev ) then
             call TransferErrors(errStat, errMsg, errStat_c, errMsg_c)
@@ -2714,7 +2762,7 @@ subroutine KFAST_AssRes(t_c, isInitialTime_c, numRtSpdRtrElem_c, RtSpd_PyRtr_c, 
       ! The inputs to InflowWind are the positions where wind velocities [the outputs] are to be computed.  These inputs are set above by
       !  the TransferMBDynInputs() call.
    if ( p%useIfW ) then
-      call TransferMBDynToIfW( WindPt_c, m%FusO, numNodePtElem_c, nodePts_c, rtrPts_c, p, m, errStat2, errMsg2 )
+      call TransferMBDynToIfW( WindPt_c, m%FusO, numNodePts_c, nodePts_c, rtrPts_c, p, m, errStat2, errMsg2 )
          call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
          if (errStat >= AbortErrLev ) then
             call TransferErrors(errStat, errMsg, errStat_c, errMsg_c)
@@ -2755,9 +2803,10 @@ subroutine KFAST_AssRes(t_c, isInitialTime_c, numRtSpdRtrElem_c, RtSpd_PyRtr_c, 
             m%KFC%u%apparent_wind = m%IfW_FusO_prev - FusOv_prev
          end if
          m%KFC%u%apparent_wind = matmul(p%DCM_Fast2Ctrl, m%KFC%u%apparent_wind)
-        ! m%KFC%u%tether_forceb  = 0 
+         m%KFC%u%tether_forceb  = 0 
          m%KFC%u%wind_g        = matmul(p%DCM_Fast2Ctrl, m%IfW_ground_prev)
-      
+         m%KFC%u%SPyAeroTorque   = 0
+         m%KFC%u%PPyAeroTorque   = 0
          call KFC_Step(utimes(1), m%KFC%u, m%KFC%p, m%KFC%y, errStat2, errMsg2 )
             call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
          if (errStat >= AbortErrLev ) then
@@ -2867,18 +2916,18 @@ subroutine KFAST_AssRes(t_c, isInitialTime_c, numRtSpdRtrElem_c, RtSpd_PyRtr_c, 
       m%KAD%u(1)%Pitch_SPyRtr = 0.0_ReKi   ! Controller does not set these, yet.
       m%KAD%u(1)%Pitch_PPyRtr = 0.0_ReKi
    
-         ! Rotor Speeds from MBDyn  [2 per pylon]
+         ! Rotor/Nacelle quanties from MBDyn  [2 per pylon]
       c = 1
-      do i = 1, p%numPylons ! [moving from inboard to outboard]
-         m%KAD%u(1)%RtSpd_SPyRtr(1,i) = RtSpd_PyRtr_c(c)    ! top
-         m%KAD%u(1)%RtSpd_SPyRtr(2,i) = RtSpd_PyRtr_c(c+1)  ! bottom
-         c = c+2
-      end do
-      do i = 1, p%numPylons   ! [moving from inboard to outboard]
-         m%KAD%u(1)%RtSpd_PPyRtr(1,i) = RtSpd_PyRtr_c(c)    ! top
-         m%KAD%u(1)%RtSpd_PPyRtr(2,i) = RtSpd_PyRtr_c(c+1)  ! bottom
-         c = c+2
-      end do
+      !do i = 1, p%numPylons ! [moving from inboard to outboard]
+      !   m%KAD%u(1)%RtSpd_SPyRtr(1,i) = RtSpd_PyRtr_c(c)    ! top
+      !   m%KAD%u(1)%RtSpd_SPyRtr(2,i) = RtSpd_PyRtr_c(c+1)  ! bottom
+      !   c = c+2
+      !end do
+      !do i = 1, p%numPylons   ! [moving from inboard to outboard]
+      !   m%KAD%u(1)%RtSpd_PPyRtr(1,i) = RtSpd_PyRtr_c(c)    ! top
+      !   m%KAD%u(1)%RtSpd_PPyRtr(2,i) = RtSpd_PyRtr_c(c+1)  ! bottom
+      !   c = c+2
+      !end do
    
    
       if ( p%useIfW ) then

@@ -161,7 +161,7 @@
 		<Filter Name="Aero">
 		<Filter Name="AeroDyn">
 		<Filter Name="RegistryFiles">
-		<File RelativePath="..\..\modules-local\airfoilinfo\src\AirfoilInfo_Registry.txt">
+		<File RelativePath="..\..\modules-local\aerodyn\src\AirfoilInfo_Registry.txt">
 			<FileConfiguration Name="Debug_Double|Win32">
 				<Tool Name="VFCustomBuildTool" CommandLine="CALL ..\RunRegistry.bat AFI" Description="Running Registry for AirfoilInfo" Outputs="..\..\build\types-files\AirfoilInfo_Types.f90"/></FileConfiguration>
 			<FileConfiguration Name="Release_Double|Win32">
@@ -187,7 +187,7 @@
 			<FileConfiguration Name="Release_Matlab|Win32">
 				<Tool Name="VFCustomBuildTool" CommandLine="CALL ..\RunRegistry.bat AFI" Description="Running Registry for AirfoilInfo" Outputs="..\..\build\types-files\AirfoilInfo_Types.f90"/></FileConfiguration></File>
 		<File RelativePath="..\..\build\types-files\AirfoilInfo_Types.f90"/></Filter>
-		<File RelativePath="..\..\modules-local\airfoilinfo\src\AirfoilInfo.f90"/></Filter>
+		<File RelativePath="..\..\modules-local\aerodyn\src\AirfoilInfo.f90"/></Filter>
 		<Filter Name="InflowWind">
 		<Filter Name="RegistryFiles">
 		<File RelativePath="..\..\modules-local\inflowwind\src\IfW_4Dext.txt">

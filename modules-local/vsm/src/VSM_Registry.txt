@@ -103,7 +103,7 @@ typedef   ^    ^                  ReKi                VSMPerturb      -         
 typedef   ^    ^                  IntKi               AFTabMod        -         -    -    "Airfoil table interpolation model (-) (switch) {1:1D on AoA, 2:2D on AoA and Re, 3:2D on AoA and Ctrl}" -
 typedef   ^    ^                  IntKi               NumElem         -         -    -    "Number of elements" -
 typedef   ^    ^                  ReKi                Chords          {:}       -    -    "Element chords" m
-typedef   ^    ^                  IntKi               AFIDs           {:}       -    -    "Slement airfoil id number" -
+typedef   ^    ^                  IntKi               AFIDs           {:}       -    -    "Element airfoil id number" -
 typedef   ^    ^                  AFI_ParameterType   AFInfo          {:}       -    -    "Airfoil information parameters"
 typedef   ^    ^                  ReKi                ElemLens        {:}       -    -    "Element lengths" m
 typedef   ^    ^                  IntKi               NumVolElem      -         -    -    "Number of drag body elements used [these must always be placed at the beginning of the elements arrays]" -

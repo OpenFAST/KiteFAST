@@ -36,10 +36,12 @@ int main(int argc, char *argv[])
     double *pWindPt;
     double *pFusODCM;
     double *pFusODCM_prev;
+    int numRtrPts;
     int numRtrPtsElem;
     double *pRtrPts;
     int numRefPtElem;
     double *pRefPts;
+    int numNodePts;
     int numNodePtElem;
     double *pNodePts;
     int numDCMElem;
@@ -55,17 +57,29 @@ int main(int argc, char *argv[])
     double *pFusOv_prev;
     double *pFusOomegas_prev;
     double *pFusOacc_prev;
+    double *pFusOalphas;
+    double *pFusOv;
+    double *pFusOomegas;
+    double *pFusOacc;
     double *pNodeVels;
     double *pNodeOmegas;
     double *pNodeAccs;
     int    *pModFlags;
     double *pRtrVels;
     double *pRtrDCMs;
+    double *pRtrMass;
+    double *pRtrI_Rot;
+    double *pRtrI_Trans;
+    double *pRtrXcm;
+    double *pRtrOmegas;
+    double *pRtrAccs;
+    double *pRtrAlphas;
     int numNodeLoadsElem;
     double *pNodeLoads;
     int numRtrLoadsElem;
     double *pRtrLoads;
     double *pKiteOffset;
+    int numGaussLoadPts;
     int numGaussPtLoadsElem;
     double *pGaussPtLoads;
 
@@ -89,7 +103,7 @@ int main(int argc, char *argv[])
     char* outChanList[] = { "Fus1TDx   ", "Fus1TDy   ", "Fus1TDz   ", "SWn1TDx   ", "SWn1TDy   ", "SWn1TDz   ", "PP12FRc   " };
 
 
-   // Set module flags 0 = off, 1=on
+    // Set module flags 0 = off, 1=on
     pModFlags = (int *)malloc(4*sizeof(int));
     pModFlags[0] = 1;  // use KAD module
     pModFlags[1] = 1;  // use InflowWind module
@@ -97,7 +111,7 @@ int main(int argc, char *argv[])
     pModFlags[3] = 0;  // no KiteFAST controller
 
     // Set input file names
-    strcpy(KAD_FileName, "D:\\DEV\\makani\\google-repo\\nrel_source\\glue-codes\\kitefast\\m000\\simple_m000_model_AD.txt");
+    strcpy(KAD_FileName, "D:\\DEV\\makani\\kitefast_models\\simple_m000_model_AD.txt");
     strcpy(IfW_FileName, "D:\\DEV\\makani\\kitefast_models\\kiteInflowWind.dat");
     strcpy(MD_FileName , "D:\\DEV\\makani\\kitefast_models\\kiteTether.dat");
     strcpy(KFC_FileName, "D:\\DEV\\makani\\kitefast_models\\libkitefastcontroller_controller.so");
@@ -135,7 +149,7 @@ int main(int argc, char *argv[])
     pFusODCM[7] =  0.0;
     pFusODCM[8] =  -1.0;
 
-    // Offset of kit in global coordinates (m)
+    // Offset of kite in global coordinates (m)
     // This offset needs to be added to all the reference points.
 
     pKiteOffset = (double *)malloc(3 * sizeof(double));
@@ -143,12 +157,20 @@ int main(int argc, char *argv[])
     pKiteOffset[1] = 0.0;
     pKiteOffset[2] = 100.0;
 
-    // Rotor points
-    numRtrPtsElem = numPylons * 4 * 3;
-    pRtrPts = (double *)malloc(numRtrPtsElem * sizeof(double));
-    pRtrVels = (double *)malloc(numRtrPtsElem * sizeof(double));
-    pRtrDCMs = (double *)malloc(numRtrPtsElem * 3 * sizeof(double));
-    
+    // Rotor reference points and associated nacelle quantities
+    numRtrPts     = numPylons * 4;
+    numRtrPtsElem = numRtrPts * 3;
+    pRtrPts     = (double *)malloc(numRtrPtsElem * sizeof(double));
+    pRtrVels    = (double *)malloc(numRtrPtsElem * sizeof(double));
+    pRtrOmegas  = (double *)malloc(numRtrPtsElem * sizeof(double));
+    pRtrAccs    = (double *)malloc(numRtrPtsElem * sizeof(double));
+    pRtrAlphas  = (double *)malloc(numRtrPtsElem * sizeof(double));
+    pRtrDCMs    = (double *)malloc(numRtrPtsElem * 3 * sizeof(double));
+    pRtrMass    = (double *)malloc(numRtrPts     * sizeof(double));
+    pRtrI_Rot   = (double *)malloc(numRtrPts     * sizeof(double));
+    pRtrI_Trans = (double *)malloc(numRtrPts     * sizeof(double));
+    pRtrXcm     = (double *)malloc(numRtrPts     * sizeof(double));
+
     numRtrLoadsElem = numRtrPtsElem*2;
     pRtrLoads = (double *)malloc(numRtrLoadsElem * sizeof(double));
 
@@ -185,7 +207,14 @@ int main(int argc, char *argv[])
     //pRtrPts[22] = -3.639 + pKiteOffset[1];
     //pRtrPts[23] = -1.593 + pKiteOffset[2];
 
-
+    //Set all the rotor masses and inertias and CM offsets
+    for (i = 0; i < numRtrPts; i++)
+    {
+       pRtrMass[i]  = 20.0;
+       pRtrI_Rot[i] = 200.0;
+       pRtrI_Trans[i] = 15.0;
+       pRtrXcm[i] = 0.1;
+    }
 
     // Reference points  specified in the Kite Coordinate System
     numRefPtElem = numComp * 3;
@@ -257,14 +286,19 @@ int main(int argc, char *argv[])
 
     // nodal DCMs
     numDCMElem = 0;
+    numNodePts = 0;
     numNodePtElem = 0;
     numGaussPtLoadsElem = 0;
+
     for (i = 0; i < numComp; i++) 
     {
         numDCMElem          = numDCMElem + 9 * pNumCompNds[i];
+        numNodePts          = numNodePts + pNumCompNds[i];
         numNodePtElem       = numNodePtElem + 3 * pNumCompNds[i];
         numGaussPtLoadsElem = numGaussPtLoadsElem + 6 * (pNumCompNds[i] - 1);
     }
+    numGaussLoadPts = numGaussPtLoadsElem / 6;
+
     pNodeDCMs = (double *)malloc(numDCMElem * sizeof(double));
     pNodePts  = (double *)malloc(numNodePtElem * sizeof(double));
     numNodeLoadsElem = numNodePtElem*2;
@@ -407,9 +441,9 @@ int main(int argc, char *argv[])
 
     // This is called as part of the user module constructor
     KFAST_Init(&dt, &numFlaps, &numPylons, &numComp, pNumCompNds, pModFlags, KAD_FileName, IfW_FileName, MD_FileName, KFC_FileName, outFileRoot, &gravity, pWindPt,
-       pFusODCM, &numRtrPtsElem, pRtrPts, &numRefPtElem, pRefPts, &numNodePtElem, pNodePts, &numDCMElem, pNodeDCMs, 
+       pFusODCM, &numRtrPts, pRtrPts, pRtrMass, pRtrI_Rot, pRtrI_Trans, pRtrXcm, pRefPts, &numNodePts, pNodePts, pNodeDCMs,
        &nFusOuts, FusOutNd, &nSWnOuts, SWnOutNd, &nPWnOuts, PWnOutNd, &nVSOuts, VSOutNd, &nSHSOuts, SHSOutNd, &nPHSOuts, PHSOutNd, &nPylOuts, PylOutNd, &numOutChan, outChanList, &errStat, errMsg);
-    
+
     if (errStat != 0)
     {
         printf("%s\n", errMsg);
@@ -474,9 +508,18 @@ int main(int argc, char *argv[])
     // Need to set rotor point velocities and orientations
     for (n = 0; n < numRtrPtsElem; n=n+3)
     {
-        pRtrVels[n]     = -50.0;
-        pRtrVels[n + 1] =   0.0;
-        pRtrVels[n + 2] =   0.0;
+        pRtrVels[n*3]     = -50.0;
+        pRtrVels[n * 3 + 1] = 0.0;
+        pRtrVels[n * 3 + 2] = 0.0;
+        pRtrOmegas[n * 3] = 0.0;
+        pRtrOmegas[n * 3 + 1] = 0.0;
+        pRtrOmegas[n * 3 + 2] = 0.0;
+        pRtrAccs[n * 3] = 0.0;
+        pRtrAccs[n * 3 + 1] = 0.0;
+        pRtrAccs[n * 3 + 2] = 0.0;
+        pRtrAlphas[n * 3] = 0.0;
+        pRtrAlphas[n * 3 + 1] = 0.0;
+        pRtrAlphas[n * 3 + 2] = 0.0;
     }
 
     for (i = 0; i < numDCMElem; i = i + 9)
@@ -494,11 +537,13 @@ int main(int argc, char *argv[])
 
     // This returns the loads from KiteFAST at the initial time
     isInitialTime = 1;  // we do not advance the states for the first call to KFAST_AssRes(), we only want to compute the output loads
-    KFAST_AssRes(&t, &isInitialTime, &numRtSpdRtrElem, pRtSpd_PyRtr, pWindPt, pFusO_prev, pFusO, pFusODCM_prev, pFusODCM, pFusOv_prev,
-                    pFusOomegas_prev, pFusOacc_prev, &numNodePtElem, pNodePts,
-                    &numNodePtElem, pNodeVels, &numNodePtElem, pNodeOmegas, &numNodePtElem, pNodeAccs,
-                    &numDCMElem, pNodeDCMs, &numRtrPtsElem, pRtrPts, pRtrVels, pRtrDCMs, 
-                    &numNodeLoadsElem, pNodeLoads, &numRtrLoadsElem, pRtrLoads, & errStat, errMsg);
+    KFAST_AssRes(&t, &isInitialTime, pWindPt, pFusO_prev, pFusO, pFusODCM_prev, pFusODCM, pFusOv_prev, pFusOv, 
+       pFusOomegas_prev, pFusOomegas, pFusOacc_prev, pFusOacc, pFusOalphas, &numNodePts, pNodePts, pNodeDCMs,
+                    pNodeVels, pNodeOmegas, pNodeAccs,
+                    &numRtrPts, pRtrPts, pRtrDCMs, pRtrVels, pRtrOmegas, pRtrAccs, pRtrAlphas,
+                    pNodeLoads, pRtrLoads, &errStat, errMsg);
+
+
     for (n = 0; n < numNodeLoadsElem; n = n + 6)
     {
         if (fabs(pNodeLoads[n ]) > 0 || fabs(pNodeLoads[n  + 1]) > 0 || fabs(pNodeLoads[n + 2]) > 0 || fabs(pNodeLoads[n +3]) > 0 || fabs(pNodeLoads[n  + 4]) > 0 || fabs(pNodeLoads[n  + 5]) > 0)
@@ -521,7 +566,7 @@ int main(int argc, char *argv[])
        pGaussPtLoads[n+5] = 6.0;
     }
     // Output()
-    KFAST_Output(&t, &numGaussPtLoadsElem, pGaussPtLoads, &errStat, errMsg);
+    KFAST_Output(&t, &numGaussLoadPts, pGaussPtLoads, &errStat, errMsg);
     if (errStat != 0)
     {
         printf("%s\n", errMsg);
@@ -543,11 +588,12 @@ int main(int argc, char *argv[])
         // For now we will simulate constant positions, velocities, and accelerations
 
         // AssRes()
-        KFAST_AssRes(&t, &isInitialTime, &numRtSpdRtrElem, pRtSpd_PyRtr, pWindPt, pFusO_prev, pFusO, pFusODCM_prev, pFusODCM, pFusOv_prev,
-            pFusOomegas_prev, pFusOacc_prev, &numNodePtElem, pNodePts,
-            &numNodePtElem, pNodeVels, &numNodePtElem, pNodeOmegas, &numNodePtElem, pNodeAccs,
-            &numDCMElem, pNodeDCMs, &numRtrPtsElem, pRtrPts, pRtrVels, pRtrDCMs, 
-            &numNodeLoadsElem, pNodeLoads, &numRtrLoadsElem, pRtrLoads, &errStat, errMsg);
+        KFAST_AssRes(&t, &isInitialTime, pWindPt, pFusO_prev, pFusO, pFusODCM_prev, pFusODCM, pFusOv_prev, pFusOv,
+           pFusOomegas_prev, pFusOomegas, pFusOacc_prev, pFusOacc, pFusOalphas, &numNodePts, pNodePts, pNodeDCMs,
+           pNodeVels, pNodeOmegas, pNodeAccs,
+           &numRtrPts, pRtrPts, pRtrDCMs, pRtrVels, pRtrOmegas, pRtrAccs, pRtrAlphas,
+           pNodeLoads, pRtrLoads, &errStat, errMsg);
+           
         if (errStat != 0)
         {
             printf("%s\n", errMsg);

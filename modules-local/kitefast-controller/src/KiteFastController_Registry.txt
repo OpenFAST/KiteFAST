@@ -47,13 +47,17 @@ typedef   ^                 ^                     ReKi            rho           
 typedef   ^                 ^                     ReKi            apparent_wind  {3}      -       - "relative wind velocity at the fuselage reference point expressed in the controller ground system" m/s
 typedef   ^                 ^                     ReKi            tether_forceb  {3}      -       - "tether tension at bridle connection in the kite body system" N
 typedef   ^                 ^                     ReKi            wind_g         {3}      -       - "wind velocity at the ground station point expressed in the controller ground system" m/s
+typedef   ^                 ^                     ReKi            SPyAeroTorque  {:}{:}   -       - "2 by numPylons matrix - Starboard rotor aerodynamic torques" N-m
+typedef   ^                 ^                     ReKi            PPyAeroTorque  {:}{:}   -       - "2 by numPylons matrix - Port rotor aerodynamic torques" N-m
 # ..... Outputs ...................................................................................................................
-typedef  ^                  OutputType            ReKi            SFlp           {3}      -       - "Starboard flap angles [kFlapA5, kFlapA7, kFlapA8] " rad 
-typedef  ^                  ^                     ReKi            PFlp           {3}      -       - "Port flap angles [kFlapA4, kFlapA2, kFlapA1]" rad 
-typedef  ^                  ^                     ReKi            Rudr           {2}      -       - "Rudder flap angles [kFlapA10,kFlapA10]" rad 
-typedef  ^                  ^                     ReKi            SElv           {2}      -       - "Starboard elevator flap angles [kFlapA9,kFlapA9]" rad 
-typedef  ^                  ^                     ReKi            PElv           {2}      -       - "Port elevator flap angles [kFlapA9,kFlapA9]" rad 
-typedef  ^                  ^                     ReKi            SPyRtrSpd      {2}{2}   -       - "2x2 matrix - Starboard rotor speeds from controller" rad/s 
-typedef  ^                  ^                     ReKi            PPyRtrSpd      {2}{2}   -       - "2x2 matrix - Port rotor speeds from controller" rad/s
-typedef  ^                  ^                     ReKi            SPyRtrAcc      {2}{2}   -       - "2x2 matrix - Starboard rotor acceleration from controller" rad/s^2 
-typedef  ^                  ^                     ReKi            PPyRtrAcc      {2}{2}   -       - "2x2 matrix - Port rotor acceleration from controller" rad/s^2 
+typedef  ^                  OutputType            ReKi            SFlp           {3}      -       - "Starboard flap angles [kFlapA5, kFlapA7, kFlapA8] " rad
+typedef  ^                  ^                     ReKi            PFlp           {3}      -       - "Port flap angles [kFlapA4, kFlapA2, kFlapA1]" rad
+typedef  ^                  ^                     ReKi            Rudr           {2}      -       - "Rudder flap angles [kFlapA10,kFlapA10]" rad
+typedef  ^                  ^                     ReKi            SElv           {2}      -       - "Starboard elevator flap angles [kFlapA9,kFlapA9]" rad
+typedef  ^                  ^                     ReKi            PElv           {2}      -       - "Port elevator flap angles [kFlapA9,kFlapA9]" rad
+typedef  ^                  ^                     ReKi            SPyRtrSpd      {:}{:}   -       - "2 by numPylons matrix - Starboard rotor speeds from controller" rad/s
+typedef  ^                  ^                     ReKi            PPyRtrSpd      {:}{:}   -       - "2 by numPylons matrix - Port rotor speeds from controller" rad/s
+typedef  ^                  ^                     ReKi            SPyRtrAcc      {:}{:}   -       - "2 by numPylons matrix - Starboard rotor acceleration from controller" rad/s^2
+typedef  ^                  ^                     ReKi            PPyRtrAcc      {:}{:}   -       - "2 by numPylons matrix - Port rotor acceleration from controller" rad/s^2
+typedef  ^                  ^                     ReKi            SPyGenTorque   {:}{:}   -       - "2 by numPylons matrix - Torques from the starboard generators" N-m
+typedef  ^                  ^                     ReKi            PPyGenTorque   {:}{:}   -       - "2 by numPylons matrix - Port rotor acceleration from controller" rad/s^2
