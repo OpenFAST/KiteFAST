@@ -112,15 +112,18 @@ module KiteFastController
   
    end subroutine KFC_End
 
-   subroutine KFC_Init(InitInp, p, InitOut, interval, errStat, errMsg )
-      type(KFC_InitInputType),      intent(in   )  :: InitInp     !< Input data for initialization routine
-      type(KFC_ParameterType),      intent(  out)  :: p           !< Parameters
-      type(KFC_InitOutputType),     intent(  out)  :: InitOut     !< Initialization output data
-      real(DbKi),                   intent(inout)  :: interval    !< Timestep size requested by caller, returned is the Controller's required timestep
-      integer(IntKi),               intent(  out)  :: errStat     !< Error status of the operation
-      character(1024),              intent(  out)  :: errMsg      !< Error message if ErrStat /= ErrID_None
+   subroutine KFC_Init(InitInp, u, p, y, interval, InitOut, errStat, errMsg )
 
-   
+      type(KFC_InitInputType),      intent(in   )  :: InitInp     !< Input data for initialization routine
+      type(KFC_InputType),          intent(inout)  :: u           !< An initial guess for the input
+      type(KFC_ParameterType),      intent(  out)  :: p           !< Parameters
+      type(KFC_OutputType),         intent(  out)  :: y           !< Initial system outputs 
+      real(DbKi),                   intent(inout)  :: interval    !< Coupling interval in seconds: 
+                                                                  !<   Input is the timestep size requested by caller, returned is the Controller's required timestep
+      type(KFC_InitOutputType),     intent(  out)  :: InitOut     !< Output for initialization routine
+      integer(IntKi),               intent(  out)  :: errStat     !< Error status of the operation
+      character(*),                 intent(  out)  :: errMsg      !< Error message if errStat /= ErrID_None
+ 
          ! local variables
       character(*), parameter                 :: routineName = 'KFC_Init'
       integer(IntKi)                          :: errStat2                     ! The error status code
@@ -136,15 +139,16 @@ module KiteFastController
       call DispNVD( KFC_Ver )  ! Display the version of this interface
       
          ! Check that key Kite model components match the requirements of this controller interface.
-      if (InitInp%numFlaps /= 3) call SetErrStat( ErrID_Fatal, 'The current KiteFAST controller interface requires numFlaps = 3', errStat, errMsg, routineName )
-      if (InitInp%numPylons /= 2) call SetErrStat( ErrID_Fatal, 'The current KiteFAST controller interface requires numPylons = 2', errStat, errMsg, routineName )
-      if (.not. EqualRealNos(interval, 0.01_DbKi)) call SetErrStat( ErrID_Fatal, 'The current KiteFAST controller interface requires DT = 0.01 seconds', errStat, errMsg, routineName )
-         if (errStat >= AbortErrLev ) return
-         
-      p%numFlaps  = InitInp%numFlaps
-      p%numPylons = InitInp%numPylons
-      p%DT        = interval
-
+      !=============================================================================================
+      ! NOTE: GJH: Perhaps a better design is to let the actual controller (shared object) determine if numFlaps and numPylons and interval are acceptable
+      !
+      !if (InitInp%numFlaps /= 3) call SetErrStat( ErrID_Fatal, 'The current KiteFAST controller interface requires numFlaps = 3', errStat, errMsg, routineName )
+      !if (InitInp%numPylons /= 2) call SetErrStat( ErrID_Fatal, 'The current KiteFAST controller interface requires numPylons = 2', errStat, errMsg, routineName )
+      !if (.not. EqualRealNos(interval, 0.01_DbKi)) call SetErrStat( ErrID_Fatal, 'The current KiteFAST controller interface requires DT = 0.01 seconds', errStat, errMsg, routineName )
+      !   if (errStat >= AbortErrLev ) return
+      !=============================================================================================  
+      
+     
          ! Define and load the DLL:
       p%DLL_Trgt%FileName = InitInp%DLL_FileName
 
@@ -157,17 +161,56 @@ module KiteFastController
          call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
       if (errStat >= AbortErrLev ) return
 
-         ! Now that the library is loaded, call cc_init() 
+      ! Now that the library is loaded, call the controller's kfc_dll_init routine
 
          ! Call the DLL (first associate the address from the procedure in the DLL with the subroutine):
       call C_F_PROCPOINTER( p%DLL_Trgt%ProcAddr(1), DLL_KFC_Init_Subroutine) 
+      
+! TODO: jjonkman's plan doc assumes that the initial outputs are returned by KFC_Init(), but we aren't doing that here.  GJH 12/19/18
+         ! Can we modify the following to send the controller numFlaps, numPylons, and interval and let the controller throw an error and/or change interval as needed? GJH 12/19/18
+      ! also add Irot for each rotor.
       call DLL_KFC_Init_Subroutine ( errStat, errMsg_c ) 
+      
       call c_to_fortran_string(errMsg_c, errMsg)
       print *, " KFC_Init errStat - ", errStat, " errMsg - ", trim(errMsg)
       ! TODO: Check errors
       print *, " debug marker - pre errStat >= Abort"
       if (errStat >= AbortErrLev ) return
       print *, " debug marker - post errStat >= Abort"
+      
+         ! Set the module's parameters
+      p%numFlaps  = InitInp%numFlaps
+      p%numPylons = InitInp%numPylons
+      p%DT        = interval
+
+         ! allocate the inputs and outputs
+      call AllocAry( u%SPyAeroTorque, 2, p%numPylons, 'u%SPyAeroTorque', errStat2, errMsg2 )
+         call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
+      call AllocAry( u%PPyAeroTorque, 2, p%numPylons, 'u%PPyAeroTorque', errStat2, errMsg2 )
+         call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
+      call AllocAry( y%SPyGenTorque,  2, p%numPylons, 'y%SPyGenTorque',  errStat2, errMsg2 )
+         call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
+      call AllocAry( y%PPyGenTorque,  2, p%numPylons, 'y%PPyGenTorque',  errStat2, errMsg2 )
+         call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )   
+      call AllocAry( y%SPyRtrSpd,     2, p%numPylons, 'y%SPyRtrSpd',     errStat2, errMsg2 )
+         call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
+      call AllocAry( y%PPyRtrSpd,     2, p%numPylons, 'y%PPyRtrSpd',     errStat2, errMsg2 )
+         call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )  
+      call AllocAry( y%SPyBldPitch,   2, p%numPylons, 'y%SPyBldPitch',   errStat2, errMsg2 )
+         call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
+      call AllocAry( y%PPyBldPitch,   2, p%numPylons, 'y%PPyBldPitch',   errStat2, errMsg2 )
+         call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )   
+         
+      if (errStat >= AbortErrLev ) return
+      
+        ! Set outputs to zero for now
+      y%SPyGenTorque = 0.0_ReKi
+      y%PPyGenTorque = 0.0_ReKi
+      y%SPyRtrSpd    = 0.0_ReKi
+      y%PPyRtrSpd    = 0.0_ReKi
+      y%SPyBldPitch  = 0.0_ReKi
+      y%PPyBldPitch  = 0.0_ReKi
+      
    end subroutine KFC_Init
 
    subroutine KFC_Step(t, u, p, y, errStat, errMsg )
@@ -213,7 +256,7 @@ module KiteFastController
       Ab_c            = u%Ab
       rho_c           = u%rho
       apparent_wind_c = u%apparent_wind
-      !tether_forceb_c  = u%tether_forceb
+      tether_forceb_c = u%tether_forceb
       wind_g_c        = u%wind_g
 
 
@@ -234,24 +277,38 @@ module KiteFastController
       y%Rudr(:) = kFlapA_c(10)
       y%SElv(:) = kFlapA_c(9)
       y%PElv(:) = kFlapA_c(9)   
-      y%SPyRtrSpd(1,1) = Motor_c(7)  ! starboard top rotor, pylon 1 (inboard)
-      y%SPyRtrSpd(2,1) = Motor_c(2)  ! starboard bottom rotor, pylon 1 (inboard)
-      y%SPyRtrSpd(1,2) = Motor_c(8)  ! starboard top rotor, pylon 2 (outboard)
-      y%SPyRtrSpd(2,2) = Motor_c(1)  ! starboard bottom rotor, pylon 2 (outboard)
-      y%PPyRtrSpd(1,1) = Motor_c(6)  ! port top rotor, pylon 1 (inboard)
-      y%PPyRtrSpd(2,1) = Motor_c(3)  ! port bottom rotor, pylon 1 (inboard)
-      y%PPyRtrSpd(1,2) = Motor_c(5)  ! port top rotor, pylon 2 (outboard)
-      y%PPyRtrSpd(2,2) = Motor_c(4)  ! port bottom rotor, pylon 2 (outboard)
+      
+      y%SPyGenTorque(1,1) = Motor_c(7)  ! starboard top rotor, pylon 1 (inboard)
+      y%SPyGenTorque(2,1) = Motor_c(2)  ! starboard bottom rotor, pylon 1 (inboard)
+      y%SPyGenTorque(1,2) = Motor_c(8)  ! starboard top rotor, pylon 2 (outboard)
+      y%SPyGenTorque(2,2) = Motor_c(1)  ! starboard bottom rotor, pylon 2 (outboard)
+      y%PPyGenTorque(1,1) = Motor_c(6)  ! port top rotor, pylon 1 (inboard)
+      y%PPyGenTorque(2,1) = Motor_c(3)  ! port bottom rotor, pylon 1 (inboard)
+      y%PPyGenTorque(1,2) = Motor_c(5)  ! port top rotor, pylon 2 (outboard)
+      y%PPyGenTorque(2,2) = Motor_c(4)  ! port bottom rotor, pylon 2 (outboard)
  
-      y%SPyRtrAcc(1,1) = Motor_c(7)  ! starboard top rotor, pylon 1 (inboard)
-      y%SPyRtrAcc(2,1) = Motor_c(2)  ! starboard bottom rotor, pylon 1 (inboard)
-      y%SPyRtrAcc(1,2) = Motor_c(8)  ! starboard top rotor, pylon 2 (outboard)
-      y%SPyRtrAcc(2,2) = Motor_c(1)  ! starboard bottom rotor, pylon 2 (outboard)
-      y%PPyRtrAcc(1,1) = Motor_c(6)  ! port top rotor, pylon 1 (inboard)
-      y%PPyRtrAcc(2,1) = Motor_c(3)  ! port bottom rotor, pylon 1 (inboard)
-      y%PPyRtrAcc(1,2) = Motor_c(5)  ! port top rotor, pylon 2 (outboard)
-      y%PPyRtrAcc(2,2) = Motor_c(4)  ! port bottom rotor, pylon 2 (outboard)
+!TODO: How to we obtain rotor speeds?
+      y%SPyRtrSpd(1,1) = 0.0  !RtrSpd_c(7)  ! starboard top rotor, pylon 1 (inboard)
+      y%SPyRtrSpd(2,1) = 0.0  !RtrSpd_c(2)  ! starboard bottom rotor, pylon 1 (inboard)
+      y%SPyRtrSpd(1,2) = 0.0  !RtrSpd_c(8)  ! starboard top rotor, pylon 2 (outboard)
+      y%SPyRtrSpd(2,2) = 0.0  !RtrSpd_c(1)  ! starboard bottom rotor, pylon 2 (outboard)
+      y%PPyRtrSpd(1,1) = 0.0  !RtrSpd_c(6)  ! port top rotor, pylon 1 (inboard)
+      y%PPyRtrSpd(2,1) = 0.0  !RtrSpd_c(3)  ! port bottom rotor, pylon 1 (inboard)
+      y%PPyRtrSpd(1,2) = 0.0  !RtrSpd_c(5)  ! port top rotor, pylon 2 (outboard)
+      y%PPyRtrSpd(2,2) = 0.0  !RtrSpd_c(4)  ! port bottom rotor, pylon 2 (outboard)
 
+! TODO: Are we still receiving rotor accelerations from controller?
+      ! y%SPyRtrAcc(1,1) = Motor_c(7)  ! starboard top rotor, pylon 1 (inboard)
+      ! y%SPyRtrAcc(2,1) = Motor_c(2)  ! starboard bottom rotor, pylon 1 (inboard)
+      ! y%SPyRtrAcc(1,2) = Motor_c(8)  ! starboard top rotor, pylon 2 (outboard)
+      ! y%SPyRtrAcc(2,2) = Motor_c(1)  ! starboard bottom rotor, pylon 2 (outboard)
+      ! y%PPyRtrAcc(1,1) = Motor_c(6)  ! port top rotor, pylon 1 (inboard)
+      ! y%PPyRtrAcc(2,1) = Motor_c(3)  ! port bottom rotor, pylon 1 (inboard)
+      ! y%PPyRtrAcc(1,2) = Motor_c(5)  ! port top rotor, pylon 2 (outboard)
+      ! y%PPyRtrAcc(2,2) = Motor_c(4)  ! port bottom rotor, pylon 2 (outboard)
+
+      ! Currently blade pitch is not being set by controller and was initialized to 0.0
+      
          ! TODO Error checking
     
    end subroutine KFC_Step

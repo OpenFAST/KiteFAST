@@ -17,6 +17,8 @@ typedef  KiteFastController/KFC InitInputType      CHARACTER(1024) DLL_FileName 
 typedef  ^                  ^                      IntKi           numPylons       -    -       - "Number of pylons per wing [controller expects 2]" -
 typedef  ^                  ^                      IntKi           numFlaps        -    -       - "Number of flaps per wing [controller expects 2]" -
 typedef  ^                  ^                      DbKi            DT              -     -      - "Time step for continuous state integration & discrete state update [controller expects 0.01]" s
+typedef   ^                 ^                      ReKi            SPyRtrIrot     {:}{:}   -       - "2 by numPylons matrix - Starboard rotor rotational inertia" m^3
+typedef   ^                 ^                      ReKi            PPyRtrIrot     {:}{:}   -       - "2 by numPylons matrix - Port rotor rotational inertia" m^3
 # ..... InitOutput ................................................................................................................
 typedef  ^                  InitOutputType         ProgDesc        Ver             -    -       - "This module's name, version, and date"	-                                        
 # ..... Parameters ................................................................................................................
@@ -57,7 +59,9 @@ typedef  ^                  ^                     ReKi            SElv          
 typedef  ^                  ^                     ReKi            PElv           {2}      -       - "Port elevator flap angles [kFlapA9,kFlapA9]" rad
 typedef  ^                  ^                     ReKi            SPyRtrSpd      {:}{:}   -       - "2 by numPylons matrix - Starboard rotor speeds from controller" rad/s
 typedef  ^                  ^                     ReKi            PPyRtrSpd      {:}{:}   -       - "2 by numPylons matrix - Port rotor speeds from controller" rad/s
-typedef  ^                  ^                     ReKi            SPyRtrAcc      {:}{:}   -       - "2 by numPylons matrix - Starboard rotor acceleration from controller" rad/s^2
-typedef  ^                  ^                     ReKi            PPyRtrAcc      {:}{:}   -       - "2 by numPylons matrix - Port rotor acceleration from controller" rad/s^2
-typedef  ^                  ^                     ReKi            SPyGenTorque   {:}{:}   -       - "2 by numPylons matrix - Torques from the starboard generators" N-m
-typedef  ^                  ^                     ReKi            PPyGenTorque   {:}{:}   -       - "2 by numPylons matrix - Port rotor acceleration from controller" rad/s^2
+# typedef  ^                ^                     ReKi            SPyRtrAcc      {:}{:}   -       - "2 by numPylons matrix - Starboard rotor acceleration from controller" rad/s^2
+# typedef  ^                ^                     ReKi            PPyRtrAcc      {:}{:}   -       - "2 by numPylons matrix - Port rotor acceleration from controller" rad/s^2
+typedef  ^                  ^                     ReKi            SPyGenTorque   {:}{:}   -       - "2 by numPylons matrix - Starboard torques from the starboard generators" N-m
+typedef  ^                  ^                     ReKi            PPyGenTorque   {:}{:}   -       - "2 by numPylons matrix - Port torques from the starboard generators" N-m
+typedef  ^                  ^                     ReKi            SPyBldPitch    {:}{:}   -       - "2 by numPylons matrix - Starboard rotor-collective pitch angles from controller" rad
+typedef  ^                  ^                     ReKi            PPyBldPitch    {:}{:}   -       - "2 by numPylons matrix - Port rotor-collective pitch angles from controller" rad

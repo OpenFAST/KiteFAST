@@ -32,6 +32,7 @@ int main(int argc, char *argv[])
     char MD_FileName[INTERFACE_STRING_LENGTH];
     char KFC_FileName[INTERFACE_STRING_LENGTH];
     char outFileRoot[INTERFACE_STRING_LENGTH];
+    int  printSum = 1;
     double gravity = 9.81;
     double *pWindPt;
     double *pFusODCM;
@@ -111,10 +112,11 @@ int main(int argc, char *argv[])
     pModFlags[3] = 0;  // no KiteFAST controller
 
     // Set input file names
-    strcpy(KAD_FileName, "D:\\DEV\\makani\\kitefast_models\\simple_m000_model_AD.txt");
-    strcpy(IfW_FileName, "D:\\DEV\\makani\\kitefast_models\\kiteInflowWind.dat");
-    strcpy(MD_FileName , "D:\\DEV\\makani\\kitefast_models\\kiteTether.dat");
-    strcpy(KFC_FileName, "D:\\DEV\\makani\\kitefast_models\\libkitefastcontroller_controller.so");
+    // NOTE: All the data further below is directly tied to the KAD file listed here.
+    strcpy(KAD_FileName, "D:\\DEV\\makani\\google-repo\\sandbox\\glue-codes\\kitefast\\m000\\simple_m000_model_AD.txt");
+    strcpy(IfW_FileName, "D:\\DEV\\makani\\google-repo\\sandbox\\glue-codes\\kitefast\\m000\\kiteInflowWind.dat");
+    strcpy(MD_FileName , "D:\\DEV\\makani\\google-repo\\sandbox\\glue-codes\\kitefast\\m000\\kiteTether.dat");
+    strcpy(KFC_FileName, "D:\\DEV\\makani\\google-repo\\sandbox\\glue-codes\\kitefast\\m000\\libkitefastcontroller_controller.so");
     strcpy(outFileRoot , "KiteTest");
 
 
@@ -325,15 +327,15 @@ int main(int argc, char *argv[])
 
 
     // Fuselage node positions
-    pNodePts[0] = -5    - pRefPts[n + 0] ;
-    pNodePts[1] = 0.000 + pRefPts[n + 1] ;
-    pNodePts[2] = 0     - pRefPts[n + 2];
-    pNodePts[3] = 0     - pRefPts[n + 0] ;
-    pNodePts[4] = 0.000 + pRefPts[n + 1] ;
-    pNodePts[5] = 0.00  - pRefPts[n + 2]  ;
-    pNodePts[6] = 5     - pRefPts[n + 0] ;
-    pNodePts[7] = 0.000 + pRefPts[n + 1] ;
-    pNodePts[8] = 0     - pRefPts[n + 2];
+    pNodePts[0] = -5    - pKiteOffset[n + 0] ;
+    pNodePts[1] = 0.000 + pKiteOffset[n + 1] ;
+    pNodePts[2] = 0     - pKiteOffset[n + 2];
+    pNodePts[3] = 0     - pKiteOffset[n + 0] ;
+    pNodePts[4] = 0.000 + pKiteOffset[n + 1] ;
+    pNodePts[5] = 0.00  - pKiteOffset[n + 2]  ;
+    pNodePts[6] = 5     - pKiteOffset[n + 0] ;
+    pNodePts[7] = 0.000 + pKiteOffset[n + 1] ;
+    pNodePts[8] = 0     - pKiteOffset[n + 2];
     c = 9;
     //  Starboard wing nodes
     n = 3;
@@ -440,7 +442,7 @@ int main(int argc, char *argv[])
 */
 
     // This is called as part of the user module constructor
-    KFAST_Init(&dt, &numFlaps, &numPylons, &numComp, pNumCompNds, pModFlags, KAD_FileName, IfW_FileName, MD_FileName, KFC_FileName, outFileRoot, &gravity, pWindPt,
+    KFAST_Init(&dt, &numFlaps, &numPylons, &numComp, pNumCompNds, pModFlags, KAD_FileName, IfW_FileName, MD_FileName, KFC_FileName, outFileRoot, &printSum, &gravity, pWindPt,
        pFusODCM, &numRtrPts, pRtrPts, pRtrMass, pRtrI_Rot, pRtrI_Trans, pRtrXcm, pRefPts, &numNodePts, pNodePts, pNodeDCMs,
        &nFusOuts, FusOutNd, &nSWnOuts, SWnOutNd, &nPWnOuts, PWnOutNd, &nVSOuts, VSOutNd, &nSHSOuts, SHSOutNd, &nPHSOuts, PHSOutNd, &nPylOuts, PylOutNd, &numOutChan, outChanList, &errStat, errMsg);
 
@@ -478,15 +480,35 @@ int main(int argc, char *argv[])
     pFusOv_prev[1] =  0.0;
     pFusOv_prev[2] =  0.0;
 
+    pFusOv = (double *)malloc(3 * sizeof(double));
+    pFusOv[0] = -50.0;
+    pFusOv[1] = 0.0;
+    pFusOv[2] = 0.0;
+
     pFusOomegas_prev = (double *)malloc(3 * sizeof(double));
     pFusOomegas_prev[0] = 0.0;
     pFusOomegas_prev[1] = 0.0;
     pFusOomegas_prev[2] = 0.0;
 
+    pFusOomegas = (double *)malloc(3 * sizeof(double));
+    pFusOomegas[0] = 0.0;
+    pFusOomegas[1] = 0.0;
+    pFusOomegas[2] = 0.0;
+
     pFusOacc_prev    = (double *)malloc(3*sizeof(double));
     pFusOacc_prev[0] = 0.0;
     pFusOacc_prev[1] = 0.0;
     pFusOacc_prev[2] = 0.0;
+
+    pFusOacc = (double *)malloc(3 * sizeof(double));
+    pFusOacc[0] = 0.0;
+    pFusOacc[1] = 0.0;
+    pFusOacc[2] = 0.0;
+
+    pFusOalphas = (double *)malloc(3 * sizeof(double));
+    pFusOalphas[0] = 0.0;
+    pFusOalphas[1] = 0.0;
+    pFusOalphas[2] = 0.0;
 
     pNodeVels   = (double *)malloc(numNodePtElem * sizeof(double));
     pNodeOmegas = (double *)malloc(numNodePtElem * sizeof(double));
@@ -508,18 +530,18 @@ int main(int argc, char *argv[])
     // Need to set rotor point velocities and orientations
     for (n = 0; n < numRtrPtsElem; n=n+3)
     {
-        pRtrVels[n*3]     = -50.0;
-        pRtrVels[n * 3 + 1] = 0.0;
-        pRtrVels[n * 3 + 2] = 0.0;
-        pRtrOmegas[n * 3] = 0.0;
-        pRtrOmegas[n * 3 + 1] = 0.0;
-        pRtrOmegas[n * 3 + 2] = 0.0;
-        pRtrAccs[n * 3] = 0.0;
-        pRtrAccs[n * 3 + 1] = 0.0;
-        pRtrAccs[n * 3 + 2] = 0.0;
-        pRtrAlphas[n * 3] = 0.0;
-        pRtrAlphas[n * 3 + 1] = 0.0;
-        pRtrAlphas[n * 3 + 2] = 0.0;
+        pRtrVels[n]     = -50.0;
+        pRtrVels[n + 1] = 0.0;
+        pRtrVels[n + 2] = 0.0;
+        pRtrOmegas[n ] = 0.0;
+        pRtrOmegas[n  + 1] = 0.0;
+        pRtrOmegas[n  + 2] = 0.0;
+        pRtrAccs[n ] = 0.0;
+        pRtrAccs[n  + 1] = 0.0;
+        pRtrAccs[n  + 2] = 0.0;
+        pRtrAlphas[n ] = 0.0;
+        pRtrAlphas[n  + 1] = 0.0;
+        pRtrAlphas[n  + 2] = 0.0;
     }
 
     for (i = 0; i < numDCMElem; i = i + 9)
@@ -578,8 +600,8 @@ int main(int argc, char *argv[])
 
     //Now we begin calls associated with the time marching loop of MBDyn
     isInitialTime = 0;  // Now we do advance the states for the each call to KFAST_AssRes()
-    nFinal = 1;
-    for (n = 2; n < nFinal; n++) 
+    nFinal = 2;
+    for (n = 2; n <= nFinal; n++) 
     {
         t = t + dt;
 

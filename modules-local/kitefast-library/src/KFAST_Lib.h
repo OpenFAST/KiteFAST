@@ -19,6 +19,7 @@ EXTERNAL_ROUTINE void KFAST_Init(
    const char MD_FileName[],    // Full path and name of the MoorDyn input file.
    const char KFC_FileName[],   // Full path and name of the KiteFAST controller shared object file.
    const char outFileRoot[],    // Full path and basename of the KiteFAST output file.
+   int*       printSum,         // Print the Summary file?  1 = Yes, 0 = No.
    double*    gravity,          // Scalar gravity constant.  (m/s^2)
    double     windPt[],         // Initial position of the ground station where the fixed wind measurement is taken, expressed in global coordinates. (m)
    double     FusODCM[],        // Initial DCM matrix to transform the location of the Kite Fuselage reference point from global to kite coordinates.
@@ -54,7 +55,7 @@ EXTERNAL_ROUTINE void KFAST_Init(
 
 EXTERNAL_ROUTINE void KFAST_AssRes( 
    double *t,                   // simulation time for the current timestep (s)
-   int*   isInitialTime,        // 1 = first time KFAST_AssRes has been called for this particular timestep, 0 = otherwise
+   int*   isInitialTime,        // Is this the initial time of the simulation (1st timestep) 1=Yes, should we update the states? 0=yes, 1=no
    double WindPt[],             // Position of the ground station where the fixed wind measurement is taken, expressed in global coordinates. (m)
    double FusO_prev[],          // Previous timestep position of the Fuselage reference point, expressed in global coordinates. (m) 
    double FusO[],               // Current  timestep position of the Fuselage reference point, expressed in global coordinates. (m) 
