@@ -1,0 +1,58 @@
+# Structural Nodes for the rotors
+
+# *** reference frame
+reference: lrot1_RF,
+    reference, MIP_RF, lrot1_xoffset, lrot1_yoffset, lrot1_zoffset,
+    reference, MIP_RF, eye,
+    reference, MIP_RF, null,
+    reference, MIP_RF, null;
+
+reference: lrot2_RF,
+    reference, MIP_RF, lrot2_xoffset, lrot2_yoffset, lrot2_zoffset,
+    reference, MIP_RF, eye,
+    reference, MIP_RF, null,
+    reference, MIP_RF, null;
+
+reference: rrot1_RF,
+    reference, MIP_RF, rrot1_xoffset, rrot1_yoffset, rrot1_zoffset,
+    reference, MIP_RF, eye,
+    reference, MIP_RF, null,
+    reference, MIP_RF, null;
+
+reference: rrot2_RF,
+    reference, MIP_RF, rrot2_xoffset, rrot2_yoffset, rrot2_zoffset,
+    reference, MIP_RF, eye,
+    reference, MIP_RF, null,
+    reference, MIP_RF, null;
+
+# *** port rotors ***
+
+set: real revx = -20; # * 2 * pi / 60; # 200 rpm = 200 * 2 * pi / 60
+set: real revy = 0.0;
+set: real revz = 0.0;
+
+structural: lrot1_node, dynamic,
+    reference, lrot1_RF, null,
+    reference, lrot1_RF, eye,
+    reference, lrot1_RF, null,
+    reference, lrot1_RF, revx, revy, revz;
+
+structural: lrot2_node, dynamic,
+    reference, lrot2_RF, null,
+    reference, lrot2_RF, eye,
+    reference, lrot2_RF, null,
+    reference, lrot2_RF, revx, revy, revz;
+
+# *** starboard rotors ***
+
+structural: rrot1_node, dynamic,
+    reference, rrot1_RF, null,
+    reference, rrot1_RF, eye,
+    reference, rrot1_RF, null,
+    reference, rrot1_RF, -revx, revy, revz;
+
+structural: rrot2_node, dynamic,
+    reference, rrot2_RF, null,
+    reference, rrot2_RF, eye,
+    reference, rrot2_RF, null,
+    reference, rrot2_RF, -revx, revy, revz;

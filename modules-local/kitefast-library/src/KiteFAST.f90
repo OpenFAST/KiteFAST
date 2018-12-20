@@ -2999,7 +2999,7 @@ subroutine KFAST_AssRes(t_c, isInitialTime_c, WindPt_c, FusO_prev_c, FusO_c, Fus
          ! To do this we need to map the motions from a wing mesh to the specific fairlead mesh ( one node per fairlead connection point)
          ! This means we need the t and t+dt motions of this wing mesh
       call Transfer_Line2_to_Point( m%mbdWngMotions, m%MD%u(2)%PtFairleadDisplacement, m%MD_L2_2_P, errStat2, errMsg )
-      	 if (errStat >= AbortErrLev ) then
+         if (errStat >= AbortErrLev ) then
             call TransferErrors(errStat, errMsg, errStat_c, errMsg_c)
             return
          end if

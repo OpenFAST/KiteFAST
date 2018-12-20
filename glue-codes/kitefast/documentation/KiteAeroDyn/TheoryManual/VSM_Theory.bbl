@@ -1,0 +1,376 @@
+% $ biblatex auxiliary file $
+% $ biblatex version 2.4 $
+% Do not modify the above lines!
+%
+% This is an auxiliary file used by the 'biblatex' package.
+% This file may safely be deleted. It will be recreated as
+% required.
+%
+\begingroup
+\makeatletter
+\@ifundefined{ver@biblatex.sty}
+  {\@latex@error
+     {Missing 'biblatex' package}
+     {The bibliography requires the 'biblatex' package.}
+      \aftergroup\endinput}
+  {}
+\endgroup
+
+\entry{anderson2001}{book}{}
+  \name{author}{1}{}{%
+    {{}%
+     {Anderson}{A.}%
+     {J.~D.~Jr.}{J.~D.~J.}%
+     {}{}%
+     {}{}}%
+  }
+  \list{publisher}{1}{%
+    {McGraw-Hill}%
+  }
+  \strng{namehash}{AJDJ1}
+  \strng{fullhash}{AJDJ1}
+  \field{labelyear}{2001}
+  \field{sortinit}{A}
+  \field{edition}{$3^{rd}$}
+  \field{series}{McGraw-Hill Series in Aeronautical and Aerospace Engineering}
+  \field{title}{Fundamentals of Aerodynamics}
+  \field{year}{2001}
+\endentry
+
+\entry{bhagwat2002}{inproceedings}{}
+  \name{author}{2}{}{%
+    {{}%
+     {Bhagwat}{B.}%
+     {M.~J.}{M.~J.}%
+     {}{}%
+     {}{}}%
+    {{}%
+     {Leishman}{L.}%
+     {J.~G.}{J.~G.}%
+     {}{}%
+     {}{}}%
+  }
+  \strng{namehash}{BMJLJG1}
+  \strng{fullhash}{BMJLJG1}
+  \field{labelyear}{2002}
+  \field{sortinit}{B}
+  \field{booktitle}{58th Annual Forum and Technology Display of the American
+  Helicopter Society International}
+  \field{title}{Generalized Viscous Vortex Model for Applications to
+  Free-Vortex Wake Aeroacoustic Calculations}
+  \list{location}{1}{%
+    {Montreal, Canada}%
+  }
+  \field{year}{2002}
+  \warn{\item Invalid format of field 'month'}
+\endentry
+
+\entry{vandam2001}{article}{}
+  \name{author}{3}{}{%
+    {{}%
+     {Dam}{D.}%
+     {C.~P.}{C.~P.}%
+     {van}{v.}%
+     {}{}}%
+    {{}%
+     {Vander~Kam}{V.~K.}%
+     {J.~C.}{J.~C.}%
+     {}{}%
+     {}{}}%
+    {{}%
+     {Paris}{P.}%
+     {J.~K.}{J.~K.}%
+     {}{}%
+     {}{}}%
+  }
+  \strng{namehash}{DCPvVKJCPJK1}
+  \strng{fullhash}{DCPvVKJCPJK1}
+  \field{labelyear}{2001}
+  \field{sortinit}{D}
+  \field{number}{6}
+  \field{pages}{1076\bibrangedash 1084}
+  \field{title}{Design-Oriented High-Lift Methodology for General Aviation and
+  Civil Transport Aircraft}
+  \field{volume}{38}
+  \field{journaltitle}{J. of Aircraft}
+  \field{year}{2001}
+  \warn{\item Invalid format of field 'month'}
+\endentry
+
+\entry{vangarrel2003}{report}{}
+  \name{author}{1}{}{%
+    {{}%
+     {Garrel}{G.}%
+     {A.}{A.}%
+     {van}{v.}%
+     {}{}}%
+  }
+  \strng{namehash}{GAv1}
+  \strng{fullhash}{GAv1}
+  \field{labelyear}{2003}
+  \field{sortinit}{G}
+  \field{number}{ECN-C--03-079}
+  \field{title}{Development of a Wind Turbine Aerodynnamics Simulation Module}
+  \list{location}{1}{%
+    {The Netherlands}%
+  }
+  \list{institution}{1}{%
+    {{ECN}}%
+  }
+  \field{type}{techreport}
+  \field{year}{2003}
+  \warn{\item Invalid format of field 'month'}
+\endentry
+
+\entry{munk1921}{report}{}
+  \name{author}{1}{}{%
+    {{}%
+     {Munk}{M.}%
+     {M.~M.}{M.~M.}%
+     {}{}%
+     {}{}}%
+  }
+  \strng{namehash}{MMM1}
+  \strng{fullhash}{MMM1}
+  \field{labelyear}{1921}
+  \field{sortinit}{M}
+  \field{number}{NACA-TR-121}
+  \field{title}{The Minimum Induced Drag of Aerofoils}
+  \list{location}{1}{%
+    {Washington, DC}%
+  }
+  \list{institution}{1}{%
+    {National Advisory Committee for Aeronautics}%
+  }
+  \field{type}{techreport}
+  \field{year}{1921}
+\endentry
+
+\entry{mutterperl1941}{report}{}
+  \name{author}{1}{}{%
+    {{}%
+     {Mutterperl}{M.}%
+     {W.}{W.}%
+     {}{}%
+     {}{}}%
+  }
+  \strng{namehash}{MW1}
+  \strng{fullhash}{MW1}
+  \field{labelyear}{1941}
+  \field{sortinit}{M}
+  \field{number}{NACA-TN-834}
+  \field{title}{The Calculation of Span Load Distributions of Swept-back Wings}
+  \list{location}{1}{%
+    {Washington, DC}%
+  }
+  \list{institution}{1}{%
+    {National Advisory Committee for Aeronautics}%
+  }
+  \field{type}{techreport}
+  \field{year}{1941}
+\endentry
+
+\entry{ortega2004}{inproceedings}{}
+  \name{author}{3}{}{%
+    {{}%
+     {Ortega}{O.}%
+     {M.~A.}{M.~A.}%
+     {}{}%
+     {}{}}%
+    {{}%
+     {M.}{M.}%
+     {Girardi.~R.}{G.~R.}%
+     {}{}%
+     {}{}}%
+    {{}%
+     {Komatsu}{K.}%
+     {P.~S.}{P.~S.}%
+     {}{}%
+     {}{}}%
+  }
+  \strng{namehash}{OMAMGRKPS1}
+  \strng{fullhash}{OMAMGRKPS1}
+  \field{labelyear}{2004}
+  \field{sortinit}{O}
+  \field{booktitle}{ENCIT 2004 -- ABCM}
+  \field{title}{A Numerical Method to Predict the Lift of Aircraft Wings at
+  Stall Conditions}
+  \list{location}{1}{%
+    {Rio de Janeiro, Brazil}%
+  }
+  \field{year}{2004}
+  \warn{\item Invalid format of field 'month'}
+\endentry
+
+\entry{phillips2000}{article}{}
+  \name{author}{2}{}{%
+    {{}%
+     {Phillips}{P.}%
+     {W.~F.}{W.~F.}%
+     {}{}%
+     {}{}}%
+    {{}%
+     {Snyder}{S.}%
+     {D.~O.}{D.~O.}%
+     {}{}%
+     {}{}}%
+  }
+  \strng{namehash}{PWFSDO1}
+  \strng{fullhash}{PWFSDO1}
+  \field{labelyear}{2000}
+  \field{sortinit}{P}
+  \field{number}{4}
+  \field{pages}{600\bibrangedash 608}
+  \field{title}{Modern Adaption of {P}randtl's Classic LLifti-Line Theory}
+  \field{volume}{37}
+  \field{journaltitle}{J. of Aircraft}
+  \field{year}{2000}
+  \warn{\item Invalid format of field 'month'}
+\endentry
+
+\entry{pistolesi1929}{report}{}
+  \name{author}{1}{}{%
+    {{}%
+     {Pistolesi}{P.}%
+     {E.}{E.}%
+     {}{}%
+     {}{}}%
+  }
+  \strng{namehash}{PE1}
+  \strng{fullhash}{PE1}
+  \field{labelyear}{1929}
+  \field{sortinit}{P}
+  \field{title}{Alcune considerazioni sul problema del biplano indefinito}
+  \list{institution}{1}{%
+    {Rome University}%
+  }
+  \field{type}{techreport}
+  \field{year}{1929}
+\endentry
+
+\entry{piszkin1976}{report}{}
+  \name{author}{2}{}{%
+    {{}%
+     {Piszkin}{P.}%
+     {S.~T.}{S.~T.}%
+     {}{}%
+     {}{}}%
+    {{}%
+     {Levinsky}{L.}%
+     {E.~S.}{E.~S.}%
+     {}{}%
+     {}{}}%
+  }
+  \strng{namehash}{PSTLES1}
+  \strng{fullhash}{PSTLES1}
+  \field{labelyear}{1976}
+  \field{sortinit}{P}
+  \field{number}{CASD-NSC-76-001}
+  \field{title}{Nonlinear Lifting Line Theory for Predicting Stalling
+  Instabilities on Wings of Moderate Aspect Ratio}
+  \list{location}{1}{%
+    {5001 Kearny Villa Rd., San Diego, CA 92138}%
+  }
+  \list{institution}{1}{%
+    {General Dynamics Convair Division}%
+  }
+  \field{type}{techreport}
+  \field{year}{1976}
+  \warn{\item Invalid format of field 'month'}
+\endentry
+
+\entry{prandtl1918}{report}{}
+  \name{author}{1}{}{%
+    {{}%
+     {Prandtl}{P.}%
+     {L.}{L.}%
+     {}{}%
+     {}{}}%
+  }
+  \strng{namehash}{PL1}
+  \strng{fullhash}{PL1}
+  \field{labelyear}{1918}
+  \field{sortinit}{P}
+  \field{number}{NACA-TR-116}
+  \field{title}{Theory of Lifting Surfaces}
+  \list{location}{1}{%
+    {Washington, DC}%
+  }
+  \list{institution}{1}{%
+    {National Advisory Committee for Aeronautics}%
+  }
+  \field{type}{techreport}
+  \field{year}{1918}
+\endentry
+
+\entry{ranneberg2015}{online}{}
+  \name{author}{1}{}{%
+    {{}%
+     {Ranneberg}{R.}%
+     {M.}{M.}%
+     {}{}%
+     {}{}}%
+  }
+  \strng{namehash}{RM1}
+  \strng{fullhash}{RM1}
+  \field{labelyear}{2015}
+  \field{sortinit}{R}
+  \field{howpublished}{arXiv:1501.04983 [physics.flu-dyn]}
+  \field{year}{2015}
+  \warn{\item Invalid format of field 'month'}
+\endentry
+
+\entry{weissinger1947}{report}{}
+  \name{author}{1}{}{%
+    {{}%
+     {Weissinger}{W.}%
+     {J.}{J.}%
+     {}{}%
+     {}{}}%
+  }
+  \strng{namehash}{WJ1}
+  \strng{fullhash}{WJ1}
+  \field{labelyear}{1947}
+  \field{sortinit}{W}
+  \field{number}{NACA-TM-1120}
+  \field{title}{The Lift Distribution of Swept-Back Wings}
+  \list{location}{1}{%
+    {Langley Aeronautical Lab., Langley Field, VA}%
+  }
+  \list{institution}{1}{%
+    {National Advisory Committee for Aeronautics}%
+  }
+  \field{type}{techreport}
+  \field{year}{1947}
+  \warn{\item Invalid format of field 'month'}
+\endentry
+
+\entry{wieghardt1940}{report}{}
+  \name{author}{1}{}{%
+    {{}%
+     {Wieghardt}{W.}%
+     {K.}{K.}%
+     {}{}%
+     {}{}}%
+  }
+  \strng{namehash}{WK1}
+  \strng{fullhash}{WK1}
+  \field{labelyear}{1940}
+  \field{sortinit}{W}
+  \field{number}{NACA-TM-963}
+  \field{title}{Chordwise Load Distribution of a Simple Rectangular
+  Wing/WinLoad}
+  \list{location}{1}{%
+    {Washington, DC}%
+  }
+  \list{institution}{1}{%
+    {National Advisory Committee for Aeronautics}%
+  }
+  \field{type}{techreport}
+  \field{year}{1940}
+\endentry
+
+\lossort
+\endlossort
+
+\endinput
