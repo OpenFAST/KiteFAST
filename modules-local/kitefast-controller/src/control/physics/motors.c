@@ -6,6 +6,23 @@
 
 #include "common/c_math/util.h"
 
+SetMotorDirection(double rotor_cmds[]){
+  double motor_dir[] = {
+    1,    // Motor 1
+    -1,   // Motor 2 
+    -1,   // Motor 3
+    1,    // Motor 4
+    -1,   // Motor 5
+    1,    // Motor 6
+    1,    // Motor 7
+    -1,   // Motor 8
+   };
+
+  for (int i=0; i<kNumMotors; i++){
+      rotor_cmds[i] = rotor_cmds[i] * motor_dir[i];
+  }
+}
+
 TorqueLimits CalcTorqueLimits(double voltage, double rotor_vel,
                               const MotorParams *params) {
   assert(voltage > 0.0);
@@ -61,7 +78,7 @@ TorqueLimits CalcTorqueLimits(double voltage, double rotor_vel,
       fabs(omega_e) > DBL_EPSILON ? atan(Rs / (omega_e * L)) : 0.0;
 
   // Apply lower phase current limit.
-  double theta = fmin(theta_ref - theta_delta, -0.5 * M_PI);
+  double theta = fmin(theta_ref - theta_delta, -0.5 * PI);
   if (id_center < i_phase_lim * cos(theta) &&
       i_phase_lim * sin(theta) > iq_cmd_lower_limit) {
     limits.lower_constraint = kSimMotorLimitPhaseCurrent;
@@ -69,7 +86,7 @@ TorqueLimits CalcTorqueLimits(double voltage, double rotor_vel,
   }
 
   // Apply upper phase current limit.
-  theta = fmax(theta_ref + theta_delta, 0.5 * M_PI);
+  theta = fmax(theta_ref + theta_delta, 0.5 * PI);
   if (id_center < i_phase_lim * cos(theta) &&
       i_phase_lim * sin(theta) < iq_cmd_upper_limit) {
     limits.upper_constraint = kSimMotorLimitPhaseCurrent;
@@ -181,7 +198,7 @@ double CalcMotorControllerLoss(double voltage, double peak_phase_current_sq,
   // - Loss associated with commutating current.  These are specified as being
   //   proportional to the bus voltage times the average phase current.
   double variable_switching_loss_per_cycle =
-      -(3.0 * 2.0 / M_PI * voltage * sqrt(peak_phase_current_sq) *
+      -(3.0 * 2.0 / PI * voltage * sqrt(peak_phase_current_sq) *
         params->specific_switching_loss);
 
   // - Loss associated with the output capacitance.  This is tricky since the

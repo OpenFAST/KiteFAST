@@ -14,7 +14,7 @@ void AssignInputs(double dcm_g2b_c[], double pqr_c[], double *acc_norm_c,
 	double Ab_c[], double *rho_c, double apparent_wind_c[],
 	double tether_force_c[], double wind_g_c[],
 	double kFlapA_c[], double Motor_c[],
-	int *errStat, char *errMsg, StateEstimate* state_est){
+	int *errStat, char *errMsg, StateEstimate* state_est, MotorState* motor_state){
 
 	bool printInputs = true;
 	if (printInputs){
@@ -91,10 +91,16 @@ void AssignInputs(double dcm_g2b_c[], double pqr_c[], double *acc_norm_c,
 	state_est->wind_g.vector.y = wind_g_c[1];
 	state_est->wind_g.vector.z = wind_g_c[2];
 	state_est->wind_g.dir_f = VecGToAzimuth(&state_est->wind_g.vector);
+	// Motor_c
+	for (int i = 0; i<kNumMotors; i++){
+		motor_state->rotor_omegas[i] = Motor_c[i];
+	}
+	
+	
 }
 
 void AssignOutputs(double kFlapA_c[], double Motor_c[],
-	int *errStat, char *errMsg, ControlOutput* raw_control_output){
+	int *errStat, char *errMsg, ControlOutput* raw_control_output, MotorState* motor_state){
 
 		//kFlap_A
 		kFlapA_c[0] = raw_control_output->flaps[kFlapA1];
@@ -107,13 +113,13 @@ void AssignOutputs(double kFlapA_c[], double Motor_c[],
 		kFlapA_c[7] = raw_control_output->flaps[kFlapRud];
 
 		//Motor_c
-		Motor_c[0] = raw_control_output->rotors[kMotor1];
-		Motor_c[1] = raw_control_output->rotors[kMotor2];
-		Motor_c[2] = raw_control_output->rotors[kMotor3];
-		Motor_c[3] = raw_control_output->rotors[kMotor4];
-		Motor_c[4] = raw_control_output->rotors[kMotor5];
-		Motor_c[5] = raw_control_output->rotors[kMotor6];
-		Motor_c[6] = raw_control_output->rotors[kMotor7];
-		Motor_c[7] = raw_control_output->rotors[kMotor8];
+		Motor_c[0] = motor_state->rotor_omegas[kMotor1];
+		Motor_c[1] = motor_state->rotor_omegas[kMotor2];
+		Motor_c[2] = motor_state->rotor_omegas[kMotor3];
+		Motor_c[3] = motor_state->rotor_omegas[kMotor4];
+		Motor_c[4] = motor_state->rotor_omegas[kMotor5];
+		Motor_c[5] = motor_state->rotor_omegas[kMotor6];
+		Motor_c[6] = motor_state->rotor_omegas[kMotor7];
+		Motor_c[7] = motor_state->rotor_omegas[kMotor8];
 
 	}

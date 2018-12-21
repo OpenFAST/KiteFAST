@@ -16,6 +16,7 @@
 #include "control/simple_aero_types.h"
 #include "control/system_types.h"
 // #include "control/trans_in/trans_in_types.h"
+#include "control/physics/motor_types.h" // added by jmiller - STI
 #include "system/labels.h"
 
 typedef enum {
@@ -214,6 +215,8 @@ typedef struct {
   // ManualState manual;
   ControlOutputState control_output;
   LoopTimeState loop_time;
+  MotorState motor_state; // added by jmiller - STI
+
 } ControlState;
 
 #ifdef __cplusplus

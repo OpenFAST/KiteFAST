@@ -42,7 +42,5 @@ static PowerSysSimParams motor_params = {
 };
 
 
-const PowerSysSimParams *GetMotorParams(void) { 
-  return &motor_params; 
-}
+const PowerSysSimParams *GetMotorParams(void) { return &motor_params; }
 PowerSysSimParams *GetMotorParamsUnsafe(void) { return &motor_params; }

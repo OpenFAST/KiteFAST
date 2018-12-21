@@ -14,6 +14,9 @@ typedef struct TorqueLimits {
   SimMotorLimit upper_constraint;
 } TorqueLimits;
 
+// Applies directions to the motor speeds.
+void SetMotorDirection(double rotor_cmds[]);
+
 // Calculates upper and lower torque limits based on the voltage,
 // rotational velocity, motor parameters, and programmed current
 // limits.

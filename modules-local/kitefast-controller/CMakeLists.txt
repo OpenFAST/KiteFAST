@@ -47,6 +47,7 @@ set(DYLIB_SOURCES
 	src/control/ground_station_frame.c
 	src/control/kfc.c
 	src/control/perch_frame.c
+	src/control/rotor_control.c
 	src/control/sensor_util.c
 	src/control/simple_aero.c
 	src/control/system_params.c
@@ -63,6 +64,8 @@ set(DYLIB_SOURCES
 	src/control/crosswind/crosswind_util.c
 	src/control/crosswind/crosswind.c
 	src/control/estimator/estimator_types.c
+	src/control/physics/motor_params.c
+	src/control/physics/motors.c
 	src/system/labels_util.c
 ) 
 include_directories("src/")
@@ -73,6 +76,11 @@ target_link_libraries(kitefastcontroller_controller C_MATH ${GSL_LIBRARIES})
 set(TESTEXE_SOURCES src/main.c src/KiteFastController.c)
 add_executable(kitefastcontroller_testexe ${TESTEXE_SOURCES})
 target_link_libraries(kitefastcontroller_testexe kitefastcontroller_controller)
+
+# rotortest-exe
+#set(ROTORTEST_SOURCES src/control/rotor_control.c src/control/physics/motor_params.c src/control/physics/motors.c src/control/system_params.c)
+#add_executable(rotortest_exe ${ROTORTEST_SOURCES})
+#target_link_libraries(rotortest_exe C_MATH ${GSL_LIBRARIES} m)
 
 # kitefastcontroller-driver
 set(DRIVER_SOURCES src/KiteFastController_Driver.f90)
