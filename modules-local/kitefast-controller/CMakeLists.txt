@@ -23,7 +23,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 endif()
 
 # required to build the dependencies (C_MATH)
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c99 -g")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c99 -g -fPIC")
 find_package(GSL REQUIRED)
 
 generate_f90_types(src/KiteFastController_Registry.txt KiteFastController_Types.f90 -noextrap)
