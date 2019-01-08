@@ -6,7 +6,7 @@
 
 #include "common/c_math/util.h"
 
-SetMotorDirection(double rotor_cmds[]){
+void SetMotorDirection(double rotor_cmds[]){
   double motor_dir[] = {
     1,    // Motor 1
     -1,   // Motor 2 
