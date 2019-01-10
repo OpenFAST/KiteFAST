@@ -4843,8 +4843,9 @@ SUBROUTINE KFAST_SetOutParam(OutList, NumOuts, p, ErrStat, ErrMsg )
       ! Local variables
 
    INTEGER                      :: ErrStat2                                        ! temporary (local) error status
-   INTEGER                      :: I                                               ! Generic loop-counting index
-   INTEGER                      :: J                                               ! Generic loop-counting index
+   INTEGER                      :: i                                               ! Generic loop-counting index
+   INTEGER                      :: j                                               ! Generic loop-counting index
+   INTEGER                      :: iND                                             ! Generic loop-counting index
    INTEGER                      :: INDX                                            ! Index for valid arrays
 
    LOGICAL                      :: CheckOutListAgain                               ! Flag used to determine if output parameter starting with "M" is valid (or the negative of another parameter)
@@ -4852,7 +4853,7 @@ SUBROUTINE KFAST_SetOutParam(OutList, NumOuts, p, ErrStat, ErrMsg )
    CHARACTER(ChanLen)           :: OutListTmp                                      ! A string to temporarily hold OutList(I)
    CHARACTER(*), PARAMETER      :: RoutineName = "SetOutParam"
 
-     CHARACTER(OutStrLenM1), PARAMETER  :: ValidParamAry(3978) =  (/ &                  ! This lists the names of the allowed parameters, which must be sorted alphabetically
+   CHARACTER(OutStrLenM1), PARAMETER  :: ValidParamAry(3978) =  (/ &                  ! This lists the names of the allowed parameters, which must be sorted alphabetically
                                "FUS1FRC  ","FUS1FRN  ","FUS1FRS  ","FUS1MRC  ","FUS1MRN  ","FUS1MRS  ","FUS1RDX  ","FUS1RDY  ","FUS1RDZ  ","FUS1RVC  ","FUS1RVN  ","FUS1RVS  ","FUS1TAC  ","FUS1TAN  ", &
                                "FUS1TAS  ","FUS1TDX  ","FUS1TDY  ","FUS1TDZ  ","FUS2FRC  ","FUS2FRN  ","FUS2FRS  ","FUS2MRC  ","FUS2MRN  ","FUS2MRS  ","FUS2RDX  ","FUS2RDY  ","FUS2RDZ  ","FUS2RVC  ", &
                                "FUS2RVN  ","FUS2RVS  ","FUS2TAC  ","FUS2TAN  ","FUS2TAS  ","FUS2TDX  ","FUS2TDY  ","FUS2TDZ  ","FUS3FRC  ","FUS3FRN  ","FUS3FRS  ","FUS3MRC  ","FUS3MRN  ","FUS3MRS  ", &
@@ -5719,7 +5720,373 @@ SUBROUTINE KFAST_SetOutParam(OutList, NumOuts, p, ErrStat, ErrMsg )
 
 
 !   ..... Developer must add checking for invalid inputs here: .....
-
+   
+   ! 1) Cannot request an output channel for which the user did not specify a corresponding location
+ 
+      ! make sure we don't ask for outputs that don't exist:
+   do i = p%NFusOuts+1, 9          
+      InvalidOutput( FusTDx(i) ) =  .TRUE.
+      InvalidOutput( FusTDy(i) ) =  .TRUE.
+      InvalidOutput( FusTDz(i) ) =  .TRUE.
+      InvalidOutput( FusRDx(i) ) =  .TRUE.
+      InvalidOutput( FusRDy(i) ) =  .TRUE.
+      InvalidOutput( FusRDz(i) ) =  .TRUE.
+      InvalidOutput( FusRVn(i) ) =  .TRUE.
+      InvalidOutput( FusRVc(i) ) =  .TRUE.
+      InvalidOutput( FusRVs(i) ) =  .TRUE.
+      InvalidOutput( FusTAn(i) ) =  .TRUE.
+      InvalidOutput( FusTAc(i) ) =  .TRUE.
+      InvalidOutput( FusTAs(i) ) =  .TRUE.
+      InvalidOutput( FusFRn(i) ) =  .TRUE.
+      InvalidOutput( FusFRc(i) ) =  .TRUE.
+      InvalidOutput( FusFRs(i) ) =  .TRUE.
+      InvalidOutput( FusMRn(i) ) =  .TRUE.
+      InvalidOutput( FusMRc(i) ) =  .TRUE.
+      InvalidOutput( FusMRs(i) ) =  .TRUE.
+   end do   
+   do i = p%NSWnOuts+1, 9          
+      InvalidOutput( SWnTDx(i) ) =  .TRUE.
+      InvalidOutput( SWnTDy(i) ) =  .TRUE.
+      InvalidOutput( SWnTDz(i) ) =  .TRUE.
+      InvalidOutput( SWnRDx(i) ) =  .TRUE.
+      InvalidOutput( SWnRDy(i) ) =  .TRUE.
+      InvalidOutput( SWnRDz(i) ) =  .TRUE.
+      InvalidOutput( SWnRVn(i) ) =  .TRUE.
+      InvalidOutput( SWnRVc(i) ) =  .TRUE.
+      InvalidOutput( SWnRVs(i) ) =  .TRUE.
+      InvalidOutput( SWnTAn(i) ) =  .TRUE.
+      InvalidOutput( SWnTAc(i) ) =  .TRUE.
+      InvalidOutput( SWnTAs(i) ) =  .TRUE.
+      InvalidOutput( SWnFRn(i) ) =  .TRUE.
+      InvalidOutput( SWnFRc(i) ) =  .TRUE.
+      InvalidOutput( SWnFRs(i) ) =  .TRUE.
+      InvalidOutput( SWnMRn(i) ) =  .TRUE.
+      InvalidOutput( SWnMRc(i) ) =  .TRUE.
+      InvalidOutput( SWnMRs(i) ) =  .TRUE.
+   end do      
+   do i = p%NPWnOuts+1, 9          
+      InvalidOutput( PWnTDx(i) ) =  .TRUE.
+      InvalidOutput( PWnTDy(i) ) =  .TRUE.
+      InvalidOutput( PWnTDz(i) ) =  .TRUE.
+      InvalidOutput( PWnRDx(i) ) =  .TRUE.
+      InvalidOutput( PWnRDy(i) ) =  .TRUE.
+      InvalidOutput( PWnRDz(i) ) =  .TRUE.
+      InvalidOutput( PWnRVn(i) ) =  .TRUE.
+      InvalidOutput( PWnRVc(i) ) =  .TRUE.
+      InvalidOutput( PWnRVs(i) ) =  .TRUE.
+      InvalidOutput( PWnTAn(i) ) =  .TRUE.
+      InvalidOutput( PWnTAc(i) ) =  .TRUE.
+      InvalidOutput( PWnTAs(i) ) =  .TRUE.
+      InvalidOutput( PWnFRn(i) ) =  .TRUE.
+      InvalidOutput( PWnFRc(i) ) =  .TRUE.
+      InvalidOutput( PWnFRs(i) ) =  .TRUE.
+      InvalidOutput( PWnMRn(i) ) =  .TRUE.
+      InvalidOutput( PWnMRc(i) ) =  .TRUE.
+      InvalidOutput( PWnMRs(i) ) =  .TRUE.
+   end do      
+   do i = p%NVSOuts+1, 9          
+      InvalidOutput( VSTDx(i) ) =  .TRUE.
+      InvalidOutput( VSTDy(i) ) =  .TRUE.
+      InvalidOutput( VSTDz(i) ) =  .TRUE.
+      InvalidOutput( VSRDx(i) ) =  .TRUE.
+      InvalidOutput( VSRDy(i) ) =  .TRUE.
+      InvalidOutput( VSRDz(i) ) =  .TRUE.
+      InvalidOutput( VSRVn(i) ) =  .TRUE.
+      InvalidOutput( VSRVc(i) ) =  .TRUE.
+      InvalidOutput( VSRVs(i) ) =  .TRUE.
+      InvalidOutput( VSTAn(i) ) =  .TRUE.
+      InvalidOutput( VSTAc(i) ) =  .TRUE.
+      InvalidOutput( VSTAs(i) ) =  .TRUE.
+      InvalidOutput( VSFRn(i) ) =  .TRUE.
+      InvalidOutput( VSFRc(i) ) =  .TRUE.
+      InvalidOutput( VSFRs(i) ) =  .TRUE.
+      InvalidOutput( VSMRn(i) ) =  .TRUE.
+      InvalidOutput( VSMRc(i) ) =  .TRUE.
+      InvalidOutput( VSMRs(i) ) =  .TRUE.
+   end do  
+   do i = p%NSHSOuts+1, 9          
+      InvalidOutput( SHSTDx(i) ) =  .TRUE.
+      InvalidOutput( SHSTDy(i) ) =  .TRUE.
+      InvalidOutput( SHSTDz(i) ) =  .TRUE.
+      InvalidOutput( SHSRDx(i) ) =  .TRUE.
+      InvalidOutput( SHSRDy(i) ) =  .TRUE.
+      InvalidOutput( SHSRDz(i) ) =  .TRUE.
+      InvalidOutput( SHSRVn(i) ) =  .TRUE.
+      InvalidOutput( SHSRVc(i) ) =  .TRUE.
+      InvalidOutput( SHSRVs(i) ) =  .TRUE.
+      InvalidOutput( SHSTAn(i) ) =  .TRUE.
+      InvalidOutput( SHSTAc(i) ) =  .TRUE.
+      InvalidOutput( SHSTAs(i) ) =  .TRUE.
+      InvalidOutput( SHSFRn(i) ) =  .TRUE.
+      InvalidOutput( SHSFRc(i) ) =  .TRUE.
+      InvalidOutput( SHSFRs(i) ) =  .TRUE.
+      InvalidOutput( SHSMRn(i) ) =  .TRUE.
+      InvalidOutput( SHSMRc(i) ) =  .TRUE.
+      InvalidOutput( SHSMRs(i) ) =  .TRUE.
+   end do   
+   do i = p%NPHSOuts+1, 9          
+      InvalidOutput( PHSTDx(i) ) =  .TRUE.
+      InvalidOutput( PHSTDy(i) ) =  .TRUE.
+      InvalidOutput( PHSTDz(i) ) =  .TRUE.
+      InvalidOutput( PHSRDx(i) ) =  .TRUE.
+      InvalidOutput( PHSRDy(i) ) =  .TRUE.
+      InvalidOutput( PHSRDz(i) ) =  .TRUE.
+      InvalidOutput( PHSRVn(i) ) =  .TRUE.
+      InvalidOutput( PHSRVc(i) ) =  .TRUE.
+      InvalidOutput( PHSRVs(i) ) =  .TRUE.
+      InvalidOutput( PHSTAn(i) ) =  .TRUE.
+      InvalidOutput( PHSTAc(i) ) =  .TRUE.
+      InvalidOutput( PHSTAs(i) ) =  .TRUE.
+      InvalidOutput( PHSFRn(i) ) =  .TRUE.
+      InvalidOutput( PHSFRc(i) ) =  .TRUE.
+      InvalidOutput( PHSFRs(i) ) =  .TRUE.
+      InvalidOutput( PHSMRn(i) ) =  .TRUE.
+      InvalidOutput( PHSMRc(i) ) =  .TRUE.
+      InvalidOutput( PHSMRs(i) ) =  .TRUE.
+   end do   
+   do j = 1, min(p%NumPylons,2)  ! Currently only programmed for up to 2 pylon's worth of outputs
+      do i = 1, p%NPylOuts+1, 9          
+         InvalidOutput( SPTDx(i,j) ) =  .TRUE.
+         InvalidOutput( SPTDy(i,j) ) =  .TRUE.
+         InvalidOutput( SPTDz(i,j) ) =  .TRUE.
+         InvalidOutput( SPRDx(i,j) ) =  .TRUE.
+         InvalidOutput( SPRDy(i,j) ) =  .TRUE.
+         InvalidOutput( SPRDz(i,j) ) =  .TRUE.
+         InvalidOutput( SPRVn(i,j) ) =  .TRUE.
+         InvalidOutput( SPRVc(i,j) ) =  .TRUE.
+         InvalidOutput( SPRVs(i,j) ) =  .TRUE.
+         InvalidOutput( SPTAn(i,j) ) =  .TRUE.
+         InvalidOutput( SPTAc(i,j) ) =  .TRUE.
+         InvalidOutput( SPTAs(i,j) ) =  .TRUE.
+         InvalidOutput( SPFRn(i,j) ) =  .TRUE.
+         InvalidOutput( SPFRc(i,j) ) =  .TRUE.
+         InvalidOutput( SPFRs(i,j) ) =  .TRUE.
+         InvalidOutput( SPMRn(i,j) ) =  .TRUE.
+         InvalidOutput( SPMRc(i,j) ) =  .TRUE.
+         InvalidOutput( SPMRs(i,j) ) =  .TRUE.
+         InvalidOutput( PPTDx(i,j) ) =  .TRUE.
+         InvalidOutput( PPTDy(i,j) ) =  .TRUE.
+         InvalidOutput( PPTDz(i,j) ) =  .TRUE.
+         InvalidOutput( PPRDx(i,j) ) =  .TRUE.
+         InvalidOutput( PPRDy(i,j) ) =  .TRUE.
+         InvalidOutput( PPRDz(i,j) ) =  .TRUE.
+         InvalidOutput( PPRVn(i,j) ) =  .TRUE.
+         InvalidOutput( PPRVc(i,j) ) =  .TRUE.
+         InvalidOutput( PPRVs(i,j) ) =  .TRUE.
+         InvalidOutput( PPTAn(i,j) ) =  .TRUE.
+         InvalidOutput( PPTAc(i,j) ) =  .TRUE.
+         InvalidOutput( PPTAs(i,j) ) =  .TRUE.
+         InvalidOutput( PPFRn(i,j) ) =  .TRUE.
+         InvalidOutput( PPFRc(i,j) ) =  .TRUE.
+         InvalidOutput( PPFRs(i,j) ) =  .TRUE.
+         InvalidOutput( PPMRn(i,j) ) =  .TRUE.
+         InvalidOutput( PPMRc(i,j) ) =  .TRUE.
+         InvalidOutput( PPMRs(i,j) ) =  .TRUE.
+      end do
+   end do   
+   
+   
+   ! 2) Cannot request an output channel for a location which doesn't exist on the MBDyn mesh   
+      
+   do i = 1, p%NFusOuts   
+      iNd = p%FusOutNds(i)
+      if ( (iNd < 1) .or. (iNd > p%numFusNds) ) then
+         InvalidOutput( FusTDx(i) ) =  .TRUE.
+         InvalidOutput( FusTDy(i) ) =  .TRUE.
+         InvalidOutput( FusTDz(i) ) =  .TRUE.
+         InvalidOutput( FusRDx(i) ) =  .TRUE.
+         InvalidOutput( FusRDy(i) ) =  .TRUE.
+         InvalidOutput( FusRDz(i) ) =  .TRUE.
+         InvalidOutput( FusRVn(i) ) =  .TRUE.
+         InvalidOutput( FusRVc(i) ) =  .TRUE.
+         InvalidOutput( FusRVs(i) ) =  .TRUE.
+         InvalidOutput( FusTAn(i) ) =  .TRUE.
+         InvalidOutput( FusTAc(i) ) =  .TRUE.
+         InvalidOutput( FusTAs(i) ) =  .TRUE.
+      end if
+      if ( (iNd < 1) .or. (iNd > p%numFusNds-1) ) then
+         InvalidOutput( FusFRn(i) ) =  .TRUE.
+         InvalidOutput( FusFRc(i) ) =  .TRUE.
+         InvalidOutput( FusFRs(i) ) =  .TRUE.
+         InvalidOutput( FusMRn(i) ) =  .TRUE.
+         InvalidOutput( FusMRc(i) ) =  .TRUE.
+         InvalidOutput( FusMRs(i) ) =  .TRUE.
+      end if
+   end do
+   do i = 1, p%NSWnOuts   
+      iNd = p%SWnOutNds(i)
+      if ( (iNd < 1) .or. (iNd > p%numSWnNds) ) then
+         InvalidOutput( SWnTDx(i) ) =  .TRUE.
+         InvalidOutput( SWnTDy(i) ) =  .TRUE.
+         InvalidOutput( SWnTDz(i) ) =  .TRUE.
+         InvalidOutput( SWnRDx(i) ) =  .TRUE.
+         InvalidOutput( SWnRDy(i) ) =  .TRUE.
+         InvalidOutput( SWnRDz(i) ) =  .TRUE.
+         InvalidOutput( SWnRVn(i) ) =  .TRUE.
+         InvalidOutput( SWnRVc(i) ) =  .TRUE.
+         InvalidOutput( SWnRVs(i) ) =  .TRUE.
+         InvalidOutput( SWnTAn(i) ) =  .TRUE.
+         InvalidOutput( SWnTAc(i) ) =  .TRUE.
+         InvalidOutput( SWnTAs(i) ) =  .TRUE.
+      end if
+      if ( (iNd < 1) .or. (iNd > p%numSWnNds-1) ) then
+         InvalidOutput( SWnFRn(i) ) =  .TRUE.
+         InvalidOutput( SWnFRc(i) ) =  .TRUE.
+         InvalidOutput( SWnFRs(i) ) =  .TRUE.
+         InvalidOutput( SWnMRn(i) ) =  .TRUE.
+         InvalidOutput( SWnMRc(i) ) =  .TRUE.
+         InvalidOutput( SWnMRs(i) ) =  .TRUE.
+      end if
+   end do
+   do i = 1, p%NPWnOuts   
+      iNd = p%PWnOutNds(i)
+      if ( (iNd < 1) .or. (iNd > p%numPWnNds) ) then
+         InvalidOutput( PWnTDx(i) ) =  .TRUE.
+         InvalidOutput( PWnTDy(i) ) =  .TRUE.
+         InvalidOutput( PWnTDz(i) ) =  .TRUE.
+         InvalidOutput( PWnRDx(i) ) =  .TRUE.
+         InvalidOutput( PWnRDy(i) ) =  .TRUE.
+         InvalidOutput( PWnRDz(i) ) =  .TRUE.
+         InvalidOutput( PWnRVn(i) ) =  .TRUE.
+         InvalidOutput( PWnRVc(i) ) =  .TRUE.
+         InvalidOutput( PWnRVs(i) ) =  .TRUE.
+         InvalidOutput( PWnTAn(i) ) =  .TRUE.
+         InvalidOutput( PWnTAc(i) ) =  .TRUE.
+         InvalidOutput( PWnTAs(i) ) =  .TRUE.
+      end if
+      if ( (iNd < 1) .or. (iNd > p%numPWnNds-1) ) then
+         InvalidOutput( PWnFRn(i) ) =  .TRUE.
+         InvalidOutput( PWnFRc(i) ) =  .TRUE.
+         InvalidOutput( PWnFRs(i) ) =  .TRUE.
+         InvalidOutput( PWnMRn(i) ) =  .TRUE.
+         InvalidOutput( PWnMRc(i) ) =  .TRUE.
+         InvalidOutput( PWnMRs(i) ) =  .TRUE.
+      end if
+   end do
+   do i = 1, p%NVSOuts   
+      iNd = p%VSOutNds(i)
+      if ( (iNd < 1) .or. (iNd > p%numVSNds) ) then
+         InvalidOutput( VSTDx(i) ) =  .TRUE.
+         InvalidOutput( VSTDy(i) ) =  .TRUE.
+         InvalidOutput( VSTDz(i) ) =  .TRUE.
+         InvalidOutput( VSRDx(i) ) =  .TRUE.
+         InvalidOutput( VSRDy(i) ) =  .TRUE.
+         InvalidOutput( VSRDz(i) ) =  .TRUE.
+         InvalidOutput( VSRVn(i) ) =  .TRUE.
+         InvalidOutput( VSRVc(i) ) =  .TRUE.
+         InvalidOutput( VSRVs(i) ) =  .TRUE.
+         InvalidOutput( VSTAn(i) ) =  .TRUE.
+         InvalidOutput( VSTAc(i) ) =  .TRUE.
+         InvalidOutput( VSTAs(i) ) =  .TRUE.
+      end if
+      if ( (iNd < 1) .or. (iNd > p%numVSNds-1) ) then
+         InvalidOutput( VSFRn(i) ) =  .TRUE.
+         InvalidOutput( VSFRc(i) ) =  .TRUE.
+         InvalidOutput( VSFRs(i) ) =  .TRUE.
+         InvalidOutput( VSMRn(i) ) =  .TRUE.
+         InvalidOutput( VSMRc(i) ) =  .TRUE.
+         InvalidOutput( VSMRs(i) ) =  .TRUE.
+      end if
+   end do
+   do i = 1, p%NSHSOuts   
+      iNd = p%SHSOutNds(i)
+      if ( (iNd < 1) .or. (iNd > p%numSHSNds) ) then
+         InvalidOutput( SHSTDx(i) ) =  .TRUE.
+         InvalidOutput( SHSTDy(i) ) =  .TRUE.
+         InvalidOutput( SHSTDz(i) ) =  .TRUE.
+         InvalidOutput( SHSRDx(i) ) =  .TRUE.
+         InvalidOutput( SHSRDy(i) ) =  .TRUE.
+         InvalidOutput( SHSRDz(i) ) =  .TRUE.
+         InvalidOutput( SHSRVn(i) ) =  .TRUE.
+         InvalidOutput( SHSRVc(i) ) =  .TRUE.
+         InvalidOutput( SHSRVs(i) ) =  .TRUE.
+         InvalidOutput( SHSTAn(i) ) =  .TRUE.
+         InvalidOutput( SHSTAc(i) ) =  .TRUE.
+         InvalidOutput( SHSTAs(i) ) =  .TRUE.
+      end if
+      if ( (iNd < 1) .or. (iNd > p%numSHSNds-1) ) then
+         InvalidOutput( SHSFRn(i) ) =  .TRUE.
+         InvalidOutput( SHSFRc(i) ) =  .TRUE.
+         InvalidOutput( SHSFRs(i) ) =  .TRUE.
+         InvalidOutput( SHSMRn(i) ) =  .TRUE.
+         InvalidOutput( SHSMRc(i) ) =  .TRUE.
+         InvalidOutput( SHSMRs(i) ) =  .TRUE.
+      end if
+   end do
+   do i = 1, p%NPHSOuts   
+      iNd = p%PHSOutNds(i)
+      if ( (iNd < 1) .or. (iNd > p%numPHSNds) ) then
+         InvalidOutput( PHSTDx(i) ) =  .TRUE.
+         InvalidOutput( PHSTDy(i) ) =  .TRUE.
+         InvalidOutput( PHSTDz(i) ) =  .TRUE.
+         InvalidOutput( PHSRDx(i) ) =  .TRUE.
+         InvalidOutput( PHSRDy(i) ) =  .TRUE.
+         InvalidOutput( PHSRDz(i) ) =  .TRUE.
+         InvalidOutput( PHSRVn(i) ) =  .TRUE.
+         InvalidOutput( PHSRVc(i) ) =  .TRUE.
+         InvalidOutput( PHSRVs(i) ) =  .TRUE.
+         InvalidOutput( PHSTAn(i) ) =  .TRUE.
+         InvalidOutput( PHSTAc(i) ) =  .TRUE.
+         InvalidOutput( PHSTAs(i) ) =  .TRUE.
+      end if
+      if ( (iNd < 1) .or. (iNd > p%numPHSNds-1) ) then
+         InvalidOutput( PHSFRn(i) ) =  .TRUE.
+         InvalidOutput( PHSFRc(i) ) =  .TRUE.
+         InvalidOutput( PHSFRs(i) ) =  .TRUE.
+         InvalidOutput( PHSMRn(i) ) =  .TRUE.
+         InvalidOutput( PHSMRc(i) ) =  .TRUE.
+         InvalidOutput( PHSMRs(i) ) =  .TRUE.
+      end if
+   end do
+   do j = 1, min(p%NumPylons,2)  ! Currently only programmed for up to 2 pylon's worth of outputs  
+      do i = 1, p%NPylOuts   
+         iNd = p%PylOutNds(i)
+         if ( (iNd < 1) .or. (iNd > p%numSPyNds(j)) ) then
+            InvalidOutput( SPTDx(i,j) ) =  .TRUE.
+            InvalidOutput( SPTDy(i,j) ) =  .TRUE.
+            InvalidOutput( SPTDz(i,j) ) =  .TRUE.
+            InvalidOutput( SPRDx(i,j) ) =  .TRUE.
+            InvalidOutput( SPRDy(i,j) ) =  .TRUE.
+            InvalidOutput( SPRDz(i,j) ) =  .TRUE.
+            InvalidOutput( SPRVn(i,j) ) =  .TRUE.
+            InvalidOutput( SPRVc(i,j) ) =  .TRUE.
+            InvalidOutput( SPRVs(i,j) ) =  .TRUE.
+            InvalidOutput( SPTAn(i,j) ) =  .TRUE.
+            InvalidOutput( SPTAc(i,j) ) =  .TRUE.
+            InvalidOutput( SPTAs(i,j) ) =  .TRUE.
+         end if
+         if ( (iNd < 1) .or. (iNd > p%numSPyNds(j)-1) ) then
+            InvalidOutput( SPFRn(i,j) ) =  .TRUE.
+            InvalidOutput( SPFRc(i,j) ) =  .TRUE.
+            InvalidOutput( SPFRs(i,j) ) =  .TRUE.
+            InvalidOutput( SPMRn(i,j) ) =  .TRUE.
+            InvalidOutput( SPMRc(i,j) ) =  .TRUE.
+            InvalidOutput( SPMRs(i,j) ) =  .TRUE.
+         end if
+         if ( (iNd < 1) .or. (iNd > p%numPPyNds(j)) ) then
+            InvalidOutput( PPTDx(i,j) ) =  .TRUE.
+            InvalidOutput( PPTDy(i,j) ) =  .TRUE.
+            InvalidOutput( PPTDz(i,j) ) =  .TRUE.
+            InvalidOutput( PPRDx(i,j) ) =  .TRUE.
+            InvalidOutput( PPRDy(i,j) ) =  .TRUE.
+            InvalidOutput( PPRDz(i,j) ) =  .TRUE. 
+            InvalidOutput( PPRVn(i,j) ) =  .TRUE.
+            InvalidOutput( PPRVc(i,j) ) =  .TRUE.
+            InvalidOutput( PPRVs(i,j) ) =  .TRUE.
+            InvalidOutput( PPTAn(i,j) ) =  .TRUE.
+            InvalidOutput( PPTAc(i,j) ) =  .TRUE.
+            InvalidOutput( PPTAs(i,j) ) =  .TRUE.
+         end if
+         if ( (iNd < 1) .or. (iNd > p%numPPyNds(j)-1) ) then
+            InvalidOutput( PPFRn(i,j) ) =  .TRUE.
+            InvalidOutput( PPFRc(i,j) ) =  .TRUE.
+            InvalidOutput( PPFRs(i,j) ) =  .TRUE.
+            InvalidOutput( PPMRn(i,j) ) =  .TRUE.
+            InvalidOutput( PPMRc(i,j) ) =  .TRUE.
+            InvalidOutput( PPMRs(i,j) ) =  .TRUE.
+         end if
+      end do   
+   end do   
 !   ................. End of validity checking .................
 
 
@@ -5795,7 +6162,7 @@ SUBROUTINE KFAST_SetOutParam(OutList, NumOuts, p, ErrStat, ErrMsg )
          p%OutParam(I)%Units = "INVALID"
          p%OutParam(I)%SignM = 0                    ! multiply all results by zero
 
-         CALL SetErrStat(ErrID_Fatal, TRIM(p%OutParam(I)%Name)//" is not an available output channel.",ErrStat,ErrMsg,RoutineName)
+         CALL SetErrStat(ErrID_Warn, TRIM(p%OutParam(I)%Name)//" is not an available output channel.",ErrStat,ErrMsg,RoutineName)
       END IF
 
    END DO

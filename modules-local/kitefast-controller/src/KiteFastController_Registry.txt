@@ -13,55 +13,57 @@
 # ...... Include files (definitions from NWTC Library) ............................................................................
 include Registry_NWTC_Library.txt
 # ..... InitInput  ................................................................................................................
-typedef  KiteFastController/KFC InitInputType      CHARACTER(1024) DLL_FileName    -    -       - "Name of the shared library which the super controller logic" -
+typedef  KiteFastController/KFC InitInputType      CHARACTER(1024) DLL_FileName    -    -       - "Name of the shared library which the super controller logic [ignored if using a dummy controller]" -
+typedef  ^                  ^                      Logical         useDummy        -    -       - "Flag indicating whether to use a dummy controller or an actual controller" -
 typedef  ^                  ^                      IntKi           numPylons       -    -       - "Number of pylons per wing [controller expects 2]" -
 typedef  ^                  ^                      IntKi           numFlaps        -    -       - "Number of flaps per wing [controller expects 2]" -
-typedef  ^                  ^                      DbKi            DT              -     -      - "Time step for continuous state integration & discrete state update [controller expects 0.01]" s
-typedef   ^                 ^                      ReKi            SPyRtrIrot     {:}{:}   -       - "2 by numPylons matrix - Starboard rotor rotational inertia" m^3
-typedef   ^                 ^                      ReKi            PPyRtrIrot     {:}{:}   -       - "2 by numPylons matrix - Port rotor rotational inertia" m^3
+typedef  ^                  ^                      DbKi            DT              -    -       - "Time step for continuous state integration & discrete state update [controller expects 0.01]" s
+typedef  ^                  ^                      ReKi            SPyRtrIrot   {:}{:}  -       - "2 by numPylons matrix - Starboard rotor rotational inertia" m^3
+typedef  ^                  ^                      ReKi            PPyRtrIrot   {:}{:}  -       - "2 by numPylons matrix - Port rotor rotational inertia" m^3
 # ..... InitOutput ................................................................................................................
 typedef  ^                  InitOutputType         ProgDesc        Ver             -    -       - "This module's name, version, and date"	-                                        
 # ..... Parameters ................................................................................................................
-typedef	^	                ParameterType	        DbKi	         DT	             -	   -	     - "Time step for continuous state integration & discrete state update [controller expects 0.01]" s
-typedef  ^                  ParameterType         IntKi           numPylons       -    -       - "Number of pylons per wing" - 
-typedef  ^                  ParameterType         IntKi           numFlaps        -    -       - "Number of flaps per wing" - 
-typedef	^                  ParameterType         DLL_Type        DLL_Trgt        -    -       - "The addresses and names of the super controller shared library and its procedures"	-
+typedef	^	                ParameterType	         DbKi	          DT	           -	 -	      - "Time step for continuous state integration & discrete state update [controller expects 0.01]" s
+typedef  ^                  ^                      Logical         useDummy        -    -       - "Flag indicating whether to use a dummy controller or an actual controller" -
+typedef  ^                  ^                      IntKi           numPylons       -    -       - "Number of pylons per wing" - 
+typedef  ^                  ^                      IntKi           numFlaps        -    -       - "Number of flaps per wing" - 
+typedef	^                  ^                      DLL_Type        DLL_Trgt        -    -       - "The addresses and names of the super controller shared library and its procedures"	-
 # ..... Discrete (nondifferentiable) States .........................................................................................................
-typedef  ^                  DiscreteStateType     SiKi            Dummy           -   -       - "Remove this variable if you have discrete states" -
+typedef  ^                  DiscreteStateType      SiKi            Dummy           -    -       - "Remove this variable if you have discrete states" -
 # ..... Continuous States  ......................................................................................
-typedef    ^                ContinuousStateType   SiKi            Dummy           -    -       - "Remove this variable if you have continuous states" -
+typedef  ^                  ContinuousStateType   SiKi             Dummy           -    -       - "Remove this variable if you have continuous states" -
 # ..... constraint states here:
-typedef   ^                 ConstraintStateType   SiKi            Dummy           -    -       - "Remove this variable if you have constraint states" -
+typedef  ^                  ConstraintStateType   SiKi             Dummy           -    -       - "Remove this variable if you have constraint states" -
 # ..... misc vars here:
-typedef   ^                 MiscVarType           SiKi            Dummy           -   -       - "Remove this variable if you have misc vars" -
+typedef  ^                  MiscVarType           SiKi             Dummy           -    -       - "Remove this variable if you have misc vars" -
 # ..... Other States ..............................................................................................................
-typedef  ^                  OtherStateType        IntKi           Dummy           -    -       - "Dummy Other State" - 
+typedef  ^                  OtherStateType        IntKi            Dummy           -    -       - "Dummy Other State" - 
 # ..... Inputs ....................................................................................................................
-typedef   ^                 InputType             R8Ki            dcm_g2b        {3}{3}   -       - "The DCM to go from the controller ground system to the kite body system" -
-typedef   ^                 ^                     ReKi            pqr            {3}      -       - "The kite angular velocities expressed in the kite body system" rad/s
-typedef   ^                 ^                     ReKi            acc_norm        -       -       - "Magnitude of the acceleration vector" m/s^2
-typedef   ^                 ^                     ReKi            Xg             {3}      -       - "Location of the Kite Fuselage reference point in the controller ground system" m
-typedef   ^                 ^                     ReKi            Vg             {3}      -       - "The kite translational velocities expressed in the controller ground system" m/s
-typedef   ^                 ^                     ReKi            Vb             {3}      -       - "The kite translational velocities expressed in the kite body system" m/s
-typedef   ^                 ^                     ReKi            Ag             {3}      -       - "The kite accelerations expressed in the controller ground system" m/s^2
-typedef   ^                 ^                     ReKi            Ab             {3}      -       - "The kite accelerations expressed in the kite body system" m/s^2
-typedef   ^                 ^                     ReKi            rho             -       -       - "air density (constant in time and space)" kg/m^3
-typedef   ^                 ^                     ReKi            apparent_wind  {3}      -       - "relative wind velocity at the fuselage reference point expressed in the controller ground system" m/s
-typedef   ^                 ^                     ReKi            tether_forceb  {3}      -       - "tether tension at bridle connection in the kite body system" N
-typedef   ^                 ^                     ReKi            wind_g         {3}      -       - "wind velocity at the ground station point expressed in the controller ground system" m/s
-typedef   ^                 ^                     ReKi            SPyAeroTorque  {:}{:}   -       - "2 by numPylons matrix - Starboard rotor aerodynamic torques" N-m
-typedef   ^                 ^                     ReKi            PPyAeroTorque  {:}{:}   -       - "2 by numPylons matrix - Port rotor aerodynamic torques" N-m
+typedef  ^                  InputType             R8Ki             dcm_g2b       {3}{3} -       - "The DCM to go from the controller ground system to the kite body system" -
+typedef  ^                  ^                     ReKi             pqr           {3}    -       - "The kite angular velocities expressed in the kite body system" rad/s
+typedef  ^                  ^                     ReKi             acc_norm       -     -       - "Magnitude of the acceleration vector" m/s^2
+typedef  ^                  ^                     ReKi             Xg            {3}    -       - "Location of the Kite Fuselage reference point in the controller ground system" m
+typedef  ^                  ^                     ReKi             Vg            {3}    -       - "The kite translational velocities expressed in the controller ground system" m/s
+typedef  ^                  ^                     ReKi             Vb            {3}    -       - "The kite translational velocities expressed in the kite body system" m/s
+typedef  ^                  ^                     ReKi             Ag            {3}    -       - "The kite accelerations expressed in the controller ground system" m/s^2
+typedef  ^                  ^                     ReKi             Ab            {3}    -       - "The kite accelerations expressed in the kite body system" m/s^2
+typedef  ^                  ^                     ReKi             rho            -     -       - "air density (constant in time and space)" kg/m^3
+typedef  ^                  ^                     ReKi             apparent_wind {3}    -       - "relative wind velocity at the fuselage reference point expressed in the controller ground system" m/s
+typedef  ^                  ^                     ReKi             tether_forceb {3}    -       - "tether tension at bridle connection in the kite body system" N
+typedef  ^                  ^                     ReKi             wind_g        {3}    -       - "wind velocity at the ground station point expressed in the controller ground system" m/s
+typedef  ^                  ^                     ReKi             SPyAeroTorque {:}{:} -       - "2 by numPylons matrix - Starboard rotor aerodynamic torques" N-m
+typedef  ^                  ^                     ReKi             PPyAeroTorque {:}{:} -       - "2 by numPylons matrix - Port rotor aerodynamic torques" N-m
 # ..... Outputs ...................................................................................................................
-typedef  ^                  OutputType            ReKi            SFlp           {3}      -       - "Starboard flap angles [kFlapA5, kFlapA7, kFlapA8] " rad
-typedef  ^                  ^                     ReKi            PFlp           {3}      -       - "Port flap angles [kFlapA4, kFlapA2, kFlapA1]" rad
-typedef  ^                  ^                     ReKi            Rudr           {2}      -       - "Rudder flap angles [kFlapA10,kFlapA10]" rad
-typedef  ^                  ^                     ReKi            SElv           {2}      -       - "Starboard elevator flap angles [kFlapA9,kFlapA9]" rad
-typedef  ^                  ^                     ReKi            PElv           {2}      -       - "Port elevator flap angles [kFlapA9,kFlapA9]" rad
-typedef  ^                  ^                     ReKi            SPyRtrSpd      {:}{:}   -       - "2 by numPylons matrix - Starboard rotor speeds from controller" rad/s
-typedef  ^                  ^                     ReKi            PPyRtrSpd      {:}{:}   -       - "2 by numPylons matrix - Port rotor speeds from controller" rad/s
-# typedef  ^                ^                     ReKi            SPyRtrAcc      {:}{:}   -       - "2 by numPylons matrix - Starboard rotor acceleration from controller" rad/s^2
-# typedef  ^                ^                     ReKi            PPyRtrAcc      {:}{:}   -       - "2 by numPylons matrix - Port rotor acceleration from controller" rad/s^2
-typedef  ^                  ^                     ReKi            SPyGenTorque   {:}{:}   -       - "2 by numPylons matrix - Starboard torques from the starboard generators" N-m
-typedef  ^                  ^                     ReKi            PPyGenTorque   {:}{:}   -       - "2 by numPylons matrix - Port torques from the starboard generators" N-m
-typedef  ^                  ^                     ReKi            SPyBldPitch    {:}{:}   -       - "2 by numPylons matrix - Starboard rotor-collective pitch angles from controller" rad
-typedef  ^                  ^                     ReKi            PPyBldPitch    {:}{:}   -       - "2 by numPylons matrix - Port rotor-collective pitch angles from controller" rad
+typedef  ^                  OutputType            ReKi             SFlp          {3}    -       - "Starboard flap angles [kFlapA5, kFlapA7, kFlapA8] " rad
+typedef  ^                  ^                     ReKi             PFlp          {3}    -       - "Port flap angles [kFlapA4, kFlapA2, kFlapA1]" rad
+typedef  ^                  ^                     ReKi             Rudr          {2}    -       - "Rudder flap angles [kFlapA10,kFlapA10]" rad
+typedef  ^                  ^                     ReKi             SElv          {2}    -       - "Starboard elevator flap angles [kFlapA9,kFlapA9]" rad
+typedef  ^                  ^                     ReKi             PElv          {2}    -       - "Port elevator flap angles [kFlapA9,kFlapA9]" rad
+typedef  ^                  ^                     ReKi             SPyRtrSpd     {:}{:} -       - "2 by numPylons matrix - Starboard rotor speeds from controller" rad/s
+typedef  ^                  ^                     ReKi             PPyRtrSpd     {:}{:} -       - "2 by numPylons matrix - Port rotor speeds from controller" rad/s
+# typedef  ^                ^                     ReKi             SPyRtrAcc     {:}{:} -       - "2 by numPylons matrix - Starboard rotor acceleration from controller" rad/s^2
+# typedef  ^                ^                     ReKi             PPyRtrAcc     {:}{:} -       - "2 by numPylons matrix - Port rotor acceleration from controller" rad/s^2
+typedef  ^                  ^                     ReKi             SPyGenTorque  {:}{:} -       - "2 by numPylons matrix - Starboard torques from the starboard generators" N-m
+typedef  ^                  ^                     ReKi             PPyGenTorque  {:}{:} -       - "2 by numPylons matrix - Port torques from the starboard generators" N-m
+typedef  ^                  ^                     ReKi             SPyBldPitch   {:}{:} -       - "2 by numPylons matrix - Starboard rotor-collective pitch angles from controller" rad
+typedef  ^                  ^                     ReKi             PPyBldPitch   {:}{:} -       - "2 by numPylons matrix - Port rotor-collective pitch angles from controller" rad

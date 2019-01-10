@@ -1299,7 +1299,7 @@ end subroutine Init_y
 !> This routine initializes KiteAeroDyn meshes and input array variables for use during the simulation.
 subroutine Init_u( u, p, InitInp, nIfWPts, errStat, errMsg )
 
-   type(KAD_InputType),           intent(  out)  :: u                 !< Input data
+   type(KAD_InputType),           intent(inout)  :: u                 !< Input data
    type(KAD_ParameterType),       intent(in   )  :: p                 !< Parameters
    type(KAD_InitInputType),       intent(in   )  :: InitInp           !< Input data for AD initialization routine
    integer(IntKi),                intent(  out)  :: nIfWPts         !< The number of points where we need inflow velocities

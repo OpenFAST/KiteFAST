@@ -97,19 +97,21 @@ module KiteFastController
       errStat = ErrID_None
       errMsg= ''
       
-         ! Call the DLL's end subroutine:
-      call C_F_PROCPOINTER( p%DLL_Trgt%ProcAddr(3), DLL_KFC_End_Subroutine) 
-      call DLL_KFC_End_Subroutine ( errStat, errMsg_c ) 
-      call c_to_fortran_string(errMsg_c, errMsg)
+      if (.not. p%useDummy) then
+            ! Call the DLL's end subroutine:
+         call C_F_PROCPOINTER( p%DLL_Trgt%ProcAddr(3), DLL_KFC_End_Subroutine) 
+         call DLL_KFC_End_Subroutine ( errStat, errMsg_c ) 
+         call c_to_fortran_string(errMsg_c, errMsg)
       
-      print *, " KFC_End errStat - ", errStat, " errMsg - ", trim(errMsg)
+         print *, " KFC_End errStat - ", errStat, " errMsg - ", trim(errMsg)
 
-      ! TODO: Check errors
+         ! TODO: Check errors
       
-         ! Free the library
-      call FreeDynamicLib( p%DLL_Trgt, errStat2, errMsg2 )  
-         call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
-  
+            ! Free the library
+         call FreeDynamicLib( p%DLL_Trgt, errStat2, errMsg2 )  
+            call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
+      end if
+      
    end subroutine KFC_End
 
    subroutine KFC_Init(InitInp, u, p, y, interval, InitOut, errStat, errMsg )
@@ -148,41 +150,12 @@ module KiteFastController
       !   if (errStat >= AbortErrLev ) return
       !=============================================================================================  
       
-     
-         ! Define and load the DLL:
-      p%DLL_Trgt%FileName = InitInp%DLL_FileName
-
-      p%DLL_Trgt%ProcName = "" ! initialize all procedures to empty so we try to load only one
-      p%DLL_Trgt%ProcName(1) = 'kfc_dll_init'
-      p%DLL_Trgt%ProcName(2) = 'kfc_dll_step'
-      p%DLL_Trgt%ProcName(3) = 'kfc_dll_end'
-      
-      call LoadDynamicLib ( p%DLL_Trgt, errStat2, errMsg2 )
-         call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
-      if (errStat >= AbortErrLev ) return
-
-      ! Now that the library is loaded, call the controller's kfc_dll_init routine
-
-         ! Call the DLL (first associate the address from the procedure in the DLL with the subroutine):
-      call C_F_PROCPOINTER( p%DLL_Trgt%ProcAddr(1), DLL_KFC_Init_Subroutine) 
-      
-! TODO: jjonkman's plan doc assumes that the initial outputs are returned by KFC_Init(), but we aren't doing that here.  GJH 12/19/18
-         ! Can we modify the following to send the controller numFlaps, numPylons, and interval and let the controller throw an error and/or change interval as needed? GJH 12/19/18
-      ! also add Irot for each rotor.
-      call DLL_KFC_Init_Subroutine ( errStat, errMsg_c ) 
-      
-      call c_to_fortran_string(errMsg_c, errMsg)
-      print *, " KFC_Init errStat - ", errStat, " errMsg - ", trim(errMsg)
-      ! TODO: Check errors
-      print *, " debug marker - pre errStat >= Abort"
-      if (errStat >= AbortErrLev ) return
-      print *, " debug marker - post errStat >= Abort"
-      
-         ! Set the module's parameters
+               ! Set the module's parameters
       p%numFlaps  = InitInp%numFlaps
       p%numPylons = InitInp%numPylons
       p%DT        = interval
-
+      p%useDummy  = InitInp%useDummy
+      
          ! allocate the inputs and outputs
       call AllocAry( u%SPyAeroTorque, 2, p%numPylons, 'u%SPyAeroTorque', errStat2, errMsg2 )
          call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
@@ -202,14 +175,63 @@ module KiteFastController
          call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )   
          
       if (errStat >= AbortErrLev ) return
+
       
-        ! Set outputs to zero for now
-      y%SPyGenTorque = 0.0_ReKi
-      y%PPyGenTorque = 0.0_ReKi
-      y%SPyRtrSpd    = 0.0_ReKi
-      y%PPyRtrSpd    = 0.0_ReKi
-      y%SPyBldPitch  = 0.0_ReKi
-      y%PPyBldPitch  = 0.0_ReKi
+      ! Are we simply using a dummy controller?  If so, we will skip trying to call into a DLL/SO      
+      
+      if (.not. p%useDummy) then
+     
+            ! Define and load the DLL:
+         p%DLL_Trgt%FileName = InitInp%DLL_FileName
+
+         p%DLL_Trgt%ProcName = "" ! initialize all procedures to empty so we try to load only one
+         p%DLL_Trgt%ProcName(1) = 'kfc_dll_init'
+         p%DLL_Trgt%ProcName(2) = 'kfc_dll_step'
+         p%DLL_Trgt%ProcName(3) = 'kfc_dll_end'
+      
+         call LoadDynamicLib ( p%DLL_Trgt, errStat2, errMsg2 )
+            call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
+         if (errStat >= AbortErrLev ) return
+
+         ! Now that the library is loaded, call the controller's kfc_dll_init routine
+
+            ! Call the DLL (first associate the address from the procedure in the DLL with the subroutine):
+         call C_F_PROCPOINTER( p%DLL_Trgt%ProcAddr(1), DLL_KFC_Init_Subroutine) 
+      
+   ! TODO: jjonkman's plan doc assumes that the initial outputs are returned by KFC_Init(), but we aren't doing that here.  GJH 12/19/18
+            ! Can we modify the following to send the controller numFlaps, numPylons, and interval and let the controller throw an error and/or change interval as needed? GJH 12/19/18
+         ! also add Irot for each rotor.
+         call DLL_KFC_Init_Subroutine ( errStat, errMsg_c ) 
+      
+         call c_to_fortran_string(errMsg_c, errMsg)
+         print *, " KFC_Init errStat - ", errStat, " errMsg - ", trim(errMsg)
+         ! TODO: Check errors
+         print *, " debug marker - pre errStat >= Abort"
+         if (errStat >= AbortErrLev ) return
+         print *, " debug marker - post errStat >= Abort"
+         
+         ! TODO: obtain initial outputs from the DLL and set them
+           ! Set outputs to zero for now
+         y%SPyGenTorque = 0.0_ReKi
+         y%PPyGenTorque = 0.0_ReKi
+         y%SPyRtrSpd    = 0.0_ReKi
+         y%PPyRtrSpd    = 0.0_ReKi
+         y%SPyBldPitch  = 0.0_ReKi
+         y%PPyBldPitch  = 0.0_ReKi
+      else
+           ! Set outputs to zero except for RtrSpd which is set to be constant for the dummy controller
+         y%SPyGenTorque = 0.0_ReKi
+         y%PPyGenTorque = 0.0_ReKi
+            ! TODO: Determine what would be a realistic dummy set of speed and the correct signs for each rotor
+         y%SPyRtrSpd    = 180.0_ReKi  ! rad/s
+         y%PPyRtrSpd    = 180.0_ReKi  ! rad/s
+         y%SPyBldPitch  = 0.0_ReKi
+         y%PPyBldPitch  = 0.0_ReKi
+         
+      end if
+      
+      
+      
       
    end subroutine KFC_Init
 
@@ -259,58 +281,84 @@ module KiteFastController
       tether_forceb_c = u%tether_forceb
       wind_g_c        = u%wind_g
 
+      if (.not. p%useDummy) then
+            ! Call the DLL (first associate the address from the procedure in the DLL with the subroutine):
+         call C_F_PROCPOINTER( p%DLL_Trgt%ProcAddr(2), DLL_KFC_Step_Subroutine) 
+         call DLL_KFC_Step_Subroutine ( dcm_g2b_c, pqr_c, acc_norm_c, Xg_c, Vg_c, Vb_c, Ag_c, Ab_c, rho_c, apparent_wind_c, tether_forceb_c, wind_g_c, kFlapA_c, Motor_c, errStat, errMsg_c ) 
+         call c_to_fortran_string(errMsg_c, errMsg)
 
-         ! Call the DLL (first associate the address from the procedure in the DLL with the subroutine):
-      call C_F_PROCPOINTER( p%DLL_Trgt%ProcAddr(2), DLL_KFC_Step_Subroutine) 
-      call DLL_KFC_Step_Subroutine ( dcm_g2b_c, pqr_c, acc_norm_c, Xg_c, Vg_c, Vb_c, Ag_c, Ab_c, rho_c, apparent_wind_c, tether_forceb_c, wind_g_c, kFlapA_c, Motor_c, errStat, errMsg_c ) 
-      call c_to_fortran_string(errMsg_c, errMsg)
+         print *, " KFC_Step errStat - ", errStat, " errMsg - ", trim(errMsg)
 
-      print *, " KFC_Step errStat - ", errStat, " errMsg - ", trim(errMsg)
-
-         ! Convert the controller outputs into the KiteFAST Fortran-style controller outputs
-      y%SFlp(1) = kFlapA_c(5)
-      y%SFlp(2) = kFlapA_c(7)
-      y%SFlp(3) = kFlapA_c(8)
-      y%PFlp(1) = kFlapA_c(4)
-      y%PFlp(2) = kFlapA_c(2)
-      y%PFlp(3) = kFlapA_c(1)
-      y%Rudr(:) = kFlapA_c(10)
-      y%SElv(:) = kFlapA_c(9)
-      y%PElv(:) = kFlapA_c(9)   
+            ! Convert the controller outputs into the KiteFAST Fortran-style controller outputs
+         y%SFlp(1) = kFlapA_c(5)
+         y%SFlp(2) = kFlapA_c(7)
+         y%SFlp(3) = kFlapA_c(8)
+         y%PFlp(1) = kFlapA_c(4)
+         y%PFlp(2) = kFlapA_c(2)
+         y%PFlp(3) = kFlapA_c(1)
+         y%Rudr(:) = kFlapA_c(10)
+         y%SElv(:) = kFlapA_c(9)
+         y%PElv(:) = kFlapA_c(9)   
       
-      y%SPyGenTorque(1,1) = Motor_c(7)  ! starboard top rotor, pylon 1 (inboard)
-      y%SPyGenTorque(2,1) = Motor_c(2)  ! starboard bottom rotor, pylon 1 (inboard)
-      y%SPyGenTorque(1,2) = Motor_c(8)  ! starboard top rotor, pylon 2 (outboard)
-      y%SPyGenTorque(2,2) = Motor_c(1)  ! starboard bottom rotor, pylon 2 (outboard)
-      y%PPyGenTorque(1,1) = Motor_c(6)  ! port top rotor, pylon 1 (inboard)
-      y%PPyGenTorque(2,1) = Motor_c(3)  ! port bottom rotor, pylon 1 (inboard)
-      y%PPyGenTorque(1,2) = Motor_c(5)  ! port top rotor, pylon 2 (outboard)
-      y%PPyGenTorque(2,2) = Motor_c(4)  ! port bottom rotor, pylon 2 (outboard)
+         y%SPyGenTorque(1,1) = Motor_c(7)  ! starboard top rotor, pylon 1 (inboard)
+         y%SPyGenTorque(2,1) = Motor_c(2)  ! starboard bottom rotor, pylon 1 (inboard)
+         y%SPyGenTorque(1,2) = Motor_c(8)  ! starboard top rotor, pylon 2 (outboard)
+         y%SPyGenTorque(2,2) = Motor_c(1)  ! starboard bottom rotor, pylon 2 (outboard)
+         y%PPyGenTorque(1,1) = Motor_c(6)  ! port top rotor, pylon 1 (inboard)
+         y%PPyGenTorque(2,1) = Motor_c(3)  ! port bottom rotor, pylon 1 (inboard)
+         y%PPyGenTorque(1,2) = Motor_c(5)  ! port top rotor, pylon 2 (outboard)
+         y%PPyGenTorque(2,2) = Motor_c(4)  ! port bottom rotor, pylon 2 (outboard)
  
-!TODO: How to we obtain rotor speeds?
-      y%SPyRtrSpd(1,1) = 0.0  !RtrSpd_c(7)  ! starboard top rotor, pylon 1 (inboard)
-      y%SPyRtrSpd(2,1) = 0.0  !RtrSpd_c(2)  ! starboard bottom rotor, pylon 1 (inboard)
-      y%SPyRtrSpd(1,2) = 0.0  !RtrSpd_c(8)  ! starboard top rotor, pylon 2 (outboard)
-      y%SPyRtrSpd(2,2) = 0.0  !RtrSpd_c(1)  ! starboard bottom rotor, pylon 2 (outboard)
-      y%PPyRtrSpd(1,1) = 0.0  !RtrSpd_c(6)  ! port top rotor, pylon 1 (inboard)
-      y%PPyRtrSpd(2,1) = 0.0  !RtrSpd_c(3)  ! port bottom rotor, pylon 1 (inboard)
-      y%PPyRtrSpd(1,2) = 0.0  !RtrSpd_c(5)  ! port top rotor, pylon 2 (outboard)
-      y%PPyRtrSpd(2,2) = 0.0  !RtrSpd_c(4)  ! port bottom rotor, pylon 2 (outboard)
+   !TODO: How to we obtain rotor speeds?
+         y%SPyRtrSpd(1,1) = 0.0  !RtrSpd_c(7)  ! starboard top rotor, pylon 1 (inboard)
+         y%SPyRtrSpd(2,1) = 0.0  !RtrSpd_c(2)  ! starboard bottom rotor, pylon 1 (inboard)
+         y%SPyRtrSpd(1,2) = 0.0  !RtrSpd_c(8)  ! starboard top rotor, pylon 2 (outboard)
+         y%SPyRtrSpd(2,2) = 0.0  !RtrSpd_c(1)  ! starboard bottom rotor, pylon 2 (outboard)
+         y%PPyRtrSpd(1,1) = 0.0  !RtrSpd_c(6)  ! port top rotor, pylon 1 (inboard)
+         y%PPyRtrSpd(2,1) = 0.0  !RtrSpd_c(3)  ! port bottom rotor, pylon 1 (inboard)
+         y%PPyRtrSpd(1,2) = 0.0  !RtrSpd_c(5)  ! port top rotor, pylon 2 (outboard)
+         y%PPyRtrSpd(2,2) = 0.0  !RtrSpd_c(4)  ! port bottom rotor, pylon 2 (outboard)
 
-! TODO: Are we still receiving rotor accelerations from controller?
-      ! y%SPyRtrAcc(1,1) = Motor_c(7)  ! starboard top rotor, pylon 1 (inboard)
-      ! y%SPyRtrAcc(2,1) = Motor_c(2)  ! starboard bottom rotor, pylon 1 (inboard)
-      ! y%SPyRtrAcc(1,2) = Motor_c(8)  ! starboard top rotor, pylon 2 (outboard)
-      ! y%SPyRtrAcc(2,2) = Motor_c(1)  ! starboard bottom rotor, pylon 2 (outboard)
-      ! y%PPyRtrAcc(1,1) = Motor_c(6)  ! port top rotor, pylon 1 (inboard)
-      ! y%PPyRtrAcc(2,1) = Motor_c(3)  ! port bottom rotor, pylon 1 (inboard)
-      ! y%PPyRtrAcc(1,2) = Motor_c(5)  ! port top rotor, pylon 2 (outboard)
-      ! y%PPyRtrAcc(2,2) = Motor_c(4)  ! port bottom rotor, pylon 2 (outboard)
+   ! TODO: Are we still receiving rotor accelerations from controller?
+         ! y%SPyRtrAcc(1,1) = Motor_c(7)  ! starboard top rotor, pylon 1 (inboard)
+         ! y%SPyRtrAcc(2,1) = Motor_c(2)  ! starboard bottom rotor, pylon 1 (inboard)
+         ! y%SPyRtrAcc(1,2) = Motor_c(8)  ! starboard top rotor, pylon 2 (outboard)
+         ! y%SPyRtrAcc(2,2) = Motor_c(1)  ! starboard bottom rotor, pylon 2 (outboard)
+         ! y%PPyRtrAcc(1,1) = Motor_c(6)  ! port top rotor, pylon 1 (inboard)
+         ! y%PPyRtrAcc(2,1) = Motor_c(3)  ! port bottom rotor, pylon 1 (inboard)
+         ! y%PPyRtrAcc(1,2) = Motor_c(5)  ! port top rotor, pylon 2 (outboard)
+         ! y%PPyRtrAcc(2,2) = Motor_c(4)  ! port bottom rotor, pylon 2 (outboard)
 
-      ! Currently blade pitch is not being set by controller and was initialized to 0.0
+         ! Currently blade pitch is not being set by controller and was initialized to 0.0
+         y%SPyBldPitch  = 0.0_ReKi
+         y%PPyBldPitch  = 0.0_ReKi
+            ! TODO Error checking
+      else
+         
+         ! TODO: Determine what would be a realistic dummy set of speed and the correct signs for each rotor
+            ! NOTE: Speed should match the settings used in the Init routine.
+         y%SPyRtrSpd(1,:) = 180.0  ! starboard top rotor, all pylons 
+         y%SPyRtrSpd(2,:) = 180.0  ! starboard bottom rotor, all pylons
+         y%PPyRtrSpd(1,:) = 180.0  ! port top rotor, all pylons
+         y%PPyRtrSpd(2,:) = 180.0  ! port bottom rotor, all pylons
+         
+            ! Currently blade pitch is not being set by controller and was initialized to 0.0
+         y%SPyBldPitch  = 0.0_ReKi
+         y%PPyBldPitch  = 0.0_ReKi
+         
+            ! Set GenTorque = -AeroTorque
+         y%SPyGenTorque = -u%SPyAeroTorque  ! starboard rotors
+         y%PPyGenTorque = -u%PPyAeroTorque  ! port rotors
+        
+            ! All flag commands are constant for the dummy controller
+         y%SFlp = 0.0_ReKi
+         y%PFlp = 0.0_ReKi
+         y%Rudr = 0.0_ReKi
+         y%SElv = 0.0_ReKi
+         y%PElv = 0.0_ReKi
+         
+      end if
       
-         ! TODO Error checking
-    
    end subroutine KFC_Step
    
    subroutine c_to_fortran_string(input, output)

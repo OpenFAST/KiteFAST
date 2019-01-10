@@ -58,6 +58,116 @@ end do
 
 end subroutine
 
+subroutine SetBridleForce(m)
+
+   type(KFAST_MiscVarType),   intent(inout) :: m
+
+   integer(IntKi) :: i, numFairLeads
+   
+   m%tether_forceb_prev = 0.0_ReKi
+   numFairLeads = size(m%MD%y%PtFairLeadLoad%Force,2)
+   do i = 1, numFairLeads
+      m%tether_forceb_prev = m%tether_forceb_prev + m%MD%y%PtFairLeadLoad%Force(:,i) 
+   end do
+   m%tether_forceb_prev = m%tether_forceb_prev/real(numFairLeads,ReKi)
+   
+end subroutine SetBridleForce
+
+subroutine WriteNodeInfo(SumFileUnit, CompIndx, nNds, Pts, NdDCMs, FusO, NOuts, OutNds, errStat, errMsg )
+   integer(IntKi),                  intent(in   ) :: SumFileUnit          ! the unit number for the InflowWindsummary file
+   integer(IntKi),                  intent(in   ) :: CompIndx
+   integer(IntKi),                  intent(in   ) :: nNds
+   real(ReKi),                      intent(in   ) :: Pts(:,:)
+   real(R8Ki),                      intent(in   ) :: NdDCMs(:,:,:)
+   real(ReKi),                      intent(in   ) :: FusO(3)
+   integer(IntKi),                  intent(in   ) :: NOuts
+   integer(IntKi),                  intent(in   ) :: OutNds(:)
+   integer(IntKi),                  intent(  out) :: errStat    ! Error status of the operation
+   character(*),                    intent(  out) :: errMsg     ! Error message if ErrStat /= ErrID_None
+   
+      ! Local variables
+   integer                                        :: k,l                  ! Generic loop counter      
+
+   character(200)                                 :: Frmt                 ! a string to hold a format statement
+   integer                                        :: errStat2              
+   character(ErrMsgLen)                           :: errMsg2              ! error messages
+   integer(IntKi)                                 :: TmpErrStat           ! Temporary error status for checking how the WRITE worked
+   character(32)                                  :: Components(12)
+   character(1)                                   :: NoValStr = '-'
+   character(1)                                   :: OutNumStr
+   character(19)                                  :: NodeType(3)
+   real(ReKi)                                     :: xloc, yloc, zloc
+   real(ReKi)                                     :: globalPt(3), kitePt(3), kitePt2(3)
+
+   !-------------------------------------------------------------------------------------------------      
+   ! Initialize local variables
+   !-------------------------------------------------------------------------------------------------      
+   ErrStat = ErrID_None  
+   ErrMsg  = ""
+   Components = (/'Fuselage                        ', &
+                  'Starboard wing                  ', &
+                  'Port wing                       ', &
+                  'Vertical stabilizer             ', &
+                  'Starboard horizontal stabilizer ', &
+                  'Port horizontal stabilizer      ', &
+                  'Starboard pylon                 ', &
+                  'Port pylon                      ', &
+                  'Top rotor on starboard pylon    ', &
+                  'Bottom rotor on starboard pylon ', &
+                  'Top rotor on port pylon         ', &
+                  'Bottom rotor on port pylon      '/)
+   NodeType = (/'Reference point    ', &
+                'Finite-element node', & 
+                'Gauss point        '/)
+   xloc = 0.0
+   yloc = 0.0
+   zloc = 0.0
+
+
+         ! reference point
+      write(SumFileUnit,'(3X,A32,2X,A19,4X,A1,10X,A1,8X,3(F7.3,1X))',IOSTAT=TmpErrStat) Components(CompIndx), NodeType(1), NoValStr, NoValStr, xloc, yloc, zloc
+      
+         ! finite-element points
+      do k = 1,nNds
+         globalPt = Pts(:,k) - FusO
+         kitePt = matmul(NdDCMs(:,:,k), globalPt)
+         OutNumStr = NoValStr
+         do l= 1,NOuts
+           if ( k == OutNds(l) ) then
+              OutNumStr = Num2LStr(l)
+              continue
+           end if
+         end do
+         
+         write(SumFileUnit,'(3X,A32,2X,A19,4X,A1,10X,A1,8X,3(F7.3,1X))',IOSTAT=TmpErrStat) Components(1), NodeType(2), Num2LStr(k), OutNumStr, kitePt(1), kitePt(2), kitePt(3)
+      end do
+      
+         ! gauss points
+      do k = 1,nNds-1
+         OutNumStr = NoValStr
+         do l= 1,NOuts
+           if ( k == OutNds(l) ) then
+              OutNumStr = Num2LStr(l)
+              continue
+           end if
+         end do
+         globalPt = Pts(:,k) - FusO
+         kitePt = matmul(NdDCMs(:,:,k), globalPt)
+         globalPt = Pts(:,k+1) - FusO
+         kitePt2 = matmul(NdDCMs(:,:,k+1), globalPt)
+         if ( mod(k,2) == 1 ) then
+            kitePt = (1.0-sqrt(3.0)/3.0)*kitePt + (sqrt(3.0)/3.0)*kitePt2
+         else
+            kitePt = (1.0-sqrt(3.0)/3.0)*kitePt2 + (sqrt(3.0)/3.0)*kitePt
+         end if
+         
+         write(SumFileUnit,'(3X,A32,2X,A19,4X,A1,10X,A1,8X,3(F7.3,1X))',IOSTAT=TmpErrStat) Components(1), NodeType(3), Num2LStr(k), OutNumStr, kitePt(1), kitePt(2), kitePt(3)
+      end do   
+      
+
+
+end subroutine WriteNodeInfo
+
 !====================================================================================================
 subroutine KFAST_RotorCalcs(NacDCM, NacOmega, NacAcc, NacAlpha, RtrSpd, GenTorq, F_Aero, M_Aero, g, mass, Irot, Itran, Xcm, Freact, Mreact, errStat, errMsg )
 ! This subroutine computes the reaction loads/moments on the a single rotor nacelle point 
@@ -138,295 +248,298 @@ subroutine KFAST_ProcessMBD_Outputs()
    
    do i = 1, p%NFusOuts
       iNd = p%FusOutNds(i)
-
-      val3 = matmul( m%FusODCM, (m%mbdFusMotions%TranslationDisp(:,iNd)  +  m%mbdFusMotions%Position(:,iNd)  - m%FusO) ) - m%mbdFusMotions%Position(:,iNd)
+      if ( (iNd > 0 ) .and. (iNd <= p%numFusNds) ) then
+         val3 = matmul( m%FusODCM, (m%mbdFusMotions%TranslationDisp(:,iNd)  +  m%mbdFusMotions%Position(:,iNd)  - m%FusO) ) - m%mbdFusMotions%Position(:,iNd)
       
-      m%AllOuts(FusTDx(i)) = val3(1)
-      m%AllOuts(FusTDy(i)) = val3(2)
-      m%AllOuts(FusTDz(i)) = val3(3)
+         m%AllOuts(FusTDx(i)) = val3(1)
+         m%AllOuts(FusTDy(i)) = val3(2)
+         m%AllOuts(FusTDz(i)) = val3(3)
       
-      dcm = matmul( transpose(m%mbdFusMotions%RefOrientation(:,:,iNd)), m%mbdFusMotions%Orientation(:,:,iNd)  )
-      dcm = matmul( transpose(m%FusODCM), dcm )
-      val3 = R2D_D*EulerExtract(dcm)
-      m%AllOuts(FusRDx(i)) = val3(1)
-      m%AllOuts(FusRDy(i)) = val3(2)
-      m%AllOuts(FusRDz(i)) = val3(3)
+         dcm = matmul( transpose(m%mbdFusMotions%RefOrientation(:,:,iNd)), m%mbdFusMotions%Orientation(:,:,iNd)  )
+         dcm = matmul( transpose(m%FusODCM), dcm )
+         val3 = R2D_D*EulerExtract(dcm)
+         m%AllOuts(FusRDx(i)) = val3(1)
+         m%AllOuts(FusRDy(i)) = val3(2)
+         m%AllOuts(FusRDz(i)) = val3(3)
       
       
-      val3 = R2D_D*matmul( m%mbdFusMotions%Orientation(:,:,iNd), m%mbdFusMotions%RotationVel(:,iNd) )
-      m%AllOuts(FusRVn(i)) = val3(1)
-      m%AllOuts(FusRVc(i)) = val3(2)
-      m%AllOuts(FusRVs(i)) = val3(3)
+         val3 = R2D_D*matmul( m%mbdFusMotions%Orientation(:,:,iNd), m%mbdFusMotions%RotationVel(:,iNd) )
+         m%AllOuts(FusRVn(i)) = val3(1)
+         m%AllOuts(FusRVc(i)) = val3(2)
+         m%AllOuts(FusRVs(i)) = val3(3)
       
-      val3 = matmul( m%mbdFusMotions%Orientation(:,:,iNd), m%FusAccs(:,iNd) )
-      m%AllOuts(FusTAn(i)) = val3(1)
-      m%AllOuts(FusTAc(i)) = val3(2)
-      m%AllOuts(FusTAs(i)) = val3(3)
+         val3 = matmul( m%mbdFusMotions%Orientation(:,:,iNd), m%FusAccs(:,iNd) )
+         m%AllOuts(FusTAn(i)) = val3(1)
+         m%AllOuts(FusTAc(i)) = val3(2)
+         m%AllOuts(FusTAs(i)) = val3(3)
       
-      if ( iNd < p%numFusNds ) then  ! there is no gauss pt associated with the last FE motion node from MBDyn
-         m%AllOuts(FusFRn(i)) = m%FusLoadInpts(1,iNd)
-         m%AllOuts(FusFRc(i)) = m%FusLoadInpts(2,iNd)
-         m%AllOuts(FusFRs(i)) = m%FusLoadInpts(3,iNd)
-         m%AllOuts(FusMRn(i)) = m%FusLoadInpts(4,iNd)
-         m%AllOuts(FusMRc(i)) = m%FusLoadInpts(5,iNd)
-         m%AllOuts(FusMRs(i)) = m%FusLoadInpts(6,iNd)
+         if ( iNd < p%numFusNds ) then  ! there is no gauss pt associated with the last FE motion node from MBDyn
+            m%AllOuts(FusFRn(i)) = m%FusLoadInpts(1,iNd)
+            m%AllOuts(FusFRc(i)) = m%FusLoadInpts(2,iNd)
+            m%AllOuts(FusFRs(i)) = m%FusLoadInpts(3,iNd)
+            m%AllOuts(FusMRn(i)) = m%FusLoadInpts(4,iNd)
+            m%AllOuts(FusMRc(i)) = m%FusLoadInpts(5,iNd)
+            m%AllOuts(FusMRs(i)) = m%FusLoadInpts(6,iNd)
+         end if
       end if
    end do
 
 
    do i = 1, p%NSWnOuts
       iNd = p%SWnOutNds(i)
+      if ( (iNd > 0 ) .and. (iNd <= p%numSWnNds) ) then
+         val3 = matmul( m%FusODCM, (m%mbdSWnMotions%TranslationDisp(:,iNd)  +  m%mbdSWnMotions%Position(:,iNd)  - m%FusO) ) - m%mbdSWnMotions%Position(:,iNd)
+      
+         m%AllOuts(SWnTDx(i)) = val3(1)
+         m%AllOuts(SWnTDy(i)) = val3(2)
+         m%AllOuts(SWnTDz(i)) = val3(3)
+      
+         dcm = matmul( transpose(m%mbdSWnMotions%RefOrientation(:,:,iNd)), m%mbdSWnMotions%Orientation(:,:,iNd)  )
+         dcm = matmul( transpose(m%FusODCM), dcm )
+         val3 = R2D_D*EulerExtract(dcm)
+         m%AllOuts(SWnRDx(i)) = val3(1)
+         m%AllOuts(SWnRDy(i)) = val3(2)
+         m%AllOuts(SWnRDz(i)) = val3(3)
+      
+         val3 = R2D_D*matmul( m%mbdSWnMotions%Orientation(:,:,iNd), m%mbdSWnMotions%RotationVel(:,iNd) )
+         m%AllOuts(SWnRVn(i)) = val3(1)
+         m%AllOuts(SWnRVc(i)) = val3(2)
+         m%AllOuts(SWnRVs(i)) = val3(3)
 
-      val3 = matmul( m%FusODCM, (m%mbdSWnMotions%TranslationDisp(:,iNd)  +  m%mbdSWnMotions%Position(:,iNd)  - m%FusO) ) - m%mbdSWnMotions%Position(:,iNd)
+         val3 = matmul( m%mbdSWnMotions%Orientation(:,:,iNd), m%SWnAccs(:,iNd) )
+         m%AllOuts(SWnTAn(i)) = val3(1)
+         m%AllOuts(SWnTAc(i)) = val3(2)
+         m%AllOuts(SWnTAs(i)) = val3(3)
       
-      m%AllOuts(SWnTDx(i)) = val3(1)
-      m%AllOuts(SWnTDy(i)) = val3(2)
-      m%AllOuts(SWnTDz(i)) = val3(3)
-      
-      dcm = matmul( transpose(m%mbdSWnMotions%RefOrientation(:,:,iNd)), m%mbdSWnMotions%Orientation(:,:,iNd)  )
-      dcm = matmul( transpose(m%FusODCM), dcm )
-      val3 = R2D_D*EulerExtract(dcm)
-      m%AllOuts(SWnRDx(i)) = val3(1)
-      m%AllOuts(SWnRDy(i)) = val3(2)
-      m%AllOuts(SWnRDz(i)) = val3(3)
-      
-      val3 = R2D_D*matmul( m%mbdSWnMotions%Orientation(:,:,iNd), m%mbdSWnMotions%RotationVel(:,iNd) )
-      m%AllOuts(SWnRVn(i)) = val3(1)
-      m%AllOuts(SWnRVc(i)) = val3(2)
-      m%AllOuts(SWnRVs(i)) = val3(3)
-
-      val3 = matmul( m%mbdSWnMotions%Orientation(:,:,iNd), m%SWnAccs(:,iNd) )
-      m%AllOuts(SWnTAn(i)) = val3(1)
-      m%AllOuts(SWnTAc(i)) = val3(2)
-      m%AllOuts(SWnTAs(i)) = val3(3)
-      
-      if ( iNd < p%numSWnNds ) then  ! there is no gauss pt associated with the last FE motion node from MBDyn
-         m%AllOuts(SWnFRn(i)) = m%SWnLoadInpts(1,iNd)
-         m%AllOuts(SWnFRc(i)) = m%SWnLoadInpts(2,iNd)
-         m%AllOuts(SWnFRs(i)) = m%SWnLoadInpts(3,iNd)
-         m%AllOuts(SWnMRn(i)) = m%SWnLoadInpts(4,iNd)
-         m%AllOuts(SWnMRc(i)) = m%SWnLoadInpts(5,iNd)
-         m%AllOuts(SWnMRs(i)) = m%SWnLoadInpts(6,iNd)
+         if ( iNd < p%numSWnNds ) then  ! there is no gauss pt associated with the last FE motion node from MBDyn
+            m%AllOuts(SWnFRn(i)) = m%SWnLoadInpts(1,iNd)
+            m%AllOuts(SWnFRc(i)) = m%SWnLoadInpts(2,iNd)
+            m%AllOuts(SWnFRs(i)) = m%SWnLoadInpts(3,iNd)
+            m%AllOuts(SWnMRn(i)) = m%SWnLoadInpts(4,iNd)
+            m%AllOuts(SWnMRc(i)) = m%SWnLoadInpts(5,iNd)
+            m%AllOuts(SWnMRs(i)) = m%SWnLoadInpts(6,iNd)
+         end if
       end if
-      
    end do
 
    do i = 1, p%NPWnOuts
       iNd = p%PWnOutNds(i)
+      if ( (iNd > 0 ) .and. (iNd <= p%numPWnNds) ) then
+         val3 = matmul( m%FusODCM, (m%mbdPWnMotions%TranslationDisp(:,iNd)  +  m%mbdPWnMotions%Position(:,iNd)  - m%FusO) ) - m%mbdPWnMotions%Position(:,iNd)
+      
+         m%AllOuts(PWnTDx(i)) = val3(1)
+         m%AllOuts(PWnTDy(i)) = val3(2)
+         m%AllOuts(PWnTDz(i)) = val3(3)
+      
+         dcm = matmul( transpose(m%mbdPWnMotions%RefOrientation(:,:,iNd)), m%mbdPWnMotions%Orientation(:,:,iNd)  )
+         dcm = matmul( transpose(m%FusODCM), dcm )
+         val3 = R2D_D*EulerExtract(dcm)
+         m%AllOuts(PWnRDx(i)) = val3(1)
+         m%AllOuts(PWnRDy(i)) = val3(2)
+         m%AllOuts(PWnRDz(i)) = val3(3)
+      
+         val3 = R2D_D*matmul( m%mbdPWnMotions%Orientation(:,:,iNd), m%mbdPWnMotions%RotationVel(:,iNd) )
+         m%AllOuts(PWnRVn(i)) = val3(1)
+         m%AllOuts(PWnRVc(i)) = val3(2)
+         m%AllOuts(PWnRVs(i)) = val3(3)
 
-      val3 = matmul( m%FusODCM, (m%mbdPWnMotions%TranslationDisp(:,iNd)  +  m%mbdPWnMotions%Position(:,iNd)  - m%FusO) ) - m%mbdPWnMotions%Position(:,iNd)
+         val3 = matmul( m%mbdPWnMotions%Orientation(:,:,iNd), m%PWnAccs(:,iNd) )
+         m%AllOuts(PWnTAn(i)) = val3(1)
+         m%AllOuts(PWnTAc(i)) = val3(2)
+         m%AllOuts(PWnTAs(i)) = val3(3)
       
-      m%AllOuts(PWnTDx(i)) = val3(1)
-      m%AllOuts(PWnTDy(i)) = val3(2)
-      m%AllOuts(PWnTDz(i)) = val3(3)
-      
-      dcm = matmul( transpose(m%mbdPWnMotions%RefOrientation(:,:,iNd)), m%mbdPWnMotions%Orientation(:,:,iNd)  )
-      dcm = matmul( transpose(m%FusODCM), dcm )
-      val3 = R2D_D*EulerExtract(dcm)
-      m%AllOuts(PWnRDx(i)) = val3(1)
-      m%AllOuts(PWnRDy(i)) = val3(2)
-      m%AllOuts(PWnRDz(i)) = val3(3)
-      
-      val3 = R2D_D*matmul( m%mbdPWnMotions%Orientation(:,:,iNd), m%mbdPWnMotions%RotationVel(:,iNd) )
-      m%AllOuts(PWnRVn(i)) = val3(1)
-      m%AllOuts(PWnRVc(i)) = val3(2)
-      m%AllOuts(PWnRVs(i)) = val3(3)
-
-      val3 = matmul( m%mbdPWnMotions%Orientation(:,:,iNd), m%PWnAccs(:,iNd) )
-      m%AllOuts(PWnTAn(i)) = val3(1)
-      m%AllOuts(PWnTAc(i)) = val3(2)
-      m%AllOuts(PWnTAs(i)) = val3(3)
-      
-      if ( iNd < p%numPWnNds ) then  ! there is no gauss pt associated with the last FE motion node from MBDyn
-         m%AllOuts(PWnFRn(i)) = m%PWnLoadInpts(1,iNd)
-         m%AllOuts(PWnFRc(i)) = m%PWnLoadInpts(2,iNd)
-         m%AllOuts(PWnFRs(i)) = m%PWnLoadInpts(3,iNd)
-         m%AllOuts(PWnMRn(i)) = m%PWnLoadInpts(4,iNd)
-         m%AllOuts(PWnMRc(i)) = m%PWnLoadInpts(5,iNd)
-         m%AllOuts(PWnMRs(i)) = m%PWnLoadInpts(6,iNd)
+         if ( iNd < p%numPWnNds ) then  ! there is no gauss pt associated with the last FE motion node from MBDyn
+            m%AllOuts(PWnFRn(i)) = m%PWnLoadInpts(1,iNd)
+            m%AllOuts(PWnFRc(i)) = m%PWnLoadInpts(2,iNd)
+            m%AllOuts(PWnFRs(i)) = m%PWnLoadInpts(3,iNd)
+            m%AllOuts(PWnMRn(i)) = m%PWnLoadInpts(4,iNd)
+            m%AllOuts(PWnMRc(i)) = m%PWnLoadInpts(5,iNd)
+            m%AllOuts(PWnMRs(i)) = m%PWnLoadInpts(6,iNd)
+         end if
       end if
-      
    end do
    
    do i = 1, p%NVSOuts
       iNd = p%VSOutNds(i)
+      if ( (iNd > 0 ) .and. (iNd <= p%numVSNds) ) then
+         val3 = matmul( m%FusODCM, (m%mbdVSMotions%TranslationDisp(:,iNd)  +  m%mbdVSMotions%Position(:,iNd)  - m%FusO) ) - m%mbdVSMotions%Position(:,iNd)
+      
+         m%AllOuts(VSTDx(i)) = val3(1)
+         m%AllOuts(VSTDy(i)) = val3(2)
+         m%AllOuts(VSTDz(i)) = val3(3)
+      
+         dcm = matmul( transpose(m%mbdVSMotions%RefOrientation(:,:,iNd)), m%mbdVSMotions%Orientation(:,:,iNd)  )
+         dcm = matmul( transpose(m%FusODCM), dcm )
+         val3 = R2D_D*EulerExtract(dcm)
+         m%AllOuts(VSRDx(i)) = val3(1)
+         m%AllOuts(VSRDy(i)) = val3(2)
+         m%AllOuts(VSRDz(i)) = val3(3)
+      
+         val3 = R2D_D*matmul( m%mbdVSMotions%Orientation(:,:,iNd), m%mbdVSMotions%RotationVel(:,iNd) )
+         m%AllOuts(VSRVn(i)) = val3(1)
+         m%AllOuts(VSRVc(i)) = val3(2)
+         m%AllOuts(VSRVs(i)) = val3(3)
 
-      val3 = matmul( m%FusODCM, (m%mbdVSMotions%TranslationDisp(:,iNd)  +  m%mbdVSMotions%Position(:,iNd)  - m%FusO) ) - m%mbdVSMotions%Position(:,iNd)
+         val3 = matmul( m%mbdVSMotions%Orientation(:,:,iNd), m%VSAccs(:,iNd) )
+         m%AllOuts(VSTAn(i)) = val3(1)
+         m%AllOuts(VSTAc(i)) = val3(2)
+         m%AllOuts(VSTAs(i)) = val3(3)
       
-      m%AllOuts(VSTDx(i)) = val3(1)
-      m%AllOuts(VSTDy(i)) = val3(2)
-      m%AllOuts(VSTDz(i)) = val3(3)
-      
-      dcm = matmul( transpose(m%mbdVSMotions%RefOrientation(:,:,iNd)), m%mbdVSMotions%Orientation(:,:,iNd)  )
-      dcm = matmul( transpose(m%FusODCM), dcm )
-      val3 = R2D_D*EulerExtract(dcm)
-      m%AllOuts(VSRDx(i)) = val3(1)
-      m%AllOuts(VSRDy(i)) = val3(2)
-      m%AllOuts(VSRDz(i)) = val3(3)
-      
-      val3 = R2D_D*matmul( m%mbdVSMotions%Orientation(:,:,iNd), m%mbdVSMotions%RotationVel(:,iNd) )
-      m%AllOuts(VSRVn(i)) = val3(1)
-      m%AllOuts(VSRVc(i)) = val3(2)
-      m%AllOuts(VSRVs(i)) = val3(3)
-
-      val3 = matmul( m%mbdVSMotions%Orientation(:,:,iNd), m%VSAccs(:,iNd) )
-      m%AllOuts(VSTAn(i)) = val3(1)
-      m%AllOuts(VSTAc(i)) = val3(2)
-      m%AllOuts(VSTAs(i)) = val3(3)
-      
-      if ( iNd < p%numVSNds ) then  ! there is no gauss pt associated with the last FE motion node from MBDyn
-         m%AllOuts(VSFRn(i)) = m%VSLoadInpts(1,iNd)
-         m%AllOuts(VSFRc(i)) = m%VSLoadInpts(2,iNd)
-         m%AllOuts(VSFRs(i)) = m%VSLoadInpts(3,iNd)
-         m%AllOuts(VSMRn(i)) = m%VSLoadInpts(4,iNd)
-         m%AllOuts(VSMRc(i)) = m%VSLoadInpts(5,iNd)
-         m%AllOuts(VSMRs(i)) = m%VSLoadInpts(6,iNd)
+         if ( iNd < p%numVSNds ) then  ! there is no gauss pt associated with the last FE motion node from MBDyn
+            m%AllOuts(VSFRn(i)) = m%VSLoadInpts(1,iNd)
+            m%AllOuts(VSFRc(i)) = m%VSLoadInpts(2,iNd)
+            m%AllOuts(VSFRs(i)) = m%VSLoadInpts(3,iNd)
+            m%AllOuts(VSMRn(i)) = m%VSLoadInpts(4,iNd)
+            m%AllOuts(VSMRc(i)) = m%VSLoadInpts(5,iNd)
+            m%AllOuts(VSMRs(i)) = m%VSLoadInpts(6,iNd)
+         end if
       end if
-      
    end do
    
    
    do i = 1, p%NSHSOuts
       iNd = p%SHSOutNds(i)
+      if ( (iNd > 0 ) .and. (iNd <= p%numSHSNds) ) then
+         val3 = matmul( m%FusODCM, (m%mbdSHSMotions%TranslationDisp(:,iNd)  +  m%mbdSHSMotions%Position(:,iNd)  - m%FusO) ) - m%mbdSHSMotions%Position(:,iNd)
+      
+         m%AllOuts(SHSTDx(i)) = val3(1)
+         m%AllOuts(SHSTDy(i)) = val3(2)
+         m%AllOuts(SHSTDz(i)) = val3(3)
+      
+         dcm = matmul( transpose(m%mbdSHSMotions%RefOrientation(:,:,iNd)), m%mbdSHSMotions%Orientation(:,:,iNd)  )
+         dcm = matmul( transpose(m%FusODCM), dcm )
+         val3 = R2D_D*EulerExtract(dcm)
+         m%AllOuts(SHSRDx(i)) = val3(1)
+         m%AllOuts(SHSRDy(i)) = val3(2)
+         m%AllOuts(SHSRDz(i)) = val3(3)
+      
+         val3 = R2D_D*matmul( m%mbdSHSMotions%Orientation(:,:,iNd), m%mbdSHSMotions%RotationVel(:,iNd) )
+         m%AllOuts(SHSRVn(i)) = val3(1)
+         m%AllOuts(SHSRVc(i)) = val3(2)
+         m%AllOuts(SHSRVs(i)) = val3(3)
 
-      val3 = matmul( m%FusODCM, (m%mbdSHSMotions%TranslationDisp(:,iNd)  +  m%mbdSHSMotions%Position(:,iNd)  - m%FusO) ) - m%mbdSHSMotions%Position(:,iNd)
+         val3 = matmul( m%mbdSHSMotions%Orientation(:,:,iNd), m%SHSAccs(:,iNd) )
+         m%AllOuts(SHSTAn(i)) = val3(1)
+         m%AllOuts(SHSTAc(i)) = val3(2)
+         m%AllOuts(SHSTAs(i)) = val3(3)
       
-      m%AllOuts(SHSTDx(i)) = val3(1)
-      m%AllOuts(SHSTDy(i)) = val3(2)
-      m%AllOuts(SHSTDz(i)) = val3(3)
-      
-      dcm = matmul( transpose(m%mbdSHSMotions%RefOrientation(:,:,iNd)), m%mbdSHSMotions%Orientation(:,:,iNd)  )
-      dcm = matmul( transpose(m%FusODCM), dcm )
-      val3 = R2D_D*EulerExtract(dcm)
-      m%AllOuts(SHSRDx(i)) = val3(1)
-      m%AllOuts(SHSRDy(i)) = val3(2)
-      m%AllOuts(SHSRDz(i)) = val3(3)
-      
-      val3 = R2D_D*matmul( m%mbdSHSMotions%Orientation(:,:,iNd), m%mbdSHSMotions%RotationVel(:,iNd) )
-      m%AllOuts(SHSRVn(i)) = val3(1)
-      m%AllOuts(SHSRVc(i)) = val3(2)
-      m%AllOuts(SHSRVs(i)) = val3(3)
-
-      val3 = matmul( m%mbdSHSMotions%Orientation(:,:,iNd), m%SHSAccs(:,iNd) )
-      m%AllOuts(SHSTAn(i)) = val3(1)
-      m%AllOuts(SHSTAc(i)) = val3(2)
-      m%AllOuts(SHSTAs(i)) = val3(3)
-      
-      if ( iNd < p%numSHSNds ) then  ! there is no gauss pt associated with the last FE motion node from MBDyn
-         m%AllOuts(SHSFRn(i)) = m%SHSLoadInpts(1,iNd)
-         m%AllOuts(SHSFRc(i)) = m%SHSLoadInpts(2,iNd)
-         m%AllOuts(SHSFRs(i)) = m%SHSLoadInpts(3,iNd)
-         m%AllOuts(SHSMRn(i)) = m%SHSLoadInpts(4,iNd)
-         m%AllOuts(SHSMRc(i)) = m%SHSLoadInpts(5,iNd)
-         m%AllOuts(SHSMRs(i)) = m%SHSLoadInpts(6,iNd)
+         if ( iNd < p%numSHSNds ) then  ! there is no gauss pt associated with the last FE motion node from MBDyn
+            m%AllOuts(SHSFRn(i)) = m%SHSLoadInpts(1,iNd)
+            m%AllOuts(SHSFRc(i)) = m%SHSLoadInpts(2,iNd)
+            m%AllOuts(SHSFRs(i)) = m%SHSLoadInpts(3,iNd)
+            m%AllOuts(SHSMRn(i)) = m%SHSLoadInpts(4,iNd)
+            m%AllOuts(SHSMRc(i)) = m%SHSLoadInpts(5,iNd)
+            m%AllOuts(SHSMRs(i)) = m%SHSLoadInpts(6,iNd)
+         end if
       end if
-      
    end do
    
    do i = 1, p%NPHSOuts
       iNd = p%PHSOutNds(i)
-
-      val3 = matmul( m%FusODCM, (m%mbdPHSMotions%TranslationDisp(:,iNd)  +  m%mbdPHSMotions%Position(:,iNd)  - m%FusO) ) - m%mbdPHSMotions%Position(:,iNd)
+      if ( (iNd > 0 ) .and. (iNd <= p%numPHSNds) ) then
+         val3 = matmul( m%FusODCM, (m%mbdPHSMotions%TranslationDisp(:,iNd)  +  m%mbdPHSMotions%Position(:,iNd)  - m%FusO) ) - m%mbdPHSMotions%Position(:,iNd)
       
-      m%AllOuts(PHSTDx(i)) = val3(1)
-      m%AllOuts(PHSTDy(i)) = val3(2)
-      m%AllOuts(PHSTDz(i)) = val3(3)
+         m%AllOuts(PHSTDx(i)) = val3(1)
+         m%AllOuts(PHSTDy(i)) = val3(2)
+         m%AllOuts(PHSTDz(i)) = val3(3)
       
-      dcm = matmul( transpose(m%mbdPHSMotions%RefOrientation(:,:,iNd)), m%mbdPHSMotions%Orientation(:,:,iNd)  )
-      dcm = matmul( transpose(m%FusODCM), dcm )
-      val3 = R2D_D*EulerExtract(dcm)
-      m%AllOuts(PHSRDx(i)) = val3(1)
-      m%AllOuts(PHSRDy(i)) = val3(2)
-      m%AllOuts(PHSRDz(i)) = val3(3)
+         dcm = matmul( transpose(m%mbdPHSMotions%RefOrientation(:,:,iNd)), m%mbdPHSMotions%Orientation(:,:,iNd)  )
+         dcm = matmul( transpose(m%FusODCM), dcm )
+         val3 = R2D_D*EulerExtract(dcm)
+         m%AllOuts(PHSRDx(i)) = val3(1)
+         m%AllOuts(PHSRDy(i)) = val3(2)
+         m%AllOuts(PHSRDz(i)) = val3(3)
       
-      val3 = R2D_D*matmul( m%mbdPHSMotions%Orientation(:,:,iNd), m%mbdPHSMotions%RotationVel(:,iNd) )
-      m%AllOuts(PHSRVn(i)) = val3(1)
-      m%AllOuts(PHSRVc(i)) = val3(2)
-      m%AllOuts(PHSRVs(i)) = val3(3)
+         val3 = R2D_D*matmul( m%mbdPHSMotions%Orientation(:,:,iNd), m%mbdPHSMotions%RotationVel(:,iNd) )
+         m%AllOuts(PHSRVn(i)) = val3(1)
+         m%AllOuts(PHSRVc(i)) = val3(2)
+         m%AllOuts(PHSRVs(i)) = val3(3)
       
-      val3 = matmul( m%mbdPHSMotions%Orientation(:,:,iNd), m%PHSAccs(:,iNd) )
-      m%AllOuts(PHSTAn(i)) = val3(1)
-      m%AllOuts(PHSTAc(i)) = val3(2)
-      m%AllOuts(PHSTAs(i)) = val3(3)
+         val3 = matmul( m%mbdPHSMotions%Orientation(:,:,iNd), m%PHSAccs(:,iNd) )
+         m%AllOuts(PHSTAn(i)) = val3(1)
+         m%AllOuts(PHSTAc(i)) = val3(2)
+         m%AllOuts(PHSTAs(i)) = val3(3)
       
-      if ( iNd < p%numPHSNds ) then  ! there is no gauss pt associated with the last FE motion node from MBDyn
-         m%AllOuts(PHSFRn(i)) = m%PHSLoadInpts(1,iNd)
-         m%AllOuts(PHSFRc(i)) = m%PHSLoadInpts(2,iNd)
-         m%AllOuts(PHSFRs(i)) = m%PHSLoadInpts(3,iNd)
-         m%AllOuts(PHSMRn(i)) = m%PHSLoadInpts(4,iNd)
-         m%AllOuts(PHSMRc(i)) = m%PHSLoadInpts(5,iNd)
-         m%AllOuts(PHSMRs(i)) = m%PHSLoadInpts(6,iNd)
+         if ( iNd < p%numPHSNds ) then  ! there is no gauss pt associated with the last FE motion node from MBDyn
+            m%AllOuts(PHSFRn(i)) = m%PHSLoadInpts(1,iNd)
+            m%AllOuts(PHSFRc(i)) = m%PHSLoadInpts(2,iNd)
+            m%AllOuts(PHSFRs(i)) = m%PHSLoadInpts(3,iNd)
+            m%AllOuts(PHSMRn(i)) = m%PHSLoadInpts(4,iNd)
+            m%AllOuts(PHSMRc(i)) = m%PHSLoadInpts(5,iNd)
+            m%AllOuts(PHSMRs(i)) = m%PHSLoadInpts(6,iNd)
+         end if
       end if
-
    end do
    do j = 1, p%NumPylons
       do i = 1, p%NPylOuts
          iNd = p%PylOutNds(i)
-
-         val3 = matmul( m%FusODCM, (m%mbdSPyMotions(j)%TranslationDisp(:,iNd)  +  m%mbdSPyMotions(j)%Position(:,iNd)  - m%FusO) ) - m%mbdSPyMotions(j)%Position(:,iNd)
+         if ( (iNd > 0 ) .and. (iNd <= p%numSPyNds(j)) ) then
+            val3 = matmul( m%FusODCM, (m%mbdSPyMotions(j)%TranslationDisp(:,iNd)  +  m%mbdSPyMotions(j)%Position(:,iNd)  - m%FusO) ) - m%mbdSPyMotions(j)%Position(:,iNd)
       
-         m%AllOuts(SPTDx(i,j)) = val3(1)
-         m%AllOuts(SPTDy(i,j)) = val3(2)
-         m%AllOuts(SPTDz(i,j)) = val3(3)
+            m%AllOuts(SPTDx(i,j)) = val3(1)
+            m%AllOuts(SPTDy(i,j)) = val3(2)
+            m%AllOuts(SPTDz(i,j)) = val3(3)
       
-         dcm = matmul( transpose(m%mbdSPyMotions(j)%RefOrientation(:,:,iNd)), m%mbdSPyMotions(j)%Orientation(:,:,iNd)  )
-         dcm = matmul( transpose(m%FusODCM), dcm )
-         val3 = EulerExtract(dcm)
-         m%AllOuts(SPRDx(i,j)) = val3(1)
-         m%AllOuts(SPRDy(i,j)) = val3(2)
-         m%AllOuts(SPRDz(i,j)) = val3(3)
+            dcm = matmul( transpose(m%mbdSPyMotions(j)%RefOrientation(:,:,iNd)), m%mbdSPyMotions(j)%Orientation(:,:,iNd)  )
+            dcm = matmul( transpose(m%FusODCM), dcm )
+            val3 = EulerExtract(dcm)
+            m%AllOuts(SPRDx(i,j)) = val3(1)
+            m%AllOuts(SPRDy(i,j)) = val3(2)
+            m%AllOuts(SPRDz(i,j)) = val3(3)
       
-         val3 = R2D_D*matmul( m%mbdSPyMotions(j)%Orientation(:,:,iNd), m%mbdSPyMotions(j)%RotationVel(:,iNd) )
-         m%AllOuts(SPRVn(i,j)) = val3(1)
-         m%AllOuts(SPRVc(i,j)) = val3(2)
-         m%AllOuts(SPRVs(i,j)) = val3(3)
+            val3 = R2D_D*matmul( m%mbdSPyMotions(j)%Orientation(:,:,iNd), m%mbdSPyMotions(j)%RotationVel(:,iNd) )
+            m%AllOuts(SPRVn(i,j)) = val3(1)
+            m%AllOuts(SPRVc(i,j)) = val3(2)
+            m%AllOuts(SPRVs(i,j)) = val3(3)
       
-         val3 = matmul( m%mbdSPyMotions(j)%Orientation(:,:,iNd), m%SPyAccs(:,iNd,j) )
-         m%AllOuts(SPTAn(i,j)) = val3(1)
-         m%AllOuts(SPTAc(i,j)) = val3(2)
-         m%AllOuts(SPTAs(i,j)) = val3(3)
+            val3 = matmul( m%mbdSPyMotions(j)%Orientation(:,:,iNd), m%SPyAccs(:,iNd,j) )
+            m%AllOuts(SPTAn(i,j)) = val3(1)
+            m%AllOuts(SPTAc(i,j)) = val3(2)
+            m%AllOuts(SPTAs(i,j)) = val3(3)
       
-         if ( iNd < p%numSPyNds(j) ) then  ! there is no gauss pt associated with the last FE motion node from MBDyn
-            m%AllOuts(SPFRn(i,j)) = m%SPyLoadInpts(1,iNd,j)
-            m%AllOuts(SPFRc(i,j)) = m%SPyLoadInpts(2,iNd,j)
-            m%AllOuts(SPFRs(i,j)) = m%SPyLoadInpts(3,iNd,j)
-            m%AllOuts(SPMRn(i,j)) = m%SPyLoadInpts(4,iNd,j)
-            m%AllOuts(SPMRc(i,j)) = m%SPyLoadInpts(5,iNd,j)
-            m%AllOuts(SPMRs(i,j)) = m%SPyLoadInpts(6,iNd,j)
+            if ( iNd < p%numSPyNds(j) ) then  ! there is no gauss pt associated with the last FE motion node from MBDyn
+               m%AllOuts(SPFRn(i,j)) = m%SPyLoadInpts(1,iNd,j)
+               m%AllOuts(SPFRc(i,j)) = m%SPyLoadInpts(2,iNd,j)
+               m%AllOuts(SPFRs(i,j)) = m%SPyLoadInpts(3,iNd,j)
+               m%AllOuts(SPMRn(i,j)) = m%SPyLoadInpts(4,iNd,j)
+               m%AllOuts(SPMRc(i,j)) = m%SPyLoadInpts(5,iNd,j)
+               m%AllOuts(SPMRs(i,j)) = m%SPyLoadInpts(6,iNd,j)
+            end if
          end if
          
-         val3 = matmul( m%FusODCM, (m%mbdPPyMotions(j)%TranslationDisp(:,iNd)  +  m%mbdPPyMotions(j)%Position(:,iNd)  - m%FusO) ) - m%mbdPPyMotions(j)%Position(:,iNd)
+         if ( (iNd > 0 ) .and. (iNd <= p%numPPyNds(j)) ) then 
+            val3 = matmul( m%FusODCM, (m%mbdPPyMotions(j)%TranslationDisp(:,iNd)  +  m%mbdPPyMotions(j)%Position(:,iNd)  - m%FusO) ) - m%mbdPPyMotions(j)%Position(:,iNd)
       
-         m%AllOuts(PPTDx(i,j)) = val3(1)
-         m%AllOuts(PPTDy(i,j)) = val3(2)
-         m%AllOuts(PPTDz(i,j)) = val3(3)
+            m%AllOuts(PPTDx(i,j)) = val3(1)
+            m%AllOuts(PPTDy(i,j)) = val3(2)
+            m%AllOuts(PPTDz(i,j)) = val3(3)
       
-         dcm = matmul( transpose(m%mbdPPyMotions(j)%RefOrientation(:,:,iNd)), m%mbdPPyMotions(j)%Orientation(:,:,iNd)  )
-         dcm = matmul( transpose(m%FusODCM), dcm )
-         val3 = EulerExtract(dcm)
-         m%AllOuts(PPRDx(i,j)) = val3(1)
-         m%AllOuts(PPRDy(i,j)) = val3(2)
-         m%AllOuts(PPRDz(i,j)) = val3(3)
+            dcm = matmul( transpose(m%mbdPPyMotions(j)%RefOrientation(:,:,iNd)), m%mbdPPyMotions(j)%Orientation(:,:,iNd)  )
+            dcm = matmul( transpose(m%FusODCM), dcm )
+            val3 = EulerExtract(dcm)
+            m%AllOuts(PPRDx(i,j)) = val3(1)
+            m%AllOuts(PPRDy(i,j)) = val3(2)
+            m%AllOuts(PPRDz(i,j)) = val3(3)
       
-         val3 = R2D_D*matmul( m%mbdPPyMotions(j)%Orientation(:,:,iNd), m%mbdPPyMotions(j)%RotationVel(:,iNd) )
-         m%AllOuts(PPRVn(i,j)) = val3(1)
-         m%AllOuts(PPRVc(i,j)) = val3(2)
-         m%AllOuts(PPRVs(i,j)) = val3(3)
+            val3 = R2D_D*matmul( m%mbdPPyMotions(j)%Orientation(:,:,iNd), m%mbdPPyMotions(j)%RotationVel(:,iNd) )
+            m%AllOuts(PPRVn(i,j)) = val3(1)
+            m%AllOuts(PPRVc(i,j)) = val3(2)
+            m%AllOuts(PPRVs(i,j)) = val3(3)
       
-         val3 = matmul( m%mbdPPyMotions(j)%Orientation(:,:,iNd), m%PPyAccs(:,iNd,j) )
-         m%AllOuts(PPTAn(i,j)) = val3(1)
-         m%AllOuts(PPTAc(i,j)) = val3(2)
-         m%AllOuts(PPTAs(i,j)) = val3(3)
+            val3 = matmul( m%mbdPPyMotions(j)%Orientation(:,:,iNd), m%PPyAccs(:,iNd,j) )
+            m%AllOuts(PPTAn(i,j)) = val3(1)
+            m%AllOuts(PPTAc(i,j)) = val3(2)
+            m%AllOuts(PPTAs(i,j)) = val3(3)
       
-         if ( iNd < p%numPPyNds(j) ) then  ! there is no gauss pt associated with the last FE motion node from MBDyn
-            m%AllOuts(PPFRn(i,j)) = m%PPyLoadInpts(1,iNd,j)
-            m%AllOuts(PPFRc(i,j)) = m%PPyLoadInpts(2,iNd,j)
-            m%AllOuts(PPFRs(i,j)) = m%PPyLoadInpts(3,iNd,j)
-            m%AllOuts(PPMRn(i,j)) = m%PPyLoadInpts(4,iNd,j)
-            m%AllOuts(PPMRc(i,j)) = m%PPyLoadInpts(5,iNd,j)
-            m%AllOuts(PPMRs(i,j)) = m%PPyLoadInpts(6,iNd,j)
+            if ( iNd < p%numPPyNds(j) ) then  ! there is no gauss pt associated with the last FE motion node from MBDyn
+               m%AllOuts(PPFRn(i,j)) = m%PPyLoadInpts(1,iNd,j)
+               m%AllOuts(PPFRc(i,j)) = m%PPyLoadInpts(2,iNd,j)
+               m%AllOuts(PPFRs(i,j)) = m%PPyLoadInpts(3,iNd,j)
+               m%AllOuts(PPMRn(i,j)) = m%PPyLoadInpts(4,iNd,j)
+               m%AllOuts(PPMRc(i,j)) = m%PPyLoadInpts(5,iNd,j)
+               m%AllOuts(PPMRs(i,j)) = m%PPyLoadInpts(6,iNd,j)
+            end if
          end if
-         
       end do
    end do
    
@@ -639,7 +752,7 @@ end subroutine KFAST_OpenOutput
 
 
 !====================================================================================================
-subroutine KFAST_WriteSummary( Prog, OutRootName, p, KAD_InitOut, MD_InitOut, IfW_InitOut, errStat, errMsg )
+subroutine KFAST_WriteSummary( Prog, OutRootName, p, m, KAD_InitOut, MD_InitOut, IfW_InitOut, errStat, errMsg )
 ! This subroutine initialized the output module, checking if the output parameter list (OutList)
 ! contains valid names, and opening the output file if there are any requested outputs
 !----------------------------------------------------------------------------------------------------
@@ -649,6 +762,7 @@ subroutine KFAST_WriteSummary( Prog, OutRootName, p, KAD_InitOut, MD_InitOut, If
    type(ProgDesc),                intent( in    ) :: Prog
    character(*),                  intent( in    ) :: OutRootName          ! Root name for the output file
    type(KFAST_ParameterType),     intent( inout ) :: p   
+   type(KFAST_MiscVarType),       intent( in    ) :: m  
    type(KAD_InitOutPutType ),     intent( in    ) :: KAD_InitOut              !
    type(MD_InitOutPutType ),      intent( in    ) :: MD_InitOut              !
    type(InflowWind_InitOutPutType ),     intent( in    ) :: IfW_InitOut              !
@@ -656,19 +770,44 @@ subroutine KFAST_WriteSummary( Prog, OutRootName, p, KAD_InitOut, MD_InitOut, If
    character(*),                  intent(   out ) :: ErrMsg               ! Error message if ErrStat /= ErrID_None
    
       ! Local variables
-   integer                                        :: i                    ! Generic loop counter      
+   integer                                        :: i,k,l                  ! Generic loop counter      
    character(1024)                                :: OutFileName          ! The name of the output file  including the full path.
    character(200)                                 :: Frmt                 ! a string to hold a format statement
    integer                                        :: errStat2              
    character(ErrMsgLen)                           :: errMsg2              ! error messages
    integer(IntKi)                                 :: TmpErrStat           ! Temporary error status for checking how the WRITE worked
    integer(IntKi)                                 :: SumFileUnit          ! the unit number for the InflowWindsummary file
-   
+   character(32)                                  :: Components(12)
+   character(1)                                   :: NoValStr = '-'
+   character(1)                                   :: OutNumStr
+   character(19)                                  :: NodeType(3)
+   real(ReKi)                                     :: xloc, yloc, zloc
+   real(ReKi)                                     :: globalPt(3), kitePt(3), kitePt2(3)
+   character(255)                                 :: enabledModules
+   character(255)                                 :: disabledModules
    !-------------------------------------------------------------------------------------------------      
    ! Initialize local variables
    !-------------------------------------------------------------------------------------------------      
    ErrStat = ErrID_None  
    ErrMsg  = ""
+   Components = (/'Fuselage                        ', &
+                  'Starboard wing                  ', &
+                  'Port wing                       ', &
+                  'Vertical stabilizer             ', &
+                  'Starboard horizontal stabilizer ', &
+                  'Port horizontal stabilizer      ', &
+                  'Starboard pylon                 ', &
+                  'Port pylon                      ', &
+                  'Top rotor on starboard pylon    ', &
+                  'Bottom rotor on starboard pylon ', &
+                  'Top rotor on port pylon         ', &
+                  'Bottom rotor on port pylon      '/)
+   NodeType = (/'Reference point    ', &
+                'Finite-element node', & 
+                'Gauss point        '/)
+   xloc = 0.0
+   yloc = 0.0
+   zloc = 0.0
    
    SumFileUnit = -1
    call GetNewUnit( SumFileUnit )
@@ -681,7 +820,425 @@ subroutine KFAST_WriteSummary( Prog, OutRootName, p, KAD_InitOut, MD_InitOut, If
    write(SumFileUnit,'(/,A/)',IOSTAT=TmpErrStat)   'This summary file was generated by '//trim( Prog%Name )//&
                      ' '//trim( Prog%Ver )//' on '//CurDate()//' at '//CurTime()//'.'
    
-   write(SumFileUnit,'(A19)',IOSTAT=TmpErrStat) '  compiled with:   '
+   write(SumFileUnit,'(A20)',IOSTAT=TmpErrStat) '   compiled with:   '
+   write(SumFileUnit,'(A1)',IOSTAT=TmpErrStat) ''
+   write(SumFileUnit,'(A39)',IOSTAT=TmpErrStat) 'Description from the MDyn input file:  '
+   write(SumFileUnit,'(A1)',IOSTAT=TmpErrStat) ''
+   
+   enabledModules  = ' '
+   disabledModules = ' '
+   if (p%useIfW) then
+      enabledModules  = 'InflowWind'
+   else
+      disabledModules = 'InflowWind'
+   end if
+   if (p%useKAD) then
+      enabledModules  = trim(enabledModules)//', KiteAeroDyn'
+   else
+      disabledModules = trim(disabledModules)//', KiteAeroDyn'
+   end if
+   if (p%useMD) then
+      enabledModules  = trim(enabledModules)//', MoorDyn'
+   else
+      disabledModules = trim(disabledModules)//', MoorDyn'
+   end if
+   if (p%useKFC) then
+      enabledModules  = trim(enabledModules)//', KiteFastController'
+   else
+      enabledModules  = trim(enabledModules)//', Dummy KiteFastController'   
+   end if
+   
+   if ( scan(enabledModules(1:1),',',.true.) ) enabledModules = enabledModules(3:255)
+   if ( scan(disabledModules(1:1),',',.true.) ) disabledModules = disabledModules(3:255)
+   
+   write(SumFileUnit,'(A)'   ,IOSTAT=TmpErrStat) 'Enabled  modules: '//trim(enabledModules)
+   write(SumFileUnit,'(A)'   ,IOSTAT=TmpErrStat) 'Disabled modules: '//trim(disabledModules)
+   write(SumFileUnit,'()')
+   write(SumFileUnit,'(A)'   ,IOSTAT=TmpErrStat) 'Time step (s): '//num2lstr(p%dt)
+   write(SumFileUnit,'()')
+   write(SumFileUnit,'(A90)' ,IOSTAT=TmpErrStat) 'Reference Points, MBDyn Finite-Element Nodes, and MBDyn Gauss Points (in Kite Coordinates)'
+   write(SumFileUnit,'()')
+   write(SumFileUnit,'(A)'   ,IOSTAT=TmpErrStat) '   Component                         Type                 Number Output Number     x       y       z '
+   write(SumFileUnit,'(A)'   ,IOSTAT=TmpErrStat) '     (-)                             (-)                   (-)        (-)         (m)     (m)     (m)'
+   
+   
+   ! Cycle through components 
+   call WriteNodeInfo(SumFileUnit, 1, p%numFusNds, m%FusPts, m%FusNdDCMs, m%FusO, p%NFusOuts, p%FusOutNds, errStat2, errMsg2 )
+      !   ! reference point
+      !write(SumFileUnit,'(3X,A32,2X,A19,4X,A1,10X,A1,8X,3(F7.3,1X))',IOSTAT=TmpErrStat) Components(1), NodeType(1), NoValStr, NoValStr, xloc, yloc, zloc
+      !
+      !   ! finite-element points
+      !do k = 1,p%numFusNds
+      !   globalPt = m%FusPts(:,k) - m%FusO
+      !   kitePt = matmul(m%FusNdDCMs(:,:,k), globalPt)
+      !   OutNumStr = NoValStr
+      !   do l= 1,p%NFusOuts
+      !     if ( k == p%FusOutNds(l) ) then
+      !        OutNumStr = Num2LStr(l)
+      !        continue
+      !     end if
+      !   end do
+      !   
+      !   write(SumFileUnit,'(3X,A32,2X,A19,4X,A1,10X,A1,8X,3(F7.3,1X))',IOSTAT=TmpErrStat) Components(1), NodeType(2), Num2LStr(k), OutNumStr, kitePt(1), kitePt(2), kitePt(3)
+      !end do
+      !
+      !   ! gauss points
+      !do k = 1,p%numFusNds-1
+      !   OutNumStr = NoValStr
+      !   do l= 1,p%NFusOuts
+      !     if ( k == p%FusOutNds(l) ) then
+      !        OutNumStr = Num2LStr(l)
+      !        continue
+      !     end if
+      !   end do
+      !   globalPt = m%FusPts(:,k) - m%FusO
+      !   kitePt = matmul(m%FusNdDCMs(:,:,k), globalPt)
+      !   globalPt = m%FusPts(:,k+1) - m%FusO
+      !   kitePt2 = matmul(m%FusNdDCMs(:,:,k+1), globalPt)
+      !   if ( mod(k,2) == 1 ) then
+      !      kitePt = (1.0-sqrt(3.0)/3.0)*kitePt + (sqrt(3.0)/3.0)*kitePt2
+      !   else
+      !      kitePt = (1.0-sqrt(3.0)/3.0)*kitePt2 + (sqrt(3.0)/3.0)*kitePt
+      !   end if
+      !   
+      !   write(SumFileUnit,'(3X,A32,2X,A19,4X,A1,10X,A1,8X,3(F7.3,1X))',IOSTAT=TmpErrStat) Components(1), NodeType(3), Num2LStr(k), OutNumStr, kitePt(1), kitePt(2), kitePt(3)
+      !end do   
+      !
+
+   
+         ! reference point
+      write(SumFileUnit,'(3X,A32,2X,A19,4X,A1,10X,A1,8X,3(F7.3,1X))',IOSTAT=TmpErrStat) Components(2), NodeType(1), NoValStr, NoValStr, m%SWnO(1),  m%SWnO(2),  m%SWnO(3)
+      
+         ! finite-element points
+      do k = 1,p%numSWnNds
+         globalPt = m%SWnPts(:,k) - m%FusO
+         kitePt = matmul(m%SWnNdDCMs(:,:,k), globalPt)
+         OutNumStr = NoValStr
+         do l= 1,p%NSWnOuts
+           if ( k == p%SWnOutNds(l) ) then
+              OutNumStr = Num2LStr(l)
+              continue
+           end if
+         end do
+         
+         write(SumFileUnit,'(3X,A32,2X,A19,4X,A1,10X,A1,8X,3(F7.3,1X))',IOSTAT=TmpErrStat) Components(2), NodeType(2), Num2LStr(k), OutNumStr, kitePt(1), kitePt(2), kitePt(3)
+      end do
+      
+         ! gauss points
+      do k = 1,p%numSWnNds-1
+         OutNumStr = NoValStr
+         do l= 1,p%NSWnOuts
+           if ( k == p%SWnOutNds(l) ) then
+              OutNumStr = Num2LStr(l)
+              continue
+           end if
+         end do
+         globalPt = m%SWnPts(:,k) - m%FusO
+         kitePt = matmul(m%SWnNdDCMs(:,:,k), globalPt)
+         globalPt = m%SWnPts(:,k+1) - m%FusO
+         kitePt2 = matmul(m%SWnNdDCMs(:,:,k+1), globalPt)
+         if ( mod(k,2) == 1 ) then
+            kitePt = (1.0-sqrt(3.0)/3.0)*kitePt + (sqrt(3.0)/3.0)*kitePt2
+         else
+            kitePt = (1.0-sqrt(3.0)/3.0)*kitePt2 + (sqrt(3.0)/3.0)*kitePt
+         end if
+         write(SumFileUnit,'(3X,A32,2X,A19,4X,A1,10X,A1,8X,3(F7.3,1X))',IOSTAT=TmpErrStat) Components(2), NodeType(3), Num2LStr(k), OutNumStr, kitePt(1), kitePt(2), kitePt(3)
+      end do   
+      
+         ! reference point
+      write(SumFileUnit,'(3X,A32,2X,A19,4X,A1,10X,A1,8X,3(F7.3,1X))',IOSTAT=TmpErrStat) Components(3), NodeType(1), NoValStr, NoValStr, m%PWnO(1),  m%PWnO(2),  m%PWnO(3)
+
+         ! finite-element points
+      do k = 1,p%numPWnNds
+         globalPt = m%PWnPts(:,k) - m%FusO
+         kitePt = matmul(m%PWnNdDCMs(:,:,k), globalPt)
+         OutNumStr = NoValStr
+         do l= 1,p%NPWnOuts
+           if ( k == p%PWnOutNds(l) ) then
+              OutNumStr = Num2LStr(l)
+              continue
+           end if
+         end do
+         
+         write(SumFileUnit,'(3X,A32,2X,A19,4X,A1,10X,A1,8X,3(F7.3,1X))',IOSTAT=TmpErrStat) Components(3), NodeType(2), Num2LStr(k), OutNumStr, kitePt(1), kitePt(2), kitePt(3)
+      end do
+      
+         ! gauss points
+      do k = 1,p%numPWnNds-1
+         OutNumStr = NoValStr
+         do l= 1,p%NPWnOuts
+           if ( k == p%PWnOutNds(l) ) then
+              OutNumStr = Num2LStr(l)
+              continue
+           end if
+         end do
+         globalPt = m%PWnPts(:,k) - m%FusO
+         kitePt = matmul(m%PWnNdDCMs(:,:,k), globalPt)
+         globalPt = m%PWnPts(:,k+1) - m%FusO
+         kitePt2 = matmul(m%PWnNdDCMs(:,:,k+1), globalPt)
+         if ( mod(k,2) == 1 ) then
+            kitePt = (1.0-sqrt(3.0)/3.0)*kitePt + (sqrt(3.0)/3.0)*kitePt2
+         else
+            kitePt = (1.0-sqrt(3.0)/3.0)*kitePt2 + (sqrt(3.0)/3.0)*kitePt
+         end if
+
+         write(SumFileUnit,'(3X,A32,2X,A19,4X,A1,10X,A1,8X,3(F7.3,1X))',IOSTAT=TmpErrStat) Components(3), NodeType(3), Num2LStr(k), OutNumStr, kitePt(1), kitePt(2), kitePt(3)
+      end do   
+      
+         ! reference point
+      write(SumFileUnit,'(3X,A32,2X,A19,4X,A1,10X,A1,8X,3(F7.3,1X))',IOSTAT=TmpErrStat) Components(4), NodeType(1), NoValStr, NoValStr, m%VSO(1),  m%VSO(2),  m%VSO(3)
+
+         ! finite-element points
+      do k = 1,p%numVSNds
+         globalPt = m%VSPts(:,k) - m%FusO
+         kitePt = matmul(m%VSNdDCMs(:,:,k), globalPt)
+         OutNumStr = NoValStr
+         do l= 1,p%NVSOuts
+           if ( k == p%VSOutNds(l) ) then
+              OutNumStr = Num2LStr(l)
+              continue
+           end if
+         end do
+         
+         write(SumFileUnit,'(3X,A32,2X,A19,4X,A1,10X,A1,8X,3(F7.3,1X))',IOSTAT=TmpErrStat) Components(4), NodeType(2), Num2LStr(k), OutNumStr, kitePt(1), kitePt(2), kitePt(3)
+      end do
+      
+         ! gauss points
+      do k = 1,p%numVSNds-1
+         OutNumStr = NoValStr
+         do l= 1,p%NVSOuts
+           if ( k == p%VSOutNds(l) ) then
+              OutNumStr = Num2LStr(l)
+              continue
+           end if
+         end do
+         globalPt = m%VSPts(:,k) - m%FusO
+         kitePt = matmul(m%VSNdDCMs(:,:,k), globalPt)
+         globalPt = m%VSPts(:,k+1) - m%FusO
+         kitePt2 = matmul(m%VSNdDCMs(:,:,k+1), globalPt)
+         if ( mod(k,2) == 1 ) then
+            kitePt = (1.0-sqrt(3.0)/3.0)*kitePt + (sqrt(3.0)/3.0)*kitePt2
+         else
+            kitePt = (1.0-sqrt(3.0)/3.0)*kitePt2 + (sqrt(3.0)/3.0)*kitePt
+         end if
+
+         write(SumFileUnit,'(3X,A32,2X,A19,4X,A1,10X,A1,8X,3(F7.3,1X))',IOSTAT=TmpErrStat) Components(4), NodeType(3), Num2LStr(k), OutNumStr, kitePt(1), kitePt(2), kitePt(3)
+      end do   
+
+         ! reference point
+      write(SumFileUnit,'(3X,A32,2X,A19,4X,A1,10X,A1,8X,3(F7.3,1X))',IOSTAT=TmpErrStat) Components(5), NodeType(1), NoValStr, NoValStr, m%SHSO(1),  m%SHSO(2),  m%SHSO(3)
+
+         ! finite-element points
+      do k = 1,p%numSHSNds
+         globalPt = m%SHSPts(:,k) - m%FusO
+         kitePt = matmul(m%SHSNdDCMs(:,:,k), globalPt)
+         OutNumStr = NoValStr
+         do l= 1,p%NSHSOuts
+           if ( k == p%SHSOutNds(l) ) then
+              OutNumStr = Num2LStr(l)
+              continue
+           end if
+         end do
+         
+         write(SumFileUnit,'(3X,A32,2X,A19,4X,A1,10X,A1,8X,3(F7.3,1X))',IOSTAT=TmpErrStat) Components(5), NodeType(2), Num2LStr(k), OutNumStr, kitePt(1), kitePt(2), kitePt(3)
+      end do
+      
+         ! gauss points
+      do k = 1,p%numSHSNds-1
+         OutNumStr = NoValStr
+         do l= 1,p%NSHSOuts
+           if ( k == p%SHSOutNds(l) ) then
+              OutNumStr = Num2LStr(l)
+              continue
+           end if
+         end do
+         globalPt = m%SHSPts(:,k) - m%FusO
+         kitePt = matmul(m%SHSNdDCMs(:,:,k), globalPt)
+         globalPt = m%SHSPts(:,k+1) - m%FusO
+         kitePt2 = matmul(m%SHSNdDCMs(:,:,k+1), globalPt)
+         if ( mod(k,2) == 1 ) then
+            kitePt = (1.0-sqrt(3.0)/3.0)*kitePt + (sqrt(3.0)/3.0)*kitePt2
+         else
+            kitePt = (1.0-sqrt(3.0)/3.0)*kitePt2 + (sqrt(3.0)/3.0)*kitePt
+         end if
+
+         write(SumFileUnit,'(3X,A32,2X,A19,4X,A1,10X,A1,8X,3(F7.3,1X))',IOSTAT=TmpErrStat) Components(5), NodeType(3), Num2LStr(k), OutNumStr, kitePt(1), kitePt(2), kitePt(3)
+      end do   
+
+         ! reference point
+      write(SumFileUnit,'(3X,A32,2X,A19,4X,A1,10X,A1,8X,3(F7.3,1X))',IOSTAT=TmpErrStat) Components(6), NodeType(1), NoValStr, NoValStr, m%PHSO(1),  m%PHSO(2),  m%PHSO(3)
+
+         ! finite-element points
+      do k = 1,p%numPHSNds
+         globalPt = m%PHSPts(:,k) - m%FusO
+         kitePt = matmul(m%PHSNdDCMs(:,:,k), globalPt)
+         OutNumStr = NoValStr
+         do l= 1,p%NPHSOuts
+           if ( k == p%PHSOutNds(l) ) then
+              OutNumStr = Num2LStr(l)
+              continue
+           end if
+         end do
+         
+         write(SumFileUnit,'(3X,A32,2X,A19,4X,A1,10X,A1,8X,3(F7.3,1X))',IOSTAT=TmpErrStat) Components(6), NodeType(2), Num2LStr(k), OutNumStr, kitePt(1), kitePt(2), kitePt(3)
+      end do
+      
+         ! gauss points
+      do k = 1,p%numPHSNds-1
+         OutNumStr = NoValStr
+         do l= 1,p%NPHSOuts
+           if ( k == p%PHSOutNds(l) ) then
+              OutNumStr = Num2LStr(l)
+              continue
+           end if
+         end do
+         globalPt = m%PHSPts(:,k) - m%FusO
+         kitePt = matmul(m%PHSNdDCMs(:,:,k), globalPt)
+         globalPt = m%PHSPts(:,k+1) - m%FusO
+         kitePt2 = matmul(m%PHSNdDCMs(:,:,k+1), globalPt)
+         if ( mod(k,2) == 1 ) then
+            kitePt = (1.0-sqrt(3.0)/3.0)*kitePt + (sqrt(3.0)/3.0)*kitePt2
+         else
+            kitePt = (1.0-sqrt(3.0)/3.0)*kitePt2 + (sqrt(3.0)/3.0)*kitePt
+         end if
+
+         write(SumFileUnit,'(3X,A32,2X,A19,4X,A1,10X,A1,8X,3(F7.3,1X))',IOSTAT=TmpErrStat) Components(6), NodeType(3), Num2LStr(k), OutNumStr, kitePt(1), kitePt(2), kitePt(3)
+      end do   
+      
+      do i = 1, p%numPylons
+         
+            ! reference point
+         write(SumFileUnit,'(3X,A,8X,A19,4X,A1,10X,A1,8X,3(F7.3,1X))',IOSTAT=TmpErrStat) trim(Components(7))//num2lstr(i), NodeType(1), NoValStr, NoValStr, m%SPyO(1,i),  m%SPyO(2,i),  m%SPyO(3,i)
+
+            ! finite-element points
+         do k = 1,p%numSPyNds(i)
+            globalPt = m%SPyPts(:,k,i) - m%FusO
+            kitePt = matmul(m%SPyNdDCMs(:,:,k,i), globalPt)
+            OutNumStr = NoValStr
+            do l= 1,p%NPylOuts
+              if ( k == p%PylOutNds(l) ) then
+                 OutNumStr = Num2LStr(l)
+                 continue
+              end if
+            end do
+         
+            write(SumFileUnit,'(3X,A,8X,A19,4X,A1,10X,A1,8X,3(F7.3,1X))',IOSTAT=TmpErrStat) trim(Components(7))//num2lstr(i), NodeType(2), Num2LStr(k), OutNumStr, kitePt(1), kitePt(2), kitePt(3)
+         end do
+      
+            ! gauss points
+         do k = 1,p%numSPyNds(i)-1
+            OutNumStr = NoValStr
+            do l= 1,p%NPylOuts
+              if ( k == p%PylOutNds(l) ) then
+                 OutNumStr = Num2LStr(l)
+                 continue
+              end if
+            end do
+            globalPt = m%SPyPts(:,k,i) - m%FusO
+            kitePt = matmul(m%SPyNdDCMs(:,:,k,i), globalPt)
+            globalPt = m%SPyPts(:,k+1,i) - m%FusO
+            kitePt2 = matmul(m%SPyNdDCMs(:,:,k+1,i), globalPt)
+            if ( mod(k,2) == 1 ) then
+               kitePt = (1.0-sqrt(3.0)/3.0)*kitePt + (sqrt(3.0)/3.0)*kitePt2
+            else
+               kitePt = (1.0-sqrt(3.0)/3.0)*kitePt2 + (sqrt(3.0)/3.0)*kitePt
+            end if
+
+            write(SumFileUnit,'(3X,A,8X,A19,4X,A1,10X,A1,8X,3(F7.3,1X))',IOSTAT=TmpErrStat) trim(Components(7))//num2lstr(i), NodeType(3), Num2LStr(k), OutNumStr, kitePt(1), kitePt(2), kitePt(3)
+         end do   
+         
+            ! reference point
+         write(SumFileUnit,'(3X,A,13X,A19,4X,A1,10X,A1,8X,3(F7.3,1X))',IOSTAT=TmpErrStat) trim(Components(8))//num2lstr(i), NodeType(1), NoValStr, NoValStr, m%PPyO(1,i),  m%PPyO(2,i),  m%PPyO(3,i)
+
+            ! finite-element points
+         do k = 1,p%numPPyNds(i)
+            globalPt = m%PPyPts(:,k,i) - m%FusO
+            kitePt = matmul(m%PPyNdDCMs(:,:,k,i), globalPt)
+            OutNumStr = NoValStr
+            do l= 1,p%NPylOuts
+              if ( k == p%PylOutNds(l) ) then
+                 OutNumStr = Num2LStr(l)
+                 continue
+              end if
+            end do
+         
+            write(SumFileUnit,'(3X,A,13X,A19,4X,A1,10X,A1,8X,3(F7.3,1X))',IOSTAT=TmpErrStat) trim(Components(8))//num2lstr(i), NodeType(2), Num2LStr(k), OutNumStr, kitePt(1), kitePt(2), kitePt(3)
+         end do
+      
+            ! gauss points
+         do k = 1,p%numPPyNds(i)-1
+            OutNumStr = NoValStr
+            do l= 1,p%NPylOuts
+              if ( k == p%PylOutNds(l) ) then
+                 OutNumStr = Num2LStr(l)
+                 continue
+              end if
+            end do
+            globalPt = m%PPyPts(:,k,i) - m%FusO
+            kitePt = matmul(m%PPyNdDCMs(:,:,k,i), globalPt)
+            globalPt = m%PPyPts(:,k+1,i) - m%FusO
+            kitePt2 = matmul(m%PPyNdDCMs(:,:,k+1,i), globalPt)
+            if ( mod(k,2) == 1 ) then
+               kitePt = (1.0-sqrt(3.0)/3.0)*kitePt + (sqrt(3.0)/3.0)*kitePt2
+            else
+               kitePt = (1.0-sqrt(3.0)/3.0)*kitePt2 + (sqrt(3.0)/3.0)*kitePt
+            end if
+
+            write(SumFileUnit,'(3X,A,13X,A19,4X,A1,10X,A1,8X,3(F7.3,1X))',IOSTAT=TmpErrStat) trim(Components(8))//num2lstr(i), NodeType(3), Num2LStr(k), OutNumStr, kitePt(1), kitePt(2), kitePt(3)
+         end do   
+         
+      end do
+      
+   do i = 1, p%numPylons
+      
+         ! reference point
+      globalPt = m%SPyRtrO(:,1,i) - m%FusO
+      kitePt = matmul(m%FusODCM, globalPt)
+      write(SumFileUnit,'(3X,A32,2X,A19,4X,A1,10X,A1,8X,3(F7.3,1X))',IOSTAT=TmpErrStat) trim(Components(9))//num2lstr(i), NodeType(1), NoValStr, NoValStr, kitePt(1), kitePt(2), kitePt(3)
+      globalPt = m%SPyRtrO(:,2,i) - m%FusO
+      kitePt = matmul(m%FusODCM, globalPt)
+      write(SumFileUnit,'(3X,A32,2X,A19,4X,A1,10X,A1,8X,3(F7.3,1X))',IOSTAT=TmpErrStat) trim(Components(10))//num2lstr(i), NodeType(1), NoValStr, NoValStr, kitePt(1), kitePt(2), kitePt(3)
+      globalPt = m%PPyRtrO(:,1,i) - m%FusO
+      kitePt = matmul(m%FusODCM, globalPt)
+      write(SumFileUnit,'(3X,A32,2X,A19,4X,A1,10X,A1,8X,3(F7.3,1X))',IOSTAT=TmpErrStat) trim(Components(11))//num2lstr(i), NodeType(1), NoValStr, NoValStr, kitePt(1), kitePt(2), kitePt(3)
+      globalPt = m%PPyRtrO(:,2,i) - m%FusO
+      kitePt = matmul(m%FusODCM, globalPt)
+      write(SumFileUnit,'(3X,A32,2X,A19,4X,A1,10X,A1,8X,3(F7.3,1X))',IOSTAT=TmpErrStat) trim(Components(12))//num2lstr(i), NodeType(1), NoValStr, NoValStr, kitePt(1), kitePt(2), kitePt(3)
+   
+      
+   end do
+   
+   write(SumFileUnit,'()')
+   write(SumFileUnit,'(A)'   ,IOSTAT=TmpErrStat) 'Requested Channels in KiteFASTMBD Output Files: '//num2lstr(p%numKFASTOuts+p%numKADOuts+p%numMDOuts+p%numIfWOuts)
+   
+   write(SumFileUnit,'()')
+   write(SumFileUnit,'(A)'   ,IOSTAT=TmpErrStat) '   Number  Name       Units      Generated by'
+   write(SumFileUnit,'(A)'   ,IOSTAT=TmpErrStat) '    (-)    (-)         (-)       (KiteFAST, KiteAeroDyn, InflowWind, MoorDyn, Controller)'
+   write(SumFileUnit,'(A)'   ,IOSTAT=TmpErrStat) '      0   Time        (s)        KiteFAST'
+   k = 1
+   do i = 1,p%numKFASTOuts
+         write(SumFileUnit,'(3X,I4,2X,A11,2X,A9,2X,A)',IOSTAT=TmpErrStat) k, p%OutParam(i)%Name, p%OutParam(i)%Units, 'KiteFASTMBD'
+         k = k + 1
+   end do
+      
+      do i = 1,p%numKADOuts
+         write(SumFileUnit,'(3X,I4,2X,A11,2X,A9,2X,A)',IOSTAT=TmpErrStat) k, KAD_InitOut%WriteOutputHdr(i), KAD_InitOut%WriteOutputUnt(i), 'KiteAeroDyn'
+         k = k + 1
+      end do
+      !
+      do i = 1,p%numMDOuts
+         write(SumFileUnit,'(3X,I4,2X,A11,2X,A9,2X,A)',IOSTAT=TmpErrStat) k, MD_InitOut%WriteOutputHdr(i), MD_InitOut%WriteOutputUnt(i), 'MoorDyn'
+         k = k + 1
+      end do
+      do i = 1,p%numIfWOuts
+         write(SumFileUnit,'(3X,I4,2X,A11,2X,A9,2X,A)',IOSTAT=TmpErrStat) k, IfW_InitOut%WriteOutputHdr(i), IfW_InitOut%WriteOutputUnt(i), 'InflowWind'
+         k = k + 1
+      end do
+      write (SumFileUnit,'()')
+   
+   
+   
+   
    
    if ( TmpErrStat /= 0 ) then
       call SetErrStat(ErrID_Fatal,'Error writing to summary file.',ErrStat,ErrMsg,'')
@@ -690,7 +1247,7 @@ subroutine KFAST_WriteSummary( Prog, OutRootName, p, KAD_InitOut, MD_InitOut, If
    
    close(SumFileUnit)
    
-end subroutine
+end subroutine KFAST_WriteSummary
 
 subroutine TransferLoadsToMBDyn( p, m, nodeLoads_c, rtrLoads_c, errStat, errMsg )
    type(KFAST_ParameterType), intent(in   ) :: p
@@ -2088,9 +2645,9 @@ subroutine KFAST_Init(dt_c, numFlaps, numPylons, numComp, numCompNds, modFlags, 
 
       ! Local variables
    real(DbKi)                      :: dt
-   real(ReKi)                      :: FusO(3), SWnO(3), PWnO(3), VSO(3), SHSO(3), PHSO(3), zero_vec(3)
+   real(ReKi)                      :: FusO(3) ! SWnO(3), PWnO(3), VSO(3), SHSO(3), PHSO(3), zero_vec(3)
    real(R8Ki)                      :: FusODCM(3,3)
-   real(ReKi)                      :: SPyO(3,numPylons), PPyO(3,numPylons)
+   !real(ReKi)                      :: SPyO(3,numPylons), PPyO(3,numPylons)
    type(KAD_InitInputType)         :: KAD_InitInp
    type(KAD_InitOutputType)        :: KAD_InitOut
    integer(IntKi)                  :: errStat, errStat2
@@ -2276,11 +2833,11 @@ subroutine KFAST_Init(dt_c, numFlaps, numPylons, numComp, numCompNds, modFlags, 
 
       ! Set the component reference point locations as expressed in the kite-local coordinate system
       ! NOTE: The data coming from the Preprocessor is already in the kite-local system, so there are no transformation needed.
-      KAD_InitInp%SWnOR =  SwnO 
-      KAD_InitInp%PWnOR =  PwnO 
-      KAD_InitInp%VSOR  =  VSO 
-      KAD_InitInp%SHSOR =  SHSO 
-      KAD_InitInp%PHSOR =  PHSO 
+      KAD_InitInp%SWnOR =  m%SwnO 
+      KAD_InitInp%PWnOR =  m%PwnO 
+      KAD_InitInp%VSOR  =  m%VSO 
+      KAD_InitInp%SHSOR =  m%SHSO 
+      KAD_InitInp%PHSOR =  m%PHSO 
       
       !do i = 1, numPylons
       !   KAD_InitInp%SPyOR(:,i) = SPyO(:,i) - FusO
@@ -2305,10 +2862,10 @@ subroutine KFAST_Init(dt_c, numFlaps, numPylons, numComp, numCompNds, modFlags, 
       !end do
    
       do i = 1, numPylons
-         KAD_InitInp%SPyOR(:,i) = SPyO(:,i)
+         KAD_InitInp%SPyOR(:,i) = m%SPyO(:,i)
       end do
       do i = 1, numPylons
-         KAD_InitInp%PPyOR(:,i) = PPyO(:,i)
+         KAD_InitInp%PPyOR(:,i) = m%PPyO(:,i)
       end do
   
       do i = 1, numPylons
@@ -2326,7 +2883,7 @@ subroutine KFAST_Init(dt_c, numFlaps, numPylons, numComp, numCompNds, modFlags, 
             call TransferErrors(errStat, errMsg, errStat_c, errMsg_c)
             return
          end if
-      
+ 
       p%AirDens = KAD_InitOut%AirDens
    else
       p%AirDens = 1.225_ReKi   ! Default air density
@@ -2418,25 +2975,34 @@ subroutine KFAST_Init(dt_c, numFlaps, numPylons, numComp, numCompNds, modFlags, 
 !----------------------------------------------------------------
    
    
+   
+      
+   KFC_InitInp%DLL_FileName = transfer(KFC_FileName_c(1:IntfStrLen-1),KFC_InitInp%DLL_FileName)
+   call RemoveNullChar(KFC_InitInp%DLL_FileName)
+
+      ! Set the DCM between FAST inertial frame and the Controller ground frame
+   p%DCM_Fast2Ctrl = reshape((/-1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, -1.0/),(/3,3/))
+      
+   KFC_InitInp%numPylons    = numPylons
+   KFC_InitInp%numFlaps     = numFlaps
+   interval = dt
+      
+   ! Are we actually calling into a controller DLL / SO, or are we simply using a dummy controller to set the rotor speed (constant and hardcoded in the Fortran KFC_Init() routine)
+   !   and set the generator torque to be equal and opposite to the aerodynamic torque.
+      
    if (p%useKFC) then
-      
-      KFC_InitInp%DLL_FileName = transfer(KFC_FileName_c(1:IntfStrLen-1),KFC_InitInp%DLL_FileName)
-      call RemoveNullChar(KFC_InitInp%DLL_FileName)
-
-         ! Set the DCM between FAST inertial frame and the Controller ground frame
-      p%DCM_Fast2Ctrl = reshape((/-1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, -1.0/),(/3,3/))
-      
-      KFC_InitInp%numPylons    = numPylons
-      KFC_InitInp%numFlaps     = numFlaps
-      interval = dt
-
-      call KFC_Init(KFC_InitInp, m%KFC%u, m%KFC%p, m%KFC%y, interval, KFC_InitOut, errStat2, errMsg2 )
-         call SetErrStat(errStat2,errMsg2,errStat,errMsg,routineName)
-         if (errStat >= AbortErrLev ) then
-            call TransferErrors(errStat, errMsg, errStat_c, errMsg_c)
-            return
-         end if
+      KFC_InitInp%UseDummy = .false.
+   else
+      KFC_InitInp%UseDummy = .true.
    end if
+      
+   call KFC_Init(KFC_InitInp, m%KFC%u, m%KFC%p, m%KFC%y, interval, KFC_InitOut, errStat2, errMsg2 )
+      call SetErrStat(errStat2,errMsg2,errStat,errMsg,routineName)
+      if (errStat >= AbortErrLev ) then
+         call TransferErrors(errStat, errMsg, errStat_c, errMsg_c)
+         return
+      end if
+   
    
    OtherSt%NewTime = .true.  ! This flag is needed to tell us when we have advanced time, and hence need to call the Controller's Step routine
    
@@ -2520,11 +3086,19 @@ subroutine KFAST_Init(dt_c, numFlaps, numPylons, numComp, numCompNds, modFlags, 
    
 !==========================================
       ! Set parameters for output channels:
-   call KFAST_SetOutParam(OutList, p%numKFASTOuts, p, errStat, errMsg ) ! requires:  sets: p%OutParam.
-      if (ErrStat >= AbortErrLev) return
+   call KFAST_SetOutParam(OutList, p%numKFASTOuts, p, errStat2, errMsg2 ) ! requires:  sets: p%OutParam.
+      call SetErrStat(errStat2,errMsg2,errStat,errMsg,routineName)
+      if (errStat >= AbortErrLev ) then
+         call TransferErrors(errStat, errMsg, errStat_c, errMsg_c)
+         return
+      end if
 
-   call AllocAry( m%WriteOutput, p%numKFASTOuts, 'KFAST outputs', errStat, errMsg )
-      if (ErrStat >= AbortErrLev) return
+   call AllocAry( m%WriteOutput, p%numKFASTOuts, 'KFAST outputs', errStat2, errMsg2 )
+      call SetErrStat(errStat2,errMsg2,errStat,errMsg,routineName)
+      if (errStat >= AbortErrLev ) then
+         call TransferErrors(errStat, errMsg, errStat_c, errMsg_c)
+         return
+      end if
 ! -------------------------------------------------------------------------
 ! Open the Output file and generate header data
 ! -------------------------------------------------------------------------      
@@ -2532,7 +3106,7 @@ subroutine KFAST_Init(dt_c, numFlaps, numPylons, numComp, numCompNds, modFlags, 
    call KFAST_OpenOutput( KFAST_Ver, p%outFileRoot, p, KAD_InitOut, MD_InitOut, IfW_InitOut, ErrStat2, ErrMsg2 )
       call SetErrStat(errStat2,errMsg2,errStat,errMsg,routineName)
       
-   call KFAST_WriteSummary( KFAST_Ver, p%outFileRoot, p, KAD_InitOut, MD_InitOut, IfW_InitOut, ErrStat2, ErrMsg2 )
+   call KFAST_WriteSummary( KFAST_Ver, p%outFileRoot, p, m, KAD_InitOut, MD_InitOut, IfW_InitOut, ErrStat2, ErrMsg2 )
       call SetErrStat(errStat2,errMsg2,errStat,errMsg,routineName)
       
    call TransferErrors(errStat, errMsg, errStat_c, errMsg_c)
@@ -2556,6 +3130,11 @@ contains
    call AllocAry( p%numPPyNds, p%numPylons, 'p%numPPyNds', errStat2, errMsg2 )
       call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
 
+   call AllocAry( m%SPyO, 3, p%numPylons, 'm%SPyO', errStat2, errMsg2 )
+      call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
+   call AllocAry( m%PPyO, 3, p%numPylons, 'm%PPyO', errStat2, errMsg2 )
+      call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
+      
    maxSPyNds = 0
    maxPPyNds = 0
    do i = 1, p%numPylons
@@ -2569,7 +3148,7 @@ contains
       c = c + 1
    end do
    
-      ! Allocate rotor positions
+      ! Allocate rotor data
  
    call AllocAry( m%SPyRtrO, 3,2,p%numPylons, 'm%SPyRtrO', errStat2, errMsg2 )
       call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
@@ -2583,24 +3162,36 @@ contains
          call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
    call AllocAry( m%PPyRtrDCMs, 3, 3, 2, numPylons, 'm%PPyRtrDCMs', errStat2, errMsg2 )
          call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )   
-      
+   call AllocAry( m%SPyRtrOmegas, 3, 2, numPylons, 'm%SPyRtrOmegas', errStat2, errMsg2 )
+         call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )   
+   call AllocAry( m%PPyRtrOmegas, 3, 2, numPylons, 'm%PPyRtrOmegas', errStat2, errMsg2 )
+         call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )   
+   call AllocAry( m%SPyRtrAccs, 3, 2, numPylons, 'm%SPyRtrAccs', errStat2, errMsg2 )
+         call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )   
+   call AllocAry( m%PPyRtrAccs, 3, 2, numPylons, 'm%PPyRtrAccs', errStat2, errMsg2 )
+         call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )   
+   call AllocAry( m%SPyRtrAlphas, 3, 2, numPylons, 'm%SPyRtrAlphas', errStat2, errMsg2 )
+         call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )   
+   call AllocAry( m%PPyRtrAlphas, 3, 2, numPylons, 'm%PPyRtrAlphas', errStat2, errMsg2 )
+         call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )         
+         
       ! Convert 1D float array data into specific quantities
       
    FusO = refPts_c(1:3)   ! This is in global coordinates
-
+   m%FusO = FusO
    ! The remaining reference points are already in the Kite coordinate system!
-   SWnO = refPts_c(4:6)
-   PWnO = refPts_c(7:9)
-   VSO = refPts_c(10:12)
-   SHSO = refPts_c(13:15)
-   PHSO = refPts_c(16:18)
+   m%SWnO = refPts_c(4:6)
+   m%PWnO = refPts_c(7:9)
+   m%VSO = refPts_c(10:12)
+   m%SHSO = refPts_c(13:15)
+   m%PHSO = refPts_c(16:18)
    c = 19
    do i = 1, p%numPylons
-      SPyO(:,i) = refPts_c(c:c+2)
+      m%SPyO(:,i) = refPts_c(c:c+2)
       c = c + 3
    end do
    do i = 1, p%numPylons
-      PPyO(:,i) = refPts_c(c:c+2)
+      m%PPyO(:,i) = refPts_c(c:c+2)
       c = c + 3
    end do
  
@@ -2771,11 +3362,12 @@ contains
       ! Port Horizontal Stabilizer
    call CreateMBDynPtLoadsMesh(FusO, p%numPHSNds, m%PHSPts, m%FusODCM, m%PHSNdDCMs, m%mbdPHSLoads, errStat2, errMsg2)
       call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
-      ! Starboard Pylons
+
    allocate(m%mbdSPyLoads(p%numPylons), STAT=errStat2)
       if (errStat2 /= 0) call SetErrStat( ErrID_Fatal, 'Could not allocate memory for m%mbdSPyLoads', errStat, errMsg, RoutineName )     
    allocate(m%mbdPPyLoads(p%numPylons), STAT=errStat2)
       if (errStat2 /= 0) call SetErrStat( ErrID_Fatal, 'Could not allocate memory for m%mbdPPyLoads', errStat, errMsg, RoutineName )  
+      ! Starboard Pylons
    do i = 1, p%numPylons
       call CreateMBDynPtLoadsMesh(FusO, p%numSPyNds(i), m%SPyPts(:,:,i), m%FusODCM, m%SPyNdDCMs(:,:,:,i), m%mbdSPyLoads(i), errStat2, errMsg2)
          call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
@@ -2847,6 +3439,8 @@ subroutine KFAST_AssRes(t_c, isInitialTime_c, WindPt_c, FusO_prev_c, FusO_c, Fus
    real(ReKi)               :: FusODCM_prev(3,3)              ! fuselage reference point DCM to transform from global to kite coordinates at time t-p%dt
    real(ReKi)               :: FusOomegas_prev(3)             ! fuselage reference point rotational velocities in global coordinates at time t-p%dt (m/s)
    real(ReKi)               :: FusOacc_prev(3)                ! fuselage reference point accelerations in global coordinates at time t-p%dt (m/s^2)
+   real(ReKi)               :: AeroMoment(3)                  ! AeroDynamic moment on a rotor as computed by KAD (N-m)
+   real(ReKi)               :: AeroForce(3)                   ! AeroDynamic force on a rotor as computed by KAD (N)
    integer(IntKi)           :: errStat, errStat2              ! error status values
    character(ErrMsgLen)     :: errMsg, errMsg2                ! error messages
    character(*), parameter  :: routineName = 'KFAST_AssRes'
@@ -2920,51 +3514,8 @@ subroutine KFAST_AssRes(t_c, isInitialTime_c, WindPt_c, FusO_prev_c, FusO_c, Fus
             return
          end if
    end if
-
-! -------------------------------------------------------------------------
-! Controller
-! -------------------------------------------------------------------------      
    
-   if (OtherSt%NewTime) then
-      
-      if ( p%useKFC ) then         
-! TODO: Need to work out how we generate a controller output signal for the very first timestep (t=0.0)
-         
-            ! NOTE: The controller is stepping from t - p%dt (GetXPrev in MBDyn) to t (GetXCur in MBDyn)
-            !       therefore, all inputs to KFC needs to be at time, t - p%dt.
-         m%KFC%u%dcm_g2b       = matmul(FusODCM_prev, transpose(p%DCM_Fast2Ctrl))
-         m%KFC%u%pqr           = matmul(FusODCM_prev, FusOomegas_prev)
-         m%KFC%u%acc_norm      = TwoNorm(FusOacc_prev)
-         m%KFC%u%Xg            = FusO_prev - p%anchorPt
-         m%KFC%u%Xg            = matmul(p%DCM_Fast2Ctrl, m%KFC%u%Xg)
-         m%KFC%u%Vg            = matmul(p%DCM_Fast2Ctrl, FusOv_prev)
-         m%KFC%u%Vb            = matmul(FusODCM_prev, FusOv_prev)
-         m%KFC%u%Ag            = matmul(p%DCM_Fast2Ctrl, FusOacc_prev)
-         m%KFC%u%Ab            = matmul(FusODCM_prev, FusOacc_prev)
-         m%KFC%u%rho           = p%AirDens
-         m%KFC%u%apparent_wind = m%IfW_FusO_prev - FusOv_prev
-         m%KFC%u%wind_g        = matmul(p%DCM_Fast2Ctrl, m%IfW_ground_prev)
-         
-         m%KFC%u%apparent_wind = matmul(p%DCM_Fast2Ctrl, m%KFC%u%apparent_wind)
-         m%KFC%u%tether_forceb = m%tether_forceb_prev  ! tether bridle force at time t  TODO: Still need to see how to properly set this for the initial timestep
-         
-! TODO: Need to implement aero torques, and how to handle initial timestep, too.
-         m%KFC%u%SPyAeroTorque   = m%SPyAeroTorque_prev
-         m%KFC%u%PPyAeroTorque   = m%PPyAeroTorque_prev
-         
-         call KFC_Step(utimes(1), m%KFC%u, m%KFC%p, m%KFC%y, errStat2, errMsg2 )
-            call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
-         if (errStat >= AbortErrLev ) then
-            call TransferErrors(errStat, errMsg, errStat_c, errMsg_c)
-            return
-         end if
-      
-      end if
-      
-      OtherSt%NewTime = .false. ! only call the controller once per timestep
-      
-   end if
-  
+   
 ! -------------------------------------------------------------------------
 ! MoorDyn
 ! ------------------------------------------------------------------------- 
@@ -3030,7 +3581,10 @@ subroutine KFAST_AssRes(t_c, isInitialTime_c, WindPt_c, FusO_prev_c, FusO_c, Fus
          call TransferErrors(errStat, errMsg, errStat_c, errMsg_c)
          return
       end if
-
+      if ( isInitialTime == 1 ) then
+         call SetBridleForce(m)     ! This is needed for the initial timestep because the controller will need to know the bridle force.  
+                                    !   Normally this gets set during AfterPredict() and the controller is using the previous timestep's bridle force.
+      end if
 !print *, "Finished MD_CalcOutput" 
 !print *, "m%MD%y%PtFairLeadLoad%Force(1,1): "//trim(num2lstr(m%MD%y%PtFairLeadLoad%Force(1,1)))//", m%MD%y%PtFairLeadLoad%Force(2,1): "//trim(num2lstr(m%MD%y%PtFairLeadLoad%Force(2,1)))//", m%MD%y%PtFairLeadLoad%Force(3,1): "//trim(num2lstr(m%MD%y%PtFairLeadLoad%Force(3,1)))
 !print *, "m%MD%y%PtFairLeadLoad%Force(1,2): "//trim(num2lstr(m%MD%y%PtFairLeadLoad%Force(1,2)))//", m%MD%y%PtFairLeadLoad%Force(2,2): "//trim(num2lstr(m%MD%y%PtFairLeadLoad%Force(2,2)))//", m%MD%y%PtFairLeadLoad%Force(3,2): "//trim(num2lstr(m%MD%y%PtFairLeadLoad%Force(3,2)))
@@ -3042,42 +3596,65 @@ subroutine KFAST_AssRes(t_c, isInitialTime_c, WindPt_c, FusO_prev_c, FusO_c, Fus
 
 
 ! -------------------------------------------------------------------------
+! Controller
+! -------------------------------------------------------------------------      
+   ! TODO: Do we even want to call KFC_Step() for the initial timestep?  Currently we need to because we need the GenTorque, flap settings, and rotor speeds
+   !       and the Controller Init does not return this data.
+   if (OtherSt%NewTime) then
+      
+! TODO: Need to work out how we generate a controller output signal for the very first timestep (t=0.0)
+         
+         ! NOTE: The controller is stepping from t - p%dt (GetXPrev in MBDyn) to t (GetXCur in MBDyn)
+         !       therefore, all inputs to KFC needs to be at time, t - p%dt.
+      m%KFC%u%dcm_g2b       = matmul(FusODCM_prev, transpose(p%DCM_Fast2Ctrl))
+      m%KFC%u%pqr           = matmul(FusODCM_prev, FusOomegas_prev)
+      m%KFC%u%acc_norm      = TwoNorm(FusOacc_prev)
+      m%KFC%u%Xg            = FusO_prev - p%anchorPt
+      m%KFC%u%Xg            = matmul(p%DCM_Fast2Ctrl, m%KFC%u%Xg)
+      m%KFC%u%Vg            = matmul(p%DCM_Fast2Ctrl, FusOv_prev)
+      m%KFC%u%Vb            = matmul(FusODCM_prev, FusOv_prev)
+      m%KFC%u%Ag            = matmul(p%DCM_Fast2Ctrl, FusOacc_prev)
+      m%KFC%u%Ab            = matmul(FusODCM_prev, FusOacc_prev)
+      m%KFC%u%rho           = p%AirDens
+      m%KFC%u%apparent_wind = m%IfW_FusO_prev - FusOv_prev
+      m%KFC%u%wind_g        = matmul(p%DCM_Fast2Ctrl, m%IfW_ground_prev)
+         
+      m%KFC%u%apparent_wind = matmul(p%DCM_Fast2Ctrl, m%KFC%u%apparent_wind)
+      m%KFC%u%tether_forceb = m%tether_forceb_prev  ! tether bridle force at time t  TODO: Still need to see how to properly set this for the initial timestep
+         
+! TODO: Need to implement aero torques, and how to handle initial timestep, too.
+      m%KFC%u%SPyAeroTorque   = m%SPyAeroTorque_prev
+      m%KFC%u%PPyAeroTorque   = m%PPyAeroTorque_prev
+         
+      call KFC_Step(utimes(1), m%KFC%u, m%KFC%p, m%KFC%y, errStat2, errMsg2 )
+         call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
+      if (errStat >= AbortErrLev ) then
+         call TransferErrors(errStat, errMsg, errStat_c, errMsg_c)
+         return
+      end if
+      
+      OtherSt%NewTime = .false. ! only call the controller once per timestep
+      
+   end if
+  
+
+! -------------------------------------------------------------------------
 ! KiteAeroDyn
 ! -------------------------------------------------------------------------      
    
    if ( p%useKAD ) then
-         ! Outputs from Controller for KAD
-      if ( p%useKFC ) then
-         m%KAD%u(1)%Ctrl_SFlp = m%KFC%y%SFlp
-         m%KAD%u(1)%Ctrl_PFlp = m%KFC%y%PFlp
-         m%KAD%u(1)%Ctrl_Rudr = m%KFC%y%Rudr
-         m%KAD%u(1)%Ctrl_SElv = m%KFC%y%SElv
-         m%KAD%u(1)%Ctrl_PElv = m%KFC%y%PElv
-      else
-         m%KAD%u(1)%Ctrl_SFlp = 0.0_ReKi
-         m%KAD%u(1)%Ctrl_PFlp = 0.0_ReKi
-         m%KAD%u(1)%Ctrl_Rudr = 0.0_ReKi
-         m%KAD%u(1)%Ctrl_SElv = 0.0_ReKi
-         m%KAD%u(1)%Ctrl_PElv = 0.0_ReKi
-      end if
       
+         ! Outputs from Controller for KAD (note: we always at least have a dummy controller to generate the necessary data)
+      m%KAD%u(1)%Ctrl_SFlp = m%KFC%y%SFlp
+      m%KAD%u(1)%Ctrl_PFlp = m%KFC%y%PFlp
+      m%KAD%u(1)%Ctrl_Rudr = m%KFC%y%Rudr
+      m%KAD%u(1)%Ctrl_SElv = m%KFC%y%SElv
+      m%KAD%u(1)%Ctrl_PElv = m%KFC%y%PElv
       m%KAD%u(1)%Pitch_SPyRtr = m%KFC%y%SPyBldPitch   ! Controller only sets these to zero at this point.
       m%KAD%u(1)%Pitch_PPyRtr = m%KFC%y%PPyBldPitch
-   
-         ! Rotor/Nacelle quanties from MBDyn  [2 per pylon]
-      c = 1
-      !do i = 1, p%numPylons ! [moving from inboard to outboard]
-      !   m%KAD%u(1)%RtSpd_SPyRtr(1,i) = RtSpd_PyRtr_c(c)    ! top
-      !   m%KAD%u(1)%RtSpd_SPyRtr(2,i) = RtSpd_PyRtr_c(c+1)  ! bottom
-      !   c = c+2
-      !end do
-      !do i = 1, p%numPylons   ! [moving from inboard to outboard]
-      !   m%KAD%u(1)%RtSpd_PPyRtr(1,i) = RtSpd_PyRtr_c(c)    ! top
-      !   m%KAD%u(1)%RtSpd_PPyRtr(2,i) = RtSpd_PyRtr_c(c+1)  ! bottom
-      !   c = c+2
-      !end do
-   
-   
+      m%KAD%u(1)%RtSpd_SPyRtr = m%KFC%y%SPyRtrSpd
+      m%KAD%u(1)%RtSpd_PPyRtr = m%KFC%y%PPyRtrSpd
+      
       if ( p%useIfW ) then
          
             ! Transfer Inflow Wind outputs to the various KAD inflow inputs
@@ -3167,8 +3744,7 @@ subroutine KFAST_AssRes(t_c, isInitialTime_c, WindPt_c, FusO_prev_c, FusO_c, Fus
                return
             end if
       end if
-      
-! TODO: We are using t, but per plan comments this should be t+dt.  Verify.      
+           
       call KAD_CalcOutput( t, m%KAD%u(1), m%KAD%p, m%KAD%x, m%KAD%xd, m%KAD%z_copy, m%KAD%OtherSt, m%KAD%y, m%KAD%m, errStat2, errMsg2 )
          call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
          if (errStat >= AbortErrLev ) then
@@ -3182,13 +3758,31 @@ subroutine KFAST_AssRes(t_c, isInitialTime_c, WindPt_c, FusO_prev_c, FusO_c, Fus
    do j = 1, p%numPylons
       do i = 1,2
          c = (j-1)*2 + i
+         
+         if ( p%useKAD ) then
+            AeroMoment = m%KAD%y%SPyRtrLoads(c)%Moment(:,1)
+            AeroForce  = m%KAD%y%SPyRtrLoads(c)%Force(:,1)
+         else
+            AeroMoment = 0.0_ReKi
+            AeroForce  = 0.0_ReKi
+         end if
+         
          call KFAST_RotorCalcs(m%SPyRtrDCMs(:,:,i,j), m%SPyRtrOmegas(:,i,j), m%SPyRtrAccs(:,i,j), m%SPyRtrAlphas(:,i,j), &
-                               m%KFC%y%SPyRtrSpd(i,j), m%KFC%y%SPyGenTorque(i,j), m%KAD%y%SPyRtrLoads(c)%Force(:,1), m%KAD%y%SPyRtrLoads(c)%Moment(:,1), &
+                               m%KFC%y%SPyRtrSpd(i,j), m%KFC%y%SPyGenTorque(i,j), AeroForce, AeroMoment , &
                                p%Gravity, m%SPyRtrMass(i,j),   m%SPyRtrIrot(i,j),     m%SPyRtrItrans(i,j), m%SPyRtrXcm(i,j), &
                                m%SPyRtrFReact(:,i,j), m%SPyRtrMReact(:,i,j), errStat2, errMsg2 ) 
-         c = p%numPylons*2 + (j-1)*2 + i
+   
+         
+         if ( p%useKAD ) then
+            AeroMoment = m%KAD%y%PPyRtrLoads(c)%Moment(:,1)
+            AeroForce  = m%KAD%y%PPyRtrLoads(c)%Force(:,1)
+         else
+            AeroMoment = 0.0_ReKi
+            AeroForce  = 0.0_ReKi
+         end if
+         
          call KFAST_RotorCalcs(m%PPyRtrDCMs(:,:,i,j), m%PPyRtrOmegas(:,i,j), m%PPyRtrAccs(:,i,j), m%PPyRtrAlphas(:,i,j), &
-                               m%KFC%y%PPyRtrSpd(i,j), m%KFC%y%PPyGenTorque(i,j), m%KAD%y%PPyRtrLoads(c)%Force(:,1), m%KAD%y%PPyRtrLoads(c)%Moment(:,1), &
+                               m%KFC%y%PPyRtrSpd(i,j), m%KFC%y%PPyGenTorque(i,j), AeroForce, AeroMoment, &
                                p%Gravity, m%PPyRtrMass(i,j),   m%PPyRtrIrot(i,j),     m%PPyRtrItrans(i,j), m%PPyRtrXcm(i,j), &
                                m%PPyRtrFReact(:,i,j), m%PPyRtrMReact(:,i,j), errStat2, errMsg2 ) 
       end do
@@ -3241,12 +3835,7 @@ subroutine KFAST_AfterPredict(errStat_c, errMsg_c) BIND (C, NAME='KFAST_AfterPre
        
          ! transfer t+dt MoorDyn bridle forces to t forces for use by the controller during the next timestep     
       if ( p%useMD ) then
-         m%tether_forceb_prev = 0.0_ReKi
-         numFairLeads = size(m%MD%y%PtFairLeadLoad%Force,2)
-         do i = 1, numFairLeads
-            m%tether_forceb_prev = m%tether_forceb_prev + m%MD%y%PtFairLeadLoad%Force(:,i) 
-         end do
-         m%tether_forceb_prev = m%tether_forceb_prev/real(numFairLeads,ReKi)
+         call SetBridleForce(m)   
       end if
       
       if ( p%useKAD ) then
@@ -3255,11 +3844,11 @@ subroutine KFAST_AfterPredict(errStat_c, errMsg_c) BIND (C, NAME='KFAST_AfterPre
                count = (j-1)*2 + i
                xhat   = m%SPyRtrDCMs(1,:,i,j)
                moment = m%KAD%y%SPyRtrLoads(count)%Moment(:,1)
-               m%SPyAeroTorque(i,j) = dot_product(xhat, moment )
+               m%SPyAeroTorque_prev(i,j) = dot_product(xhat, moment )
                xhat   = m%PPyRtrDCMs(1,:,i,j)
                count = p%numPylons*2 + (j-1)*2 + i
                moment = m%KAD%y%PPyRtrLoads(count)%Moment(:,1)
-               m%PPyAeroTorque(i,j) = dot_product(xhat, moment )
+               m%PPyAeroTorque_prev(i,j) = dot_product(xhat, moment )
             end do
          end do
       end if

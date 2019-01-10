@@ -113,10 +113,10 @@ int main(int argc, char *argv[])
 
     // Set input file names
     // NOTE: All the data further below is directly tied to the KAD file listed here.
-    strcpy(KAD_FileName, "D:\\DEV\\makani\\google-repo\\sandbox\\glue-codes\\kitefast\\m000\\simple_m000_model_AD.txt");
-    strcpy(IfW_FileName, "D:\\DEV\\makani\\google-repo\\sandbox\\glue-codes\\kitefast\\m000\\kiteInflowWind.dat");
-    strcpy(MD_FileName , "D:\\DEV\\makani\\google-repo\\sandbox\\glue-codes\\kitefast\\m000\\kiteTether.dat");
-    strcpy(KFC_FileName, "D:\\DEV\\makani\\google-repo\\sandbox\\glue-codes\\kitefast\\m000\\libkitefastcontroller_controller.so");
+    strcpy(KAD_FileName, "D:\\DEV\\makani\\google-repo\\sandbox\\glue-codes\\kitefast\\test_cases\\m000\\simple_m000_model_AD.txt");
+    strcpy(IfW_FileName, "D:\\DEV\\makani\\google-repo\\sandbox\\glue-codes\\kitefast\\test_cases\\m000\\kiteInflowWind.dat");
+    strcpy(MD_FileName , "D:\\DEV\\makani\\google-repo\\sandbox\\glue-codes\\kitefast\\test_cases\\m000\\kiteTether.dat");
+    strcpy(KFC_FileName, "D:\\DEV\\makani\\google-repo\\sandbox\\glue-codes\\kitefast\\test_cases\\m000\\libkitefastcontroller_controller.so");
     strcpy(outFileRoot , "KiteTest");
 
 
@@ -327,15 +327,15 @@ int main(int argc, char *argv[])
 
 
     // Fuselage node positions
-    pNodePts[0] = -5    - pKiteOffset[n + 0] ;
+    pNodePts[0] = -5    + pKiteOffset[n + 0] ;
     pNodePts[1] = 0.000 + pKiteOffset[n + 1] ;
-    pNodePts[2] = 0     - pKiteOffset[n + 2];
-    pNodePts[3] = 0     - pKiteOffset[n + 0] ;
+    pNodePts[2] = 0     + pKiteOffset[n + 2];
+    pNodePts[3] = 0     + pKiteOffset[n + 0] ;
     pNodePts[4] = 0.000 + pKiteOffset[n + 1] ;
-    pNodePts[5] = 0.00  - pKiteOffset[n + 2]  ;
-    pNodePts[6] = 5     - pKiteOffset[n + 0] ;
+    pNodePts[5] = 0.00  + pKiteOffset[n + 2]  ;
+    pNodePts[6] = 5     + pKiteOffset[n + 0] ;
     pNodePts[7] = 0.000 + pKiteOffset[n + 1] ;
-    pNodePts[8] = 0     - pKiteOffset[n + 2];
+    pNodePts[8] = 0     + pKiteOffset[n + 2];
     c = 9;
     //  Starboard wing nodes
     n = 3;
@@ -378,11 +378,11 @@ int main(int argc, char *argv[])
     pNodePts[c + 0] = 0.000 - pRefPts[n + 0] + pKiteOffset[0];
     pNodePts[c + 1] = 0.000 + pRefPts[n + 1] + pKiteOffset[1];
     pNodePts[c + 2] = 0.000 - pRefPts[n + 2] + pKiteOffset[2];
-    pNodePts[c + 3] = 0.417 - pRefPts[n + 0] + pKiteOffset[0];
-    pNodePts[c + 4] = 2.447 + pRefPts[n + 1] + pKiteOffset[1];
+    pNodePts[c + 3] = 0.0 - pRefPts[n + 0] + pKiteOffset[0];
+    pNodePts[c + 4] = .4 + pRefPts[n + 1] + pKiteOffset[1];
     pNodePts[c + 5] = 0.000 - pRefPts[n + 2] + pKiteOffset[2];
-    pNodePts[c + 6] = 0.417 - pRefPts[n + 0] + pKiteOffset[0];
-    pNodePts[c + 7] = 3.447 + pRefPts[n + 1] + pKiteOffset[1];
+    pNodePts[c + 6] = 0.0 - pRefPts[n + 0] + pKiteOffset[0];
+    pNodePts[c + 7] = .9 + pRefPts[n + 1] + pKiteOffset[1];
     pNodePts[c + 8] = 0.000 - pRefPts[n + 2] + pKiteOffset[2];
     n = n + 3;
     c = c + 9;
@@ -390,24 +390,24 @@ int main(int argc, char *argv[])
     pNodePts[c + 0] = 0.000 - pRefPts[n + 0] + pKiteOffset[0];
     pNodePts[c + 1] = 0.000 + pRefPts[n + 1] + pKiteOffset[1];
     pNodePts[c + 2] = 0.000 - pRefPts[n + 2] + pKiteOffset[2];
-    pNodePts[c + 3] = 0.417 - pRefPts[n + 0] + pKiteOffset[0];
-    pNodePts[c + 4] = -2.447 + pRefPts[n + 1] + pKiteOffset[1];
+    pNodePts[c + 3] = 0 - pRefPts[n + 0] + pKiteOffset[0];
+    pNodePts[c + 4] = -.4 + pRefPts[n + 1] + pKiteOffset[1];
     pNodePts[c + 5] = 0.000 - pRefPts[n + 2] + pKiteOffset[2];
-    pNodePts[c + 6] = 0.417 - pRefPts[n + 0] + pKiteOffset[0];
-    pNodePts[c + 7] = -3.447 + pRefPts[n + 1] + pKiteOffset[1];
+    pNodePts[c + 6] = 0 - pRefPts[n + 0] + pKiteOffset[0];
+    pNodePts[c + 7] = -.9 + pRefPts[n + 1] + pKiteOffset[1];
     pNodePts[c + 8] = 0.000 - pRefPts[n + 2] + pKiteOffset[2];
     n = n + 3;
     c = c + 9;
     //  starboard inboard pylon nodes
-    pNodePts[c + 0] = -0.729 - pRefPts[n + 0] + pKiteOffset[0];
-    pNodePts[c + 1] = 0.000 + pRefPts[n + 1] + pKiteOffset[1];
-    pNodePts[c + 2] = 1.470 - pRefPts[n + 2] + pKiteOffset[2];
-    pNodePts[c + 3] = -0.510 - pRefPts[n + 0] + pKiteOffset[0];
-    pNodePts[c + 4] = 0.000 + pRefPts[n + 1] + pKiteOffset[1];
-    pNodePts[c + 5] = -1.832 - pRefPts[n + 2] + pKiteOffset[2];
-    pNodePts[c + 6] = -0.510 - pRefPts[n + 0] + pKiteOffset[0];
-    pNodePts[c + 7] = 0.000 + pRefPts[n + 1] + pKiteOffset[1];
-    pNodePts[c + 8] = -2.832 - pRefPts[n + 2] + pKiteOffset[2];
+    pNodePts[c + 0] = - pRefPts[n + 0] + pKiteOffset[0];
+    pNodePts[c + 1] = + pRefPts[n + 1] + pKiteOffset[1];
+    pNodePts[c + 2] = - pRefPts[n + 2] + pKiteOffset[2];
+    pNodePts[c + 3] = - pRefPts[n + 0] + pKiteOffset[0];
+    pNodePts[c + 4] = + pRefPts[n + 1] + pKiteOffset[1];
+    pNodePts[c + 5] = -0.5 - pRefPts[n + 2] + pKiteOffset[2];
+    pNodePts[c + 6] = - pRefPts[n + 0] + pKiteOffset[0];
+    pNodePts[c + 7] = + pRefPts[n + 1] + pKiteOffset[1];
+    pNodePts[c + 8] = -1 - pRefPts[n + 2] + pKiteOffset[2];
     n = n + 3;
     c = c + 9;
     //  starboard outboard pylon nodes
@@ -420,15 +420,15 @@ int main(int argc, char *argv[])
     n = n + 3;
     c = c + 6;*/
     //  port inboard pylon nodes
-    pNodePts[c + 0] = -0.729 - pRefPts[n + 0] + pKiteOffset[0];
-    pNodePts[c + 1] = 0.000 + pRefPts[n + 1] + pKiteOffset[1];
-    pNodePts[c + 2] = 1.470 - pRefPts[n + 2] + pKiteOffset[2];
-    pNodePts[c + 3] = -0.510 - pRefPts[n + 0] + pKiteOffset[0];
+    pNodePts[c + 0] =  - pRefPts[n + 0] + pKiteOffset[0];
+    pNodePts[c + 1] =  + pRefPts[n + 1] + pKiteOffset[1];
+    pNodePts[c + 2] =  - pRefPts[n + 2] + pKiteOffset[2];
+    pNodePts[c + 3] =  - pRefPts[n + 0] + pKiteOffset[0];
     pNodePts[c + 4] = 0.000 + pRefPts[n + 1] + pKiteOffset[1];
-    pNodePts[c + 5] = -1.832 - pRefPts[n + 2] + pKiteOffset[2];
-    pNodePts[c + 6] = -0.510 - pRefPts[n + 0] + pKiteOffset[0];
+    pNodePts[c + 5] = -0.5 - pRefPts[n + 2] + pKiteOffset[2];
+    pNodePts[c + 6] =  - pRefPts[n + 0] + pKiteOffset[0];
     pNodePts[c + 7] = 0.000 + pRefPts[n + 1] + pKiteOffset[1];
-    pNodePts[c + 8] = -2.832 - pRefPts[n + 2] + pKiteOffset[2];
+    pNodePts[c + 8] = -1 - pRefPts[n + 2] + pKiteOffset[2];
     n = n + 3;
     c = c + 9;
 
@@ -446,7 +446,7 @@ int main(int argc, char *argv[])
        pFusODCM, &numRtrPts, pRtrPts, pRtrMass, pRtrI_Rot, pRtrI_Trans, pRtrXcm, pRefPts, &numNodePts, pNodePts, pNodeDCMs,
        &nFusOuts, FusOutNd, &nSWnOuts, SWnOutNd, &nPWnOuts, PWnOutNd, &nVSOuts, VSOutNd, &nSHSOuts, SHSOutNd, &nPHSOuts, PHSOutNd, &nPylOuts, PylOutNd, &numOutChan, outChanList, &errStat, errMsg);
 
-    if (errStat != 0)
+    if (errStat == 4)
     {
         printf("%s\n", errMsg);
         return errStat;

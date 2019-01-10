@@ -101,6 +101,13 @@ typedef   ^    MiscVarType    MeshMapType      PPy_P_P         {:}   -   -  "" -
 typedef   ^    MiscVarType    MeshMapType      MD_L2_2_P        -    -  - "" -
 typedef   ^    MiscVarType    MeshMapType      MD_P_2_P         -    -  - "" -
 typedef   ^    MiscVarType    ReKi             FusO          {3}     -  - "" m
+typedef   ^    MiscVarType    ReKi             SWnO          {3}     -  - "" m
+typedef   ^    MiscVarType    ReKi             PWnO          {3}     -  - "" m
+typedef   ^    MiscVarType    ReKi             VSO           {3}     -  - "" m
+typedef   ^    MiscVarType    ReKi             SHSO          {3}     -  - "" m
+typedef   ^    MiscVarType    ReKi             PHSO          {3}     -  - "" m
+typedef   ^    MiscVarType    ReKi             SPyO          {:}{:}  -  - "" m
+typedef   ^    MiscVarType    ReKi             PPyO          {:}{:}  -  - "" m
 typedef   ^    MiscVarType    ReKi             FusPts        {:}{:}  -  - "" m
 typedef   ^    MiscVarType    ReKi             SWnPts        {:}{:}  -  - "" m
 typedef   ^    MiscVarType    ReKi             PWnPts        {:}{:}  -  - "" m
