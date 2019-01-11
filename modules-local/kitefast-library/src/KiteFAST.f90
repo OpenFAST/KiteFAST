@@ -848,8 +848,8 @@ subroutine KFAST_WriteSummary( Prog, OutRootName, p, m, KAD_InitOut, MD_InitOut,
       enabledModules  = trim(enabledModules)//', Dummy KiteFastController'   
    end if
    
-   if ( scan(enabledModules(1:1),',',.true.) ) enabledModules = enabledModules(3:255)
-   if ( scan(disabledModules(1:1),',',.true.) ) disabledModules = disabledModules(3:255)
+   if ( scan(enabledModules(1:1),',') > 0 ) enabledModules = enabledModules(3:255)
+   if ( scan(disabledModules(1:1),',') > 0 ) disabledModules = disabledModules(3:255)
    
    write(SumFileUnit,'(A)'   ,IOSTAT=TmpErrStat) 'Enabled  modules: '//trim(enabledModules)
    write(SumFileUnit,'(A)'   ,IOSTAT=TmpErrStat) 'Disabled modules: '//trim(disabledModules)
