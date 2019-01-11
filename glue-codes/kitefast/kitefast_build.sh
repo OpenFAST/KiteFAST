@@ -3,7 +3,7 @@
 ### configuration
 
 # download mbdyn and openfast and put both in the same directory. also, set their parent directory below
-source_code_parent_directory="/home/makani/Desktop/"
+source_code_parent_directory="/home/makani/Desktop"
 if [ ! -d $source_code_parent_directory ]; then
   echo "source_code_parent_directory does not exist as given: "$source_code_parent_directory
   exit 1
@@ -14,15 +14,15 @@ cd $source_code_parent_directory
 wget "https://www.mbdyn.org/userfiles/downloads/mbdyn-1.7.3.tar.gz"
 gunzip mbdyn-1.7.3.tar.gz
 tar -xf mbdyn-1.7.3.tar
-mbdyn_directory=$source_code_parent_directory"/mbdyn-1.7.3/"
+mbdyn_directory=$source_code_parent_directory"/mbdyn-1.7.3"
 if [ ! -d $mbdyn_directory ]; then
   echo "mbdyn_directory does not exist as given: "$mbdyn_directory
   exit 1
 fi
 
 # clone openfast
-# git clone https://makani-private.googlesource.com/kite_fast/nrel_source openfast
-openfast_directory=$source_code_parent_directory"/sandbox/"
+# git clone https://makani-private.googlesource.com/kite_fast/sandbox
+openfast_directory=$source_code_parent_directory"/sandbox"
 if [ ! -d $openfast_directory ]; then
   echo "openfast_directory does not exist as given: "$openfast_directory
   exit 1
@@ -66,11 +66,22 @@ install_if_not_found "git"
 install_if_not_found "build-essential"
 install_if_not_found "software-properties-common"
 install_if_not_found "gfortran" # this does not come on 14.04 by default
-install_if_not_found "cmake"
 install_if_not_found "libblas-dev" # blas math library
 install_if_not_found "liblapack-dev" # lapack math library
 install_if_not_found "libltdl-dev" # libltdl headers, used in mbdyn for linking
 install_if_not_found "libgsl-dev" # used in the STI controller
+
+# build an updated version of cmake (recent versions arent available in apt)
+sudo apt remove --purge --auto-remove cmake -y
+cd ~
+wget https://github.com/Kitware/CMake/releases/download/v3.13.2/cmake-3.13.2.tar.gz
+tar -xzvf cmake-3.13.2.tar.gz
+cd ~/cmake-3.13.2
+./bootstrap
+make -j4
+sudo make install
+cd ~
+rm -rf ~/cmake-3.13.2 ~/cmake-3.13.2.tar.gz
 
 # remove lingering packages
 sudo apt-get autoremove
