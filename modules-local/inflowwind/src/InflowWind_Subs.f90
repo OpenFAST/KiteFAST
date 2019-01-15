@@ -1770,7 +1770,7 @@ SUBROUTINE CalculateOutput( Time, InputData, p, x, xd, z, OtherStates, y, m, Fil
 
       IMPLICIT                                                    NONE
 
-      CHARACTER(*),              PARAMETER                     :: RoutineName="CalcOutput"
+      CHARACTER(*),              PARAMETER                     :: RoutineName="CalculateOutput"
 
 
          ! Inputs / Outputs
