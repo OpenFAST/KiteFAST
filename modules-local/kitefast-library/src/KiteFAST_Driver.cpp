@@ -327,15 +327,15 @@ int main(int argc, char *argv[])
 
 
     // Fuselage node positions
-    pNodePts[0] = -5    + pKiteOffset[n + 0] ;
-    pNodePts[1] = 0.000 + pKiteOffset[n + 1] ;
-    pNodePts[2] = 0     + pKiteOffset[n + 2];
-    pNodePts[3] = 0     + pKiteOffset[n + 0] ;
-    pNodePts[4] = 0.000 + pKiteOffset[n + 1] ;
-    pNodePts[5] = 0.00  + pKiteOffset[n + 2]  ;
-    pNodePts[6] = 5     + pKiteOffset[n + 0] ;
-    pNodePts[7] = 0.000 + pKiteOffset[n + 1] ;
-    pNodePts[8] = 0     + pKiteOffset[n + 2];
+    pNodePts[0] =-5.000 + pKiteOffset[0];
+    pNodePts[1] = 0.000 + pKiteOffset[1];
+    pNodePts[2] = 0.000 + pKiteOffset[2];
+    pNodePts[3] = 0.000 + pKiteOffset[0];
+    pNodePts[4] = 0.000 + pKiteOffset[1];
+    pNodePts[5] = 0.000 + pKiteOffset[2];
+    pNodePts[6] = 5.000 + pKiteOffset[0];
+    pNodePts[7] = 0.000 + pKiteOffset[1];
+    pNodePts[8] = 0.000 + pKiteOffset[2];
     c = 9;
     //  Starboard wing nodes
     n = 3;
@@ -343,11 +343,11 @@ int main(int argc, char *argv[])
     pNodePts[c + 1] = 0.000 + pRefPts[n + 1] + pKiteOffset[1];
     pNodePts[c + 2] = 0.000 - pRefPts[n + 2] + pKiteOffset[2];
     pNodePts[c + 3] = 0.000 - pRefPts[n + 0] + pKiteOffset[0];
-    pNodePts[c + 4] = 2.5   + pRefPts[n + 1] + pKiteOffset[1];
-    pNodePts[c + 5] = 0     -pRefPts[n + 2] + pKiteOffset[2];
+    pNodePts[c + 4] = 2.500 + pRefPts[n + 1] + pKiteOffset[1];
+    pNodePts[c + 5] = 0.000 - pRefPts[n + 2] + pKiteOffset[2];
     pNodePts[c + 6] = 0.000 - pRefPts[n + 0] + pKiteOffset[0];
-    pNodePts[c + 7] = 5.5   + pRefPts[n + 1] + pKiteOffset[1];
-    pNodePts[c + 8] = 0     - pRefPts[n + 2] + pKiteOffset[2];
+    pNodePts[c + 7] = 5.500 + pRefPts[n + 1] + pKiteOffset[1];
+    pNodePts[c + 8] = 0.000 - pRefPts[n + 2] + pKiteOffset[2];
     n = n + 3;
     c = c + 9;
     //  Port wing nodes
