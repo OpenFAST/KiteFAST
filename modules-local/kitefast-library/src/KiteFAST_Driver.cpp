@@ -113,10 +113,10 @@ int main(int argc, char *argv[])
 
     // Set input file names
     // NOTE: All the data further below is directly tied to the KAD file listed here.
-    strcpy(KAD_FileName, "D:\\DEV\\makani\\google-repo\\sandbox\\glue-codes\\kitefast\\test_cases\\m000\\simple_m000_model_AD.txt");
-    strcpy(IfW_FileName, "D:\\DEV\\makani\\google-repo\\sandbox\\glue-codes\\kitefast\\test_cases\\m000\\kiteInflowWind.dat");
-    strcpy(MD_FileName , "D:\\DEV\\makani\\google-repo\\sandbox\\glue-codes\\kitefast\\test_cases\\m000\\kiteTether.dat");
-    strcpy(KFC_FileName, "D:\\DEV\\makani\\google-repo\\sandbox\\glue-codes\\kitefast\\test_cases\\m000\\libkitefastcontroller_controller.so");
+    strcpy(KAD_FileName, "/Users/rmudafor/Development/makani/makani_openfast/glue-codes/kitefast/test_cases/m000/simple_m000_model_AD.txt");
+    strcpy(IfW_FileName, "/Users/rmudafor/Development/makani/makani_openfast/glue-codes/kitefast/test_cases/m000/kiteInflowWind.dat");
+    strcpy(MD_FileName , "/Users/rmudafor/Development/makani/makani_openfast/glue-codes/kitefast/test_cases/m000/kiteTether.dat");
+    strcpy(KFC_FileName, "/Users/rmudafor/Development/makani/makani_openfast/glue-codes/kitefast/test_cases/m000/libkitefastcontroller_controller.so");
     strcpy(outFileRoot , "KiteTest");
 
 
@@ -544,7 +544,7 @@ int main(int argc, char *argv[])
         pRtrAlphas[n  + 2] = 0.0;
     }
 
-    for (i = 0; i < numDCMElem; i = i + 9)
+    for (i = 0; i < numRtrPts; i = i + 9)
     {
         pRtrDCMs[i] = pFusODCM[0];
         pRtrDCMs[i + 1] = pFusODCM[1];
