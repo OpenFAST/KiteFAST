@@ -26,8 +26,8 @@ description = "Creates a set of MBDyn input files from a model definition."
 parser = argparse.ArgumentParser(description=description)
 parser.add_argument("-i",
                     "--input-file",
-                    nargs="?",
-                    default="kite.yaml",
+                    nargs=1,
+                    required=True,
                     help="Path to the preprocessor input file")
 parser.add_argument("-o",
                     "--output-directory",
@@ -47,7 +47,7 @@ parser.add_argument("-info",
 args = parser.parse_args()
 
 # Read the inputs and instantiate the model
-input_file = os.path.abspath(args.input_file)
+input_file = os.path.abspath(args.input_file[0])
 inputs = Input(input_file)
 if args.model_type == "kite":
     model = KiteModel(inputs.simulation_dict, inputs.model_dict)
