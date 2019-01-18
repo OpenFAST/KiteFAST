@@ -169,6 +169,10 @@ module KiteFastController
          call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
       call AllocAry( y%PPyRtrSpd,     2, p%numPylons, 'y%PPyRtrSpd',     errStat2, errMsg2 )
          call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )  
+       call AllocAry( y%SPyRtrAcc,     2, p%numPylons, 'y%SPyRtrAcc',     errStat2, errMsg2 )
+         call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
+      call AllocAry( y%PPyRtrAcc,     2, p%numPylons, 'y%PPyRtrAcc',     errStat2, errMsg2 )
+         call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )  
       call AllocAry( y%SPyBldPitch,   2, p%numPylons, 'y%SPyBldPitch',   errStat2, errMsg2 )
          call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
       call AllocAry( y%PPyBldPitch,   2, p%numPylons, 'y%PPyBldPitch',   errStat2, errMsg2 )
@@ -216,6 +220,8 @@ module KiteFastController
          y%PPyGenTorque = 0.0_ReKi
          y%SPyRtrSpd    = 0.0_ReKi
          y%PPyRtrSpd    = 0.0_ReKi
+         y%SPyRtrAcc    =   0.0_ReKi  ! rad/s^2
+         y%PPyRtrAcc    =   0.0_ReKi  ! rad/s^2
          y%SPyBldPitch  = 0.0_ReKi
          y%PPyBldPitch  = 0.0_ReKi
       else
@@ -225,6 +231,8 @@ module KiteFastController
             ! TODO: Determine what would be a realistic dummy set of speed and the correct signs for each rotor
          y%SPyRtrSpd    = 180.0_ReKi  ! rad/s
          y%PPyRtrSpd    = 180.0_ReKi  ! rad/s
+         y%SPyRtrAcc    =   0.0_ReKi  ! rad/s^2
+         y%PPyRtrAcc    =   0.0_ReKi  ! rad/s^2
          y%SPyBldPitch  = 0.0_ReKi
          y%PPyBldPitch  = 0.0_ReKi
          
@@ -343,14 +351,11 @@ module KiteFastController
          y%PPyRtrSpd(2,:) = 180.0  ! port bottom rotor, all pylons
          
             ! Zero rotor acceleration
-         y%SPyRtrAcc(1,1) = 0.0_ReKi ! starboard top rotor, pylon 1 (inboard)
-         y%SPyRtrAcc(2,1) = 0.0_ReKi ! starboard bottom rotor, pylon 1 (inboard)
-         y%SPyRtrAcc(1,2) = 0.0_ReKi ! starboard top rotor, pylon 2 (outboard)
-         y%SPyRtrAcc(2,2) = 0.0_ReKi ! starboard bottom rotor, pylon 2 (outboard)
-         y%PPyRtrAcc(1,1) = 0.0_ReKi ! port top rotor, pylon 1 (inboard)
-         y%PPyRtrAcc(2,1) = 0.0_ReKi ! port bottom rotor, pylon 1 (inboard)
-         y%PPyRtrAcc(1,2) = 0.0_ReKi ! port top rotor, pylon 2 (outboard)
-         y%PPyRtrAcc(2,2) = 0.0_ReKi ! port bottom rotor, pylon 2 (outboard)
+         y%SPyRtrAcc(1,:) = 0.0_ReKi ! starboard top rotor, all pylons 
+         y%SPyRtrAcc(2,:) = 0.0_ReKi ! starboard bottom rotor, all pylons
+         y%PPyRtrAcc(1,:) = 0.0_ReKi ! port top rotor, all pylons
+         y%PPyRtrAcc(2,:) = 0.0_ReKi ! port bottom rotor, all pylons
+         
 
             ! Currently blade pitch is not being set by controller and was initialized to 0.0
          y%SPyBldPitch  = 0.0_ReKi

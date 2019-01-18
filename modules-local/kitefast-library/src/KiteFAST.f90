@@ -198,7 +198,7 @@ subroutine KFAST_RotorCalcs(NacDCM, NacOmega, NacAcc, NacAlpha, RtrSpd, GenTorq,
    real(R8Ki)      :: Fcm_Aero(3)
    real(R8Ki)      :: tmp(3), gvec(3), tmp2(3), FcmReact(3), McmReact(3), RtrAccCM_kite(3)
    real(R8Ki)      :: Mcm_Aero(3), RtrOmega(3), RtrOmega_kite(3), RtrAlpha_kite(3)
-   
+
       ! Initialize local variables      
    ErrStat = ErrID_None  
    ErrMsg  = ""
@@ -230,12 +230,13 @@ subroutine KFAST_RotorCalcs(NacDCM, NacOmega, NacAcc, NacAlpha, RtrSpd, GenTorq,
    McmReact(1) = GenTorq
    McmReact(2) = -Mcm_Aero(2) + Irot*RtrAlpha_kite(2) + (Irot - Icm_Tran)*RtrOmega_kite(3)*RtrOmega_kite(1)
    McmReact(3) = -Mcm_Aero(3) + Irot*RtrAlpha_kite(3) + (Irot - Icm_Tran)*RtrOmega_kite(2)*RtrOmega_kite(1)
-   
+   Freact      = -matmul(transpose(NacDCM),FcmReact)
+   Mreact      = -matmul(transpose(NacDCM),McmReact) + cross_product(cm_r,Freact)
    
 end subroutine KFAST_RotorCalcs
 
 !====================================================================================================
-subroutine KFAST_ProcessMBD_Outputs()
+subroutine KFAST_ProcessOutputs()
 ! This subroutine 
 !----------------------------------------------------------------------------------------------------
 
@@ -543,9 +544,40 @@ subroutine KFAST_ProcessMBD_Outputs()
       end do
    end do
    
+   ! Rotor-related outputs
+   do i = 1, p%numPylons  
+      m%AllOuts(SPTRtSpd(i)) = m%KFC%y%SPyRtrSpd(1,i)
+      m%AllOuts(SPBRtSpd(i)) = m%KFC%y%SPyRtrSpd(2,i)
+      m%AllOuts(PPTRtSpd(i)) = m%KFC%y%PPyRtrSpd(1,i)
+      m%AllOuts(PPBRtSpd(i)) = m%KFC%y%PPyRtrSpd(2,i)
+      m%AllOuts(SPTRtAcc(i)) = m%KFC%y%SPyRtrAcc(1,i)
+      m%AllOuts(SPBRtAcc(i)) = m%KFC%y%SPyRtrAcc(2,i)
+      m%AllOuts(PPTRtAcc(i)) = m%KFC%y%PPyRtrAcc(1,i)
+      m%AllOuts(PPBRtAcc(i)) = m%KFC%y%PPyRtrAcc(2,i)
+   end do
+   
+   ! Kite Motions
 
-
-
+   m%AllOuts(KitePxi  ) = m%FusO(1)
+   m%AllOuts(KitePyi  ) = m%FusO(2)
+   m%AllOuts(KitePzi  ) = m%FusO(3)
+   val3 = R2D_D*EulerExtract(m%FusODCM)
+   m%AllOuts(KiteRoll ) = val3(1)
+   m%AllOuts(KitePitch) = val3(2)
+   m%AllOuts(KiteYaw  ) = val3(3)
+   m%AllOuts(KiteTVx  ) = m%FusOvels(1)
+   m%AllOuts(KiteTVy  ) = m%FusOvels(2)
+   m%AllOuts(KiteTVz  ) = m%FusOvels(3)
+   m%AllOuts(KiteRVx  ) = m%FusOomegas(1)
+   m%AllOuts(KiteRVy  ) = m%FusOomegas(2)
+   m%AllOuts(KiteRVz  ) = m%FusOomegas(3)
+   m%AllOuts(KiteTAx  ) = m%FusOaccs(1)
+   m%AllOuts(KiteTAy  ) = m%FusOaccs(2)
+   m%AllOuts(KiteTAz  ) = m%FusOaccs(3)
+   m%AllOuts(KiteRAx  ) = m%FusOalphas(1)
+   m%AllOuts(KiteRAy  ) = m%FusOalphas(2)
+   m%AllOuts(KiteRAz  ) = m%FusOalphas(3)
+   
    !...............................................................................................................................
    ! Place the selected output channels into the WriteOutput(:) array with the proper sign:
    !...............................................................................................................................
@@ -554,7 +586,7 @@ subroutine KFAST_ProcessMBD_Outputs()
       m%WriteOutput(i) = p%OutParam(i)%SignM * m%AllOuts( p%OutParam(i)%Indx )
    end do             ! i - All selected output channels
 
-end subroutine KFAST_ProcessMBD_Outputs
+end subroutine KFAST_ProcessOutputs
 
 !====================================================================================================
 subroutine KFAST_WriteOutput( t, p, y_KAD, y_MD, y_IfW, errStat, errMsg )
@@ -3759,28 +3791,29 @@ subroutine KFAST_AssRes(t_c, isInitialTime_c, WindPt_c, FusO_prev_c, FusO_c, Fus
       do i = 1,2
          c = (j-1)*2 + i
          
+            ! Starboard Rotors         
          if ( p%useKAD ) then
             AeroMoment = m%KAD%y%SPyRtrLoads(c)%Moment(:,1)
             AeroForce  = m%KAD%y%SPyRtrLoads(c)%Force(:,1)
          else
             AeroMoment = 0.0_ReKi
             AeroForce  = 0.0_ReKi
-         end if
-         
+         end if        
+
          call KFAST_RotorCalcs(m%SPyRtrDCMs(:,:,i,j), m%SPyRtrOmegas(:,i,j), m%SPyRtrAccs(:,i,j), m%SPyRtrAlphas(:,i,j), &
                                m%KFC%y%SPyRtrSpd(i,j), m%KFC%y%SPyGenTorque(i,j), AeroForce, AeroMoment , &
                                p%Gravity, m%SPyRtrMass(i,j),   m%SPyRtrIrot(i,j),     m%SPyRtrItrans(i,j), m%SPyRtrXcm(i,j), &
                                m%SPyRtrFReact(:,i,j), m%SPyRtrMReact(:,i,j), errStat2, errMsg2 ) 
    
-         
+            ! Port Rotors
          if ( p%useKAD ) then
             AeroMoment = m%KAD%y%PPyRtrLoads(c)%Moment(:,1)
             AeroForce  = m%KAD%y%PPyRtrLoads(c)%Force(:,1)
          else
             AeroMoment = 0.0_ReKi
             AeroForce  = 0.0_ReKi
-         end if
-         
+         end if         
+
          call KFAST_RotorCalcs(m%PPyRtrDCMs(:,:,i,j), m%PPyRtrOmegas(:,i,j), m%PPyRtrAccs(:,i,j), m%PPyRtrAlphas(:,i,j), &
                                m%KFC%y%PPyRtrSpd(i,j), m%KFC%y%PPyGenTorque(i,j), AeroForce, AeroMoment, &
                                p%Gravity, m%PPyRtrMass(i,j),   m%PPyRtrIrot(i,j),     m%PPyRtrItrans(i,j), m%PPyRtrXcm(i,j), &
@@ -3883,7 +3916,7 @@ subroutine KFAST_Output(t_c, numGaussPtLoadsElem_c, gaussPtLoads_c, errStat_c, e
       call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
    ! Compute the MBDyn-related outputs using the MBDyn load data and the most recently recieved motion data
    
-   call KFAST_ProcessMBD_Outputs()
+   call KFAST_ProcessOutputs()
    
    
    ! Write any outputs to file

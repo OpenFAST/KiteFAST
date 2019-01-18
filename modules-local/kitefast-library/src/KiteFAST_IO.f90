@@ -4812,7 +4812,16 @@ module KiteFAST_IO
                                                   PP21MRc, PP22MRc, PP23MRc, PP24MRc, PP25MRc, PP26MRc, PP27MRc, PP28MRc, PP29MRc/), (/9,2/) )
    INTEGER,  PARAMETER :: PPMRs(9,2) = reshape( (/PP11MRs, PP12MRs, PP13MRs, PP14MRs, PP15MRs, PP16MRs, PP17MRs, PP18MRs, PP19MRs, &
                                                   PP21MRs, PP22MRs, PP23MRs, PP24MRs, PP25MRs, PP26MRs, PP27MRs, PP28MRs, PP29MRs/), (/9,2/) )
-  
+
+   INTEGER,  PARAMETER :: SPTRtSpd(9) = (/SP1TRtSpd, SP2TRtSpd, SP3TRtSpd, SP4TRtSpd, SP5TRtSpd, SP6TRtSpd, SP7TRtSpd, SP8TRtSpd, SP9TRtSpd/)
+   INTEGER,  PARAMETER :: SPBRtSpd(9) = (/SP1BRtSpd, SP2BRtSpd, SP3BRtSpd, SP4BRtSpd, SP5BRtSpd, SP6BRtSpd, SP7BRtSpd, SP8BRtSpd, SP9BRtSpd/)
+   INTEGER,  PARAMETER :: PPTRtSpd(9) = (/PP1TRtSpd, PP2TRtSpd, PP3TRtSpd, PP4TRtSpd, PP5TRtSpd, PP6TRtSpd, PP7TRtSpd, PP8TRtSpd, PP9TRtSpd/)
+   INTEGER,  PARAMETER :: PPBRtSpd(9) = (/PP1BRtSpd, PP2BRtSpd, PP3BRtSpd, PP4BRtSpd, PP5BRtSpd, PP6BRtSpd, PP7BRtSpd, PP8BRtSpd, PP9BRtSpd/)
+   INTEGER,  PARAMETER :: SPTRtAcc(9) = (/SP1TRtAcc, SP2TRtAcc, SP3TRtAcc, SP4TRtAcc, SP5TRtAcc, SP6TRtAcc, SP7TRtAcc, SP8TRtAcc, SP9TRtAcc/)
+   INTEGER,  PARAMETER :: SPBRtAcc(9) = (/SP1BRtAcc, SP2BRtAcc, SP3BRtAcc, SP4BRtAcc, SP5BRtAcc, SP6BRtAcc, SP7BRtAcc, SP8BRtAcc, SP9BRtAcc/)
+   INTEGER,  PARAMETER :: PPTRtAcc(9) = (/PP1TRtAcc, PP2TRtAcc, PP3TRtAcc, PP4TRtAcc, PP5TRtAcc, PP6TRtAcc, PP7TRtAcc, PP8TRtAcc, PP9TRtAcc/)
+   INTEGER,  PARAMETER :: PPBRtAcc(9) = (/PP1BRtAcc, PP2BRtAcc, PP3BRtAcc, PP4BRtAcc, PP5BRtAcc, PP6BRtAcc, PP7BRtAcc, PP8BRtAcc, PP9BRtAcc/)
+   
    contains
    
 !**********************************************************************************************************************************
