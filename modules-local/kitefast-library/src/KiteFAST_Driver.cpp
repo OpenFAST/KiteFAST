@@ -543,7 +543,7 @@ int main(int argc, char *argv[])
         pRtrAlphas[n  + 2] = 0.0;
     }
 
-    for (i = 0; i < numRtrPts; i = i + 9)
+    for (i = 0; i < numRtrPtsElem*3; i = i + 9)
     {
         pRtrDCMs[i] = pFusODCM[0];
         pRtrDCMs[i + 1] = pFusODCM[1];
