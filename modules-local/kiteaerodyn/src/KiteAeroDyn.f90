@@ -441,7 +441,7 @@ subroutine ReadWngProps( UnIn, fileName, numNodes, Props, numProps, label, errSt
    integer(intKi)                               :: i                 ! counter for nodes
    integer(intKi)                               :: errStat2          ! temporary Error status
    character(ErrMsgLen)                         :: errMsg2           ! temporary Error message
-   real(ReKi), allocatable                      :: vals(:)           ! Row of input file property values
+   real(ReKi)                                   :: vals(8)           ! Row of input file property values
    character(*), parameter                      :: RoutineName = 'ReadProps'
    
       ! Initialize variables for this routine
@@ -469,9 +469,7 @@ subroutine ReadWngProps( UnIn, fileName, numNodes, Props, numProps, label, errSt
       call SetErrStat( errStat2, errMsg2, errStat, errMsg, RoutineName )
 
    call AllocAry( Props%CntrlID, numNodes, trim(label)//'%CntrlID', errStat2, errMsg2 )
-      call SetErrStat( errStat2, errMsg2, errStat, errMsg, RoutineName )
-   call AllocAry( vals, 8, 'vals', errStat2, errMsg2 )
-      call SetErrStat( errStat2, errMsg2, errStat, errMsg, RoutineName )   
+      call SetErrStat( errStat2, errMsg2, errStat, errMsg, RoutineName ) 
   
    
       ! Skip the table header line2.
@@ -495,7 +493,6 @@ subroutine ReadWngProps( UnIn, fileName, numNodes, Props, numProps, label, errSt
       Props%CntrlID(i) = vals(8)
    end do
 
-   deallocate(vals)
    
 end subroutine ReadWngProps
 !> Routine to generate the line2 motions meshes for the various kite components.
