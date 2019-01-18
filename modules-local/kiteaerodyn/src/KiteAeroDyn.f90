@@ -1885,7 +1885,6 @@ subroutine ReadKADFile(InitInp, interval, errStat, errMsg)
    call OpenFInpfile(UnIn, trim(fileName), errStat, errMsg)
       if ( errStat /= ErrID_None ) then
          errStat = ErrID_Fatal
-         call CleanUp()
          return
       end if
  
@@ -1930,7 +1929,7 @@ subroutine ReadKADFile(InitInp, interval, errStat, errMsg)
    call OpenEcho ( UnEc, trim(filename)//'.ech', errStat2, errMsg2, KAD_Ver )
       call SetErrStat( errStat2, errMsg2, errStat, errMsg, RoutineName )
       if ( errStat >= AbortErrLev ) then
-         call Cleanup()
+         close(UnIn)
          return
       end if
    
@@ -2340,7 +2339,7 @@ contains
       
                  
             close(UnIn)
-            close(UnEc)
+            if ( UnEc > 0 ) close(UnEc)
             
          end subroutine Cleanup
          
