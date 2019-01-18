@@ -320,14 +320,14 @@ module KiteFastController
          y%PPyRtrSpd(2,2) = 0.0  !RtrSpd_c(4)  ! port bottom rotor, pylon 2 (outboard)
 
    ! TODO: Are we still receiving rotor accelerations from controller?
-         ! y%SPyRtrAcc(1,1) = Motor_c(7)  ! starboard top rotor, pylon 1 (inboard)
-         ! y%SPyRtrAcc(2,1) = Motor_c(2)  ! starboard bottom rotor, pylon 1 (inboard)
-         ! y%SPyRtrAcc(1,2) = Motor_c(8)  ! starboard top rotor, pylon 2 (outboard)
-         ! y%SPyRtrAcc(2,2) = Motor_c(1)  ! starboard bottom rotor, pylon 2 (outboard)
-         ! y%PPyRtrAcc(1,1) = Motor_c(6)  ! port top rotor, pylon 1 (inboard)
-         ! y%PPyRtrAcc(2,1) = Motor_c(3)  ! port bottom rotor, pylon 1 (inboard)
-         ! y%PPyRtrAcc(1,2) = Motor_c(5)  ! port top rotor, pylon 2 (outboard)
-         ! y%PPyRtrAcc(2,2) = Motor_c(4)  ! port bottom rotor, pylon 2 (outboard)
+         y%SPyRtrAcc(1,1) = 0.0_ReKi ! starboard top rotor, pylon 1 (inboard)
+         y%SPyRtrAcc(2,1) = 0.0_ReKi ! starboard bottom rotor, pylon 1 (inboard)
+         y%SPyRtrAcc(1,2) = 0.0_ReKi ! starboard top rotor, pylon 2 (outboard)
+         y%SPyRtrAcc(2,2) = 0.0_ReKi ! starboard bottom rotor, pylon 2 (outboard)
+         y%PPyRtrAcc(1,1) = 0.0_ReKi ! port top rotor, pylon 1 (inboard)
+         y%PPyRtrAcc(2,1) = 0.0_ReKi ! port bottom rotor, pylon 1 (inboard)
+         y%PPyRtrAcc(1,2) = 0.0_ReKi ! port top rotor, pylon 2 (outboard)
+         y%PPyRtrAcc(2,2) = 0.0_ReKi ! port bottom rotor, pylon 2 (outboard)
 
          ! Currently blade pitch is not being set by controller and was initialized to 0.0
          y%SPyBldPitch  = 0.0_ReKi
@@ -342,6 +342,16 @@ module KiteFastController
          y%PPyRtrSpd(1,:) = 180.0  ! port top rotor, all pylons
          y%PPyRtrSpd(2,:) = 180.0  ! port bottom rotor, all pylons
          
+            ! Zero rotor acceleration
+         y%SPyRtrAcc(1,1) = 0.0_ReKi ! starboard top rotor, pylon 1 (inboard)
+         y%SPyRtrAcc(2,1) = 0.0_ReKi ! starboard bottom rotor, pylon 1 (inboard)
+         y%SPyRtrAcc(1,2) = 0.0_ReKi ! starboard top rotor, pylon 2 (outboard)
+         y%SPyRtrAcc(2,2) = 0.0_ReKi ! starboard bottom rotor, pylon 2 (outboard)
+         y%PPyRtrAcc(1,1) = 0.0_ReKi ! port top rotor, pylon 1 (inboard)
+         y%PPyRtrAcc(2,1) = 0.0_ReKi ! port bottom rotor, pylon 1 (inboard)
+         y%PPyRtrAcc(1,2) = 0.0_ReKi ! port top rotor, pylon 2 (outboard)
+         y%PPyRtrAcc(2,2) = 0.0_ReKi ! port bottom rotor, pylon 2 (outboard)
+
             ! Currently blade pitch is not being set by controller and was initialized to 0.0
          y%SPyBldPitch  = 0.0_ReKi
          y%PPyBldPitch  = 0.0_ReKi
