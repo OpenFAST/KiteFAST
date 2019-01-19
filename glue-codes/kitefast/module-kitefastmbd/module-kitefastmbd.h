@@ -63,8 +63,6 @@ typedef double f_real;
 #error "define either USE_SINGLE_PRECISION or USE_DOUBLE_PRECISION"
 #endif
 
-typedef long int f_integer;
-
 #define ErrID_None 0
 #define ErrID_Info 1
 #define ErrID_Warn 2
@@ -222,7 +220,7 @@ public:
   void printdebug(std::string debugstring) const;
   void PrintNodeLocations(KiteFASTNode node);
 
-  // these are specific for mbdyn, not used by us or KiteFAST
+  // these are specific for mbdyn, not used by KiteFASTMBD or KiteFAST
   unsigned int iGetNumPrivData(void) const;
   void GetConnectedNodes(std::vector<const Node *> &connectedNodes) const;
   std::ostream &Restart(std::ostream &out) const;
