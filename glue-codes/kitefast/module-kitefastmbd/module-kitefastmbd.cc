@@ -58,7 +58,7 @@ ModuleKiteFAST::ModuleKiteFAST(unsigned uLabel, const DofOwner *pDO, DataManager
 
   // setup the time drive
   Time.Set(new TimeDriveCaller(pDM->pGetDrvHdl()));
-  silent_cout("initial time: " << Time.dGet() << std::endl);
+  printdebug("initial time ");
 
   // *** input parsing ***
 
@@ -759,7 +759,7 @@ extern "C" int module_init(const char *module_name, void *pdm, void *php)
 void ModuleKiteFAST::printdebug(std::string debugstring) const
 {
 #ifdef DEBUGUDE
-  silent_cout("****** " << debugstring << "\t" << Time.dGet() << std::endl);
+  silent_cout("****** " << debugstring << "\t (time: " << Time.dGet() << ")" << std::endl);
 #endif
 }
 
