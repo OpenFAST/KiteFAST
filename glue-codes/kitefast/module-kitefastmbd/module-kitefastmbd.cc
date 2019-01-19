@@ -65,7 +65,6 @@ ModuleKiteFAST::ModuleKiteFAST(unsigned uLabel, const DofOwner *pDO, DataManager
   // parse the kitefast module flags
   // 0 = off, 1 = on
   ValidateInputKeyword(HP, "fast_submodule_flags");
-  int kitefast_module_flags[4];
   kitefast_module_flags[0] = HP.GetInt(); // kiteaerodyn
   kitefast_module_flags[1] = HP.GetInt(); // inflowwind
   kitefast_module_flags[2] = HP.GetInt(); // moordyn
@@ -73,10 +72,6 @@ ModuleKiteFAST::ModuleKiteFAST(unsigned uLabel, const DofOwner *pDO, DataManager
 
   // parse the kitefast module input files
   ValidateInputKeyword(HP, "fast_submodule_input_files");
-  char kiteaerodyn_filename[INTERFACE_STRING_LENGTH];
-  char inflowwind_filename[INTERFACE_STRING_LENGTH];
-  char moordyn_filename[INTERFACE_STRING_LENGTH];
-  char controller_filename[INTERFACE_STRING_LENGTH];
   strcpy(kiteaerodyn_filename, HP.GetFileName());
   strcpy(inflowwind_filename, HP.GetFileName());
   strcpy(moordyn_filename, HP.GetFileName());
@@ -84,7 +79,6 @@ ModuleKiteFAST::ModuleKiteFAST(unsigned uLabel, const DofOwner *pDO, DataManager
 
   // parse the output file settings and initialize the output file
   ValidateInputKeyword(HP, "output_file_root");
-  char output_file_root[INTERFACE_STRING_LENGTH];
   strcpy(output_file_root, HP.GetFileName());
   std::string output_file_name = output_file_root;
   output_file_name.append("MBD.out");
@@ -100,7 +94,7 @@ ModuleKiteFAST::ModuleKiteFAST(unsigned uLabel, const DofOwner *pDO, DataManager
 
   // parse the gravity
   ValidateInputKeyword(HP, "gravity");
-  doublereal gravity = HP.GetReal();
+  gravity = HP.GetReal();
 
   // parse the ground station location
   ValidateInputKeyword(HP, "ground_weather_station_location");
@@ -110,18 +104,17 @@ ModuleKiteFAST::ModuleKiteFAST(unsigned uLabel, const DofOwner *pDO, DataManager
 
   // parse the component counts
   ValidateInputKeyword(HP, "number_of_flaps_per_wing");
-  integer n_flaps_per_wing = HP.GetInt();
+  n_flaps_per_wing = HP.GetInt();
   ValidateInputKeyword(HP, "number_of_pylons_per_wing");
   n_pylons_per_wing = HP.GetInt();
 
   // n_components includes all components except the rotors
   ValidateInputKeyword(HP, "number_of_kite_components");
-  integer n_components = HP.GetInt();
+  n_components = HP.GetInt();
 
   // parse the keypoints (aka reference points)
   ValidateInputKeyword(HP, "keypoints");
-  integer numRefPtElem = 3 * n_components;
-  doublereal reference_points[numRefPtElem];
+  reference_points = new doublereal[3 * n_components];
   for (int i = 0; i < n_components; i++)
   {
     reference_points[3 * i] = HP.GetReal();
@@ -220,7 +213,7 @@ ModuleKiteFAST::ModuleKiteFAST(unsigned uLabel, const DofOwner *pDO, DataManager
   }
 
   // number of nodes per kite component excluding rotors
-  integer component_node_counts[n_components];
+  component_node_counts = new integer[n_components];
   component_node_counts[0] = nodes_fuselage.size();
   component_node_counts[1] = nodes_starwing.size();
   component_node_counts[2] = nodes_portwing.size();
@@ -242,11 +235,9 @@ ModuleKiteFAST::ModuleKiteFAST(unsigned uLabel, const DofOwner *pDO, DataManager
   {
     node_count_no_rotors += component_node_counts[i];
   }
-  numNodePtElem = 3 * node_count_no_rotors;
-  node_points = new doublereal[numNodePtElem];
-  numDCMElem = 9 * node_count_no_rotors;
-  node_dcms = new doublereal[numDCMElem];
-  
+  node_points = new doublereal[3 * node_count_no_rotors];
+  node_dcms = new doublereal[9 * node_count_no_rotors];
+
   for (int i = 0; i < node_count_no_rotors; i++)
   {
     Vec3 xcurr = nodes[i].pNode->GetXCurr();
@@ -268,10 +259,9 @@ ModuleKiteFAST::ModuleKiteFAST(unsigned uLabel, const DofOwner *pDO, DataManager
   }
 
   // build the node arrays for rotors
-  rotor_node_count = nodes_starrotors.size() + nodes_portrotors.size();
-  numRtrPtsElem = 3 * rotor_node_count;
-  rotor_points = new doublereal[numRtrPtsElem];
-  for (int i = 0; i < rotor_node_count; i++)
+  n_rotor_points = nodes_starrotors.size() + nodes_portrotors.size();
+  rotor_points = new doublereal[3 * n_rotor_points];
+  for (int i = 0; i < n_rotor_points; i++)
   {
     Vec3 xcurr = nodes[i + node_count_no_rotors].pNode->GetXCurr();
     rotor_points[3 * i] = xcurr[0];
@@ -281,16 +271,15 @@ ModuleKiteFAST::ModuleKiteFAST(unsigned uLabel, const DofOwner *pDO, DataManager
 
   // The kite is aligned with the Global Coordinate system
   Mat3x3 mip_dcm = mip_node.pNode->GetRCurr();
-  doublereal pFusODCM[9];
-  pFusODCM[0] = mip_dcm.dGet(1, 1);
-  pFusODCM[1] = mip_dcm.dGet(1, 2);
-  pFusODCM[2] = mip_dcm.dGet(1, 3);
-  pFusODCM[3] = mip_dcm.dGet(2, 1);
-  pFusODCM[4] = mip_dcm.dGet(2, 2);
-  pFusODCM[5] = mip_dcm.dGet(2, 3);
-  pFusODCM[6] = mip_dcm.dGet(3, 1);
-  pFusODCM[7] = mip_dcm.dGet(3, 2);
-  pFusODCM[8] = mip_dcm.dGet(3, 3);
+  fuselage_dcm[0] = mip_dcm.dGet(1, 1);
+  fuselage_dcm[1] = mip_dcm.dGet(1, 2);
+  fuselage_dcm[2] = mip_dcm.dGet(1, 3);
+  fuselage_dcm[3] = mip_dcm.dGet(2, 1);
+  fuselage_dcm[4] = mip_dcm.dGet(2, 2);
+  fuselage_dcm[5] = mip_dcm.dGet(2, 3);
+  fuselage_dcm[6] = mip_dcm.dGet(3, 1);
+  fuselage_dcm[7] = mip_dcm.dGet(3, 2);
+  fuselage_dcm[8] = mip_dcm.dGet(3, 3);
 
   // call KFAST_Init method
   int error_status;
@@ -306,17 +295,36 @@ ModuleKiteFAST::ModuleKiteFAST(unsigned uLabel, const DofOwner *pDO, DataManager
              moordyn_filename,
              controller_filename,
              output_file_root,
+             &print_summary_file,
              &gravity,
              ground_station_point,
-             pFusODCM,
-             &numRtrPtsElem,
+             fuselage_dcm,
+             &n_rotor_points,
              rotor_points,
-             &numRefPtElem,
+             rotor_masses,
+             rotor_rotational_inertias,
+             rotor_translational_inertias,
+             rotor_cm_offsets,
              reference_points,
-             &numNodePtElem,
+             &node_count_no_rotors,
              node_points,
-             &numDCMElem,
              node_dcms,
+             &n_fuselage_outputs,
+             fuselage_output_nodes.data(),
+             &n_starboard_wing_outputs,
+             starboard_wing_output_nodes.data(),
+             &n_port_wing_outputs,
+             port_wing_output_nodes.data(),
+             &n_vertical_stabilizer_outputs,
+             vertical_stabilizer_output_nodes.data(),
+             &n_starboard_horizontal_stabilizer_outputs,
+             starboard_horizontal_stabilizer_output_nodes.data(),
+             &n_port_horizontal_stabilizer_outputs,
+             port_horizontal_stabilizer_output_nodes.data(),
+             &n_pylon_outputs,
+             pylon_output_nodes.data(),
+             &n_output_channels,
+             output_channels_array,
              &error_status,
              error_message);
   if (error_status >= AbortErrLev)
