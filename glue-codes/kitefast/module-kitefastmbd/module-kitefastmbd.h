@@ -247,7 +247,7 @@ private:
   doublereal *rotor_vels;                // nodeVels
   doublereal *rotor_omegas;              // rtrOmegas
   doublereal *rotor_accs;                // rtrAccs
-  doublereal rotor_alphas[3];            // rtrAlphas
+  doublereal *rotor_alphas;              // rtrAlphas
   doublereal *node_loads;                // nodeLoads
   doublereal *rotor_loads;               // rtrLoads
   // error_status                           errStat - local variable

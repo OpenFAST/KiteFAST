@@ -589,10 +589,10 @@ void ModuleKiteFAST::_AssRes(doublereal *node_loads, doublereal *rotor_loads)
   fuselage_accs[1] = vec3_FusOacc[1];
   fuselage_accs[2] = vec3_FusOacc[2];
 
-  // TODO: what are alphas??
-  fuselage_alphas[0] = 0;
-  fuselage_alphas[1] = 0;
-  fuselage_alphas[2] = 0;
+  Vec3 vec3_FusOalphas = mip_node.pNode->GetWPCurr();
+  fuselage_alphas[0] = vec3_FusOalphas[0];
+  fuselage_alphas[1] = vec3_FusOalphas[1];
+  fuselage_alphas[2] = vec3_FusOalphas[2];
 
   node_vels = new doublereal[3 * node_count_no_rotors];
   node_omegas = new doublereal[3 * node_count_no_rotors];
@@ -636,6 +636,7 @@ void ModuleKiteFAST::_AssRes(doublereal *node_loads, doublereal *rotor_loads)
   rotor_vels = new doublereal[3 * n_rotor_points];
   rotor_omegas = new doublereal[3 * n_rotor_points];
   rotor_accs = new doublereal[3 * n_rotor_points];
+  rotor_alphas = new doublereal[3 * n_rotor_points];
   for (int i = 0; i < n_rotor_points; i++)
   {
     Vec3 xcurr = nodes[i + node_count_no_rotors].pNode->GetXCurr();
@@ -669,12 +670,12 @@ void ModuleKiteFAST::_AssRes(doublereal *node_loads, doublereal *rotor_loads)
     rotor_accs[3 * i] = acc_curr[0];
     rotor_accs[3 * i + 1] = acc_curr[1];
     rotor_accs[3 * i + 2] = acc_curr[2];
-  }
 
-  // TODO: what are alphas??
-  rotor_alphas[0] = 0;
-  rotor_alphas[1] = 0;
-  rotor_alphas[2] = 0;
+    Vec3 angacc_curr = nodes[i + node_count_no_rotors].pNode->GetWPCurr();
+    rotor_alphas[3 * i] = angacc_curr[0];
+    rotor_alphas[3 * i + 1] = angacc_curr[1];
+    rotor_alphas[3 * i + 2] = angacc_curr[2];
+  }
 
   int error_status;
   char error_message[INTERFACE_STRING_LENGTH];
