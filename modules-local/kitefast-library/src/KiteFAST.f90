@@ -73,17 +73,18 @@ subroutine SetBridleForce(m)
    
 end subroutine SetBridleForce
 
-subroutine WriteNodeInfo(SumFileUnit, CompIndx, nNds, Pts, NdDCMs, FusO, NOuts, OutNds, errStat, errMsg )
-   integer(IntKi),                  intent(in   ) :: SumFileUnit          ! the unit number for the InflowWindsummary file
+subroutine WriteNodeInfo(SumFileUnit, CompIndx, nNds, Pts, NdDCMs, FusO, RefPt, NOuts, OutNds, errStat, errMsg )
+   integer(IntKi),                  intent(in   ) :: SumFileUnit          ! the unit number for the summary file
    integer(IntKi),                  intent(in   ) :: CompIndx
    integer(IntKi),                  intent(in   ) :: nNds
    real(ReKi),                      intent(in   ) :: Pts(:,:)
    real(R8Ki),                      intent(in   ) :: NdDCMs(:,:,:)
-   real(ReKi),                      intent(in   ) :: FusO(3)
+   real(ReKi),                      intent(in   ) :: FusO(3)              ! Fuselage reference point in global coordinates
+   real(ReKi),                      intent(in   ) :: RefPt(3)             ! Component reference point in kite coordinates
    integer(IntKi),                  intent(in   ) :: NOuts
    integer(IntKi),                  intent(in   ) :: OutNds(:)
-   integer(IntKi),                  intent(  out) :: errStat    ! Error status of the operation
-   character(*),                    intent(  out) :: errMsg     ! Error message if ErrStat /= ErrID_None
+   integer(IntKi),                  intent(  out) :: errStat              ! Error status of the operation
+   character(*),                    intent(  out) :: errMsg               ! Error message if ErrStat /= ErrID_None
    
       ! Local variables
    integer                                        :: k,l                  ! Generic loop counter      
@@ -96,7 +97,6 @@ subroutine WriteNodeInfo(SumFileUnit, CompIndx, nNds, Pts, NdDCMs, FusO, NOuts, 
    character(1)                                   :: NoValStr = '-'
    character(1)                                   :: OutNumStr
    character(19)                                  :: NodeType(3)
-   real(ReKi)                                     :: xloc, yloc, zloc
    real(ReKi)                                     :: globalPt(3), kitePt(3), kitePt2(3)
 
    !-------------------------------------------------------------------------------------------------      
@@ -119,50 +119,46 @@ subroutine WriteNodeInfo(SumFileUnit, CompIndx, nNds, Pts, NdDCMs, FusO, NOuts, 
    NodeType = (/'Reference point    ', &
                 'Finite-element node', & 
                 'Gauss point        '/)
-   xloc = 0.0
-   yloc = 0.0
-   zloc = 0.0
 
-
-         ! reference point
-      write(SumFileUnit,'(3X,A32,2X,A19,4X,A1,10X,A1,8X,3(F7.3,1X))',IOSTAT=TmpErrStat) Components(CompIndx), NodeType(1), NoValStr, NoValStr, xloc, yloc, zloc
+      ! reference point
+   write(SumFileUnit,'(3X,A32,2X,A19,4X,A1,10X,A1,8X,3(F7.3,1X))',IOSTAT=TmpErrStat) Components(CompIndx), NodeType(1), NoValStr, NoValStr, RefPt(1), RefPt(2), RefPt(3)
       
-         ! finite-element points
-      do k = 1,nNds
-         globalPt = Pts(:,k) - FusO
-         kitePt = matmul(NdDCMs(:,:,k), globalPt)
-         OutNumStr = NoValStr
-         do l= 1,NOuts
-           if ( k == OutNds(l) ) then
-              OutNumStr = Num2LStr(l)
-              continue
-           end if
-         end do
-         
-         write(SumFileUnit,'(3X,A32,2X,A19,4X,A1,10X,A1,8X,3(F7.3,1X))',IOSTAT=TmpErrStat) Components(1), NodeType(2), Num2LStr(k), OutNumStr, kitePt(1), kitePt(2), kitePt(3)
-      end do
-      
-         ! gauss points
-      do k = 1,nNds-1
-         OutNumStr = NoValStr
-         do l= 1,NOuts
-           if ( k == OutNds(l) ) then
-              OutNumStr = Num2LStr(l)
-              continue
-           end if
-         end do
-         globalPt = Pts(:,k) - FusO
-         kitePt = matmul(NdDCMs(:,:,k), globalPt)
-         globalPt = Pts(:,k+1) - FusO
-         kitePt2 = matmul(NdDCMs(:,:,k+1), globalPt)
-         if ( mod(k,2) == 1 ) then
-            kitePt = (1.0-sqrt(3.0)/3.0)*kitePt + (sqrt(3.0)/3.0)*kitePt2
-         else
-            kitePt = (1.0-sqrt(3.0)/3.0)*kitePt2 + (sqrt(3.0)/3.0)*kitePt
+      ! finite-element points
+   do k = 1,nNds
+      globalPt = Pts(:,k) - FusO
+      kitePt = matmul(NdDCMs(:,:,k), globalPt)
+      OutNumStr = NoValStr
+      do l= 1,NOuts
+         if ( k == OutNds(l) ) then
+            OutNumStr = Num2LStr(l)
+            continue
          end if
+      end do
          
-         write(SumFileUnit,'(3X,A32,2X,A19,4X,A1,10X,A1,8X,3(F7.3,1X))',IOSTAT=TmpErrStat) Components(1), NodeType(3), Num2LStr(k), OutNumStr, kitePt(1), kitePt(2), kitePt(3)
-      end do   
+      write(SumFileUnit,'(3X,A32,2X,A19,4X,A1,10X,A1,8X,3(F7.3,1X))',IOSTAT=TmpErrStat) Components(CompIndx), NodeType(2), Num2LStr(k), OutNumStr, kitePt(1), kitePt(2), kitePt(3)
+   end do
+      
+      ! gauss points
+   do k = 1,nNds-1
+      OutNumStr = NoValStr
+      do l= 1,NOuts
+         if ( k == OutNds(l) ) then
+            OutNumStr = Num2LStr(l)
+            continue
+         end if
+      end do
+      globalPt = Pts(:,k) - FusO
+      kitePt = matmul(NdDCMs(:,:,k), globalPt)
+      globalPt = Pts(:,k+1) - FusO
+      kitePt2 = matmul(NdDCMs(:,:,k+1), globalPt)
+      if ( mod(k,2) == 1 ) then
+         kitePt = (1.0-sqrt(3.0)/3.0)*kitePt2 + (sqrt(3.0)/3.0)*kitePt
+      else
+         kitePt = (1.0-sqrt(3.0)/3.0)*kitePt + (sqrt(3.0)/3.0)*kitePt2
+      end if
+         
+      write(SumFileUnit,'(3X,A32,2X,A19,4X,A1,10X,A1,8X,3(F7.3,1X))',IOSTAT=TmpErrStat) Components(CompIndx), NodeType(3), Num2LStr(k), OutNumStr, kitePt(1), kitePt(2), kitePt(3)
+   end do   
       
 
 
@@ -856,10 +852,10 @@ subroutine KFAST_WriteSummary( Prog, OutRootName, p, m, KAD_InitOut, MD_InitOut,
    write(SumFileUnit,'(/,A/)',IOSTAT=TmpErrStat)   'This summary file was generated by '//trim( Prog%Name )//&
                      ' '//trim( Prog%Ver )//' on '//CurDate()//' at '//CurTime()//'.'
    
-   write(SumFileUnit,'(A20)',IOSTAT=TmpErrStat) '   compiled with:   '
-   write(SumFileUnit,'(A1)',IOSTAT=TmpErrStat) ''
-   write(SumFileUnit,'(A39)',IOSTAT=TmpErrStat) 'Description from the MDyn input file:  '
-   write(SumFileUnit,'(A1)',IOSTAT=TmpErrStat) ''
+   !write(SumFileUnit,'(A20)',IOSTAT=TmpErrStat) '   compiled with:   '
+   !write(SumFileUnit,'(A1)',IOSTAT=TmpErrStat) ''
+   !write(SumFileUnit,'(A39)',IOSTAT=TmpErrStat) 'Description from the MDyn input file:  '
+   !write(SumFileUnit,'(A1)',IOSTAT=TmpErrStat) ''
    
    enabledModules  = ' '
    disabledModules = ' '
@@ -899,331 +895,96 @@ subroutine KFAST_WriteSummary( Prog, OutRootName, p, m, KAD_InitOut, MD_InitOut,
    
    
    ! Cycle through components 
-   call WriteNodeInfo(SumFileUnit, 1, p%numFusNds, m%FusPts, m%FusNdDCMs, m%FusO, p%NFusOuts, p%FusOutNds, errStat2, errMsg2 )
-      !   ! reference point
-      !write(SumFileUnit,'(3X,A32,2X,A19,4X,A1,10X,A1,8X,3(F7.3,1X))',IOSTAT=TmpErrStat) Components(1), NodeType(1), NoValStr, NoValStr, xloc, yloc, zloc
-      !
-      !   ! finite-element points
-      !do k = 1,p%numFusNds
-      !   globalPt = m%FusPts(:,k) - m%FusO
-      !   kitePt = matmul(m%FusNdDCMs(:,:,k), globalPt)
-      !   OutNumStr = NoValStr
-      !   do l= 1,p%NFusOuts
-      !     if ( k == p%FusOutNds(l) ) then
-      !        OutNumStr = Num2LStr(l)
-      !        continue
-      !     end if
-      !   end do
-      !   
-      !   write(SumFileUnit,'(3X,A32,2X,A19,4X,A1,10X,A1,8X,3(F7.3,1X))',IOSTAT=TmpErrStat) Components(1), NodeType(2), Num2LStr(k), OutNumStr, kitePt(1), kitePt(2), kitePt(3)
-      !end do
-      !
-      !   ! gauss points
-      !do k = 1,p%numFusNds-1
-      !   OutNumStr = NoValStr
-      !   do l= 1,p%NFusOuts
-      !     if ( k == p%FusOutNds(l) ) then
-      !        OutNumStr = Num2LStr(l)
-      !        continue
-      !     end if
-      !   end do
-      !   globalPt = m%FusPts(:,k) - m%FusO
-      !   kitePt = matmul(m%FusNdDCMs(:,:,k), globalPt)
-      !   globalPt = m%FusPts(:,k+1) - m%FusO
-      !   kitePt2 = matmul(m%FusNdDCMs(:,:,k+1), globalPt)
-      !   if ( mod(k,2) == 1 ) then
-      !      kitePt = (1.0-sqrt(3.0)/3.0)*kitePt + (sqrt(3.0)/3.0)*kitePt2
-      !   else
-      !      kitePt = (1.0-sqrt(3.0)/3.0)*kitePt2 + (sqrt(3.0)/3.0)*kitePt
-      !   end if
-      !   
-      !   write(SumFileUnit,'(3X,A32,2X,A19,4X,A1,10X,A1,8X,3(F7.3,1X))',IOSTAT=TmpErrStat) Components(1), NodeType(3), Num2LStr(k), OutNumStr, kitePt(1), kitePt(2), kitePt(3)
-      !end do   
-      !
-
-   
-         ! reference point
-      write(SumFileUnit,'(3X,A32,2X,A19,4X,A1,10X,A1,8X,3(F7.3,1X))',IOSTAT=TmpErrStat) Components(2), NodeType(1), NoValStr, NoValStr, m%SWnO(1),  m%SWnO(2),  m%SWnO(3)
-      
-         ! finite-element points
-      do k = 1,p%numSWnNds
-         globalPt = m%SWnPts(:,k) - m%FusO
-         kitePt = matmul(m%SWnNdDCMs(:,:,k), globalPt)
-         OutNumStr = NoValStr
-         do l= 1,p%NSWnOuts
-           if ( k == p%SWnOutNds(l) ) then
-              OutNumStr = Num2LStr(l)
-              continue
-           end if
-         end do
+   call WriteNodeInfo(SumFileUnit, 1, p%numFusNds, m%FusPts, m%FusNdDCMs, m%FusO, (/0.0,0.0,0.0/), p%NFusOuts, p%FusOutNds, errStat2, errMsg2 )
+   call WriteNodeInfo(SumFileUnit, 2, p%numSWnNds, m%SWnPts, m%SWnNdDCMs, m%FusO, m%SWnO, p%NSWnOuts, p%SWnOutNds, errStat2, errMsg2 )
+   call WriteNodeInfo(SumFileUnit, 3, p%numPWnNds, m%PWnPts, m%PWnNdDCMs, m%FusO, m%PWnO, p%NPWnOuts, p%PWnOutNds, errStat2, errMsg2 )
+   call WriteNodeInfo(SumFileUnit, 4, p%numVSNds,  m%VSPts,  m%VSNdDCMs,  m%FusO, m%VSO,  p%NVSOuts,  p%VSOutNds,  errStat2, errMsg2 )
+   call WriteNodeInfo(SumFileUnit, 5, p%numSHSNds, m%SHSPts, m%SHSNdDCMs, m%FusO, m%SHSO, p%NSHSOuts, p%SHSOutNds, errStat2, errMsg2 )
+   call WriteNodeInfo(SumFileUnit, 6, p%numPHSNds, m%PHSPts, m%PHSNdDCMs, m%FusO, m%PHSO, p%NPHSOuts, p%PHSOutNds, errStat2, errMsg2 )
+  
+   do i = 1, p%numPylons
          
-         write(SumFileUnit,'(3X,A32,2X,A19,4X,A1,10X,A1,8X,3(F7.3,1X))',IOSTAT=TmpErrStat) Components(2), NodeType(2), Num2LStr(k), OutNumStr, kitePt(1), kitePt(2), kitePt(3)
-      end do
-      
-         ! gauss points
-      do k = 1,p%numSWnNds-1
-         OutNumStr = NoValStr
-         do l= 1,p%NSWnOuts
-           if ( k == p%SWnOutNds(l) ) then
-              OutNumStr = Num2LStr(l)
-              continue
-           end if
-         end do
-         globalPt = m%SWnPts(:,k) - m%FusO
-         kitePt = matmul(m%SWnNdDCMs(:,:,k), globalPt)
-         globalPt = m%SWnPts(:,k+1) - m%FusO
-         kitePt2 = matmul(m%SWnNdDCMs(:,:,k+1), globalPt)
-         if ( mod(k,2) == 1 ) then
-            kitePt = (1.0-sqrt(3.0)/3.0)*kitePt + (sqrt(3.0)/3.0)*kitePt2
-         else
-            kitePt = (1.0-sqrt(3.0)/3.0)*kitePt2 + (sqrt(3.0)/3.0)*kitePt
-         end if
-         write(SumFileUnit,'(3X,A32,2X,A19,4X,A1,10X,A1,8X,3(F7.3,1X))',IOSTAT=TmpErrStat) Components(2), NodeType(3), Num2LStr(k), OutNumStr, kitePt(1), kitePt(2), kitePt(3)
-      end do   
-      
          ! reference point
-      write(SumFileUnit,'(3X,A32,2X,A19,4X,A1,10X,A1,8X,3(F7.3,1X))',IOSTAT=TmpErrStat) Components(3), NodeType(1), NoValStr, NoValStr, m%PWnO(1),  m%PWnO(2),  m%PWnO(3)
+      write(SumFileUnit,'(3X,A,8X,A19,4X,A1,10X,A1,8X,3(F7.3,1X))',IOSTAT=TmpErrStat) trim(Components(7))//num2lstr(i), NodeType(1), NoValStr, NoValStr, m%SPyO(1,i),  m%SPyO(2,i),  m%SPyO(3,i)
 
          ! finite-element points
-      do k = 1,p%numPWnNds
-         globalPt = m%PWnPts(:,k) - m%FusO
-         kitePt = matmul(m%PWnNdDCMs(:,:,k), globalPt)
+      do k = 1,p%numSPyNds(i)
+         globalPt = m%SPyPts(:,k,i) - m%FusO
+         kitePt = matmul(m%SPyNdDCMs(:,:,k,i), globalPt)
          OutNumStr = NoValStr
-         do l= 1,p%NPWnOuts
-           if ( k == p%PWnOutNds(l) ) then
-              OutNumStr = Num2LStr(l)
-              continue
-           end if
-         end do
-         
-         write(SumFileUnit,'(3X,A32,2X,A19,4X,A1,10X,A1,8X,3(F7.3,1X))',IOSTAT=TmpErrStat) Components(3), NodeType(2), Num2LStr(k), OutNumStr, kitePt(1), kitePt(2), kitePt(3)
-      end do
-      
-         ! gauss points
-      do k = 1,p%numPWnNds-1
-         OutNumStr = NoValStr
-         do l= 1,p%NPWnOuts
-           if ( k == p%PWnOutNds(l) ) then
-              OutNumStr = Num2LStr(l)
-              continue
-           end if
-         end do
-         globalPt = m%PWnPts(:,k) - m%FusO
-         kitePt = matmul(m%PWnNdDCMs(:,:,k), globalPt)
-         globalPt = m%PWnPts(:,k+1) - m%FusO
-         kitePt2 = matmul(m%PWnNdDCMs(:,:,k+1), globalPt)
-         if ( mod(k,2) == 1 ) then
-            kitePt = (1.0-sqrt(3.0)/3.0)*kitePt + (sqrt(3.0)/3.0)*kitePt2
-         else
-            kitePt = (1.0-sqrt(3.0)/3.0)*kitePt2 + (sqrt(3.0)/3.0)*kitePt
-         end if
-
-         write(SumFileUnit,'(3X,A32,2X,A19,4X,A1,10X,A1,8X,3(F7.3,1X))',IOSTAT=TmpErrStat) Components(3), NodeType(3), Num2LStr(k), OutNumStr, kitePt(1), kitePt(2), kitePt(3)
-      end do   
-      
-         ! reference point
-      write(SumFileUnit,'(3X,A32,2X,A19,4X,A1,10X,A1,8X,3(F7.3,1X))',IOSTAT=TmpErrStat) Components(4), NodeType(1), NoValStr, NoValStr, m%VSO(1),  m%VSO(2),  m%VSO(3)
-
-         ! finite-element points
-      do k = 1,p%numVSNds
-         globalPt = m%VSPts(:,k) - m%FusO
-         kitePt = matmul(m%VSNdDCMs(:,:,k), globalPt)
-         OutNumStr = NoValStr
-         do l= 1,p%NVSOuts
-           if ( k == p%VSOutNds(l) ) then
-              OutNumStr = Num2LStr(l)
-              continue
-           end if
-         end do
-         
-         write(SumFileUnit,'(3X,A32,2X,A19,4X,A1,10X,A1,8X,3(F7.3,1X))',IOSTAT=TmpErrStat) Components(4), NodeType(2), Num2LStr(k), OutNumStr, kitePt(1), kitePt(2), kitePt(3)
-      end do
-      
-         ! gauss points
-      do k = 1,p%numVSNds-1
-         OutNumStr = NoValStr
-         do l= 1,p%NVSOuts
-           if ( k == p%VSOutNds(l) ) then
-              OutNumStr = Num2LStr(l)
-              continue
-           end if
-         end do
-         globalPt = m%VSPts(:,k) - m%FusO
-         kitePt = matmul(m%VSNdDCMs(:,:,k), globalPt)
-         globalPt = m%VSPts(:,k+1) - m%FusO
-         kitePt2 = matmul(m%VSNdDCMs(:,:,k+1), globalPt)
-         if ( mod(k,2) == 1 ) then
-            kitePt = (1.0-sqrt(3.0)/3.0)*kitePt + (sqrt(3.0)/3.0)*kitePt2
-         else
-            kitePt = (1.0-sqrt(3.0)/3.0)*kitePt2 + (sqrt(3.0)/3.0)*kitePt
-         end if
-
-         write(SumFileUnit,'(3X,A32,2X,A19,4X,A1,10X,A1,8X,3(F7.3,1X))',IOSTAT=TmpErrStat) Components(4), NodeType(3), Num2LStr(k), OutNumStr, kitePt(1), kitePt(2), kitePt(3)
-      end do   
-
-         ! reference point
-      write(SumFileUnit,'(3X,A32,2X,A19,4X,A1,10X,A1,8X,3(F7.3,1X))',IOSTAT=TmpErrStat) Components(5), NodeType(1), NoValStr, NoValStr, m%SHSO(1),  m%SHSO(2),  m%SHSO(3)
-
-         ! finite-element points
-      do k = 1,p%numSHSNds
-         globalPt = m%SHSPts(:,k) - m%FusO
-         kitePt = matmul(m%SHSNdDCMs(:,:,k), globalPt)
-         OutNumStr = NoValStr
-         do l= 1,p%NSHSOuts
-           if ( k == p%SHSOutNds(l) ) then
-              OutNumStr = Num2LStr(l)
-              continue
-           end if
-         end do
-         
-         write(SumFileUnit,'(3X,A32,2X,A19,4X,A1,10X,A1,8X,3(F7.3,1X))',IOSTAT=TmpErrStat) Components(5), NodeType(2), Num2LStr(k), OutNumStr, kitePt(1), kitePt(2), kitePt(3)
-      end do
-      
-         ! gauss points
-      do k = 1,p%numSHSNds-1
-         OutNumStr = NoValStr
-         do l= 1,p%NSHSOuts
-           if ( k == p%SHSOutNds(l) ) then
-              OutNumStr = Num2LStr(l)
-              continue
-           end if
-         end do
-         globalPt = m%SHSPts(:,k) - m%FusO
-         kitePt = matmul(m%SHSNdDCMs(:,:,k), globalPt)
-         globalPt = m%SHSPts(:,k+1) - m%FusO
-         kitePt2 = matmul(m%SHSNdDCMs(:,:,k+1), globalPt)
-         if ( mod(k,2) == 1 ) then
-            kitePt = (1.0-sqrt(3.0)/3.0)*kitePt + (sqrt(3.0)/3.0)*kitePt2
-         else
-            kitePt = (1.0-sqrt(3.0)/3.0)*kitePt2 + (sqrt(3.0)/3.0)*kitePt
-         end if
-
-         write(SumFileUnit,'(3X,A32,2X,A19,4X,A1,10X,A1,8X,3(F7.3,1X))',IOSTAT=TmpErrStat) Components(5), NodeType(3), Num2LStr(k), OutNumStr, kitePt(1), kitePt(2), kitePt(3)
-      end do   
-
-         ! reference point
-      write(SumFileUnit,'(3X,A32,2X,A19,4X,A1,10X,A1,8X,3(F7.3,1X))',IOSTAT=TmpErrStat) Components(6), NodeType(1), NoValStr, NoValStr, m%PHSO(1),  m%PHSO(2),  m%PHSO(3)
-
-         ! finite-element points
-      do k = 1,p%numPHSNds
-         globalPt = m%PHSPts(:,k) - m%FusO
-         kitePt = matmul(m%PHSNdDCMs(:,:,k), globalPt)
-         OutNumStr = NoValStr
-         do l= 1,p%NPHSOuts
-           if ( k == p%PHSOutNds(l) ) then
-              OutNumStr = Num2LStr(l)
-              continue
-           end if
-         end do
-         
-         write(SumFileUnit,'(3X,A32,2X,A19,4X,A1,10X,A1,8X,3(F7.3,1X))',IOSTAT=TmpErrStat) Components(6), NodeType(2), Num2LStr(k), OutNumStr, kitePt(1), kitePt(2), kitePt(3)
-      end do
-      
-         ! gauss points
-      do k = 1,p%numPHSNds-1
-         OutNumStr = NoValStr
-         do l= 1,p%NPHSOuts
-           if ( k == p%PHSOutNds(l) ) then
-              OutNumStr = Num2LStr(l)
-              continue
-           end if
-         end do
-         globalPt = m%PHSPts(:,k) - m%FusO
-         kitePt = matmul(m%PHSNdDCMs(:,:,k), globalPt)
-         globalPt = m%PHSPts(:,k+1) - m%FusO
-         kitePt2 = matmul(m%PHSNdDCMs(:,:,k+1), globalPt)
-         if ( mod(k,2) == 1 ) then
-            kitePt = (1.0-sqrt(3.0)/3.0)*kitePt + (sqrt(3.0)/3.0)*kitePt2
-         else
-            kitePt = (1.0-sqrt(3.0)/3.0)*kitePt2 + (sqrt(3.0)/3.0)*kitePt
-         end if
-
-         write(SumFileUnit,'(3X,A32,2X,A19,4X,A1,10X,A1,8X,3(F7.3,1X))',IOSTAT=TmpErrStat) Components(6), NodeType(3), Num2LStr(k), OutNumStr, kitePt(1), kitePt(2), kitePt(3)
-      end do   
-      
-      do i = 1, p%numPylons
-         
-            ! reference point
-         write(SumFileUnit,'(3X,A,8X,A19,4X,A1,10X,A1,8X,3(F7.3,1X))',IOSTAT=TmpErrStat) trim(Components(7))//num2lstr(i), NodeType(1), NoValStr, NoValStr, m%SPyO(1,i),  m%SPyO(2,i),  m%SPyO(3,i)
-
-            ! finite-element points
-         do k = 1,p%numSPyNds(i)
-            globalPt = m%SPyPts(:,k,i) - m%FusO
-            kitePt = matmul(m%SPyNdDCMs(:,:,k,i), globalPt)
-            OutNumStr = NoValStr
-            do l= 1,p%NPylOuts
-              if ( k == p%PylOutNds(l) ) then
-                 OutNumStr = Num2LStr(l)
-                 continue
-              end if
-            end do
-         
-            write(SumFileUnit,'(3X,A,8X,A19,4X,A1,10X,A1,8X,3(F7.3,1X))',IOSTAT=TmpErrStat) trim(Components(7))//num2lstr(i), NodeType(2), Num2LStr(k), OutNumStr, kitePt(1), kitePt(2), kitePt(3)
-         end do
-      
-            ! gauss points
-         do k = 1,p%numSPyNds(i)-1
-            OutNumStr = NoValStr
-            do l= 1,p%NPylOuts
-              if ( k == p%PylOutNds(l) ) then
-                 OutNumStr = Num2LStr(l)
-                 continue
-              end if
-            end do
-            globalPt = m%SPyPts(:,k,i) - m%FusO
-            kitePt = matmul(m%SPyNdDCMs(:,:,k,i), globalPt)
-            globalPt = m%SPyPts(:,k+1,i) - m%FusO
-            kitePt2 = matmul(m%SPyNdDCMs(:,:,k+1,i), globalPt)
-            if ( mod(k,2) == 1 ) then
-               kitePt = (1.0-sqrt(3.0)/3.0)*kitePt + (sqrt(3.0)/3.0)*kitePt2
-            else
-               kitePt = (1.0-sqrt(3.0)/3.0)*kitePt2 + (sqrt(3.0)/3.0)*kitePt
+         do l= 1,p%NPylOuts
+            if ( k == p%PylOutNds(l) ) then
+               OutNumStr = Num2LStr(l)
+               continue
             end if
-
-            write(SumFileUnit,'(3X,A,8X,A19,4X,A1,10X,A1,8X,3(F7.3,1X))',IOSTAT=TmpErrStat) trim(Components(7))//num2lstr(i), NodeType(3), Num2LStr(k), OutNumStr, kitePt(1), kitePt(2), kitePt(3)
-         end do   
-         
-            ! reference point
-         write(SumFileUnit,'(3X,A,13X,A19,4X,A1,10X,A1,8X,3(F7.3,1X))',IOSTAT=TmpErrStat) trim(Components(8))//num2lstr(i), NodeType(1), NoValStr, NoValStr, m%PPyO(1,i),  m%PPyO(2,i),  m%PPyO(3,i)
-
-            ! finite-element points
-         do k = 1,p%numPPyNds(i)
-            globalPt = m%PPyPts(:,k,i) - m%FusO
-            kitePt = matmul(m%PPyNdDCMs(:,:,k,i), globalPt)
-            OutNumStr = NoValStr
-            do l= 1,p%NPylOuts
-              if ( k == p%PylOutNds(l) ) then
-                 OutNumStr = Num2LStr(l)
-                 continue
-              end if
-            end do
-         
-            write(SumFileUnit,'(3X,A,13X,A19,4X,A1,10X,A1,8X,3(F7.3,1X))',IOSTAT=TmpErrStat) trim(Components(8))//num2lstr(i), NodeType(2), Num2LStr(k), OutNumStr, kitePt(1), kitePt(2), kitePt(3)
          end do
-      
-            ! gauss points
-         do k = 1,p%numPPyNds(i)-1
-            OutNumStr = NoValStr
-            do l= 1,p%NPylOuts
-              if ( k == p%PylOutNds(l) ) then
-                 OutNumStr = Num2LStr(l)
-                 continue
-              end if
-            end do
-            globalPt = m%PPyPts(:,k,i) - m%FusO
-            kitePt = matmul(m%PPyNdDCMs(:,:,k,i), globalPt)
-            globalPt = m%PPyPts(:,k+1,i) - m%FusO
-            kitePt2 = matmul(m%PPyNdDCMs(:,:,k+1,i), globalPt)
-            if ( mod(k,2) == 1 ) then
-               kitePt = (1.0-sqrt(3.0)/3.0)*kitePt + (sqrt(3.0)/3.0)*kitePt2
-            else
-               kitePt = (1.0-sqrt(3.0)/3.0)*kitePt2 + (sqrt(3.0)/3.0)*kitePt
-            end if
-
-            write(SumFileUnit,'(3X,A,13X,A19,4X,A1,10X,A1,8X,3(F7.3,1X))',IOSTAT=TmpErrStat) trim(Components(8))//num2lstr(i), NodeType(3), Num2LStr(k), OutNumStr, kitePt(1), kitePt(2), kitePt(3)
-         end do   
          
+         write(SumFileUnit,'(3X,A,8X,A19,4X,A1,10X,A1,8X,3(F7.3,1X))',IOSTAT=TmpErrStat) trim(Components(7))//num2lstr(i), NodeType(2), Num2LStr(k), OutNumStr, kitePt(1), kitePt(2), kitePt(3)
       end do
+      
+         ! gauss points
+      do k = 1,p%numSPyNds(i)-1
+         OutNumStr = NoValStr
+         do l= 1,p%NPylOuts
+            if ( k == p%PylOutNds(l) ) then
+               OutNumStr = Num2LStr(l)
+               continue
+            end if
+         end do
+         globalPt = m%SPyPts(:,k,i) - m%FusO
+         kitePt = matmul(m%SPyNdDCMs(:,:,k,i), globalPt)
+         globalPt = m%SPyPts(:,k+1,i) - m%FusO
+         kitePt2 = matmul(m%SPyNdDCMs(:,:,k+1,i), globalPt)
+         if ( mod(k,2) == 1 ) then
+            kitePt = (1.0-sqrt(3.0)/3.0)*kitePt2 + (sqrt(3.0)/3.0)*kitePt
+         else
+            kitePt = (1.0-sqrt(3.0)/3.0)*kitePt + (sqrt(3.0)/3.0)*kitePt2
+         end if
+
+         write(SumFileUnit,'(3X,A,8X,A19,4X,A1,10X,A1,8X,3(F7.3,1X))',IOSTAT=TmpErrStat) trim(Components(7))//num2lstr(i), NodeType(3), Num2LStr(k), OutNumStr, kitePt(1), kitePt(2), kitePt(3)
+      end do   
+         
+         ! reference point
+      write(SumFileUnit,'(3X,A,13X,A19,4X,A1,10X,A1,8X,3(F7.3,1X))',IOSTAT=TmpErrStat) trim(Components(8))//num2lstr(i), NodeType(1), NoValStr, NoValStr, m%PPyO(1,i),  m%PPyO(2,i),  m%PPyO(3,i)
+
+         ! finite-element points
+      do k = 1,p%numPPyNds(i)
+         globalPt = m%PPyPts(:,k,i) - m%FusO
+         kitePt = matmul(m%PPyNdDCMs(:,:,k,i), globalPt)
+         OutNumStr = NoValStr
+         do l= 1,p%NPylOuts
+            if ( k == p%PylOutNds(l) ) then
+               OutNumStr = Num2LStr(l)
+               continue
+            end if
+         end do
+         
+         write(SumFileUnit,'(3X,A,13X,A19,4X,A1,10X,A1,8X,3(F7.3,1X))',IOSTAT=TmpErrStat) trim(Components(8))//num2lstr(i), NodeType(2), Num2LStr(k), OutNumStr, kitePt(1), kitePt(2), kitePt(3)
+      end do
+      
+         ! gauss points
+      do k = 1,p%numPPyNds(i)-1
+         OutNumStr = NoValStr
+         do l= 1,p%NPylOuts
+            if ( k == p%PylOutNds(l) ) then
+               OutNumStr = Num2LStr(l)
+               continue
+            end if
+         end do
+         globalPt = m%PPyPts(:,k,i) - m%FusO
+         kitePt = matmul(m%PPyNdDCMs(:,:,k,i), globalPt)
+         globalPt = m%PPyPts(:,k+1,i) - m%FusO
+         kitePt2 = matmul(m%PPyNdDCMs(:,:,k+1,i), globalPt)
+         if ( mod(k,2) == 1 ) then
+            kitePt = (1.0-sqrt(3.0)/3.0)*kitePt2 + (sqrt(3.0)/3.0)*kitePt
+         else
+            kitePt = (1.0-sqrt(3.0)/3.0)*kitePt + (sqrt(3.0)/3.0)*kitePt2
+         end if
+
+         write(SumFileUnit,'(3X,A,13X,A19,4X,A1,10X,A1,8X,3(F7.3,1X))',IOSTAT=TmpErrStat) trim(Components(8))//num2lstr(i), NodeType(3), Num2LStr(k), OutNumStr, kitePt(1), kitePt(2), kitePt(3)
+      end do   
+         
+   end do
       
    do i = 1, p%numPylons
       
@@ -1249,8 +1010,8 @@ subroutine KFAST_WriteSummary( Prog, OutRootName, p, m, KAD_InitOut, MD_InitOut,
    
    write(SumFileUnit,'()')
    write(SumFileUnit,'(A)'   ,IOSTAT=TmpErrStat) '   Number  Name       Units      Generated by'
-   write(SumFileUnit,'(A)'   ,IOSTAT=TmpErrStat) '    (-)    (-)         (-)       (KiteFAST, KiteAeroDyn, InflowWind, MoorDyn, Controller)'
-   write(SumFileUnit,'(A)'   ,IOSTAT=TmpErrStat) '      0   Time        (s)        KiteFAST'
+   write(SumFileUnit,'(A)'   ,IOSTAT=TmpErrStat) '    (-)    (-)         (-)       (KiteFASTMBD, KiteAeroDyn, InflowWind, MoorDyn, Controller)'
+   write(SumFileUnit,'(A)'   ,IOSTAT=TmpErrStat) '      0   Time        (s)        KiteFASTMBD'
    k = 1
    do i = 1,p%numKFASTOuts
          write(SumFileUnit,'(3X,I4,2X,A11,2X,A9,2X,A)',IOSTAT=TmpErrStat) k, p%OutParam(i)%Name, p%OutParam(i)%Units, 'KiteFASTMBD'
