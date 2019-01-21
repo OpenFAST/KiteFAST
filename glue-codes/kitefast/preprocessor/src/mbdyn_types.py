@@ -624,28 +624,32 @@ def beam_mass_distribution(x1, y1, z1,
         Zg1, Zg2 = 0.0, 0.0
     M1 = M - M2
 
-    def _calculate_node_inertia_component(I11, I22, I33, M, L, m2, dCG1, dCG2, dCG3):
-        # return (I11 - M * (dCG2**2 + dCG3**2)) / 2, \
-        #        (I22 - M * dCG3**2 - M2 * L**2) / 2, \
-        #        (I33 - M * dCG2**2 - M2 * L**2) / 2
-        return I11 / 2, I22 / 2, I33 / 2
+    # def _calculate_node_inertia_component(I11, I22, I33, M, L, m2, dCG1, dCG2, dCG3):
+    #     # return (I11 - M * (dCG2**2 + dCG3**2)) / 2, \
+    #     #        (I22 - M * dCG3**2 - M2 * L**2) / 2, \
+    #     #        (I33 - M * dCG2**2 - M2 * L**2) / 2
+    #     return I11 / 2, I22 / 2, I33 / 2
 
-    if primary_direction == "x1":
-        Ixx1, Iyy1, Izz1 = _calculate_node_inertia_component(Ixx, Iyy, Izz, M, L, M2, Xg, Yg, Zg)
-    elif primary_direction == "x2":
-        Iyy1, Ixx1, Izz1 = _calculate_node_inertia_component(Iyy, Ixx, Izz, M, L, M2, Yg, Xg, Zg)
-    elif primary_direction == "x3":
-        Izz1, Iyy1, Ixx1 = _calculate_node_inertia_component(Izz, Iyy, Ixx, M, L, M2, Zg, Yg, Xg)
+    # if primary_direction == "x1":
+    #     Ixx1, Iyy1, Izz1 = _calculate_node_inertia_component(Ixx, Iyy, Izz, M, L, M2, Xg, Yg, Zg)
+    # elif primary_direction == "x2":
+    #     Iyy1, Ixx1, Izz1 = _calculate_node_inertia_component(Iyy, Ixx, Izz, M, L, M2, Yg, Xg, Zg)
+    # elif primary_direction == "x3":
+    #     Izz1, Iyy1, Ixx1 = _calculate_node_inertia_component(Izz, Iyy, Ixx, M, L, M2, Zg, Yg, Xg)
+
+    # split the inertias between loads
+    Ixx1 = Ixx / 2.0
+    Iyy1 = Iyy / 2.0
+    Izz1 = Izz / 2.0
     Ixx2, Iyy2, Izz2 = Ixx1, Iyy1, Izz1
-
-    Ixy1 = 0 #(Ixy - M * x1 * y1) / 2
+    
+    Ixy1 = 0
     Ixy2 = Ixy1
-    Ixz1 = 0 #(Ixz - M * x1 * z1) / 2
+    Ixz1 = 0
     Ixz2 = Ixz1
-    Iyz1 = 0 #(Iyz - M * y1 * z1) / 2
+    Iyz1 = 0
     Iyz2 = Iyz1
-    Ixx1, Iyy1, Izz1 = 10.0, 10.0, 10.0
-    Ixx2, Iyy2, Izz2 = 10.0, 10.0, 10.0
+
     return M1, \
         Xg1, Yg1, Zg1, \
         Ixx1, Iyy1, Izz1, \
