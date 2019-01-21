@@ -52,6 +52,15 @@ class MainMBD():
         self.rigid_model = simulation_controls["rigid_model"]
         ground_weather_station = simulation_controls["ground_weather_station"]
         self.ground_weather_station_location = ground_weather_station["location"]
+        output = simulation_controls["output"]
+        self.fuselage_output_nodes = output["fuselage_nodes"]
+        self.wing_starboard_nodes = output["wing_starboard_nodes"]
+        self.wing_port_outputs = output["wing_port_outputs"]
+        self.vertical_stabilizer_outputs = output["vertical_stabilizer_outputs"]
+        self.horizontal_stabilizer_starboard_outputs = output["horizontal_stabilizer_starboard_outputs"]
+        self.horizontal_stabilizer_port_outputs = output["horizontal_stabilizer_port_outputs"]
+        self.pylon_outputs = output["pylon_outputs"]
+        self.output_channels = output["output_channels"]
 
         self.keypoints = keypoints
 
@@ -226,11 +235,35 @@ class MainMBD():
         output.write_line("        port_rotors,")
         output.write_line("            {},".format(str(len(self.port_rotors))))
         for i, component in enumerate(self.port_rotors):
-            output_string = "            {}_root_node + 0".format(component.component_name)
-            if i < len(self.port_rotors) - 1:
+            output.write_line("            {}_root_node + 0,".format(component.component_name))
+
+        def _write_output_lines(nodes, header):
+            output.write_line("        {},".format(header))
+
+            # if the only node listed is 0, no output nodes are requested
+            if nodes[0] is 0 and len(nodes) == 1:
+                output.write_line("            {},".format(0))
+            else:
+                output.write_line("            {},".format(len(nodes)))
+                for node in nodes:
+                    output.write_line("            {},".format(node))
+    
+        _write_output_lines(self.fuselage_output_nodes, "fuselage_outputs")
+        _write_output_lines(self.wing_starboard_nodes, "wing_starboard_outputs")
+        _write_output_lines(self.wing_port_outputs, "wing_port_outputs")
+        _write_output_lines(self.vertical_stabilizer_outputs, "vertical_stabilizer_outputs")
+        _write_output_lines(self.horizontal_stabilizer_starboard_outputs, "horizontal_stabilizer_starboard_outputs")
+        _write_output_lines(self.horizontal_stabilizer_port_outputs, "horizontal_stabilizer_port_outputs")
+        _write_output_lines(self.pylon_outputs, "pylon_outputs")
+        output.write_line("        output_channels,")
+        output.write_line("            {},".format(len(self.output_channels)))
+        for i, channel in enumerate(self.output_channels):
+            output_string = "            {}".format(channel)
+            if i == len(self.output_channels)-1 :
+                output_string += ";"
+            else:
                 output_string += ","
             output.write_line(output_string)
-        output.write_line("        ;")
         output.write_line("end: elements;")
         output.write_empty_line()
 
