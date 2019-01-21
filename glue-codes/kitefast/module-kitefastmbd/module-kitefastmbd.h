@@ -146,7 +146,11 @@ extern int KFAST_AssRes(double *t,
                         int *errStat,
                         char errMsg[]);
 extern int KFAST_AfterPredict(int *errStat, char errMsg[]);
-extern int KFAST_Output(double *t, int *errStat, char errMsg[]);
+extern int KFAST_Output(double *t,             // simulation time for the current timestep (s)
+                        int *numGaussLoadPts,  // Total number of gauss points in the MBDyn model
+                        double gaussPtLoads[], // Array of loads in the global coordinate system (3 forces + 3 moments) corresponding to each MBDyn gauss point. ( N, N-m )
+                        int *errStat,
+                        char errMsg[]);
 extern int KFAST_End(int *errStat, char errMsg[]);
 
 #ifdef __cplusplus
@@ -249,6 +253,13 @@ private:
   // error_status                           errStat - local variable
   // error message                          errMsg - local variable
 
+  // KFAST_Output interface variables - all are local
+  // doublereal t;                   // t
+  // integer n_gauss_load_points;    // numGaussLoadPts
+  // doublereal *gauss_point_loads;  // gaussPtLoads
+  // error_status                       errStat
+  // error message                      errMsg
+
   // other data
   doublereal initial_time;
   integer total_beam_count;
@@ -290,7 +301,8 @@ public:
   void BuildComponentBeamArray(DataManager *pDM, MBDynParser &HP, std::vector<KiteFASTBeam> &beam_array);
   void BuildComponentOutputArray(MBDynParser &HP, const char *keyword, integer &n_outputs, std::vector<int> &output_nodes);
   void InitOutputFile(std::string output_file_name);
-  virtual void Output(OutputHandler &OH) const;
+  doublereal _GetPrivateData(KiteFASTBeam beam, const char *private_data);
+  virtual void Output(OutputHandler &OH); // const;
   int iGetNumConnectedNodes(void) const;
   virtual void WorkSpaceDim(integer *piNumRows, integer *piNumCols) const;
   VariableSubMatrixHandler &AssJac(VariableSubMatrixHandler &WorkMat, doublereal dCoef, const VectorHandler &XCurr, const VectorHandler &XPrimeCurr);

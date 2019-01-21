@@ -438,42 +438,47 @@ void ModuleKiteFAST::InitOutputFile(std::string output_file_name)
              << std::endl;
 }
 
-void ModuleKiteFAST::Output(OutputHandler &OH) const
+doublereal ModuleKiteFAST::_GetPrivateData(KiteFASTBeam beam, const char *private_data)
+{
+  printdebug("_GetPrivateData");
+
+  integer index = beam.pBeam->iGetPrivDataIdx(private_data);
+  doublereal value = beam.pBeam->dGetPrivData(index);
+  return value;
+}
+
+void ModuleKiteFAST::Output(OutputHandler &OH) //const
 {
   printdebug("Output");
 
-  if (outputfile)
-  {
-    for (int i = 0; i < 3; i++)
-    {
-      outputfile << std::setw(8)
-                 << std::scientific
-                 << std::setw(16) << Time.dGet()
-                 << std::setw(16) << nodes[i].pNode->GetLabel()
-                 << std::setw(16) << nodes[i].pNode->GetXCurr()
-                 << std::endl;
-    }
-  }
-  
   doublereal current_time = Time.dGet();
-  int error_status;
+  integer n_gauss_load_points = 2 * total_beam_count;
+  doublereal *gauss_point_loads = new doublereal[6 * n_gauss_load_points];
+  integer error_status;
   char error_message[INTERFACE_STRING_LENGTH];
-  KFAST_Output(&current_time, &error_status, error_message);
+
+  for (int i = 0; i < n_gauss_load_points; i++)
+  {
+    integer j = 12 * i;
+    gauss_point_loads[j + 0] = _GetPrivateData(beams[i], "pI.Fx");
+    gauss_point_loads[j + 1] = _GetPrivateData(beams[i], "pI.Fy");
+    gauss_point_loads[j + 2] = _GetPrivateData(beams[i], "pI.Fz");
+    gauss_point_loads[j + 3] = _GetPrivateData(beams[i], "pI.Mx");
+    gauss_point_loads[j + 4] = _GetPrivateData(beams[i], "pI.My");
+    gauss_point_loads[j + 5] = _GetPrivateData(beams[i], "pI.Mz");
+    gauss_point_loads[j + 6] = _GetPrivateData(beams[i], "pII.Fx");
+    gauss_point_loads[j + 7] = _GetPrivateData(beams[i], "pII.Fy");
+    gauss_point_loads[j + 8] = _GetPrivateData(beams[i], "pII.Fz");
+    gauss_point_loads[j + 9] = _GetPrivateData(beams[i], "pII.Mx");
+    gauss_point_loads[j + 10] = _GetPrivateData(beams[i], "pII.My");
+    gauss_point_loads[j + 11] = _GetPrivateData(beams[i], "pII.Mz");
+  }
+
+  KFAST_Output(&current_time, &n_gauss_load_points, gauss_point_loads, &error_status, error_message);
   if (error_status >= AbortErrLev)
   {
     printf("error status %d: %s\n", error_status, error_message);
     throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-  }
-
-  for (int i = 0; i < total_beam_count; i++)
-  {
-    printf("beam #%d ", i);
-    integer index = beams[i].pBeam->iGetPrivDataIdx("pI.Fx");
-    doublereal value = beams[i].pBeam->dGetPrivData(index);
-    printf("pI.Fx = %f ", value);
-    index = beams[i].pBeam->iGetPrivDataIdx("pII.Fx");
-    value = beams[i].pBeam->dGetPrivData(index);
-    printf("pII.Fx = %f\n", value);
   }
 }
 
