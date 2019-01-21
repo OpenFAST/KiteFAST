@@ -116,30 +116,32 @@ extern int KFAST_Init(double *dt,
                       char errMsg[]);
 extern int KFAST_AssRes(double *t,
                         int *isInitialTime,
-                        int *numRtSpdRtrElem,
-                        double RtSpd_PyRtr[],
                         double WindPt[],
                         double FusO_prev[],
                         double FusO[],
                         double FusODCM_prev[],
+                        double FusODCM[],
                         double FusOv_prev[],
+                        double FusOv[],
                         double FusOomegas_prev[],
+                        double FusOomegas[],
                         double FusOacc_prev[],
-                        int *numNodePtElem,
+                        double FusOacc[],
+                        double FusOalphas[],
+                        int *numNodePts,
                         double nodePts[],
-                        int *numNodeVelElem,
-                        double nodeVels[],
-                        int *numNodeOmegaElem,
-                        double nodeOmegas[],
-                        int *numDCMElem,
                         double nodeDCMs[],
-                        int *numRtrPtsElem,
+                        double nodeVels[],
+                        double nodeOmegas[],
+                        double nodeAccs[],
+                        int *numRtrPts,
                         double rtrPts[],
-                        double rtrVels[],
                         double rtrDCMs[],
-                        int *numNodeLoadsElem,
+                        double rtrVels[],
+                        double rtrOmegas[],
+                        double rtrAccs[],
+                        double rtrAlphas[],
                         double nodeLoads[],
-                        int *numRtrLoadsElem,
                         double rtrLoads[],
                         int *errStat,
                         char errMsg[]);
@@ -168,7 +170,7 @@ private:
 
   const static int AbortErrLev = ErrID_Fatal; // abort error level; compare with NWTC Library
 
-  // interface variables
+  // KFAST_Init interface variables
   doublereal time_step;                                               // dt
   integer n_flaps_per_wing;                                           // numFlaps
   integer n_pylons_per_wing;                                          // numPylons
@@ -213,14 +215,43 @@ private:
   // error_status                                                        errStat - local variable
   // error message                                                       errMsg - local variable
 
+  // KFAST_AssRes interface variables
+  // commented variables are already declared above
+  doublereal t;                          // t
+  integer first_iteration;               // isInitialTime
+  // doublereal ground_station_point[3]; // WindPt
+  doublereal fuselage_position_prev[3];  // FusO_prev
+  doublereal fuselage_position[3];       // FusO
+  doublereal fuselage_dcm_prev[9];       // FusODCM_prev
+  // doublereal fuselage_dcm[9];         // FusODCM
+  doublereal fuselage_vels_prev[3];      // FusOv_prev
+  doublereal fuselage_vels[3];           // FusOv
+  doublereal fuselage_omegas_prev[3];    // FusOomegas_prev
+  doublereal fuselage_omegas[3];         // FusOomegas
+  doublereal fuselage_accs_prev[3];      // FusOacc_prev
+  doublereal fuselage_accs[3];           // FusOacc
+  doublereal fuselage_alphas[3];         // FusOalphas
+  // integer node_count_no_rotors;       // numNodePts
+  // doublereal *node_points;            // nodePts
+  // doublereal *node_dcms;              // nodeDCMs
+  doublereal *node_vels;                 // nodeVels
+  doublereal *node_omegas;               // nodeOmegas
+  doublereal *node_accs;                 // nodeAccs
+  // integer n_rotor_points;             // numRtrPts
+  // doublereal *rotor_points;           // rtrPts
+  doublereal *rotor_dcms;                // nodeDCMs
+  doublereal *rotor_vels;                // nodeVels
+  doublereal *rotor_omegas;              // rtrOmegas
+  doublereal *rotor_accs;                // rtrAccs
+  doublereal rotor_alphas[3];            // rtrAlphas
+  doublereal *node_loads;                // nodeLoads
+  doublereal *rotor_loads;               // rtrLoads
+  // error_status                           errStat - local variable
+  // error message                          errMsg - local variable
+
   // other data
   doublereal initial_time;
-  integer first_iteration;
-
-  integer numDCMElem;
   integer total_beam_count;
-  doublereal *node_velocities;
-  doublereal *node_omegas;
   KiteFASTNode mip_node;
   std::vector<KiteFASTNode> nodes;
   std::vector<KiteFASTNode> nodes_fuselage;
@@ -257,13 +288,14 @@ public:
   void BuildComponentArrays(DataManager *pDM, MBDynParser &HP, const char *keyword, std::vector<KiteFASTNode> &node_array, std::vector<KiteFASTBeam> &beam_array);
   void BuildComponentNodeArray(DataManager *pDM, MBDynParser &HP, std::vector<KiteFASTNode> &node_array);
   void BuildComponentBeamArray(DataManager *pDM, MBDynParser &HP, std::vector<KiteFASTBeam> &beam_array);
+  void BuildComponentOutputArray(MBDynParser &HP, const char *keyword, integer &n_outputs, std::vector<int> &output_nodes);
   void InitOutputFile(std::string output_file_name);
   virtual void Output(OutputHandler &OH) const;
   int iGetNumConnectedNodes(void) const;
   virtual void WorkSpaceDim(integer *piNumRows, integer *piNumCols) const;
   VariableSubMatrixHandler &AssJac(VariableSubMatrixHandler &WorkMat, doublereal dCoef, const VectorHandler &XCurr, const VectorHandler &XPrimeCurr);
   void Update(const VectorHandler &XCurr, const VectorHandler &XPrimeCurr);
-  void _AssRes(integer numNodeLoadsElem, doublereal *nodeLoads, integer numRtrLoadsElem, doublereal *rotorLoads);
+  void _AssRes(doublereal *nodeLoads, doublereal *rotorLoads);
   SubVectorHandler &AssRes(SubVectorHandler &WorkVec, doublereal dCoef, const VectorHandler &XCurr, const VectorHandler &XPrimeCurr);
   void BeforePredict(VectorHandler & /* X */, VectorHandler & /* XP */, VectorHandler & /* XPrev */, VectorHandler & /* XPPrev */) const;
   void AfterPredict(VectorHandler &X, VectorHandler &XP);

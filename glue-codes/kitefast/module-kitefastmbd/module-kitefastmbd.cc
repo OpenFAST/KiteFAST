@@ -502,10 +502,7 @@ void ModuleKiteFAST::Update(const VectorHandler &XCurr, const VectorHandler &XPr
   printdebug("Update");
 }
 
-void ModuleKiteFAST::_AssRes(integer numNodeLoadsElem,
-                             doublereal *nodeLoads,
-                             integer numRtrLoadsElem,
-                             doublereal *rotorLoads)
+void ModuleKiteFAST::_AssRes(doublereal *node_loads, doublereal *rotor_loads)
 {
   printdebug("_AssRes");
   
@@ -519,79 +516,88 @@ void ModuleKiteFAST::_AssRes(integer numNodeLoadsElem,
   }
 
   doublereal t = Time.dGet();
-  integer first_iteration = 0;  // 0 no - 1 yes
+  first_iteration = 0;  // 0 no - 1 yes
   if (t == initial_time) {
     first_iteration = 1;
   }
 
-  integer numRtSpdRtrElem = rotor_node_count;
-  doublereal RtSpd_PyRtr[numRtSpdRtrElem]; // rotational speed for each rotor element (rad/s)
-  for (int i = 0; i < rotor_node_count; i++)
-  {
-    Vec3 wcurr = nodes[i + node_count_no_rotors].pNode->GetWCurr();
-    RtSpd_PyRtr[i] = wcurr[0];
-  }
-
+  // fuselage quantities refer to the MIP node
   Vec3 vec3_fusOprev = mip_node.pNode->GetXPrev();
-  doublereal FusO_prev[3];
-  FusO_prev[0] = vec3_fusOprev[0];
-  FusO_prev[1] = vec3_fusOprev[1];
-  FusO_prev[2] = vec3_fusOprev[2];
+  fuselage_position_prev[0] = vec3_fusOprev[0];
+  fuselage_position_prev[1] = vec3_fusOprev[1];
+  fuselage_position_prev[2] = vec3_fusOprev[2];
 
-  Vec3 vec3_fusO = mip_node.pNode->GetXCurr();
-  doublereal FusO[3];
-  FusO[0] = vec3_fusO[0];
-  FusO[1] = vec3_fusO[1];
-  FusO[2] = vec3_fusO[2];
+  Vec3 vec3_fusO = mip_node.pNode->GetXCurr();  
+  fuselage_position[0] = vec3_fusO[0];
+  fuselage_position[1] = vec3_fusO[1];
+  fuselage_position[2] = vec3_fusO[2];
 
   Mat3x3 fus0_dcm_prev = mip_node.pNode->GetRPrev();
-  doublereal FusODCM_prev[9];
-  FusODCM_prev[0] = fus0_dcm_prev.dGet(1, 1);
-  FusODCM_prev[1] = fus0_dcm_prev.dGet(1, 2);
-  FusODCM_prev[2] = fus0_dcm_prev.dGet(1, 3);
-  FusODCM_prev[3] = fus0_dcm_prev.dGet(2, 1);
-  FusODCM_prev[4] = fus0_dcm_prev.dGet(2, 2);
-  FusODCM_prev[5] = fus0_dcm_prev.dGet(2, 3);
-  FusODCM_prev[6] = fus0_dcm_prev.dGet(3, 1);
-  FusODCM_prev[7] = fus0_dcm_prev.dGet(3, 2);
-  FusODCM_prev[8] = fus0_dcm_prev.dGet(3, 3);
+  fuselage_dcm_prev[0] = fus0_dcm_prev.dGet(1, 1);
+  fuselage_dcm_prev[1] = fus0_dcm_prev.dGet(1, 2);
+  fuselage_dcm_prev[2] = fus0_dcm_prev.dGet(1, 3);
+  fuselage_dcm_prev[3] = fus0_dcm_prev.dGet(2, 1);
+  fuselage_dcm_prev[4] = fus0_dcm_prev.dGet(2, 2);
+  fuselage_dcm_prev[5] = fus0_dcm_prev.dGet(2, 3);
+  fuselage_dcm_prev[6] = fus0_dcm_prev.dGet(3, 1);
+  fuselage_dcm_prev[7] = fus0_dcm_prev.dGet(3, 2);
+  fuselage_dcm_prev[8] = fus0_dcm_prev.dGet(3, 3);
+
+  Mat3x3 fus0_dcm = mip_node.pNode->GetRCurr();
+  fuselage_dcm[0] = fus0_dcm.dGet(1, 1);
+  fuselage_dcm[1] = fus0_dcm.dGet(1, 2);
+  fuselage_dcm[2] = fus0_dcm.dGet(1, 3);
+  fuselage_dcm[3] = fus0_dcm.dGet(2, 1);
+  fuselage_dcm[4] = fus0_dcm.dGet(2, 2);
+  fuselage_dcm[5] = fus0_dcm.dGet(2, 3);
+  fuselage_dcm[6] = fus0_dcm.dGet(3, 1);
+  fuselage_dcm[7] = fus0_dcm.dGet(3, 2);
+  fuselage_dcm[8] = fus0_dcm.dGet(3, 3);
 
   Vec3 vec3_FusOv_prev = mip_node.pNode->GetVPrev();
-  doublereal FusOv_prev[3];
-  FusOv_prev[0] = vec3_FusOv_prev[0];
-  FusOv_prev[1] = vec3_FusOv_prev[1];
-  FusOv_prev[2] = vec3_FusOv_prev[2];
+  fuselage_vels_prev[0] = vec3_FusOv_prev[0];
+  fuselage_vels_prev[1] = vec3_FusOv_prev[1];
+  fuselage_vels_prev[2] = vec3_FusOv_prev[2];
+
+  Vec3 vec3_FusOv = mip_node.pNode->GetVCurr();
+  fuselage_vels[0] = vec3_FusOv[0];
+  fuselage_vels[1] = vec3_FusOv[1];
+  fuselage_vels[2] = vec3_FusOv[2];
 
   Vec3 vec3_FusOomegas_prev = mip_node.pNode->GetWPrev();
-  doublereal FusOomegas_prev[3];
-  FusOomegas_prev[0] = vec3_FusOomegas_prev[0];
-  FusOomegas_prev[1] = vec3_FusOomegas_prev[1];
-  FusOomegas_prev[2] = vec3_FusOomegas_prev[2];
+  fuselage_omegas_prev[0] = vec3_FusOomegas_prev[0];
+  fuselage_omegas_prev[1] = vec3_FusOomegas_prev[1];
+  fuselage_omegas_prev[2] = vec3_FusOomegas_prev[2];
+
+  Vec3 vec3_FusOomegas = mip_node.pNode->GetWCurr();
+  fuselage_omegas[0] = vec3_FusOomegas[0];
+  fuselage_omegas[1] = vec3_FusOomegas[1];
+  fuselage_omegas[2] = vec3_FusOomegas[2];
 
   Vec3 vec3_FusOacc_prev = mip_node.pNode->GetXPPPrev();
-  doublereal FusOacc_prev[3];
-  FusOacc_prev[0] = vec3_FusOacc_prev[0];
-  FusOacc_prev[1] = vec3_FusOacc_prev[1];
-  FusOacc_prev[2] = vec3_FusOacc_prev[2];
+  fuselage_accs_prev[0] = vec3_FusOacc_prev[0];
+  fuselage_accs_prev[1] = vec3_FusOacc_prev[1];
+  fuselage_accs_prev[2] = vec3_FusOacc_prev[2];
 
-  node_velocities = new doublereal[numNodePtElem];
-  node_omegas = new doublereal[numNodePtElem];
+  Vec3 vec3_FusOacc = mip_node.pNode->GetXPPCurr();
+  fuselage_accs[0] = vec3_FusOacc[0];
+  fuselage_accs[1] = vec3_FusOacc[1];
+  fuselage_accs[2] = vec3_FusOacc[2];
+
+  // TODO: what are alphas??
+  fuselage_alphas[0] = 0;
+  fuselage_alphas[1] = 0;
+  fuselage_alphas[2] = 0;
+
+  node_vels = new doublereal[3 * node_count_no_rotors];
+  node_omegas = new doublereal[3 * node_count_no_rotors];
+  node_accs = new doublereal[3 * node_count_no_rotors];
   for (int i = 0; i < node_count_no_rotors; i++)
   {
     Vec3 xcurr = nodes[i].pNode->GetXCurr();
     node_points[3 * i] = xcurr[0];
     node_points[3 * i + 1] = xcurr[1];
     node_points[3 * i + 2] = xcurr[2];
-
-    Vec3 vcurr = nodes[i].pNode->GetVCurr();
-    node_velocities[3 * i] = vcurr[0];
-    node_velocities[3 * i + 1] = vcurr[1];
-    node_velocities[3 * i + 2] = vcurr[2];
-
-    Vec3 wcurr = nodes[i].pNode->GetWCurr();
-    node_omegas[3 * i] = wcurr[0];
-    node_omegas[3 * i + 1] = wcurr[1];
-    node_omegas[3 * i + 2] = wcurr[2];
 
     // these are dGet(row, col)
     Mat3x3 rnode = nodes[i].pNode->GetRCurr();
@@ -604,21 +610,33 @@ void ModuleKiteFAST::_AssRes(integer numNodeLoadsElem,
     node_dcms[9 * i + 6] = rnode.dGet(3, 1);
     node_dcms[9 * i + 7] = rnode.dGet(3, 2);
     node_dcms[9 * i + 8] = rnode.dGet(3, 3);
+
+    Vec3 vcurr = nodes[i].pNode->GetVCurr();
+    node_vels[3 * i] = vcurr[0];
+    node_vels[3 * i + 1] = vcurr[1];
+    node_vels[3 * i + 2] = vcurr[2];
+
+    Vec3 wcurr = nodes[i].pNode->GetWCurr();
+    node_omegas[3 * i] = wcurr[0];
+    node_omegas[3 * i + 1] = wcurr[1];
+    node_omegas[3 * i + 2] = wcurr[2];
+
+    Vec3 acc_curr = nodes[i].pNode->GetXPPCurr();
+    node_accs[3 * i] = acc_curr[0];
+    node_accs[3 * i + 1] = acc_curr[1];
+    node_accs[3 * i + 2] = acc_curr[2];
   }
 
-  rotor_velocities = new doublereal[numRtrPtsElem];
-  rotor_dcms = new doublereal[3 * numRtrPtsElem];
-  for (int i = 0; i < rotor_node_count; i++)
+  rotor_dcms = new doublereal[9 * n_rotor_points];
+  rotor_vels = new doublereal[3 * n_rotor_points];
+  rotor_omegas = new doublereal[3 * n_rotor_points];
+  rotor_accs = new doublereal[3 * n_rotor_points];
+  for (int i = 0; i < n_rotor_points; i++)
   {
     Vec3 xcurr = nodes[i + node_count_no_rotors].pNode->GetXCurr();
     rotor_points[3 * i] = xcurr[0];
     rotor_points[3 * i + 1] = xcurr[1];
     rotor_points[3 * i + 2] = xcurr[2];
-
-    Vec3 vcurr = nodes[i + node_count_no_rotors].pNode->GetVCurr();
-    rotor_velocities[3 * i] = vcurr[0];
-    rotor_velocities[3 * i + 1] = vcurr[1];
-    rotor_velocities[3 * i + 2] = vcurr[2];
 
     // these are dGet(row, col)
     Mat3x3 rnode = nodes[i + node_count_no_rotors].pNode->GetRCurr();
@@ -631,37 +649,59 @@ void ModuleKiteFAST::_AssRes(integer numNodeLoadsElem,
     rotor_dcms[9 * i + 6] = rnode.dGet(3, 1);
     rotor_dcms[9 * i + 7] = rnode.dGet(3, 2);
     rotor_dcms[9 * i + 8] = rnode.dGet(3, 3);
+
+    Vec3 vcurr = nodes[i + node_count_no_rotors].pNode->GetVCurr();
+    rotor_vels[3 * i] = vcurr[0];
+    rotor_vels[3 * i + 1] = vcurr[1];
+    rotor_vels[3 * i + 2] = vcurr[2];
+
+    Vec3 wcurr = nodes[i + node_count_no_rotors].pNode->GetWCurr();
+    rotor_omegas[3 * i] = wcurr[0];
+    rotor_omegas[3 * i + 1] = wcurr[1];
+    rotor_omegas[3 * i + 2] = wcurr[2];
+
+    Vec3 acc_curr = nodes[i + node_count_no_rotors].pNode->GetXPPCurr();
+    rotor_accs[3 * i] = acc_curr[0];
+    rotor_accs[3 * i + 1] = acc_curr[1];
+    rotor_accs[3 * i + 2] = acc_curr[2];
   }
+
+  // TODO: what are alphas??
+  rotor_alphas[0] = 0;
+  rotor_alphas[1] = 0;
+  rotor_alphas[2] = 0;
 
   int error_status;
   char error_message[INTERFACE_STRING_LENGTH];
   KFAST_AssRes(&t,
                &first_iteration,
-               &numRtSpdRtrElem, // length of next array
-               RtSpd_PyRtr,      // array with rotor speeds
                ground_station_point,
-               FusO_prev,
-               FusO,
-               FusODCM_prev,
-               FusOv_prev,
-               FusOomegas_prev,
-               FusOacc_prev,
-               &numNodePtElem,
+               fuselage_position_prev,
+               fuselage_position,
+               fuselage_dcm_prev,
+               fuselage_dcm,
+               fuselage_vels_prev,
+               fuselage_vels,
+               fuselage_omegas_prev,
+               fuselage_omegas,
+               fuselage_accs_prev,
+               fuselage_accs,
+               fuselage_alphas,
+               &node_count_no_rotors,
                node_points,
-               &numNodePtElem,
-               node_velocities,
-               &numNodePtElem,
-               node_omegas,
-               &numDCMElem,
                node_dcms,
-               &numRtrPtsElem,
+               node_vels,
+               node_omegas,
+               node_accs,
+               &n_rotor_points,
                rotor_points,
-               rotor_velocities,
                rotor_dcms,
-               &numNodeLoadsElem,
-               nodeLoads,
-               &numRtrLoadsElem,
-               rotorLoads,
+               rotor_vels,
+               rotor_omegas,
+               rotor_accs,
+               rotor_alphas,
+               node_loads,
+               rotor_loads,
                &error_status,
                error_message);
   if (error_status >= AbortErrLev)
@@ -670,22 +710,26 @@ void ModuleKiteFAST::_AssRes(integer numNodeLoadsElem,
     throw ErrGeneric(MBDYN_EXCEPT_ARGS);
   }
 
-  delete node_velocities;
-  delete node_omegas;
-  delete rotor_velocities;
-  delete rotor_dcms;
+  delete[] node_vels;
+  delete[] node_omegas;
+  delete[] rotor_dcms;
+  delete[] rotor_vels;
+  delete[] rotor_omegas;
+  delete[] rotor_accs;
 }
 
 SubVectorHandler &ModuleKiteFAST::AssRes(SubVectorHandler &WorkVec, doublereal dCoef, const VectorHandler &XCurr, const VectorHandler &XPrimeCurr)
 {
   printdebug("AssRes");
-  integer numNodeLoadsElem = 6 * node_count_no_rotors;  // force and moment components for each node
-  doublereal *nodeLoads = new doublereal[numNodeLoadsElem];
-  integer numRtrLoadsElem = 6 * rotor_node_count;  // force and moment components for each rotor node
-  
-  doublereal *rotorLoads = new doublereal[numRtrLoadsElem];
 
-  _AssRes(numNodeLoadsElem, nodeLoads, numRtrLoadsElem, rotorLoads);
+  // get the loads from KFAST_AssRes and apply to the mbdyn model
+  integer n_node_loads = 6 * node_count_no_rotors;  // force and moment components for each node
+  node_loads = new doublereal[n_node_loads];
+
+  integer n_rotor_loads = 6 * n_rotor_points;  // force and moment components for each rotor node
+  rotor_loads = new doublereal[n_rotor_loads];
+
+  _AssRes(node_loads, rotor_loads);
 
   integer iNumRows, iNumCols;
   WorkSpaceDim(&iNumRows, &iNumCols);
@@ -700,13 +744,13 @@ SubVectorHandler &ModuleKiteFAST::AssRes(SubVectorHandler &WorkVec, doublereal d
       WorkVec.PutRowIndex(6 * i + j, first_index + j);
     }
 
-    Vec3 force = Vec3(nodeLoads[6 * i + 0], nodeLoads[6 * i + 1], nodeLoads[6 * i + 2]);
-    Vec3 moment = Vec3(nodeLoads[6 * i + 3], nodeLoads[6 * i + 4], nodeLoads[6 * i + 5]);
+    Vec3 force = Vec3(node_loads[6 * i + 0], node_loads[6 * i + 1], node_loads[6 * i + 2]);
+    Vec3 moment = Vec3(node_loads[6 * i + 3], node_loads[6 * i + 4], node_loads[6 * i + 5]);
     WorkVec.Add(6 * i + 1, force);
     WorkVec.Add(6 * i + 4, moment);
   }
 
-  for (int i = 0; i < rotor_node_count; i++)
+  for (int i = 0; i < n_rotor_points; i++)
   {
     // set indices where force/moment need to be put
     integer first_index = nodes[node_count_no_rotors + i].pNode->iGetFirstMomentumIndex();
@@ -715,14 +759,14 @@ SubVectorHandler &ModuleKiteFAST::AssRes(SubVectorHandler &WorkVec, doublereal d
       WorkVec.PutRowIndex(6 * node_count_no_rotors + 6 * i + j, first_index + j);
     }
 
-    Vec3 force = Vec3(rotorLoads[6 * i + 0], rotorLoads[6 * i + 1], rotorLoads[6 * i + 2]);
-    Vec3 moment = Vec3(rotorLoads[6 * i + 3], rotorLoads[6 * i + 4], rotorLoads[6 * i + 5]);
+    Vec3 force = Vec3(rotor_loads[6 * i + 0], rotor_loads[6 * i + 1], rotor_loads[6 * i + 2]);
+    Vec3 moment = Vec3(rotor_loads[6 * i + 3], rotor_loads[6 * i + 4], rotor_loads[6 * i + 5]);
     WorkVec.Add(6 * node_count_no_rotors + 6 * i + 1, force);
     WorkVec.Add(6 * node_count_no_rotors + 6 * i + 4, moment);
   }
 
-  delete[] nodeLoads;
-  delete[] rotorLoads;
+  delete[] node_loads;
+  delete[] rotor_loads;
 
   return WorkVec;
 }
