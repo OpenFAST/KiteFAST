@@ -565,18 +565,22 @@ subroutine KFAST_ProcessOutputs()
    m%AllOuts(KiteRoll ) = val3(1)
    m%AllOuts(KitePitch) = val3(2)
    m%AllOuts(KiteYaw  ) = val3(3)
-   m%AllOuts(KiteTVx  ) = m%FusOvels(1)
-   m%AllOuts(KiteTVy  ) = m%FusOvels(2)
-   m%AllOuts(KiteTVz  ) = m%FusOvels(3)
-   m%AllOuts(KiteRVx  ) = m%FusOomegas(1)
-   m%AllOuts(KiteRVy  ) = m%FusOomegas(2)
-   m%AllOuts(KiteRVz  ) = m%FusOomegas(3)
-   m%AllOuts(KiteTAx  ) = m%FusOaccs(1)
-   m%AllOuts(KiteTAy  ) = m%FusOaccs(2)
-   m%AllOuts(KiteTAz  ) = m%FusOaccs(3)
-   m%AllOuts(KiteRAx  ) = m%FusOalphas(1)
-   m%AllOuts(KiteRAy  ) = m%FusOalphas(2)
-   m%AllOuts(KiteRAz  ) = m%FusOalphas(3)
+   val3 = matmul(m%FusODCM,m%FusOvels)
+   m%AllOuts(KiteTVx  ) = val3(1)
+   m%AllOuts(KiteTVy  ) = val3(2)
+   m%AllOuts(KiteTVz  ) = val3(3)
+   val3 = R2D_D*matmul(m%FusODCM,m%FusOomegas)
+   m%AllOuts(KiteRVx  ) = val3(1)
+   m%AllOuts(KiteRVy  ) = val3(2)
+   m%AllOuts(KiteRVz  ) = val3(3)
+   val3 = matmul(m%FusODCM,m%FusOaccs)
+   m%AllOuts(KiteTAx  ) = val3(1)
+   m%AllOuts(KiteTAy  ) = val3(2)
+   m%AllOuts(KiteTAz  ) = val3(3)
+   val3 = R2D_D*matmul(m%FusODCM,m%FusOalphas)
+   m%AllOuts(KiteRAx  ) = val3(1)
+   m%AllOuts(KiteRAy  ) = val3(2)
+   m%AllOuts(KiteRAz  ) = val3(3)
    
    !...............................................................................................................................
    ! Place the selected output channels into the WriteOutput(:) array with the proper sign:
@@ -3138,9 +3142,11 @@ subroutine KFAST_Init(dt_c, numFlaps, numPylons, numComp, numCompNds, modFlags, 
    call KFAST_OpenOutput( KFAST_Ver, p%outFileRoot, p, KAD_InitOut, MD_InitOut, IfW_InitOut, ErrStat2, ErrMsg2 )
       call SetErrStat(errStat2,errMsg2,errStat,errMsg,routineName)
       
-   call KFAST_WriteSummary( KFAST_Ver, p%outFileRoot, p, m, KAD_InitOut, MD_InitOut, IfW_InitOut, ErrStat2, ErrMsg2 )
-      call SetErrStat(errStat2,errMsg2,errStat,errMsg,routineName)
-      
+   if (printSum == 1) then  
+      call KFAST_WriteSummary( KFAST_Ver, p%outFileRoot, p, m, KAD_InitOut, MD_InitOut, IfW_InitOut, ErrStat2, ErrMsg2 )
+         call SetErrStat(errStat2,errMsg2,errStat,errMsg,routineName)
+   end if 
+   
    call TransferErrors(errStat, errMsg, errStat_c, errMsg_c)
    return
 
@@ -3895,11 +3901,11 @@ subroutine KFAST_AfterPredict(errStat_c, errMsg_c) BIND (C, NAME='KFAST_AfterPre
    
 end subroutine KFAST_AfterPredict
 
-subroutine KFAST_Output(t_c, numGaussPtLoadsElem_c, gaussPtLoads_c, errStat_c, errMsg_c) BIND (C, NAME='KFAST_Output')
+subroutine KFAST_Output(t_c, numGaussPts_c, gaussPtLoads_c, errStat_c, errMsg_c) BIND (C, NAME='KFAST_Output')
    IMPLICIT NONE
    real(C_DOUBLE),         intent(in   ) :: t_c
-   integer(C_INT),         intent(in   ) :: numGaussPtLoadsElem_c 
-   real(C_DOUBLE),         intent(in   ) :: gaussPtLoads_c(numGaussPtLoadsElem_c)
+   integer(C_INT),         intent(in   ) :: numGaussPts_c 
+   real(C_DOUBLE),         intent(in   ) :: gaussPtLoads_c(numGaussPts_c*6)
    integer(C_INT),         intent(  out) :: errStat_c      
    character(kind=C_CHAR), intent(  out) :: errMsg_c(IntfStrLen)   
 
@@ -3912,7 +3918,7 @@ subroutine KFAST_Output(t_c, numGaussPtLoadsElem_c, gaussPtLoads_c, errStat_c, e
    errMsg  = ''
    t = real(t_c,DbKi)
 
-   call TransferMBDynLoadInputs( numGaussPtLoadsElem_c, gaussPtLoads_c, p, m, errStat2, errMsg2 )
+   call TransferMBDynLoadInputs( numGaussPts_c, gaussPtLoads_c, p, m, errStat2, errMsg2 )
       call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
    ! Compute the MBDyn-related outputs using the MBDyn load data and the most recently recieved motion data
    
