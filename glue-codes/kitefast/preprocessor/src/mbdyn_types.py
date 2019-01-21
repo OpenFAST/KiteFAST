@@ -557,8 +557,8 @@ def beam_mass_distribution(x1, y1, z1,
                            m_l1, m_l2,
                            cm_offset1, cm_offset2,
                            ixx_l1, iyy_l1, izz_l1,
-                           ixx_l2, iyy_l2, izz_l2,
                            ixy_l1, ixz_l1, iyz_l1,
+                           ixx_l2, iyy_l2, izz_l2,
                            ixy_l2, ixz_l2, iyz_l2,
                            primary_direction):
 
