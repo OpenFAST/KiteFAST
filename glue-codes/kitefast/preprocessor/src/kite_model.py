@@ -150,7 +150,7 @@ class KiteModel(BaseModel):
             mbdyn_ref_index += i * 100
             rotor = _build_component(RotorAssembly, ["rotor_assembly", "starboard", i + 1, "upper"], mbdyn_ref_index)
             starboard_rotors.append(rotor)
-            rotor = _build_component(RotorAssembly, ["rotor_assembly", "starboard", i + 1, "lower"], mbdyn_ref_index + 1)
+            rotor = _build_component(RotorAssembly, ["rotor_assembly", "starboard", i + 1, "lower"], mbdyn_ref_index + 10)
             starboard_rotors.append(rotor)
         
         mbdyn_ref_index = 30000
@@ -159,7 +159,7 @@ class KiteModel(BaseModel):
             mbdyn_ref_index += i * 100
             rotor = _build_component(RotorAssembly, ["rotor_assembly", "port", i + 1, "upper"], mbdyn_ref_index)
             port_rotors.append(rotor)
-            rotor = _build_component(RotorAssembly, ["rotor_assembly", "port", i + 1, "lower"], mbdyn_ref_index + 1)
+            rotor = _build_component(RotorAssembly, ["rotor_assembly", "port", i + 1, "lower"], mbdyn_ref_index + 10)
             port_rotors.append(rotor)
 
         return fuselage, starboard_wing, port_wing, starboard_hstab, port_hstab, vstab, starboard_pylons, port_pylons, starboard_rotors, port_rotors
@@ -233,7 +233,7 @@ class KiteModel(BaseModel):
             index = pylon.component.index("rotor_assembly/starboard/{}/{}".format(str(i), ul))
             node1 = pylon.nodes[2 * index]
             node2 = rotor.nodes[0]
-            joints.append(_build_joint(RevoluteHinge, node1, node2, len(joints) + 1))
+            joints.append(_build_joint(TotalJoint, node1, node2, len(joints) + 1))
 
         # port rotors to port pylons
         for rotor in self.port_rotors:
@@ -243,7 +243,7 @@ class KiteModel(BaseModel):
             index = pylon.component.index("rotor_assembly/port/{}/{}".format(str(i), ul))
             node1 = pylon.nodes[2 * index]
             node2 = rotor.nodes[0]
-            joints.append(_build_joint(RevoluteHinge, node1, node2, len(joints) + 1))
+            joints.append(_build_joint(TotalJoint, node1, node2, len(joints) + 1))
         
         return joints
 

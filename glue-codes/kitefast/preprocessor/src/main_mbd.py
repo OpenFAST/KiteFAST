@@ -138,6 +138,7 @@ class MainMBD():
         for component in self.component_list:
             output.write_line("      + {}_node_count".format(component.component_name))
         output.write_line("      + {}  # 1 for each rotor".format(str(len(self.starboard_rotors) + len(self.port_rotors))))
+        output.write_line("      + {}  # 1 for each nacelle".format(str(len(self.starboard_rotors) + len(self.port_rotors))))
         output.write_line("    ;")
         output.write_empty_line()
         output.write_line("    set: integer beam_count =")
@@ -148,6 +149,7 @@ class MainMBD():
         output.write_line("    rigid bodies:")
         output.write_line("      + 3 * beam_count")
         output.write_line("      + {}  # 1 for each rotor".format(str(len(self.starboard_rotors) + len(self.port_rotors))))
+        output.write_line("      + {}  # 1 for each nacelle".format(str(len(self.starboard_rotors) + len(self.port_rotors))))
         output.write_line("    ;")
         output.write_line("    beams: beam_count;")
         output.write_line("    joints: {};".format(str(len(self.joints))))
