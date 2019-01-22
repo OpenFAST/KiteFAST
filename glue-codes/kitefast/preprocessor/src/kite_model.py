@@ -234,6 +234,8 @@ class KiteModel(BaseModel):
             node1 = pylon.nodes[2 * index]
             node2 = rotor.nodes[0]
             joints.append(_build_joint(TotalJoint, node1, node2, len(joints) + 1))
+            node2 = rotor.nodes[1]
+            joints.append(_build_joint(TotalJoint, node1, node2, len(joints) + 1))
 
         # port rotors to port pylons
         for rotor in self.port_rotors:
@@ -243,6 +245,8 @@ class KiteModel(BaseModel):
             index = pylon.component.index("rotor_assembly/port/{}/{}".format(str(i), ul))
             node1 = pylon.nodes[2 * index]
             node2 = rotor.nodes[0]
+            joints.append(_build_joint(TotalJoint, node1, node2, len(joints) + 1))
+            node2 = rotor.nodes[1]
             joints.append(_build_joint(TotalJoint, node1, node2, len(joints) + 1))
         
         return joints
