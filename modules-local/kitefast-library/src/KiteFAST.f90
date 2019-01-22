@@ -583,7 +583,11 @@ subroutine KFAST_ProcessOutputs()
    !...............................................................................................................................
 
    dO i = 1,p%numKFASTOuts  ! Loop through all selected output channels
-      m%WriteOutput(i) = p%OutParam(i)%SignM * m%AllOuts( p%OutParam(i)%Indx )
+      if (p%OutParam(i)%Indx == 0 ) then
+         m%WriteOutput(i) = 0.0
+      else
+         m%WriteOutput(i) = p%OutParam(i)%SignM * m%AllOuts( p%OutParam(i)%Indx )
+      end if
    end do             ! i - All selected output channels
 
 end subroutine KFAST_ProcessOutputs
@@ -2391,7 +2395,7 @@ end function cstrlen
 subroutine KFAST_Init(dt_c, numFlaps, numPylons, numComp, numCompNds, modFlags, KAD_FileName_c, IfW_FileName_c, MD_FileName_c, KFC_FileName_c, &
                        outFileRoot_c, printSum, gravity, WindPt_c, FusODCM_c, numRtrPts_c, rtrPts_c, rtrMass_c, rtrI_Rot_c, rtrI_trans_c, rtrXcm_c, refPts_c, &
                        numNodePts_c, nodePts_c, nodeDCMs_c, nFusOuts_c, FusOutNd_c, nSWnOuts_c, SWnOutNd_c, &
-                       nPWnOuts_c, PWnOutNd_c, nVSOuts_c, VSOutNd_c, nSHSOuts_c, SHSOutNd_c, nPHSOuts_c, PHSOutNd_c, nPylOuts_c, PylOutNd_c, numOutChan_c, chanlist_c, errStat_c, errMsg_c ) BIND (C, NAME='KFAST_Init')
+                       nPWnOuts_c, PWnOutNd_c, nVSOuts_c, VSOutNd_c, nSHSOuts_c, SHSOutNd_c, nPHSOuts_c, PHSOutNd_c, nPylOuts_c, PylOutNd_c, numOutChan_c, chanlist_c, chanlist_len_c, errStat_c, errMsg_c ) BIND (C, NAME='KFAST_Init')
    IMPLICIT NONE
 
 
@@ -2437,6 +2441,7 @@ subroutine KFAST_Init(dt_c, numFlaps, numPylons, numComp, numCompNds, modFlags, 
    integer(C_INT),         intent(in   ) :: PylOutNd_c(nPylOuts_c)         ! Node number(s) (within the component) of the requested output locations.
    integer(C_INT),         intent(in   ) :: numOutChan_c                   ! Number of user-requested output channel names
    type(c_ptr)   ,target,  intent(in   ) :: chanlist_c(numOutChan_c)       ! Array of output channel names (strings)
+   integer(C_INT),         intent(in   ) :: chanlist_len_c(numOutChan_c )   ! The length of each string in the above array
    integer(C_INT),         intent(  out) :: errStat_c                      ! Error code coming from KiteFAST
    character(kind=C_CHAR), intent(  out) :: errMsg_c(IntfStrLen)           ! Error message
 
@@ -2463,7 +2468,7 @@ subroutine KFAST_Init(dt_c, numFlaps, numPylons, numComp, numCompNds, modFlags, 
    character(kind=c_char), pointer :: fptr(:,:)
    character(11), allocatable :: fstrings(:)
    integer(IntKi) :: lenstr, maxPyNds
-   
+   CHARACTER(ChanLen)              :: tmpStr
    ! Initialize all the sub-modules : MoorDyn, KiteAeroDyn, Controller, and InflowWind
    ! Set KiteFAST-level parameters, misc vars
    ! Open an Output file
@@ -2866,19 +2871,17 @@ subroutine KFAST_Init(dt_c, numFlaps, numPylons, numComp, numCompNds, modFlags, 
    do i = 1, p%NPylOuts
       p%PylOutNds(i)  = PylOutNd_c(i)
    end do
-   !call c_f_pointer(chanlist_c, fptr, [11, numOutChan_c ])
-   !!allocate(fstrings(numOutChan_c))
-   !do i = 1, numOutChan_c
-   !   lenstr = cstrlen(fptr(:,i))
-   !   OutList(i) = transfer(fptr(1:lenstr,i), OutList(i))
-   !end do
+
 !==========================================
 ! TESTING TRANSFER OF OUTPUT CHANNEL NAMES
    do i = 1,numOutChan_c
-      call c_f_pointer(chanlist_c(i),chanName_f, [ChanLen])
-      write(*,*) chanName_f
+      
+      call c_f_pointer(chanlist_c(i),chanName_f, [chanlist_len_c(i)])
+     ! write(*,*) chanName_f
       lenstr = cstrlen(chanName_f)
-      OutList(i) = transfer(chanName_f(1:lenstr-1), OutList(i))
+      tmpStr = transfer(chanName_f(1:lenstr-1),tmpStr)
+      OutList(i) = tmpStr(1:lenstr-1)
+     ! write(*,*) trim(OutList(i)),'T'
    end do
    
 !==========================================

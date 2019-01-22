@@ -49,6 +49,7 @@ EXTERNAL_ROUTINE void KFAST_Init(
    int        PylOutNd_c[],     // Node number(s) (within the component) of the requested output locations.
    int*       numOutChan,       // Number of user-requested output channel names
    char*      chanList[],       // Array of output channel names (strings)
+   int        chanList_len[],   // Array containing the lengths of each string element in the chanList array
    int*       errStat,          // Error code coming from KiteFAST
    char       errMsg[]          // Error message
                                 );

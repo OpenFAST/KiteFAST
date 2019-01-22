@@ -101,8 +101,18 @@ int main(int argc, char *argv[])
     int PylOutNd[] = { 1,2 };
 
     int numOutChan = 7;
-    char* outChanList[] = { "Fus1TDx   ", "Fus1TDy   ", "Fus1TDz   ", "SWn1TDx   ", "SWn1TDy   ", "SWn1TDz   ", "PP12FRc   " };
-
+    //char* outChanList[] = { "Fus1TDx   ", "Fus1TDy   ", "Fus1TDz   ", "SWn1TDx   ", "SWn1TDy   ", "SWn1TDz   ", "PP12FRc   " };
+    char* outChanList[] = { "Fus1TDx", "Fus1TDy", "Fus1TDz", "dddddd", "eeeeeee", "ffffffff", "PP12FRc" };
+    int*  pChanList_len;
+    pChanList_len = (int *)malloc(numOutChan * sizeof(int));
+    pChanList_len[0] = 7;
+    pChanList_len[1] = 7;
+    pChanList_len[2] = 7;
+    pChanList_len[3] = 6;
+    pChanList_len[4] = 7;
+    pChanList_len[5] = 8;
+    pChanList_len[6] = 7;
+    
 
     // Set module flags 0 = off, 1=on
     pModFlags = (int *)malloc(4*sizeof(int));
@@ -443,7 +453,7 @@ int main(int argc, char *argv[])
     // This is called as part of the user module constructor
     KFAST_Init(&dt, &numFlaps, &numPylons, &numComp, pNumCompNds, pModFlags, KAD_FileName, IfW_FileName, MD_FileName, KFC_FileName, outFileRoot, &printSum, &gravity, pWindPt,
        pFusODCM, &numRtrPts, pRtrPts, pRtrMass, pRtrI_Rot, pRtrI_Trans, pRtrXcm, pRefPts, &numNodePts, pNodePts, pNodeDCMs,
-       &nFusOuts, FusOutNd, &nSWnOuts, SWnOutNd, &nPWnOuts, PWnOutNd, &nVSOuts, VSOutNd, &nSHSOuts, SHSOutNd, &nPHSOuts, PHSOutNd, &nPylOuts, PylOutNd, &numOutChan, outChanList, &errStat, errMsg);
+       &nFusOuts, FusOutNd, &nSWnOuts, SWnOutNd, &nPWnOuts, PWnOutNd, &nVSOuts, VSOutNd, &nSHSOuts, SHSOutNd, &nPHSOuts, PHSOutNd, &nPylOuts, PylOutNd, &numOutChan, outChanList, pChanList_len, &errStat, errMsg);
 
     if (errStat == 4)
     {
