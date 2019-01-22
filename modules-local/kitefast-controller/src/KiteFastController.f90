@@ -177,6 +177,9 @@ module KiteFastController
          call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
       call AllocAry( y%PPyBldPitch,   2, p%numPylons, 'y%PPyBldPitch',   errStat2, errMsg2 )
          call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )   
+      call AllocAry( y%SFlp, p%numFlaps, 'y%SFlp', errStat2, errMsg2 )
+         call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
+      call AllocAry( y%PFlp, p%numFlaps, 'y%PFlp', errStat2, errMsg2 )   
          
       if (errStat >= AbortErrLev ) return
 
@@ -224,6 +227,12 @@ module KiteFastController
          y%PPyRtrAcc    =   0.0_ReKi  ! rad/s^2
          y%SPyBldPitch  = 0.0_ReKi
          y%PPyBldPitch  = 0.0_ReKi
+         y%SFlp         = 0.0_ReKi
+         y%PFlp         = 0.0_ReKi
+         y%Rudr         = 0.0_ReKi
+         y%SElv         = 0.0_ReKi
+         y%PElv         = 0.0_ReKi
+        
       else
            ! Set outputs to zero except for RtrSpd which is set to be constant for the dummy controller
          y%SPyGenTorque = 0.0_ReKi
@@ -235,6 +244,11 @@ module KiteFastController
          y%PPyRtrAcc    =   0.0_ReKi  ! rad/s^2
          y%SPyBldPitch  = 0.0_ReKi
          y%PPyBldPitch  = 0.0_ReKi
+         y%SFlp         = 0.0_ReKi
+         y%PFlp         = 0.0_ReKi
+         y%Rudr         = 0.0_ReKi
+         y%SElv         = 0.0_ReKi
+         y%PElv         = 0.0_ReKi
          
       end if
       
@@ -288,7 +302,8 @@ module KiteFastController
       apparent_wind_c = u%apparent_wind
       tether_forceb_c = u%tether_forceb
       wind_g_c        = u%wind_g
-
+      
+      
       if (.not. p%useDummy) then
             ! Call the DLL (first associate the address from the procedure in the DLL with the subroutine):
          call C_F_PROCPOINTER( p%DLL_Trgt%ProcAddr(2), DLL_KFC_Step_Subroutine) 

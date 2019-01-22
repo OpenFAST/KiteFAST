@@ -54,8 +54,8 @@ typedef  ^                  ^                     ReKi             wind_g       
 typedef  ^                  ^                     ReKi             SPyAeroTorque {:}{:} -       - "2 by numPylons matrix - Starboard rotor aerodynamic torques" N-m
 typedef  ^                  ^                     ReKi             PPyAeroTorque {:}{:} -       - "2 by numPylons matrix - Port rotor aerodynamic torques" N-m
 # ..... Outputs ...................................................................................................................
-typedef  ^                  OutputType            ReKi             SFlp          {3}    -       - "Starboard flap angles [kFlapA5, kFlapA7, kFlapA8] " rad
-typedef  ^                  ^                     ReKi             PFlp          {3}    -       - "Port flap angles [kFlapA4, kFlapA2, kFlapA1]" rad
+typedef  ^                  OutputType            ReKi             SFlp          {:}    -       - "Starboard flap angles [kFlapA5, kFlapA7, kFlapA8] " rad
+typedef  ^                  ^                     ReKi             PFlp          {:}    -       - "Port flap angles [kFlapA4, kFlapA2, kFlapA1]" rad
 typedef  ^                  ^                     ReKi             Rudr          {2}    -       - "Rudder flap angles [kFlapA10,kFlapA10]" rad
 typedef  ^                  ^                     ReKi             SElv          {2}    -       - "Starboard elevator flap angles [kFlapA9,kFlapA9]" rad
 typedef  ^                  ^                     ReKi             PElv          {2}    -       - "Port elevator flap angles [kFlapA9,kFlapA9]" rad
