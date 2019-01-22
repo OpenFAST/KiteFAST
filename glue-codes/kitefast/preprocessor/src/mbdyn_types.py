@@ -253,9 +253,9 @@ class Body():
 
     def __str__(self):
         refid   = "body: {}, {},".format(self.id, self.node.id)
-        mass    = "    {}".format(self.mass)
+        mass    = "    {},".format(self.mass)
         ref     = "    reference, node, null,"
-        inertia = "    mat3, {}, {}, {},\n".format(self.Ixx, self.Ixy, self.Ixz)
+        inertia = "    matr, {}, {}, {},\n".format(self.Ixx, self.Ixy, self.Ixz)
         inertia += "          {}, {}, {},\n".format(self.Ixy, self.Iyy, self.Iyz)
         inertia += "          {}, {}, {};".format(self.Ixz, self.Iyz, self.Izz)
         return "\n".join([refid, mass, ref, inertia])
