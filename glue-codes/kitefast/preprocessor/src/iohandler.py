@@ -199,24 +199,24 @@ class Input():
                                                         + "/" + str(position)
                                                         + "/" + level]
 
-                        initial_rotor_rpm = float(this_component["rotor"]["initial_rpm"])
                         rotor_mass_props = self._string_to_list(this_component["rotor"]["mass_properties"])
                         rotor_mass = float(rotor_mass_props[0])
-                        rotor_cm_offset = [float(m) for m in rotor_mass_props[1:4]]
-                        rotor_inertias = [float(m) for m in rotor_mass_props[4:10]]
+                        rotor_cm_offset = float(rotor_mass_props[1])
+                        rotor_rot_inertia = float(rotor_mass_props[2])
+                        rotor_trans_inertia = float(rotor_mass_props[3])
 
                         nacelle_mass_props = self._string_to_list(this_component["nacelle"]["mass_properties"])
                         nacelle_mass = float(nacelle_mass_props[0])
                         nacelle_cm_offset = [float(m) for m in nacelle_mass_props[1:4]]
-                        nacelle_inertias = [float(m) for m in nacelle_mass_props[4:9]]
+                        nacelle_inertias = [float(m) for m in nacelle_mass_props[4:10]]
 
                         rotor_assembly[direction][position][level] = {
                             "keypoint": keypoint,
                             "rotor": {
-                                "initial_rpm": initial_rotor_rpm,
                                 "mass": rotor_mass,
                                 "cm_offset": rotor_cm_offset,
-                                "inertia": rotor_inertias
+                                "rotational_inertia": rotor_rot_inertia,
+                                "translational_inertia": rotor_trans_inertia
                             },
                             "nacelle": {
                                 "mass": nacelle_mass,

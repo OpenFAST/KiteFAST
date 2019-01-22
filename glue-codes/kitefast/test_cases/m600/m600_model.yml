@@ -348,13 +348,10 @@ rotor_assembly:
         1:
             upper: # STI
                 rotor:
-                    initial_rpm:
-                        200 #rad/s
-
                     mass_properties:
-                        # mass   Cmx      Cmy      Cmz      Ixx      Iyy      Izz      Ixy     Ixz      Iyz
-                        # kg     m        m        m        kg*m^2   kg*m^2   kg*m^2   kg*m^2  kg*m^2   kg*m^2
-                        7.700    0.0      0.0      0.0      1.610    0.805    0.805    0.0     0.0      0.0
+                        # mass   Cmx      I_rot    I_trans
+                        # kg     m        kg*m^2   kg*m^2
+                        7.700    0.0      1.610    0.805
 
                 nacelle:
                     mass_properties:
@@ -364,13 +361,10 @@ rotor_assembly:
 
             lower: # SBI
                 rotor:
-                    initial_rpm:
-                        200 #rad/s
-
                     mass_properties:
-                        # mass   Cmx      Cmy      Cmz      Ixx      Iyy      Izz      Ixy     Ixz      Iyz
-                        # kg     m        m        m        kg*m^2   kg*m^2   kg*m^2   kg*m^2  kg*m^2   kg*m^2
-                        7.700    0.0      0.0      0.0      1.610    0.805    0.805    0.0     0.0      0.0
+                        # mass   Cmx      I_rot    I_trans
+                        # kg     m        kg*m^2   kg*m^2
+                        7.700    0.0      1.610    0.805
 
                 nacelle:
                     mass_properties:
@@ -381,13 +375,10 @@ rotor_assembly:
         2:
             upper: # STO
                 rotor:
-                    initial_rpm:
-                        200 #rad/s
-
                     mass_properties:
-                        # mass   Cmx      Cmy      Cmz      Ixx      Iyy      Izz      Ixy     Ixz      Iyz
-                        # kg     m        m        m        kg*m^2   kg*m^2   kg*m^2   kg*m^2  kg*m^2   kg*m^2
-                        7.700    0.0      0.0      0.0      1.610    0.805    0.805    0.0     0.0      0.0
+                        # mass   Cmx      I_rot    I_trans
+                        # kg     m        kg*m^2   kg*m^2
+                        7.700    0.0      1.610    0.805
 
                 nacelle:
                     mass_properties:
@@ -397,13 +388,10 @@ rotor_assembly:
 
             lower: # SBO
                 rotor:
-                    initial_rpm:
-                        200 #rad/s
-
                     mass_properties:
-                        # mass   Cmx      Cmy      Cmz      Ixx      Iyy      Izz      Ixy     Ixz      Iyz
-                        # kg     m        m        m        kg*m^2   kg*m^2   kg*m^2   kg*m^2  kg*m^2   kg*m^2
-                        7.700    0.0      0.0      0.0      1.610    0.805    0.805    0.0     0.0      0.0
+                        # mass   Cmx      I_rot    I_trans
+                        # kg     m        kg*m^2   kg*m^2
+                        7.700    0.0      1.610    0.805
 
                 nacelle:
                     mass_properties:
@@ -415,13 +403,12 @@ rotor_assembly:
         1:
             upper: # PTI
                 rotor:
-                    initial_rpm:
-                        200 #rad/s
-
                     mass_properties:
-                        # mass   Cmx      Cmy      Cmz      Ixx      Iyy      Izz      Ixy     Ixz      Iyz
-                        # kg     m        m        m        kg*m^2   kg*m^2   kg*m^2   kg*m^2  kg*m^2   kg*m^2
-                        7.700    0.0      0.0      0.0      1.610    0.805    0.805    0.0     0.0      0.0
+                        # I_rot = Ixx
+                        # I_trans = Iyy = Izz
+                        # mass   Cmx      I_rot    I_trans
+                        # kg     m        kg*m^2   kg*m^2
+                        7.700    0.0      1.610    0.805
 
                 nacelle:
                     mass_properties:
@@ -431,13 +418,10 @@ rotor_assembly:
 
             lower: # PBI
                 rotor:
-                    initial_rpm:
-                        200 #rad/s
-
                     mass_properties:
-                        # mass   Cmx      Cmy      Cmz      Ixx      Iyy      Izz      Ixy     Ixz      Iyz
-                        # kg     m        m        m        kg*m^2   kg*m^2   kg*m^2   kg*m^2  kg*m^2   kg*m^2
-                        7.700    0.0      0.0      0.0      1.610    0.805    0.805    0.0     0.0      0.0
+                        # mass   Cmx      I_rot    I_trans
+                        # kg     m        kg*m^2   kg*m^2
+                        7.700    0.0      1.610    0.805
 
                 nacelle:
                     mass_properties:
@@ -448,13 +432,10 @@ rotor_assembly:
         2:
             upper: # PTO
                 rotor:
-                    initial_rpm:
-                        200 #rad/s
-
                     mass_properties:
-                        # mass   Cmx      Cmy      Cmz      Ixx      Iyy      Izz      Ixy     Ixz      Iyz
-                        # kg     m        m        m        kg*m^2   kg*m^2   kg*m^2   kg*m^2  kg*m^2   kg*m^2
-                        7.700    0.0      0.0      0.0      1.610    0.805    0.805    0.0     0.0      0.0
+                        # mass   Cmx      I_rot    I_trans
+                        # kg     m        kg*m^2   kg*m^2
+                        7.700    0.0      1.610    0.805
 
                 nacelle:
                     mass_properties:
@@ -464,13 +445,10 @@ rotor_assembly:
 
             lower: # PBO
                 rotor:
-                    initial_rpm:
-                        200 #rad/s
-
                     mass_properties:
-                        # mass   Cmx      Cmy      Cmz      Ixx      Iyy      Izz      Ixy     Ixz      Iyz
-                        # kg     m        m        m        kg*m^2   kg*m^2   kg*m^2   kg*m^2  kg*m^2   kg*m^2
-                        7.700    0.0      0.0      0.0      1.610    0.805    0.805    0.0     0.0      0.0
+                        # mass   Cmx      I_rot    I_trans
+                        # kg     m        kg*m^2   kg*m^2
+                        7.700    0.0      1.610    0.805
 
                 nacelle:
                     mass_properties:

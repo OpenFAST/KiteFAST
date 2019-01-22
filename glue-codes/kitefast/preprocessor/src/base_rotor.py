@@ -17,6 +17,7 @@
 from .iohandler import Output
 from .mbdyn_types import Vec3
 from .mbdyn_types import StructuralNode
+from .mbdyn_types import Body
 from .mbdyn_types import Beam3
 from .mbdyn_types import ReferenceFrame
 import numpy as np
@@ -32,12 +33,17 @@ class BaseRotor():
         # unpack the component dictionary
         self.mip = model_dict["keypoint"]
         self.coordinate_list = [self.mip]
-        self.initial_rpm = model_dict["rotor"]["initial_rpm"]
+
+        # rotor
         self.rotor_mass = model_dict["rotor"]["mass"]
-        self.rotor_cm_offset = model_dict["rotor"]["cm_offset"]
-        self.rotor_inertia = model_dict["rotor"]["inertia"]
+        self.rotor_cm_offset = Vec3(model_dict["rotor"]["cm_offset"], 0.0, 0.0)     # the rotors can only shift in the x-direction
+        self.rotor_rot_inertia = model_dict["rotor"]["rotational_inertia"]
+        self.rotor_trans_inertia = model_dict["rotor"]["translational_inertia"]
+
+        # nacelle
         self.nacelle_mass = model_dict["nacelle"]["mass"]
-        self.nacelle_cm_offset = model_dict["nacelle"]["cm_offset"]
+        _cm_offset = model_dict["nacelle"]["cm_offset"]
+        self.nacelle_cm_offset = Vec3(_cm_offset[0], _cm_offset[1], _cm_offset[2])
         self.nacelle_inertia = model_dict["nacelle"]["inertia"]
 
         self.total_mass = self.rotor_mass + self.nacelle_mass
@@ -54,14 +60,50 @@ class BaseRotor():
         )
 
         self.nodes = np.array([
+
+            # rotor
             StructuralNode(
                 parent_component=self.component_name,
                 root_offset_index=0,
                 reference_frame=self.reference_frame.name,
-                position=Vec3(0.0, 0.0, 0.0),
-                angular_velocity=Vec3(self.initial_rpm, 0.0, 0.0)
+                position=self.rotor_cm_offset
+            ),
+
+            # nacelle
+            StructuralNode(
+                parent_component=self.component_name,
+                root_offset_index=1,
+                reference_frame=self.reference_frame.name,
+                position=self.nacelle_cm_offset
             )
         ])
+
+        self.bodies = np.array([
+
+            # rotor
+            Body(
+                identifier=self.nodes[0].id,
+                node=self.nodes[0],
+                mass=self.rotor_mass,
+                Ixx=self.rotor_rot_inertia,
+                Iyy=self.rotor_trans_inertia,
+                Izz=self.rotor_trans_inertia
+            ),
+
+            # nacelle
+            Body(
+                identifier=self.nodes[1].id,
+                node=self.nodes[1],
+                mass=self.nacelle_mass,
+                Ixx=self.nacelle_inertia[0],
+                Iyy=self.nacelle_inertia[1],
+                Izz=self.nacelle_inertia[2],
+                Ixy=self.nacelle_inertia[3],
+                Ixz=self.nacelle_inertia[4],
+                Iyz=self.nacelle_inertia[5]
+            )
+        ])
+
         self.node_count = self.nodes.shape[0]
 
     ### export routines ###
@@ -80,24 +122,15 @@ class BaseRotor():
         output.write_line(str(self.reference_frame))
         output.write_empty_line()
         output.write_line("# *** nodes ***")
-        output.write_line(str(self.nodes[0]))
-        output.write_empty_line()
+        for n in self.nodes:
+            output.write_line(str(n))
+            output.write_empty_line()
         output.end()
 
     def export_element_file(self, output_directory):
         output = Output("{}/{}.elements".format(output_directory, self.component_name))
-
-        output.write_line("set: rotor_node_id = {};".format(self.mbdyn_ref_index))
-        output.write_line("set: mass = {};".format(self.total_mass))
-        output.write_line("set: cm_offx = {};".format(self.total_cm_offset[0]))
-        output.write_line("set: cm_offy = {};".format(self.total_cm_offset[1]))
-        output.write_line("set: cm_offz = {};".format(self.total_cm_offset[2]))
-        output.write_line("set: Ixx = {};".format(self.total_inertia[0]))
-        output.write_line("set: Iyy = {};".format(self.total_inertia[1]))
-        output.write_line("set: Izz = {};".format(self.total_inertia[2]))
-        output.write_line("body: rotor_node_id, rotor_node_id,")
-        output.write_line("    mass,")
-        output.write_line("    reference, node, cm_offx, cm_offy, cm_offz,")
-        output.write_line("    diag, Ixx, Iyy, Izz;")
-
+        output.write_line("# *** bodies ***")
+        for b in self.bodies:
+            output.write_line(str(b))
+            output.write_empty_line()
         output.end()
