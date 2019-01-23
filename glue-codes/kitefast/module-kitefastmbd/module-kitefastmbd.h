@@ -112,6 +112,7 @@ extern int KFAST_Init(double *dt,
                       int PylOutNd[],
                       int *numOutChan,
                       char *chanList[],
+                      int ChanList_len[],
                       int *errStat,
                       char errMsg[]);
 extern int KFAST_AssRes(double *t,
@@ -215,7 +216,8 @@ private:
   integer n_pylon_outputs;                                            // nPylOuts
   std::vector<integer> pylon_output_nodes;                            // PylOutNd
   integer n_output_channels;                                          // numOutChan
-  std::vector<std::string> output_channels;                           // chanList
+  std::vector<char *> output_channel_array;                           // chanList
+  integer *output_channel_lengths;                                    // ChanList_len
   // error_status                                                        errStat - local variable
   // error message                                                       errMsg - local variable
 
@@ -287,6 +289,7 @@ private:
   std::vector< std::vector<KiteFASTBeam> > beams_portpylons;
   std::vector<KiteFASTBeam> beams_throwaway;
 
+  std::vector<std::string> output_channel_vector;
   mutable std::ofstream outputfile;
   DriveOwner Time;
   const DataManager *data_manager;

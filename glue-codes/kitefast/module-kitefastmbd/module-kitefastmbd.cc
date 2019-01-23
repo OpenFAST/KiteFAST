@@ -299,6 +299,34 @@ ModuleKiteFAST::ModuleKiteFAST(unsigned uLabel, const DofOwner *pDO, DataManager
     rotor_cm_offsets[3 * i + 2] = HP.GetReal();
   }
 
+  // parse the output information
+  BuildComponentOutputArray(HP, "fuselage_outputs", n_fuselage_outputs, fuselage_output_nodes);
+  BuildComponentOutputArray(HP, "wing_starboard_outputs", n_starboard_wing_outputs, starboard_wing_output_nodes);
+  BuildComponentOutputArray(HP, "wing_port_outputs", n_port_wing_outputs, port_wing_output_nodes);
+  BuildComponentOutputArray(HP, "vertical_stabilizer_outputs", n_vertical_stabilizer_outputs, vertical_stabilizer_output_nodes);
+  BuildComponentOutputArray(HP, "horizontal_stabilizer_starboard_outputs", n_starboard_horizontal_stabilizer_outputs, starboard_horizontal_stabilizer_output_nodes);
+  BuildComponentOutputArray(HP, "horizontal_stabilizer_port_outputs", n_port_horizontal_stabilizer_outputs, port_horizontal_stabilizer_output_nodes);
+  BuildComponentOutputArray(HP, "pylon_outputs", n_pylon_outputs, pylon_output_nodes);
+  ValidateInputKeyword(HP, "output_channels");
+  n_output_channels = HP.GetInt();
+
+  // put the output channel names into a vector<string> and convert to vector<char *>
+  output_channel_vector.resize(n_output_channels);
+  output_channel_array.reserve(output_channel_vector.size());
+  output_channel_lengths = new integer[n_output_channels];
+  for (int i = 0; i < n_output_channels; i++)
+  {
+    // get the string from the mbdyn input file
+    std::string channel_string = HP.GetString();
+    output_channel_vector[i] = channel_string;
+
+    // cast the string to char *
+    output_channel_array[i] = const_cast<char *>(output_channel_vector[i].c_str());
+
+    // store the length of this channel
+    output_channel_lengths[i] = channel_string.length();
+  }
+
   // call KFAST_Init method
   int error_status;
   char error_message[INTERFACE_STRING_LENGTH];
@@ -342,7 +370,8 @@ ModuleKiteFAST::ModuleKiteFAST(unsigned uLabel, const DofOwner *pDO, DataManager
              &n_pylon_outputs,
              pylon_output_nodes.data(),
              &n_output_channels,
-             output_channels_array,
+             output_channel_array.data(),
+             output_channel_lengths,
              &error_status,
              error_message);
   if (error_status >= AbortErrLev)
@@ -434,6 +463,23 @@ void ModuleKiteFAST::BuildComponentBeamArray(DataManager *pDM,
   for (int i = 0; i < beam_count; i++)
   {
     beam_array[i].pBeam = dynamic_cast<Beam *>(pDM->ReadElem(HP, Beam::BEAM));
+  }
+}
+
+void ModuleKiteFAST::BuildComponentOutputArray(MBDynParser &HP,
+                                               const char *keyword,
+                                               integer &n_outputs,
+                                               std::vector<int> &output_nodes)
+{
+  printdebug("BuildComponentOutputArray");
+  printdebug(keyword);
+
+  ValidateInputKeyword(HP, keyword);
+  n_outputs = HP.GetInt();
+  output_nodes.resize(n_outputs);
+  for (int i = 0; i < n_outputs; i++)
+  {
+    output_nodes[i] = HP.GetInt();
   }
 }
 
