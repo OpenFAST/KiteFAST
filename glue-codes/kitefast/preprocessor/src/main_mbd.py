@@ -238,6 +238,18 @@ class MainMBD():
         output.write_line("            {},".format(str(len(self.port_rotors))))
         for i, component in enumerate(self.port_rotors):
             output.write_line("            {}_root_node + 0,".format(component.component_name))
+        output.write_line("        starboard_rotor_properties,")
+        for component in self.starboard_rotors:
+            output.write_line("            {},".format(component.rotor_mass))
+            output.write_line("            {},".format(component.rotor_rot_inertia))
+            output.write_line("            {},".format(component.rotor_trans_inertia))
+            output.write_line("            {},".format(component.rotor_cm_offset))
+        output.write_line("        port_rotor_properties,")
+        for component in self.starboard_rotors:
+            output.write_line("            {},".format(component.rotor_mass))
+            output.write_line("            {},".format(component.rotor_rot_inertia))
+            output.write_line("            {},".format(component.rotor_trans_inertia))
+            output.write_line("            {},".format(component.rotor_cm_offset))
 
         def _write_output_lines(nodes, header):
             output.write_line("        {},".format(header))

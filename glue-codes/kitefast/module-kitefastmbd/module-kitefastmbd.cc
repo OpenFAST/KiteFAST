@@ -258,17 +258,6 @@ ModuleKiteFAST::ModuleKiteFAST(unsigned uLabel, const DofOwner *pDO, DataManager
     node_dcms[9 * i + 8] = rnode.dGet(3, 3);
   }
 
-  // build the node arrays for rotors
-  n_rotor_points = nodes_starrotors.size() + nodes_portrotors.size();
-  rotor_points = new doublereal[3 * n_rotor_points];
-  for (int i = 0; i < n_rotor_points; i++)
-  {
-    Vec3 xcurr = nodes[i + node_count_no_rotors].pNode->GetXCurr();
-    rotor_points[3 * i] = xcurr[0];
-    rotor_points[3 * i + 1] = xcurr[1];
-    rotor_points[3 * i + 2] = xcurr[2];
-  }
-
   // The kite is aligned with the Global Coordinate system
   Mat3x3 mip_dcm = mip_node.pNode->GetRCurr();
   fuselage_dcm[0] = mip_dcm.dGet(1, 1);
@@ -280,6 +269,35 @@ ModuleKiteFAST::ModuleKiteFAST(unsigned uLabel, const DofOwner *pDO, DataManager
   fuselage_dcm[6] = mip_dcm.dGet(3, 1);
   fuselage_dcm[7] = mip_dcm.dGet(3, 2);
   fuselage_dcm[8] = mip_dcm.dGet(3, 3);
+
+  // get the rotor properties (mass, inertia, and cm offset arrays)
+  n_rotor_points = 4 * n_pylons_per_wing;
+  rotor_masses = new doublereal[n_rotor_points];
+  rotor_rotational_inertias = new doublereal[n_rotor_points];
+  rotor_translational_inertias = new doublereal[n_rotor_points];
+  rotor_cm_offsets = new doublereal[n_rotor_points];
+
+  ValidateInputKeyword(HP, "starboard_rotor_properties");
+  for (int i = 0; i < n_rotor_points / 2; i++)
+  {
+    rotor_masses[i] = HP.GetReal();
+    rotor_rotational_inertias[i] = HP.GetReal();
+    rotor_translational_inertias[i] = HP.GetReal();
+    rotor_cm_offsets[3 * i + 0] = HP.GetReal();
+    rotor_cm_offsets[3 * i + 1] = HP.GetReal();
+    rotor_cm_offsets[3 * i + 2] = HP.GetReal();
+  }
+
+  ValidateInputKeyword(HP, "port_rotor_properties");
+  for (int i = n_rotor_points/2; i < n_rotor_points; i++)
+  {
+    rotor_masses[i] = HP.GetReal();
+    rotor_rotational_inertias[i] = HP.GetReal();
+    rotor_translational_inertias[i] = HP.GetReal();
+    rotor_cm_offsets[3 * i + 0] = HP.GetReal();
+    rotor_cm_offsets[3 * i + 1] = HP.GetReal();
+    rotor_cm_offsets[3 * i + 2] = HP.GetReal();
+  }
 
   // call KFAST_Init method
   int error_status;
