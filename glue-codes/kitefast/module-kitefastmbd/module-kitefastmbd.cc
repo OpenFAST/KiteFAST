@@ -374,8 +374,8 @@ void ModuleKiteFAST::SetValue(DataManager *pDM, VectorHandler &X, VectorHandler 
 
 void ModuleKiteFAST::ValidateInputKeyword(MBDynParser &HP, const char *keyword)
 {
-  printdebug("ValidateInputKeyword");
-  silent_cout(keyword << std::endl);
+  printdebug("ValidateInputKeyword - " + std::string(keyword));
+
   if (!HP.IsKeyWord(keyword))
   {
     silent_cerr("Input Error: cannot read keyword " << keyword << std::endl);
@@ -388,8 +388,8 @@ void ModuleKiteFAST::BuildComponentArrays(DataManager *pDM, MBDynParser &HP,
                                           std::vector<KiteFASTNode> &node_array,
                                           std::vector<KiteFASTBeam> &beam_array)
 {
-  printdebug("BuildComponentArrays");
-  printdebug(keyword);
+  printdebug("BuildComponentArrays - " + std::string(keyword));
+
   if (!HP.IsKeyWord(keyword))
   {
     silent_cerr("Runtime Error: cannot read keyword " << keyword << std::endl);
