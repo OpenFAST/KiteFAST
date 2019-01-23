@@ -270,12 +270,21 @@ ModuleKiteFAST::ModuleKiteFAST(unsigned uLabel, const DofOwner *pDO, DataManager
   fuselage_dcm[7] = mip_dcm.dGet(3, 2);
   fuselage_dcm[8] = mip_dcm.dGet(3, 3);
 
-  // get the rotor properties (mass, inertia, and cm offset arrays)
+  // get the rotor properties (points, mass, inertia, and cm offset arrays)
   n_rotor_points = 4 * n_pylons_per_wing;
+  rotor_points = new doublereal[n_rotor_points];
   rotor_masses = new doublereal[n_rotor_points];
   rotor_rotational_inertias = new doublereal[n_rotor_points];
   rotor_translational_inertias = new doublereal[n_rotor_points];
   rotor_cm_offsets = new doublereal[n_rotor_points];
+
+  for (int i = 0; i < n_rotor_points; i++)
+  {
+    Vec3 xcurr = nodes[i + node_count_no_rotors].pNode->GetXCurr();
+    rotor_points[3 * i] = xcurr[0];
+    rotor_points[3 * i + 1] = xcurr[1];
+    rotor_points[3 * i + 2] = xcurr[2];
+  }
 
   ValidateInputKeyword(HP, "starboard_rotor_properties");
   for (int i = 0; i < n_rotor_points / 2; i++)
