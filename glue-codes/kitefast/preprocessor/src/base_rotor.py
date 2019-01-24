@@ -71,15 +71,13 @@ class BaseRotor():
 
         self.bodies = np.array([
 
-            # rotor
+            # rotor - this body should have no mass or inertia as these loads
+            # are computed in kitefast
             Body(
                 identifier=self.nodes[0].id,
                 node=self.nodes[0],
-                mass=self.rotor_mass,
-                cm_offset=self.rotor_cm_offset,
-                Ixx=self.rotor_rot_inertia,
-                Iyy=self.rotor_trans_inertia,
-                Izz=self.rotor_trans_inertia
+                mass=0,
+                cm_offset=self.rotor_cm_offset
             ),
 
             # nacelle
