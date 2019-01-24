@@ -227,6 +227,7 @@ class KiteModel(BaseModel):
 
         # starboard rotors to starboard pylons
         for rotor in self.starboard_rotors:
+            # rotor to pylon
             i = rotor.component_name.split("_")[3]
             ul = rotor.component_name.split("_")[4]
             pylon = self.starboard_pylons[int(i) - 1]
@@ -234,11 +235,14 @@ class KiteModel(BaseModel):
             node1 = pylon.nodes[2 * index]
             node2 = rotor.nodes[0]
             joints.append(_build_joint(TotalJoint, node1, node2, len(joints) + 1))
+
+            # nacelle to pylon
             node2 = rotor.nodes[1]
             joints.append(_build_joint(TotalJoint, node1, node2, len(joints) + 1))
 
         # port rotors to port pylons
         for rotor in self.port_rotors:
+            # rotor to pylon
             i = rotor.component_name.split("_")[3]
             ul = rotor.component_name.split("_")[4]
             pylon = self.port_pylons[int(i) - 1]
@@ -246,6 +250,8 @@ class KiteModel(BaseModel):
             node1 = pylon.nodes[2 * index]
             node2 = rotor.nodes[0]
             joints.append(_build_joint(TotalJoint, node1, node2, len(joints) + 1))
+
+            # nacelle to pylon
             node2 = rotor.nodes[1]
             joints.append(_build_joint(TotalJoint, node1, node2, len(joints) + 1))
         

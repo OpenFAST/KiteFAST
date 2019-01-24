@@ -235,29 +235,23 @@ class Body():
                  identifier,
                  node,
                  mass,
+                 cm_offset=Vec3(0.0, 0.0, 0.0),
                  Ixx=0.0,
-                 Ixy=0.0,
-                 Ixz=0.0,
                  Iyy=0.0,
-                 Iyz=0.0,
                  Izz=0.0):
         self.id = identifier
         self.node = node
         self.mass = mass
+        self.cm_offset = cm_offset
         self.Ixx = Ixx
-        self.Ixy = Ixy
-        self.Ixz = Ixz
         self.Iyy = Iyy
-        self.Iyz = Iyz
         self.Izz = Izz
 
     def __str__(self):
         refid   = "body: {}, {},".format(self.id, self.node.id)
         mass    = "    {},".format(self.mass)
-        ref     = "    reference, node, null,"
-        inertia = "    matr, {}, {}, {},\n".format(self.Ixx, self.Ixy, self.Ixz)
-        inertia += "          {}, {}, {},\n".format(self.Ixy, self.Iyy, self.Iyz)
-        inertia += "          {}, {}, {};".format(self.Ixz, self.Iyz, self.Izz)
+        ref     = "    reference, node, {},".format(self.cm_offset)
+        inertia = "    diag, {}, {}, {};".format(self.Ixx, self.Iyy, self.Izz)
         return "\n".join([refid, mass, ref, inertia])
 
 

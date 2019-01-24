@@ -52,29 +52,20 @@ class BaseRotor():
         self.total_inertia = [r + n for r, n in zip(self.rotor_inertia, self.nacelle_inertia)]
 
         # preprocess nodes
-        self.reference_frame = ReferenceFrame(
-            name=self.component_name + "_reference_frame",
-            reference="mip_rf",
-            absolute_position=self.coordinate_list[0],
-            absolute_orientation_matrix="eye"
-        )
-
         self.nodes = np.array([
 
             # rotor
             StructuralNode(
                 parent_component=self.component_name,
                 root_offset_index=0,
-                reference_frame=self.reference_frame.name,
-                position=self.rotor_cm_offset
+                position=self.coordinate_list[0]
             ),
 
             # nacelle
             StructuralNode(
                 parent_component=self.component_name,
                 root_offset_index=1,
-                reference_frame=self.reference_frame.name,
-                position=self.nacelle_cm_offset
+                position=self.coordinate_list[0]
             )
         ])
 
@@ -85,6 +76,7 @@ class BaseRotor():
                 identifier=self.nodes[0].id,
                 node=self.nodes[0],
                 mass=self.rotor_mass,
+                cm_offset=self.rotor_cm_offset,
                 Ixx=self.rotor_rot_inertia,
                 Iyy=self.rotor_trans_inertia,
                 Izz=self.rotor_trans_inertia
@@ -95,12 +87,10 @@ class BaseRotor():
                 identifier=self.nodes[1].id,
                 node=self.nodes[1],
                 mass=self.nacelle_mass,
+                cm_offset=self.nacelle_cm_offset,
                 Ixx=self.nacelle_inertia[0],
                 Iyy=self.nacelle_inertia[1],
-                Izz=self.nacelle_inertia[2],
-                Ixy=self.nacelle_inertia[3],
-                Ixz=self.nacelle_inertia[4],
-                Iyz=self.nacelle_inertia[5]
+                Izz=self.nacelle_inertia[2]
             )
         ])
 
@@ -117,9 +107,6 @@ class BaseRotor():
             "{}/{}.nodes".format(output_directory, self.component_name))
 
         output.write_line("# Structural nodes for the {}".format(self.component_name))
-        output.write_empty_line()
-        output.write_line("# *** local frame ***")
-        output.write_line(str(self.reference_frame))
         output.write_empty_line()
         output.write_line("# *** nodes ***")
         for n in self.nodes:
