@@ -65,12 +65,18 @@ ModuleKiteFAST::ModuleKiteFAST(unsigned uLabel, const DofOwner *pDO, DataManager
   // parse the kitefast module flags
   // 0 = off, 1 = on
   ValidateInputKeyword(HP, "fast_submodule_flags");
+  integer kitefast_module_flags[4];
   kitefast_module_flags[0] = HP.GetInt(); // kiteaerodyn
   kitefast_module_flags[1] = HP.GetInt(); // inflowwind
   kitefast_module_flags[2] = HP.GetInt(); // moordyn
   kitefast_module_flags[3] = HP.GetInt(); // controller
 
   // parse the kitefast module input files
+  char kiteaerodyn_filename[INTERFACE_STRING_LENGTH];
+  char inflowwind_filename[INTERFACE_STRING_LENGTH];
+  char moordyn_filename[INTERFACE_STRING_LENGTH];
+  char controller_filename[INTERFACE_STRING_LENGTH];
+  char output_file_root[INTERFACE_STRING_LENGTH];
   ValidateInputKeyword(HP, "fast_submodule_input_files");
   strcpy(kiteaerodyn_filename, HP.GetFileName());
   strcpy(inflowwind_filename, HP.GetFileName());
@@ -84,6 +90,11 @@ ModuleKiteFAST::ModuleKiteFAST(unsigned uLabel, const DofOwner *pDO, DataManager
   output_file_name.append("MBD.out");
   InitOutputFile(output_file_name);
 
+  // parse the flag to print the kitefast sunmmary file
+  // 0 = off, 1 = on
+  // TODO: connect this
+  integer print_summary_file = 0;
+
   // parse the initial time
   ValidateInputKeyword(HP, "initial_time");
   initial_time = HP.GetReal();
@@ -94,7 +105,7 @@ ModuleKiteFAST::ModuleKiteFAST(unsigned uLabel, const DofOwner *pDO, DataManager
 
   // parse the gravity
   ValidateInputKeyword(HP, "gravity");
-  gravity = HP.GetReal();
+  doublereal gravity = HP.GetReal();
 
   // parse the ground station location
   ValidateInputKeyword(HP, "ground_weather_station_location");
@@ -104,17 +115,17 @@ ModuleKiteFAST::ModuleKiteFAST(unsigned uLabel, const DofOwner *pDO, DataManager
 
   // parse the component counts
   ValidateInputKeyword(HP, "number_of_flaps_per_wing");
-  n_flaps_per_wing = HP.GetInt();
+  integer n_flaps_per_wing = HP.GetInt();
   ValidateInputKeyword(HP, "number_of_pylons_per_wing");
-  n_pylons_per_wing = HP.GetInt();
+  integer n_pylons_per_wing = HP.GetInt();
 
   // n_components includes all components except the rotors
   ValidateInputKeyword(HP, "number_of_kite_components");
-  n_components = HP.GetInt();
+  integer n_components = HP.GetInt();
 
   // parse the keypoints (aka reference points)
   ValidateInputKeyword(HP, "keypoints");
-  reference_points = new doublereal[3 * n_components];
+  doublereal *reference_points = new doublereal[3 * n_components];
   for (int i = 0; i < n_components; i++)
   {
     reference_points[3 * i] = HP.GetReal();
@@ -213,7 +224,7 @@ ModuleKiteFAST::ModuleKiteFAST(unsigned uLabel, const DofOwner *pDO, DataManager
   }
 
   // number of nodes per kite component excluding rotors
-  component_node_counts = new integer[n_components];
+  integer *component_node_counts = new integer[n_components];
   component_node_counts[0] = nodes_fuselage.size();
   component_node_counts[1] = nodes_starwing.size();
   component_node_counts[2] = nodes_portwing.size();
@@ -235,8 +246,8 @@ ModuleKiteFAST::ModuleKiteFAST(unsigned uLabel, const DofOwner *pDO, DataManager
   {
     node_count_no_rotors += component_node_counts[i];
   }
-  node_points = new doublereal[3 * node_count_no_rotors];
-  node_dcms = new doublereal[9 * node_count_no_rotors];
+  doublereal *node_points = new doublereal[3 * node_count_no_rotors];
+  doublereal *node_dcms = new doublereal[9 * node_count_no_rotors];
 
   for (int i = 0; i < node_count_no_rotors; i++)
   {
@@ -260,6 +271,7 @@ ModuleKiteFAST::ModuleKiteFAST(unsigned uLabel, const DofOwner *pDO, DataManager
 
   // The kite is aligned with the Global Coordinate system
   Mat3x3 mip_dcm = mip_node.pNode->GetRCurr();
+  doublereal fuselage_dcm[9];
   fuselage_dcm[0] = mip_dcm.dGet(1, 1);
   fuselage_dcm[1] = mip_dcm.dGet(1, 2);
   fuselage_dcm[2] = mip_dcm.dGet(1, 3);
@@ -272,11 +284,11 @@ ModuleKiteFAST::ModuleKiteFAST(unsigned uLabel, const DofOwner *pDO, DataManager
 
   // get the rotor properties (points, mass, inertia, and cm offset arrays)
   n_rotor_points = 4 * n_pylons_per_wing;
-  rotor_points = new doublereal[n_rotor_points];
-  rotor_masses = new doublereal[n_rotor_points];
-  rotor_rotational_inertias = new doublereal[n_rotor_points];
-  rotor_translational_inertias = new doublereal[n_rotor_points];
-  rotor_cm_offsets = new doublereal[n_rotor_points];
+  doublereal *rotor_points = new doublereal[3 * n_rotor_points];
+  doublereal *rotor_masses = new doublereal[n_rotor_points];
+  doublereal *rotor_rotational_inertias = new doublereal[n_rotor_points];
+  doublereal *rotor_translational_inertias = new doublereal[n_rotor_points];
+  doublereal *rotor_cm_offsets = new doublereal[3 * n_rotor_points];
 
   for (int i = 0; i < n_rotor_points; i++)
   {
@@ -309,6 +321,19 @@ ModuleKiteFAST::ModuleKiteFAST(unsigned uLabel, const DofOwner *pDO, DataManager
   }
 
   // parse the output information
+  integer n_fuselage_outputs, n_starboard_wing_outputs, n_port_wing_outputs;
+  integer n_vertical_stabilizer_outputs;
+  integer n_starboard_horizontal_stabilizer_outputs, n_port_horizontal_stabilizer_outputs;
+  integer n_pylon_outputs;
+  std::vector<integer> fuselage_output_nodes, starboard_wing_output_nodes, port_wing_output_nodes;
+  std::vector<integer> vertical_stabilizer_output_nodes;
+  std::vector<integer> starboard_horizontal_stabilizer_output_nodes, port_horizontal_stabilizer_output_nodes;
+  std::vector<integer> pylon_output_nodes;
+
+  integer n_output_channels;
+  std::vector<char *> output_channel_array;
+  integer *output_channel_lengths;
+
   BuildComponentOutputArray(HP, "fuselage_outputs", n_fuselage_outputs, fuselage_output_nodes);
   BuildComponentOutputArray(HP, "wing_starboard_outputs", n_starboard_wing_outputs, starboard_wing_output_nodes);
   BuildComponentOutputArray(HP, "wing_port_outputs", n_port_wing_outputs, port_wing_output_nodes);
@@ -317,9 +342,11 @@ ModuleKiteFAST::ModuleKiteFAST(unsigned uLabel, const DofOwner *pDO, DataManager
   BuildComponentOutputArray(HP, "horizontal_stabilizer_port_outputs", n_port_horizontal_stabilizer_outputs, port_horizontal_stabilizer_output_nodes);
   BuildComponentOutputArray(HP, "pylon_outputs", n_pylon_outputs, pylon_output_nodes);
   ValidateInputKeyword(HP, "output_channels");
+
   n_output_channels = HP.GetInt();
 
   // put the output channel names into a vector<string> and convert to vector<char *>
+  std::vector<std::string> output_channel_vector;
   output_channel_vector.resize(n_output_channels);
   output_channel_array.reserve(output_channel_vector.size());
   output_channel_lengths = new integer[n_output_channels];
@@ -388,6 +415,17 @@ ModuleKiteFAST::ModuleKiteFAST(unsigned uLabel, const DofOwner *pDO, DataManager
     printf("error status %d: %s\n", error_status, error_message);
     throw ErrGeneric(MBDYN_EXCEPT_ARGS);
   }
+
+  delete[] reference_points;
+  delete[] component_node_counts;
+  delete[] node_points;
+  delete[] node_dcms;
+  delete[] rotor_points;
+  delete[] rotor_masses;
+  delete[] rotor_rotational_inertias;
+  delete[] rotor_translational_inertias;
+  delete[] rotor_cm_offsets;
+  delete[] output_channel_lengths;
 }
 
 ModuleKiteFAST::~ModuleKiteFAST(void)
@@ -526,7 +564,7 @@ void ModuleKiteFAST::Output(OutputHandler &OH) //const
 
   doublereal current_time = Time.dGet();
   integer n_gauss_load_points = 2 * total_beam_count;
-  doublereal *gauss_point_loads = new doublereal[6 * n_gauss_load_points];
+  doublereal *gauss_point_loads = new doublereal[12 * n_gauss_load_points];
   integer error_status;
   char error_message[INTERFACE_STRING_LENGTH];
 
@@ -553,6 +591,8 @@ void ModuleKiteFAST::Output(OutputHandler &OH) //const
     printf("error status %d: %s\n", error_status, error_message);
     throw ErrGeneric(MBDYN_EXCEPT_ARGS);
   }
+
+  delete[] gauss_point_loads;
 }
 
 int ModuleKiteFAST::iGetNumConnectedNodes(void) const
@@ -594,23 +634,26 @@ void ModuleKiteFAST::_AssRes(doublereal *node_loads, doublereal *rotor_loads)
   }
 
   doublereal t = Time.dGet();
-  first_iteration = 0;  // 0 no - 1 yes
+  integer first_iteration = 0;  // 0 no - 1 yes
   if (t == initial_time) {
     first_iteration = 1;
   }
 
   // fuselage quantities refer to the MIP node
+  doublereal fuselage_position_prev[3];
   Vec3 vec3_fusOprev = mip_node.pNode->GetXPrev();
   fuselage_position_prev[0] = vec3_fusOprev[0];
   fuselage_position_prev[1] = vec3_fusOprev[1];
   fuselage_position_prev[2] = vec3_fusOprev[2];
 
+  doublereal fuselage_position[3];
   Vec3 vec3_fusO = mip_node.pNode->GetXCurr();  
   fuselage_position[0] = vec3_fusO[0];
   fuselage_position[1] = vec3_fusO[1];
   fuselage_position[2] = vec3_fusO[2];
 
   Mat3x3 fus0_dcm_prev = mip_node.pNode->GetRPrev();
+  doublereal fuselage_dcm_prev[9];
   fuselage_dcm_prev[0] = fus0_dcm_prev.dGet(1, 1);
   fuselage_dcm_prev[1] = fus0_dcm_prev.dGet(1, 2);
   fuselage_dcm_prev[2] = fus0_dcm_prev.dGet(1, 3);
@@ -622,6 +665,7 @@ void ModuleKiteFAST::_AssRes(doublereal *node_loads, doublereal *rotor_loads)
   fuselage_dcm_prev[8] = fus0_dcm_prev.dGet(3, 3);
 
   Mat3x3 fus0_dcm = mip_node.pNode->GetRCurr();
+  doublereal fuselage_dcm[9];
   fuselage_dcm[0] = fus0_dcm.dGet(1, 1);
   fuselage_dcm[1] = fus0_dcm.dGet(1, 2);
   fuselage_dcm[2] = fus0_dcm.dGet(1, 3);
@@ -632,44 +676,53 @@ void ModuleKiteFAST::_AssRes(doublereal *node_loads, doublereal *rotor_loads)
   fuselage_dcm[7] = fus0_dcm.dGet(3, 2);
   fuselage_dcm[8] = fus0_dcm.dGet(3, 3);
 
+  doublereal fuselage_vels_prev[3];
   Vec3 vec3_FusOv_prev = mip_node.pNode->GetVPrev();
   fuselage_vels_prev[0] = vec3_FusOv_prev[0];
   fuselage_vels_prev[1] = vec3_FusOv_prev[1];
   fuselage_vels_prev[2] = vec3_FusOv_prev[2];
 
+  doublereal fuselage_vels[3];
   Vec3 vec3_FusOv = mip_node.pNode->GetVCurr();
   fuselage_vels[0] = vec3_FusOv[0];
   fuselage_vels[1] = vec3_FusOv[1];
   fuselage_vels[2] = vec3_FusOv[2];
 
+  doublereal fuselage_omegas_prev[3];
   Vec3 vec3_FusOomegas_prev = mip_node.pNode->GetWPrev();
   fuselage_omegas_prev[0] = vec3_FusOomegas_prev[0];
   fuselage_omegas_prev[1] = vec3_FusOomegas_prev[1];
   fuselage_omegas_prev[2] = vec3_FusOomegas_prev[2];
 
+  doublereal fuselage_omegas[3];
   Vec3 vec3_FusOomegas = mip_node.pNode->GetWCurr();
   fuselage_omegas[0] = vec3_FusOomegas[0];
   fuselage_omegas[1] = vec3_FusOomegas[1];
   fuselage_omegas[2] = vec3_FusOomegas[2];
 
+  doublereal fuselage_accs_prev[3];
   Vec3 vec3_FusOacc_prev = mip_node.pNode->GetXPPPrev();
   fuselage_accs_prev[0] = vec3_FusOacc_prev[0];
   fuselage_accs_prev[1] = vec3_FusOacc_prev[1];
   fuselage_accs_prev[2] = vec3_FusOacc_prev[2];
 
+  doublereal fuselage_accs[3];
   Vec3 vec3_FusOacc = mip_node.pNode->GetXPPCurr();
   fuselage_accs[0] = vec3_FusOacc[0];
   fuselage_accs[1] = vec3_FusOacc[1];
   fuselage_accs[2] = vec3_FusOacc[2];
 
+  doublereal fuselage_alphas[3];
   Vec3 vec3_FusOalphas = mip_node.pNode->GetWPCurr();
   fuselage_alphas[0] = vec3_FusOalphas[0];
   fuselage_alphas[1] = vec3_FusOalphas[1];
   fuselage_alphas[2] = vec3_FusOalphas[2];
 
-  node_vels = new doublereal[3 * node_count_no_rotors];
-  node_omegas = new doublereal[3 * node_count_no_rotors];
-  node_accs = new doublereal[3 * node_count_no_rotors];
+  doublereal *node_points = new doublereal[3 * node_count_no_rotors];
+  doublereal *node_dcms = new doublereal[9 * node_count_no_rotors];
+  doublereal *node_vels = new doublereal[3 * node_count_no_rotors];
+  doublereal *node_omegas = new doublereal[3 * node_count_no_rotors];
+  doublereal *node_accs = new doublereal[3 * node_count_no_rotors];
   for (int i = 0; i < node_count_no_rotors; i++)
   {
     Vec3 xcurr = nodes[i].pNode->GetXCurr();
@@ -705,11 +758,12 @@ void ModuleKiteFAST::_AssRes(doublereal *node_loads, doublereal *rotor_loads)
     node_accs[3 * i + 2] = acc_curr[2];
   }
 
-  rotor_dcms = new doublereal[9 * n_rotor_points];
-  rotor_vels = new doublereal[3 * n_rotor_points];
-  rotor_omegas = new doublereal[3 * n_rotor_points];
-  rotor_accs = new doublereal[3 * n_rotor_points];
-  rotor_alphas = new doublereal[3 * n_rotor_points];
+  doublereal *rotor_points = new doublereal[3 * n_rotor_points];
+  doublereal *rotor_dcms = new doublereal[9 * n_rotor_points];
+  doublereal *rotor_vels = new doublereal[3 * n_rotor_points];
+  doublereal *rotor_omegas = new doublereal[3 * n_rotor_points];
+  doublereal *rotor_accs = new doublereal[3 * n_rotor_points];
+  doublereal *rotor_alphas = new doublereal[3 * n_rotor_points];
   for (int i = 0; i < n_rotor_points; i++)
   {
     Vec3 xcurr = nodes[i + node_count_no_rotors].pNode->GetXCurr();
@@ -789,12 +843,17 @@ void ModuleKiteFAST::_AssRes(doublereal *node_loads, doublereal *rotor_loads)
     throw ErrGeneric(MBDYN_EXCEPT_ARGS);
   }
 
+  delete[] node_points;
+  delete[] node_dcms;
   delete[] node_vels;
   delete[] node_omegas;
+  delete[] node_accs;
+  delete[] rotor_points;
   delete[] rotor_dcms;
   delete[] rotor_vels;
   delete[] rotor_omegas;
   delete[] rotor_accs;
+  delete[] rotor_alphas;
 }
 
 SubVectorHandler &ModuleKiteFAST::AssRes(SubVectorHandler &WorkVec, doublereal dCoef, const VectorHandler &XCurr, const VectorHandler &XPrimeCurr)
@@ -803,10 +862,10 @@ SubVectorHandler &ModuleKiteFAST::AssRes(SubVectorHandler &WorkVec, doublereal d
 
   // get the loads from KFAST_AssRes and apply to the mbdyn model
   integer n_node_loads = 6 * node_count_no_rotors;  // force and moment components for each node
-  node_loads = new doublereal[n_node_loads];
+  doublereal *node_loads = new doublereal[n_node_loads];
 
   integer n_rotor_loads = 6 * n_rotor_points;  // force and moment components for each rotor node
-  rotor_loads = new doublereal[n_rotor_loads];
+  doublereal *rotor_loads = new doublereal[n_rotor_loads];
 
   _AssRes(node_loads, rotor_loads);
 

@@ -177,81 +177,87 @@ private:
 
   // KFAST_Init interface variables
   doublereal time_step;                                               // dt
-  integer n_flaps_per_wing;                                           // numFlaps
-  integer n_pylons_per_wing;                                          // numPylons
-  integer n_components;                                               // numComp
-  integer *component_node_counts;                                     // numCompNds
-  integer kitefast_module_flags[4];                                   // modFlags
-  char kiteaerodyn_filename[INTERFACE_STRING_LENGTH];                 // KAD_FileName
-  char inflowwind_filename[INTERFACE_STRING_LENGTH];                  // IfW_FileName
-  char moordyn_filename[INTERFACE_STRING_LENGTH];                     // MD_FileName
-  char controller_filename[INTERFACE_STRING_LENGTH];                  // KFC_FileName
-  char output_file_root[INTERFACE_STRING_LENGTH];                     // outFileRoot
-  integer print_summary_file;                                         // printSum
-  doublereal gravity;                                                 // gravity
+  // integer n_flaps_per_wing;                                           // numFlaps
+  // integer n_pylons_per_wing;                                          // numPylons
+  // integer n_components;                                               // numComp
+  // integer *component_node_counts;                                     // numCompNds
+  // integer kitefast_module_flags[4];                                   // modFlags
+  // char kiteaerodyn_filename[INTERFACE_STRING_LENGTH];                 // KAD_FileName
+  // char inflowwind_filename[INTERFACE_STRING_LENGTH];                  // IfW_FileName
+  // char moordyn_filename[INTERFACE_STRING_LENGTH];                     // MD_FileName
+  // char controller_filename[INTERFACE_STRING_LENGTH];                  // KFC_FileName
+  // char output_file_root[INTERFACE_STRING_LENGTH];                     // outFileRoot
+  // integer print_summary_file;                                         // printSum
+  // doublereal gravity;                                                 // gravity
   doublereal ground_station_point[3];                                 // windPt
-  doublereal fuselage_dcm[9];                                         // FusODCM
+  // doublereal fuselage_dcm[9];                                         // FusODCM
   integer n_rotor_points;                                             // numRtrPts
-  doublereal *rotor_points;                                           // rtrPts
-  doublereal *rotor_masses;                                           // rtrMass
-  doublereal *rotor_rotational_inertias;                              // rtrI_Rot
-  doublereal *rotor_translational_inertias;                           // rtrI_trans
-  doublereal *rotor_cm_offsets;                                       // rtrXcm
-  doublereal *reference_points;                                       // refPts
+  // doublereal *rotor_points;                                           // rtrPts
+  // doublereal *rotor_masses;                                           // rtrMass
+  // doublereal *rotor_rotational_inertias;                              // rtrI_Rot
+  // doublereal *rotor_translational_inertias;                           // rtrI_trans
+  // doublereal *rotor_cm_offsets;                                       // rtrXcm
+  // doublereal *reference_points;                                       // refPts
   integer node_count_no_rotors;                                       // numNodePts
-  doublereal *node_points;                                            // nodePts
-  doublereal *node_dcms;                                              // nodeDCMs
-  integer n_fuselage_outputs;                                         // nFusOuts
-  std::vector<integer> fuselage_output_nodes;                         // FusOutNd
-  integer n_starboard_wing_outputs;                                   // nSWnOuts
-  std::vector<integer> starboard_wing_output_nodes;                   // SWnOutNd
-  integer n_port_wing_outputs;                                        // nPWnOuts
-  std::vector<integer> port_wing_output_nodes;                        // PWnOutNd
-  integer n_vertical_stabilizer_outputs;                              // nVSOuts
-  std::vector<integer> vertical_stabilizer_output_nodes;              // VSOutNd
-  integer n_starboard_horizontal_stabilizer_outputs;                  // nSHSOuts
-  std::vector<integer> starboard_horizontal_stabilizer_output_nodes;  // SHSOutNd
-  integer n_port_horizontal_stabilizer_outputs;                       // nPHSOuts
-  std::vector<integer> port_horizontal_stabilizer_output_nodes;       // PHSOutNd
-  integer n_pylon_outputs;                                            // nPylOuts
-  std::vector<integer> pylon_output_nodes;                            // PylOutNd
-  integer n_output_channels;                                          // numOutChan
-  std::vector<char *> output_channel_array;                           // chanList
-  integer *output_channel_lengths;                                    // ChanList_len
+  // doublereal *node_points;                                            // nodePts
+  // doublereal *node_dcms;                                              // nodeDCMs
+  // integer n_fuselage_outputs;                                         // nFusOuts
+  // std::vector<integer> fuselage_output_nodes;                         // FusOutNd
+  // integer n_starboard_wing_outputs;                                   // nSWnOuts
+  // std::vector<integer> starboard_wing_output_nodes;                   // SWnOutNd
+  // integer n_port_wing_outputs;                                        // nPWnOuts
+  // std::vector<integer> port_wing_output_nodes;                        // PWnOutNd
+  // integer n_vertical_stabilizer_outputs;                              // nVSOuts
+  // std::vector<integer> vertical_stabilizer_output_nodes;              // VSOutNd
+  // integer n_starboard_horizontal_stabilizer_outputs;                  // nSHSOuts
+  // std::vector<integer> starboard_horizontal_stabilizer_output_nodes;  // SHSOutNd
+  // integer n_port_horizontal_stabilizer_outputs;                       // nPHSOuts
+  // std::vector<integer> port_horizontal_stabilizer_output_nodes;       // PHSOutNd
+  // integer n_pylon_outputs;                                            // nPylOuts
+  // std::vector<integer> pylon_output_nodes;                            // PylOutNd
+  // integer n_output_channels;                                          // numOutChan
+  // std::vector<char *> output_channel_array;                           // chanList
+  // integer *output_channel_lengths;                                    // ChanList_len
   // error_status                                                        errStat - local variable
   // error message                                                       errMsg - local variable
 
+  /*
+assres
+node_loads
+rotor_loads
+*/
+
   // KFAST_AssRes interface variables
   // commented variables are already declared above
-  doublereal t;                          // t
-  integer first_iteration;               // isInitialTime
+  // doublereal t;                          // t
+  // integer first_iteration;               // isInitialTime
   // doublereal ground_station_point[3]; // WindPt
-  doublereal fuselage_position_prev[3];  // FusO_prev
-  doublereal fuselage_position[3];       // FusO
-  doublereal fuselage_dcm_prev[9];       // FusODCM_prev
+  // doublereal fuselage_position_prev[3];  // FusO_prev
+  // doublereal fuselage_position[3];       // FusO
+  // doublereal fuselage_dcm_prev[9];       // FusODCM_prev
   // doublereal fuselage_dcm[9];         // FusODCM
-  doublereal fuselage_vels_prev[3];      // FusOv_prev
-  doublereal fuselage_vels[3];           // FusOv
-  doublereal fuselage_omegas_prev[3];    // FusOomegas_prev
-  doublereal fuselage_omegas[3];         // FusOomegas
-  doublereal fuselage_accs_prev[3];      // FusOacc_prev
-  doublereal fuselage_accs[3];           // FusOacc
-  doublereal fuselage_alphas[3];         // FusOalphas
+  // doublereal fuselage_vels_prev[3];      // FusOv_prev
+  // doublereal fuselage_vels[3];           // FusOv
+  // doublereal fuselage_omegas_prev[3];    // FusOomegas_prev
+  // doublereal fuselage_omegas[3];         // FusOomegas
+  // doublereal fuselage_accs_prev[3];      // FusOacc_prev
+  // doublereal fuselage_accs[3];           // FusOacc
+  // doublereal fuselage_alphas[3];         // FusOalphas
   // integer node_count_no_rotors;       // numNodePts
   // doublereal *node_points;            // nodePts
   // doublereal *node_dcms;              // nodeDCMs
-  doublereal *node_vels;                 // nodeVels
-  doublereal *node_omegas;               // nodeOmegas
-  doublereal *node_accs;                 // nodeAccs
+  // doublereal *node_vels;                 // nodeVels
+  // doublereal *node_omegas;               // nodeOmegas
+  // doublereal *node_accs;                 // nodeAccs
   // integer n_rotor_points;             // numRtrPts
   // doublereal *rotor_points;           // rtrPts
-  doublereal *rotor_dcms;                // nodeDCMs
-  doublereal *rotor_vels;                // nodeVels
-  doublereal *rotor_omegas;              // rtrOmegas
-  doublereal *rotor_accs;                // rtrAccs
-  doublereal *rotor_alphas;              // rtrAlphas
-  doublereal *node_loads;                // nodeLoads
-  doublereal *rotor_loads;               // rtrLoads
+  // doublereal *rotor_dcms;                // nodeDCMs
+  // doublereal *rotor_vels;                // nodeVels
+  // doublereal *rotor_omegas;              // rtrOmegas
+  // doublereal *rotor_accs;                // rtrAccs
+  // doublereal *rotor_alphas;              // rtrAlphas
+  // doublereal *node_loads;                // nodeLoads
+  // doublereal *rotor_loads;               // rtrLoads
   // error_status                           errStat - local variable
   // error message                          errMsg - local variable
 
@@ -289,7 +295,7 @@ private:
   std::vector< std::vector<KiteFASTBeam> > beams_portpylons;
   std::vector<KiteFASTBeam> beams_throwaway;
 
-  std::vector<std::string> output_channel_vector;
+  // std::vector<std::string> output_channel_vector;
   mutable std::ofstream outputfile;
   DriveOwner Time;
   const DataManager *data_manager;
