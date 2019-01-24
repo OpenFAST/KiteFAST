@@ -370,7 +370,7 @@ RtrRad    RtrInFile
 1.15      "simple_actuator_disk.dat"          ! PBO
 --- OUTPUT ---
 True                             SumPrint           Print summary data to <RootName>.sum? (flag)
-1                                OutSwtch           Output requested channels to? (-) (switch) {1=KiteAeroDyn.out, 2=GlueCode.out, 3=both files]
+2                                OutSwtch           Output requested channels to? (-) (switch) {1=KiteAeroDyn.out, 2=GlueCode.out, 3=both files]
 "ES10.3E2"                       OutFmt             Format used for text tabular output, excluding the time channel; resulting field should be 10 characters (string)
 9                                NFusOuts           Number of fuselage                        node outputs (-) [0 to 9]
 2, 4, 6, 7, 10, 12, 14, 16, 18   FusOutNd           List of fuselage                        nodes whose values will be output (-) [1 to NFusOuts] [unused for NFusOuts=0]
