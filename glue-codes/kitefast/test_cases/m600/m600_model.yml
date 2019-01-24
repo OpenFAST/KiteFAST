@@ -16,7 +16,7 @@ simulation_controls:
 
     fast_submodule_input_files:
         kiteaerodyn_input: "simple_m600_model.inp"
-        inflowwind_input: "path/to/file"
+        inflowwind_input: "kiteInflowWind.dat"
         moordyn_input: "path/to/file"
         controller_input: "path/to/file"
 
