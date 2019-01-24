@@ -410,6 +410,9 @@ ModuleKiteFAST::ModuleKiteFAST(unsigned uLabel, const DofOwner *pDO, DataManager
              output_channel_lengths,
              &error_status,
              error_message);
+  printdebug("KFAST_Init error");
+  printdebug("    status: " + std::to_string(error_status) + ";");
+  printdebug("    message: " + std::string(error_message) + ";");
   if (error_status >= AbortErrLev)
   {
     printf("error status %d: %s\n", error_status, error_message);
@@ -435,6 +438,9 @@ ModuleKiteFAST::~ModuleKiteFAST(void)
   int error_status;
   char error_message[INTERFACE_STRING_LENGTH];
   KFAST_End(&error_status, error_message);
+  printdebug("KFAST_End error");
+  printdebug("    status: " + std::to_string(error_status) + ";");
+  printdebug("    message: " + std::string(error_message) + ";");
   if (error_status >= AbortErrLev)
   {
     printf("error status %d: %s\n", error_status, error_message);
@@ -586,6 +592,9 @@ void ModuleKiteFAST::Output(OutputHandler &OH) //const
   }
 
   KFAST_Output(&current_time, &n_gauss_load_points, gauss_point_loads, &error_status, error_message);
+  printdebug("KFAST_Output error");
+  printdebug("    status: " + std::to_string(error_status) + ";");
+  printdebug("    message: " + std::string(error_message) + ";");
   if (error_status >= AbortErrLev)
   {
     printf("error status %d: %s\n", error_status, error_message);
@@ -837,6 +846,9 @@ void ModuleKiteFAST::_AssRes(doublereal *node_loads, doublereal *rotor_loads)
                rotor_loads,
                &error_status,
                error_message);
+  printdebug("KFAST_AssRes error");
+  printdebug("    status: " + std::to_string(error_status) + ";");
+  printdebug("    message: " + std::string(error_message) + ";");
   if (error_status >= AbortErrLev)
   {
     printf("error status %d: %s\n", error_status, error_message);
@@ -921,6 +933,9 @@ void ModuleKiteFAST::AfterPredict(VectorHandler &X, VectorHandler &XP)
   int error_status;
   char error_message[INTERFACE_STRING_LENGTH];
   KFAST_AfterPredict(&error_status, error_message);
+  printdebug("KFAST_AfterPredict error");
+  printdebug("    status: " + std::to_string(error_status) + ";");
+  printdebug("    message: " + std::string(error_message) + ";");
   if (error_status >= AbortErrLev)
   {
     printf("error status %d: %s\n", error_status, error_message);
