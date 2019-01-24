@@ -2448,11 +2448,11 @@ SUBROUTINE KAD_OpenOutput( ProgVer, OutRootName,  p, InitOut, ErrStat, ErrMsg )
       
       Frmt = '(A8,'//TRIM(Int2LStr(p%NumOuts))//'(:,A,'//TRIM( p%OutSFmt )//'))'
    
-      WRITE(p%UnOutFile,Frmt, IOSTAT=ErrStat2)  TRIM( 'Time' ), ( p%Delim, TRIM( InitOut%WriteOutputHdr(I) ), I=1,p%NumOuts )
+      WRITE(p%UnOutFile,Frmt, IOSTAT=ErrStat2)  TRIM( 'Time' ), ( p%Delim, TRIM( p%OutParam(I)%Name ), I=1,p%NumOuts )
                         
       
          ! Write the units of the output parameters:                 
-      WRITE(p%UnOutFile,Frmt, IOSTAT=ErrStat2)  TRIM( 's'), ( p%Delim, TRIM( InitOut%WriteOutputUnt(I) ), I=1,p%NumOuts )
+      WRITE(p%UnOutFile,Frmt, IOSTAT=ErrStat2)  TRIM( 's'), ( p%Delim, TRIM( p%OutParam(I)%Units ), I=1,p%NumOuts )
                      
    
       
@@ -4042,17 +4042,18 @@ subroutine KAD_Init( InitInp, u, p, y, interval, x, xd, z, OtherState, m, InitOu
       p%Delim = ' '
    END IF
 
-   CALL AllocAry( InitOut%WriteOutputHdr, p%NumOuts, 'WriteOutputHdr', ErrStat, ErrMsg )
-      IF (ErrStat >= AbortErrLev) RETURN
-   CALL AllocAry( InitOut%WriteOutputUnt, p%NumOuts, 'WriteOutputUnt', ErrStat, ErrMsg )
+   if ( p%OutSwtch == 2 .or. p%OutSwtch == 3 ) then
+      CALL AllocAry( InitOut%WriteOutputHdr, p%NumOuts, 'WriteOutputHdr', ErrStat, ErrMsg )
+         IF (ErrStat >= AbortErrLev) RETURN
+      CALL AllocAry( InitOut%WriteOutputUnt, p%NumOuts, 'WriteOutputUnt', ErrStat, ErrMsg )
       
-      IF (ErrStat >= AbortErrLev) RETURN
-
-   do i=1,p%NumOuts
-      InitOut%WriteOutputHdr(i) = p%OutParam(i)%Name
-      InitOut%WriteOutputUnt(i) = p%OutParam(i)%Units
-   end do
-
+         IF (ErrStat >= AbortErrLev) RETURN
+      
+      do i=1,p%NumOuts
+         InitOut%WriteOutputHdr(i) = p%OutParam(i)%Name
+         InitOut%WriteOutputUnt(i) = p%OutParam(i)%Units
+      end do
+   end if
    
    ! Open and initialize the output file/data
    p%OutFileRoot = InitInp%OutFileRoot
@@ -4070,7 +4071,8 @@ subroutine KAD_Init( InitInp, u, p, y, interval, x, xd, z, OtherState, m, InitOu
    !----------------------------------
    ! Initialize the VSM module
    !----------------------------------  
-   VSM_InitInp%OutRootname = 'Kite_Test' 
+   VSM_InitInp%OutRootname = p%OutFileRoot 
+   VSM_InitInp%OutSwtch    = p%OutSwtch
    VSM_InitInp%AirDens     = InitInp%InpFileData%AirDens
    VSM_InitInp%KinVisc     = InitInp%InpFileData%KinVisc
    VSM_InitInp%LiftMod     = InitInp%InpFileData%LiftMod

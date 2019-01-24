@@ -1017,7 +1017,7 @@ subroutine VSM_Init( InitInp, u, p, z, Otherstate, m, y, interval, InitOut, errS
    p%OutFmt   = "ES11.4e2"
    p%OutSFmt  = "A11"
    p%OutRootName = InitInp%OutRootName
-   p%OutSwtch = 1
+   p%OutSwtch = InitInp%OutSwtch
    p%Delim    = ''
    
    call AllocAry( InitOut%WriteOutputUnt, p%NumOuts, 'InitOut%WriteOutputUnt' , errStat2, errMsg2 )   
@@ -1077,9 +1077,10 @@ subroutine VSM_Init( InitInp, u, p, z, Otherstate, m, y, interval, InitOut, errS
       count = count + 1
    end do
    
-
-   call VSM_OpenOutput( VSM_Ver%Name, InitInp%OutRootName, p, InitOut, ErrStat, ErrMsg )
-
+   if ( p%OutSwtch == 1 .OR. p%OutSwtch == 3 ) then
+      call VSM_OpenOutput( VSM_Ver%Name, InitInp%OutRootName, p, InitOut, ErrStat, ErrMsg )
+   end if
+   
 end subroutine VSM_Init
 !==============================================================================                                  
 
@@ -1195,8 +1196,10 @@ subroutine VSM_CalcOutput( t, n, u, p, z, OtherState, m, y, errStat, errMsg )
       y%Loads(6,i) =  moments(3)
 
    end do
-
-   call VSM_WriteOutputs( p%UnOutFile, t, y, p, errStat, errMsg )
+   
+   if ( p%OutSwtch == 1 .OR. p%OutSwtch == 3 ) then
+      call VSM_WriteOutputs( p%UnOutFile, t, y, p, errStat, errMsg )
+   end if
    
 end subroutine VSM_CalcOutput
 !----------------------------------------------------------------------------------------------------------------------------------
