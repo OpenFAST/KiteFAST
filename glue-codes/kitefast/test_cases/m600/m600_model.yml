@@ -20,6 +20,9 @@ simulation_controls:
         moordyn_input: "path/to/file"
         controller_input: "path/to/file"
 
+    print_kitefast_summary_file:
+        false
+
     time:
         timestep:
             1e-3

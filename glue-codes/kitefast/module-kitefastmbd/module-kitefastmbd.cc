@@ -90,10 +90,10 @@ ModuleKiteFAST::ModuleKiteFAST(unsigned uLabel, const DofOwner *pDO, DataManager
   output_file_name.append("MBD.out");
   InitOutputFile(output_file_name);
 
-  // parse the flag to print the kitefast sunmmary file
+  // parse the flag to print the kitefast summary file
   // 0 = off, 1 = on
-  // TODO: connect this
-  integer print_summary_file = 0;
+  ValidateInputKeyword(HP, "print_kitefast_summary_file");
+  integer print_summary_file = HP.GetInt();
 
   // parse the initial time
   ValidateInputKeyword(HP, "initial_time");
