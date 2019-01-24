@@ -5854,7 +5854,7 @@ SUBROUTINE KFAST_SetOutParam(OutList, NumOuts, p, ErrStat, ErrMsg )
       InvalidOutput( PHSMRs(i) ) =  .TRUE.
    end do   
    do j = 1, min(p%NumPylons,2)  ! Currently only programmed for up to 2 pylon's worth of outputs
-      do i = 1, p%NPylOuts+1, 9          
+      do i = p%NPylOuts+1, 9          
          InvalidOutput( SPTDx(i,j) ) =  .TRUE.
          InvalidOutput( SPTDy(i,j) ) =  .TRUE.
          InvalidOutput( SPTDz(i,j) ) =  .TRUE.
