@@ -198,8 +198,6 @@ class MainMBD():
         output.write_line("            \"KiteFast\",")
         output.write_line("        print_kitefast_summary_file,")
         output.write_line("            {},".format(1 if self.print_kitefast_summary_file is True else 0))
-        output.write_line("        initial_time,")
-        output.write_line("            0.0,")
         output.write_line("        time_step,")
         output.write_line("            {},".format(self.timestep))
         output.write_line("        gravity,")

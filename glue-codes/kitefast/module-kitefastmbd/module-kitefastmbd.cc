@@ -62,6 +62,9 @@ ModuleKiteFAST::ModuleKiteFAST(unsigned uLabel, const DofOwner *pDO, DataManager
 
   // *** input parsing ***
 
+  // set this variable for use in AssRes
+  first_iteration = 1;
+
   // parse the kitefast module flags
   // 0 = off, 1 = on
   ValidateInputKeyword(HP, "fast_submodule_flags");
@@ -94,10 +97,6 @@ ModuleKiteFAST::ModuleKiteFAST(unsigned uLabel, const DofOwner *pDO, DataManager
   // 0 = off, 1 = on
   ValidateInputKeyword(HP, "print_kitefast_summary_file");
   integer print_summary_file = HP.GetInt();
-
-  // parse the initial time
-  ValidateInputKeyword(HP, "initial_time");
-  initial_time = HP.GetReal();
 
   // parse the time step
   ValidateInputKeyword(HP, "time_step");
@@ -643,10 +642,6 @@ void ModuleKiteFAST::_AssRes(doublereal *node_loads, doublereal *rotor_loads)
   }
 
   doublereal t = Time.dGet();
-  integer first_iteration = 0;  // 0 no - 1 yes
-  if (t == initial_time) {
-    first_iteration = 1;
-  }
 
   // fuselage quantities refer to the MIP node
   doublereal fuselage_position_prev[3];
@@ -846,6 +841,10 @@ void ModuleKiteFAST::_AssRes(doublereal *node_loads, doublereal *rotor_loads)
                rotor_loads,
                &error_status,
                error_message);
+  
+  // After the first call to AssRes, set this to NO - 0
+  first_iteration = 0;
+  
   printdebug("KFAST_AssRes error");
   printdebug("    status: " + std::to_string(error_status) + ";");
   printdebug("    message: " + std::string(error_message) + ";");
