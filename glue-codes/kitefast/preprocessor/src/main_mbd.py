@@ -165,7 +165,7 @@ class MainMBD():
         for rotor in self.starboard_rotors + self.port_rotors:
             output.write_line("    include: \"{}.nodes\";".format(rotor.component_name))
         output.write_line("    structural: 1, dummy,")
-        output.write_line("        fuselage_root_node + {}, offset, 0, 0, 0, eye;".format(self.mip_index))
+        output.write_line("        fuselage_root_node + {}, offset, {}, eye;".format(self.mip_index, self.fuselage.nodes[self.mip_index].position * -1))
         output.write_line("end: nodes;")
         output.write_empty_line()
         output.write_empty_line()
