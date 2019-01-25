@@ -24,11 +24,6 @@ import numpy as np
 class BaseComponent():
     def __init__(self, component_name, model_dict, interpolator, mbdyn_ref_index, primary_axis):
 
-        # constants
-        self.negativex = Vec3(-1.0,  0.0,  0.0)
-        self.negativey = Vec3(0.0, -1.0,  0.0)
-        self.negativez = Vec3(0.0,  0.0, -1.0)
-
         # inputs
         self.component_name = component_name
         self.mbdyn_ref_index = mbdyn_ref_index  # starting index for nodes, beams
@@ -101,7 +96,7 @@ class BaseComponent():
         # place the point masses on the nodes and give the added nodes 0 point mass
         self.nodal_point_masses = [self.point_mass[0]]
         for i in range(1, len(self.point_mass)):
-            self.nodal_point_masses.append(0)
+            self.nodal_point_masses.append(0.0)
             self.nodal_point_masses.append(self.point_mass[i])
 
         # calculate the total center of mass
@@ -113,7 +108,7 @@ class BaseComponent():
         cg_x /= self.total_mass
         cg_y /= self.total_mass
         cg_z /= self.total_mass
-        self.center_of_mass = Vec3(cg_x, cg_y, cg_z)
+        self.center_of_mass = Vec3(cg_x, cg_y, cg_z) - self.mip
 
     def _preprocess_nodes(self):
         # add the midpoint nodes for the elements

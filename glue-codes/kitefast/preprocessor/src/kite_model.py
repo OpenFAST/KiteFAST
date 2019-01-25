@@ -36,6 +36,7 @@ class KiteModel(BaseModel):
         super().__init__()
 
         # constants
+        self.title = simulation_dict["title"]
         initial_conditions = simulation_dict["initial_conditions"]
         self.mip_reference_frame = ReferenceFrame(
             name="mip_rf",
@@ -78,9 +79,9 @@ class KiteModel(BaseModel):
         self.fuselage = self.components[0]
         self.starboard_wing = self.components[1]
         self.port_wing = self.components[2]
-        self.starboard_hstab = self.components[3]
-        self.port_hstab = self.components[4]
-        self.vstab = self.components[5]
+        self.vstab = self.components[3]
+        self.starboard_hstab = self.components[4]
+        self.port_hstab = self.components[5]
         self.starboard_pylons = self.components[6]
         self.port_pylons = self.components[7]
         self.starboard_rotors = self.components[8]
@@ -124,9 +125,9 @@ class KiteModel(BaseModel):
         fuselage = _build_component(Fuselage, ["fuselage"], 1000)
         starboard_wing = _build_component(Wing, ["wing", "starboard"], 2000)
         port_wing = _build_component(Wing, ["wing", "port"], 3000)
+        vstab = _build_component(VerticalStabilizer, ["vertical_stabilizer"], 6000)
         starboard_hstab = _build_component(HorizontalStabilizer, ["horizontal_stabilizer", "starboard"], 4000)
         port_hstab = _build_component(HorizontalStabilizer, ["horizontal_stabilizer", "port"], 5000)
-        vstab = _build_component(VerticalStabilizer, ["vertical_stabilizer"], 6000)
 
         # pylons
         mbdyn_ref_index = 10000
@@ -162,7 +163,7 @@ class KiteModel(BaseModel):
             rotor = _build_component(RotorAssembly, ["rotor_assembly", "port", i + 1, "lower"], mbdyn_ref_index + 10)
             port_rotors.append(rotor)
 
-        return fuselage, starboard_wing, port_wing, starboard_hstab, port_hstab, vstab, starboard_pylons, port_pylons, starboard_rotors, port_rotors
+        return fuselage, starboard_wing, port_wing, vstab, starboard_hstab, port_hstab, starboard_pylons, port_pylons, starboard_rotors, port_rotors
 
     def _build_joints(self):
 

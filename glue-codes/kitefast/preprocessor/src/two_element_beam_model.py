@@ -28,6 +28,7 @@ class TwoElementBeamModel(BaseModel):
         super().__init__()
 
         # constants
+        self.title = simulation_dict["title"]
         initial_conditions = simulation_dict["initial_conditions"]
         self.mip_reference_frame = ReferenceFrame(
             name="mip_rf",
