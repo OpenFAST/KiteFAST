@@ -90,3 +90,20 @@ class BaseModel():
         info_file.write_line("      reported above may not match what is reported in MBDyn.")
 
         info_file.end()
+
+class ModelException(Exception):
+    """
+    Exception raised for modeling errors.
+
+    Attributes:
+        component -- the preprocessor component type which contains the error
+        message -- explanation of the error
+    """
+
+    def __init__(self, component, message):
+        super().__init__(message)
+        self.component = component
+        self.message = message
+
+    def __str__(self):
+        return "Error in {}: {}".format(self.component.component_name, self.message)
