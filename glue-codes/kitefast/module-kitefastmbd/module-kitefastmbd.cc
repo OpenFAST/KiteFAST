@@ -269,17 +269,17 @@ ModuleKiteFAST::ModuleKiteFAST(unsigned uLabel, const DofOwner *pDO, DataManager
   }
 
   // The kite is aligned with the Global Coordinate system
-  Mat3x3 mip_dcm = mip_node.pNode->GetRCurr();
-  doublereal fuselage_dcm[9];
-  fuselage_dcm[0] = mip_dcm.dGet(1, 1);
-  fuselage_dcm[1] = mip_dcm.dGet(1, 2);
-  fuselage_dcm[2] = mip_dcm.dGet(1, 3);
-  fuselage_dcm[3] = mip_dcm.dGet(2, 1);
-  fuselage_dcm[4] = mip_dcm.dGet(2, 2);
-  fuselage_dcm[5] = mip_dcm.dGet(2, 3);
-  fuselage_dcm[6] = mip_dcm.dGet(3, 1);
-  fuselage_dcm[7] = mip_dcm.dGet(3, 2);
-  fuselage_dcm[8] = mip_dcm.dGet(3, 3);
+  Mat3x3 mip_dcm_matrix = mip_node.pNode->GetRCurr();
+  doublereal mip_dcm[9];
+  mip_dcm[0] = mip_dcm_matrix.dGet(1, 1);
+  mip_dcm[1] = mip_dcm_matrix.dGet(1, 2);
+  mip_dcm[2] = mip_dcm_matrix.dGet(1, 3);
+  mip_dcm[3] = mip_dcm_matrix.dGet(2, 1);
+  mip_dcm[4] = mip_dcm_matrix.dGet(2, 2);
+  mip_dcm[5] = mip_dcm_matrix.dGet(2, 3);
+  mip_dcm[6] = mip_dcm_matrix.dGet(3, 1);
+  mip_dcm[7] = mip_dcm_matrix.dGet(3, 2);
+  mip_dcm[8] = mip_dcm_matrix.dGet(3, 3);
 
   // get the rotor properties (points, mass, inertia, and cm offset arrays)
   n_rotor_points = 4 * n_pylons_per_wing;
@@ -379,7 +379,7 @@ ModuleKiteFAST::ModuleKiteFAST(unsigned uLabel, const DofOwner *pDO, DataManager
              &print_summary_file,
              &gravity,
              ground_station_point,
-             fuselage_dcm,
+             mip_dcm,
              &n_rotor_points,
              rotor_points,
              rotor_masses,
@@ -643,84 +643,83 @@ void ModuleKiteFAST::_AssRes(doublereal *node_loads, doublereal *rotor_loads)
 
   doublereal t = Time.dGet();
 
-  // fuselage quantities refer to the MIP node
-  doublereal fuselage_position_prev[3];
-  Vec3 vec3_fusOprev = mip_node.pNode->GetXPrev();
-  fuselage_position_prev[0] = vec3_fusOprev[0];
-  fuselage_position_prev[1] = vec3_fusOprev[1];
-  fuselage_position_prev[2] = vec3_fusOprev[2];
+  doublereal mip_position_prev[3];
+  Vec3 vec3_mip_pos_prev = mip_node.pNode->GetXPrev();
+  mip_position_prev[0] = vec3_mip_pos_prev[0];
+  mip_position_prev[1] = vec3_mip_pos_prev[1];
+  mip_position_prev[2] = vec3_mip_pos_prev[2];
 
-  doublereal fuselage_position[3];
-  Vec3 vec3_fusO = mip_node.pNode->GetXCurr();  
-  fuselage_position[0] = vec3_fusO[0];
-  fuselage_position[1] = vec3_fusO[1];
-  fuselage_position[2] = vec3_fusO[2];
+  doublereal mip_position[3];
+  Vec3 vec3_mip_pos = mip_node.pNode->GetXCurr();  
+  mip_position[0] = vec3_mip_pos[0];
+  mip_position[1] = vec3_mip_pos[1];
+  mip_position[2] = vec3_mip_pos[2];
 
-  Mat3x3 fus0_dcm_prev = mip_node.pNode->GetRPrev();
-  doublereal fuselage_dcm_prev[9];
-  fuselage_dcm_prev[0] = fus0_dcm_prev.dGet(1, 1);
-  fuselage_dcm_prev[1] = fus0_dcm_prev.dGet(1, 2);
-  fuselage_dcm_prev[2] = fus0_dcm_prev.dGet(1, 3);
-  fuselage_dcm_prev[3] = fus0_dcm_prev.dGet(2, 1);
-  fuselage_dcm_prev[4] = fus0_dcm_prev.dGet(2, 2);
-  fuselage_dcm_prev[5] = fus0_dcm_prev.dGet(2, 3);
-  fuselage_dcm_prev[6] = fus0_dcm_prev.dGet(3, 1);
-  fuselage_dcm_prev[7] = fus0_dcm_prev.dGet(3, 2);
-  fuselage_dcm_prev[8] = fus0_dcm_prev.dGet(3, 3);
+  doublereal mip_dcm_prev[9];
+  Mat3x3 mat3_mip_dcm_prev = mip_node.pNode->GetRPrev();
+  mip_dcm_prev[0] = mat3_mip_dcm_prev.dGet(1, 1);
+  mip_dcm_prev[1] = mat3_mip_dcm_prev.dGet(1, 2);
+  mip_dcm_prev[2] = mat3_mip_dcm_prev.dGet(1, 3);
+  mip_dcm_prev[3] = mat3_mip_dcm_prev.dGet(2, 1);
+  mip_dcm_prev[4] = mat3_mip_dcm_prev.dGet(2, 2);
+  mip_dcm_prev[5] = mat3_mip_dcm_prev.dGet(2, 3);
+  mip_dcm_prev[6] = mat3_mip_dcm_prev.dGet(3, 1);
+  mip_dcm_prev[7] = mat3_mip_dcm_prev.dGet(3, 2);
+  mip_dcm_prev[8] = mat3_mip_dcm_prev.dGet(3, 3);
 
-  Mat3x3 fus0_dcm = mip_node.pNode->GetRCurr();
-  doublereal fuselage_dcm[9];
-  fuselage_dcm[0] = fus0_dcm.dGet(1, 1);
-  fuselage_dcm[1] = fus0_dcm.dGet(1, 2);
-  fuselage_dcm[2] = fus0_dcm.dGet(1, 3);
-  fuselage_dcm[3] = fus0_dcm.dGet(2, 1);
-  fuselage_dcm[4] = fus0_dcm.dGet(2, 2);
-  fuselage_dcm[5] = fus0_dcm.dGet(2, 3);
-  fuselage_dcm[6] = fus0_dcm.dGet(3, 1);
-  fuselage_dcm[7] = fus0_dcm.dGet(3, 2);
-  fuselage_dcm[8] = fus0_dcm.dGet(3, 3);
+  doublereal mip_dcm[9];
+  Mat3x3 mat3_mip_dcm = mip_node.pNode->GetRCurr();
+  mip_dcm[0] = mat3_mip_dcm.dGet(1, 1);
+  mip_dcm[1] = mat3_mip_dcm.dGet(1, 2);
+  mip_dcm[2] = mat3_mip_dcm.dGet(1, 3);
+  mip_dcm[3] = mat3_mip_dcm.dGet(2, 1);
+  mip_dcm[4] = mat3_mip_dcm.dGet(2, 2);
+  mip_dcm[5] = mat3_mip_dcm.dGet(2, 3);
+  mip_dcm[6] = mat3_mip_dcm.dGet(3, 1);
+  mip_dcm[7] = mat3_mip_dcm.dGet(3, 2);
+  mip_dcm[8] = mat3_mip_dcm.dGet(3, 3);
 
-  doublereal fuselage_vels_prev[3];
-  Vec3 vec3_FusOv_prev = mip_node.pNode->GetVPrev();
-  fuselage_vels_prev[0] = vec3_FusOv_prev[0];
-  fuselage_vels_prev[1] = vec3_FusOv_prev[1];
-  fuselage_vels_prev[2] = vec3_FusOv_prev[2];
+  doublereal mip_vels_prev[3];
+  Vec3 vec3_mip_vels_prev = mip_node.pNode->GetVPrev();
+  mip_vels_prev[0] = vec3_mip_vels_prev[0];
+  mip_vels_prev[1] = vec3_mip_vels_prev[1];
+  mip_vels_prev[2] = vec3_mip_vels_prev[2];
 
-  doublereal fuselage_vels[3];
-  Vec3 vec3_FusOv = mip_node.pNode->GetVCurr();
-  fuselage_vels[0] = vec3_FusOv[0];
-  fuselage_vels[1] = vec3_FusOv[1];
-  fuselage_vels[2] = vec3_FusOv[2];
+  doublereal mip_vels[3];
+  Vec3 vec3_mip_vels = mip_node.pNode->GetVCurr();
+  mip_vels[0] = vec3_mip_vels[0];
+  mip_vels[1] = vec3_mip_vels[1];
+  mip_vels[2] = vec3_mip_vels[2];
 
-  doublereal fuselage_omegas_prev[3];
-  Vec3 vec3_FusOomegas_prev = mip_node.pNode->GetWPrev();
-  fuselage_omegas_prev[0] = vec3_FusOomegas_prev[0];
-  fuselage_omegas_prev[1] = vec3_FusOomegas_prev[1];
-  fuselage_omegas_prev[2] = vec3_FusOomegas_prev[2];
+  doublereal mip_omegas_prev[3];
+  Vec3 vec3_mip_omegas_prev = mip_node.pNode->GetWPrev();
+  mip_omegas_prev[0] = vec3_mip_omegas_prev[0];
+  mip_omegas_prev[1] = vec3_mip_omegas_prev[1];
+  mip_omegas_prev[2] = vec3_mip_omegas_prev[2];
 
-  doublereal fuselage_omegas[3];
-  Vec3 vec3_FusOomegas = mip_node.pNode->GetWCurr();
-  fuselage_omegas[0] = vec3_FusOomegas[0];
-  fuselage_omegas[1] = vec3_FusOomegas[1];
-  fuselage_omegas[2] = vec3_FusOomegas[2];
+  doublereal mip_omegas[3];
+  Vec3 vec3_mip_omegas = mip_node.pNode->GetWCurr();
+  vec3_mip_omegas[0] = mip_omegas[0];
+  vec3_mip_omegas[1] = mip_omegas[1];
+  vec3_mip_omegas[2] = mip_omegas[2];
 
-  doublereal fuselage_accs_prev[3];
-  Vec3 vec3_FusOacc_prev = mip_node.pNode->GetXPPPrev();
-  fuselage_accs_prev[0] = vec3_FusOacc_prev[0];
-  fuselage_accs_prev[1] = vec3_FusOacc_prev[1];
-  fuselage_accs_prev[2] = vec3_FusOacc_prev[2];
+  doublereal mip_accs_prev[3];
+  Vec3 vec3_mip_acc_prev = mip_node.pNode->GetXPPPrev();
+  vec3_mip_acc_prev[0] = mip_accs_prev[0];
+  vec3_mip_acc_prev[1] = mip_accs_prev[1];
+  vec3_mip_acc_prev[2] = mip_accs_prev[2];
 
-  doublereal fuselage_accs[3];
-  Vec3 vec3_FusOacc = mip_node.pNode->GetXPPCurr();
-  fuselage_accs[0] = vec3_FusOacc[0];
-  fuselage_accs[1] = vec3_FusOacc[1];
-  fuselage_accs[2] = vec3_FusOacc[2];
+  doublereal mip_accs[3];
+  Vec3 vec3_mip_acc = mip_node.pNode->GetXPPCurr();
+  mip_accs[0] = vec3_mip_acc[0];
+  mip_accs[1] = vec3_mip_acc[1];
+  mip_accs[2] = vec3_mip_acc[2];
 
-  doublereal fuselage_alphas[3];
-  Vec3 vec3_FusOalphas = mip_node.pNode->GetWPCurr();
-  fuselage_alphas[0] = vec3_FusOalphas[0];
-  fuselage_alphas[1] = vec3_FusOalphas[1];
-  fuselage_alphas[2] = vec3_FusOalphas[2];
+  doublereal mip_alphas[3];
+  Vec3 vec3_mip_alphas = mip_node.pNode->GetWPCurr();
+  mip_alphas[0] = vec3_mip_alphas[0];
+  mip_alphas[1] = vec3_mip_alphas[1];
+  mip_alphas[2] = vec3_mip_alphas[2];
 
   doublereal *node_points = new doublereal[3 * node_count_no_rotors];
   doublereal *node_dcms = new doublereal[9 * node_count_no_rotors];
@@ -813,17 +812,17 @@ void ModuleKiteFAST::_AssRes(doublereal *node_loads, doublereal *rotor_loads)
   KFAST_AssRes(&t,
                &first_iteration,
                ground_station_point,
-               fuselage_position_prev,
-               fuselage_position,
-               fuselage_dcm_prev,
-               fuselage_dcm,
-               fuselage_vels_prev,
-               fuselage_vels,
-               fuselage_omegas_prev,
-               fuselage_omegas,
-               fuselage_accs_prev,
-               fuselage_accs,
-               fuselage_alphas,
+               mip_position_prev,
+               mip_position,
+               mip_dcm_prev,
+               mip_dcm,
+               mip_vels_prev,
+               mip_vels,
+               mip_omegas_prev,
+               mip_omegas,
+               mip_accs_prev,
+               mip_accs,
+               mip_alphas,
                &node_count_no_rotors,
                node_points,
                node_dcms,
