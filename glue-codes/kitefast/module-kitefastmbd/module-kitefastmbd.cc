@@ -89,9 +89,6 @@ ModuleKiteFAST::ModuleKiteFAST(unsigned uLabel, const DofOwner *pDO, DataManager
   // parse the output file settings and initialize the output file
   ValidateInputKeyword(HP, "output_file_root");
   strcpy(output_file_root, HP.GetFileName());
-  std::string output_file_name = output_file_root;
-  output_file_name.append("MBD.out");
-  InitOutputFile(output_file_name);
 
   // parse the flag to print the kitefast summary file
   // 0 = off, 1 = on
@@ -535,24 +532,7 @@ void ModuleKiteFAST::BuildComponentOutputArray(MBDynParser &HP,
   }
 }
 
-void ModuleKiteFAST::InitOutputFile(std::string output_file_name)
-{
-  printdebug("InitOutputFile");
 
-  outputfile.open(output_file_name.c_str());
-  if (!outputfile)
-  {
-    silent_cerr("Runtime Error: cannot open file at " << output_file_name << std::endl);
-    throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-  }
-
-  outputfile << std::setw(16) << "Time s"
-             << std::setw(16) << "Node ID"
-             << std::setw(16) << "pos - x"
-             << std::setw(13) << "pos - y"
-             << std::setw(13) << "pos - z"
-             << std::endl;
-}
 
 doublereal ModuleKiteFAST::_GetPrivateData(KiteFASTBeam beam, const char *private_data)
 {
@@ -971,6 +951,30 @@ void ModuleKiteFAST::PrintNodeLocations(KiteFASTNode node)
   Vec3 location = node.pNode->GetXCurr();
   Vec3 accel = node.pNode->GetXPPCurr();
   printf("x: %f\ty: %f\tz: %f\tx\": %f\ty\": %f\tz:\"%f\n", location[0], location[1], location[2], accel[0], accel[1], accel[2]);
+}
+
+void ModuleKiteFAST::InitOutputFile(std::string output_file_name)
+{
+  printdebug("InitOutputFile");
+
+  if (output_file_name.find("MBD") != std::string::npos)
+  {
+    output_file_name.append("MBD.out");
+  }
+  
+  outputfile.open(output_file_name.c_str());
+  if (!outputfile)
+  {
+    silent_cerr("Runtime Error: cannot open file at " << output_file_name << std::endl);
+    throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+  }
+
+  outputfile << std::setw(16) << "Time s"
+             << std::setw(16) << "Node ID"
+             << std::setw(16) << "pos - x"
+             << std::setw(13) << "pos - y"
+             << std::setw(13) << "pos - z"
+             << std::endl;
 }
 
 // these are specific for mbdyn, not used by us or KiteFAST
