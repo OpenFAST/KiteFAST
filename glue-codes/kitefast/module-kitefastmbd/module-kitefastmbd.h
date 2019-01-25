@@ -310,8 +310,8 @@ public:
   void BuildComponentBeamArray(DataManager *pDM, MBDynParser &HP, std::vector<KiteFASTBeam> &beam_array);
   void BuildComponentOutputArray(MBDynParser &HP, const char *keyword, integer &n_outputs, std::vector<int> &output_nodes);
   void InitOutputFile(std::string output_file_name);
-  doublereal _GetPrivateData(KiteFASTBeam beam, const char *private_data);
-  virtual void Output(OutputHandler &OH); // const;
+  doublereal GetPrivateData(KiteFASTBeam beam, const char *private_data) const;
+  virtual void Output(OutputHandler &OH) const;
   int iGetNumConnectedNodes(void) const;
   virtual void WorkSpaceDim(integer *piNumRows, integer *piNumCols) const;
   VariableSubMatrixHandler &AssJac(VariableSubMatrixHandler &WorkMat, doublereal dCoef, const VectorHandler &XCurr, const VectorHandler &XPrimeCurr);

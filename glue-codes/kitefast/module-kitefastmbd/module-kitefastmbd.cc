@@ -532,9 +532,7 @@ void ModuleKiteFAST::BuildComponentOutputArray(MBDynParser &HP,
   }
 }
 
-
-
-doublereal ModuleKiteFAST::_GetPrivateData(KiteFASTBeam beam, const char *private_data)
+doublereal ModuleKiteFAST::GetPrivateData(KiteFASTBeam beam, const char *private_data) const
 {
   printdebug("_GetPrivateData");
 
@@ -543,7 +541,7 @@ doublereal ModuleKiteFAST::_GetPrivateData(KiteFASTBeam beam, const char *privat
   return value;
 }
 
-void ModuleKiteFAST::Output(OutputHandler &OH) //const
+void ModuleKiteFAST::Output(OutputHandler &OH) const
 {
   printdebug("Output");
 
@@ -556,18 +554,18 @@ void ModuleKiteFAST::Output(OutputHandler &OH) //const
   for (int i = 0; i < n_gauss_load_points; i++)
   {
     integer j = 12 * i;
-    gauss_point_loads[j + 0] = _GetPrivateData(beams[i], "pI.Fx");
-    gauss_point_loads[j + 1] = _GetPrivateData(beams[i], "pI.Fy");
-    gauss_point_loads[j + 2] = _GetPrivateData(beams[i], "pI.Fz");
-    gauss_point_loads[j + 3] = _GetPrivateData(beams[i], "pI.Mx");
-    gauss_point_loads[j + 4] = _GetPrivateData(beams[i], "pI.My");
-    gauss_point_loads[j + 5] = _GetPrivateData(beams[i], "pI.Mz");
-    gauss_point_loads[j + 6] = _GetPrivateData(beams[i], "pII.Fx");
-    gauss_point_loads[j + 7] = _GetPrivateData(beams[i], "pII.Fy");
-    gauss_point_loads[j + 8] = _GetPrivateData(beams[i], "pII.Fz");
-    gauss_point_loads[j + 9] = _GetPrivateData(beams[i], "pII.Mx");
-    gauss_point_loads[j + 10] = _GetPrivateData(beams[i], "pII.My");
-    gauss_point_loads[j + 11] = _GetPrivateData(beams[i], "pII.Mz");
+    gauss_point_loads[j + 0] = GetPrivateData(beams[i], "pI.Fx");
+    gauss_point_loads[j + 1] = GetPrivateData(beams[i], "pI.Fy");
+    gauss_point_loads[j + 2] = GetPrivateData(beams[i], "pI.Fz");
+    gauss_point_loads[j + 3] = GetPrivateData(beams[i], "pI.Mx");
+    gauss_point_loads[j + 4] = GetPrivateData(beams[i], "pI.My");
+    gauss_point_loads[j + 5] = GetPrivateData(beams[i], "pI.Mz");
+    gauss_point_loads[j + 6] = GetPrivateData(beams[i], "pII.Fx");
+    gauss_point_loads[j + 7] = GetPrivateData(beams[i], "pII.Fy");
+    gauss_point_loads[j + 8] = GetPrivateData(beams[i], "pII.Fz");
+    gauss_point_loads[j + 9] = GetPrivateData(beams[i], "pII.Mx");
+    gauss_point_loads[j + 10] = GetPrivateData(beams[i], "pII.My");
+    gauss_point_loads[j + 11] = GetPrivateData(beams[i], "pII.Mz");
   }
 
   KFAST_Output(&current_time, &n_gauss_load_points, gauss_point_loads, &error_status, error_message);
