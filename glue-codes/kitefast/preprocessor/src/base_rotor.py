@@ -46,12 +46,10 @@ class BaseRotor():
         self.nacelle_cm_offset = Vec3(_cm_offset[0], _cm_offset[1], _cm_offset[2])
         self.nacelle_inertia = model_dict["nacelle"]["inertia"]
 
-        self.total_mass = self.rotor_mass + self.nacelle_mass
-        self.total_cm_offset = [r + n for r, n in zip(self.rotor_cm_offset, self.nacelle_cm_offset)]
-        self.center_of_mass = Vec3(self.total_cm_offset[0], self.total_cm_offset[1], self.total_cm_offset[2])
-        self.total_inertia = [r + n for r, n in zip(self.rotor_inertia, self.nacelle_inertia)]
+        self._preprocess()
+        self._postprocess()
 
-        # preprocess nodes
+    def _preprocess(self):
         self.nodes = np.array([
 
             # rotor
@@ -68,11 +66,12 @@ class BaseRotor():
                 position=self.coordinate_list[0]
             )
         ])
+        self.node_count = self.nodes.shape[0]
 
         self.bodies = np.array([
 
-            # rotor - this body should have no mass or inertia as these loads
-            # are computed in kitefast
+            # rotor
+            # this body should have no mass or inertia as these loads are computed in kitefast
             Body(
                 identifier=self.nodes[0].id,
                 node=self.nodes[0],
@@ -92,7 +91,16 @@ class BaseRotor():
             )
         ])
 
-        self.node_count = self.nodes.shape[0]
+    def _postprocess(self):
+        # NOTE: this will not match mbdyn because the rotor mass is not included in the mbdyn model
+
+        self.total_mass = self.rotor_mass + self.nacelle_mass
+
+        # calculate the total center of mass
+        cg_x = (self.rotor_mass * self.nodes[0].position.x1 + self.nacelle_mass * self.nodes[1].position.x1) / self.total_mass
+        cg_y = (self.rotor_mass * self.nodes[0].position.x2 + self.nacelle_mass * self.nodes[1].position.x2) / self.total_mass
+        cg_z = (self.rotor_mass * self.nodes[0].position.x3 + self.nacelle_mass * self.nodes[1].position.x3) / self.total_mass
+        self.center_of_mass = Vec3(cg_x, cg_y, cg_z) - self.mip
 
     ### export routines ###
 
