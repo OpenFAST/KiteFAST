@@ -65,6 +65,7 @@ class Input():
             "fast_submodules": simulation_controls["fast_submodules"],
             "fast_submodule_input_files": simulation_controls["fast_submodule_input_files"],
             "print_kitefast_summary_file": simulation_controls["print_kitefast_summary_file"],
+            "kitefast_output_file_root_name": simulation_controls["kitefast_output_file_root_name"],
             "time": simulation_controls["time"],
             "tolerance": simulation_controls["tolerance"],
             "max_iterations": simulation_controls["max_iterations"],

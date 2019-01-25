@@ -39,6 +39,7 @@ class MainMBD():
         self.fast_submodules = simulation_controls["fast_submodules"]
         self.fast_submodule_input_files = simulation_controls["fast_submodule_input_files"]
         self.print_kitefast_summary_file = simulation_controls["print_kitefast_summary_file"]
+        self.kitefast_output_file_root_name = simulation_controls["kitefast_output_file_root_name"]
         time = simulation_controls["time"]
         self.timestep = time["timestep"]
         self.final_time = time["final"]
@@ -195,7 +196,7 @@ class MainMBD():
         output.write_line("            \"{}\",".format(self.fast_submodule_input_files["moordyn_input"]))
         output.write_line("            \"{}\",".format(self.fast_submodule_input_files["controller_input"]))
         output.write_line("        output_file_root,")
-        output.write_line("            \"KiteFast\",")
+        output.write_line("            {},".format(self.kitefast_output_file_root_name))
         output.write_line("        print_kitefast_summary_file,")
         output.write_line("            {},".format(1 if self.print_kitefast_summary_file is True else 0))
         output.write_line("        time_step,")
