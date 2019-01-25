@@ -236,7 +236,7 @@ ModuleKiteFAST::ModuleKiteFAST(unsigned uLabel, const DofOwner *pDO, DataManager
     component_node_counts[6 + n_pylons_per_wing + i] = nodes_portpylons[i].size();
   }
 
-  // build the node arrays for kite components excluding rotors
+  // build the node points and properties arrays for kite components excluding rotors
   node_count_no_rotors = 0;
   for (int i = 0; i < 6 + 2 * n_pylons_per_wing; i++)
   {
@@ -547,11 +547,8 @@ void ModuleKiteFAST::Output(OutputHandler &OH) const
 
   doublereal current_time = Time.dGet();
   integer n_gauss_load_points = 2 * total_beam_count;
-  doublereal *gauss_point_loads = new doublereal[12 * n_gauss_load_points];
-  integer error_status;
-  char error_message[INTERFACE_STRING_LENGTH];
-
-  for (int i = 0; i < n_gauss_load_points; i++)
+  doublereal *gauss_point_loads = new doublereal[6 * 2 * total_beam_count]; // 6 components for 2 gauss points per beam
+  for (int i = 0; i < total_beam_count; i++)
   {
     integer j = 12 * i;
     gauss_point_loads[j + 0] = GetPrivateData(beams[i], "pI.Fx");
@@ -568,6 +565,8 @@ void ModuleKiteFAST::Output(OutputHandler &OH) const
     gauss_point_loads[j + 11] = GetPrivateData(beams[i], "pII.Mz");
   }
 
+  integer error_status;
+  char error_message[INTERFACE_STRING_LENGTH];
   KFAST_Output(&current_time, &n_gauss_load_points, gauss_point_loads, &error_status, error_message);
   printdebug("KFAST_Output error");
   printdebug("    status: " + std::to_string(error_status) + ";");
