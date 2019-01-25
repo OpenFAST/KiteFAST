@@ -146,7 +146,7 @@ ModuleKiteFAST::ModuleKiteFAST(unsigned uLabel, const DofOwner *pDO, DataManager
   for (int i = 0; i < n_pylons_per_wing; i++)
   {
     std::string component_name = "pylon_starboard_";
-    component_name.append(SSTR(i + 1));
+    component_name.append(std::to_string(i + 1));
     BuildComponentArrays(pDM, HP, component_name.c_str(), nodes_starpylons[i], beams_starpylons[i]);
   }
   nodes_portpylons.resize(n_pylons_per_wing);
@@ -154,7 +154,7 @@ ModuleKiteFAST::ModuleKiteFAST(unsigned uLabel, const DofOwner *pDO, DataManager
   for (int i = 0; i < n_pylons_per_wing; i++)
   {
     std::string component_name = "pylon_port_";
-    component_name.append(SSTR(i + 1));
+    component_name.append(std::to_string(i + 1));
     BuildComponentArrays(pDM, HP, component_name.c_str(), nodes_portpylons[i], beams_portpylons[i]);
   }
   BuildComponentArrays(pDM, HP, "starboard_rotors", nodes_starrotors, beams_throwaway);
