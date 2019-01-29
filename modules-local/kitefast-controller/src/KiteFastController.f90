@@ -37,8 +37,18 @@ module KiteFastController
       !> Definition of the DLL Interface for the SuperController
       !! 
    abstract interface
-      subroutine KFC_DLL_Init_PROC ( errStat, errMsg )  BIND(C)
+      subroutine KFC_DLL_Init_PROC ( dt, numFlaps, numPylons, genTorq, rtrSpd, rtrAcc, rtrBladePitch, ctrlSettings, errStat, errMsg )  BIND(C)
          use, intrinsic :: ISO_C_Binding
+         real(C_DOUBLE),         intent(in   ) :: dt                  !< required simulation time step
+         integer(C_INT),         intent(in   ) :: numFlaps            !< number of flaps per wing in the Kite model
+         integer(C_INT),         intent(in   ) :: numPylons           !< number of pylons per wing in the Kite model
+         real(C_DOUBLE),         intent(  out) :: genTorq(:)          !< The initial generator torques, specified as Top Rotor then Bottom Rotor for inboard Starboard pylon, 
+                                                                      !<   then repeat moving outboard.  Then repeat for port side, starting inboard and moving outboard.
+         real(C_DOUBLE),         intent(  out) :: rtrSpd(:)           !< The initial rotor speeds (rad/s), follows ordering for genTorq.
+         real(C_DOUBLE),         intent(  out) :: rtrAcc(:)           !< The initial rotor accelerations (rad/s^2), follows ordering for genTorq.
+         real(C_DOUBLE),         intent(  out) :: rtrBladePitch(:)    !< The initial rotor-collective blade pitch angles (rad), follows ordering for genTorq.
+         real(C_DOUBLE),         intent(  out) :: ctrlSettings(:)     !< The initial control surfaces angles(rad), Starts with starboard wing flaps (numFlaps of them), then port wing flaps, 
+                                                                      !<   then 2 rudder values, then 2 starboard elevators, then 2 port elevators.
          integer(C_INT),         intent(  out) :: errStat             !< error status code (uses NWTC_Library error codes)
          character(kind=C_CHAR), intent(inout) :: errMsg          (*) !< Error Message from DLL to simulation code        
       end subroutine KFC_DLL_Init_PROC   
@@ -132,8 +142,9 @@ module KiteFastController
       character(ErrMsgLen)                    :: errMsg2                      ! The error message, if an error occurred
       procedure(KFC_DLL_Init_PROC),pointer    :: DLL_KFC_Init_Subroutine       ! The address of the controller cc_init procedure in the DLL
       
-      integer(IntKi)                          :: nParams
+      integer(IntKi)                          :: wingOffset, i, j, c
       character(kind=C_CHAR)                  :: errMsg_c(IntfStrLen)
+      real(C_DOUBLE), allocatable             :: genTorq(:), rtrSpd(:), rtrAcc(:), rtrBladePitch(:), ctrlSettings(:)
       
       errStat2 = ErrID_None
       errMsg2  = ''
@@ -153,7 +164,7 @@ module KiteFastController
                ! Set the module's parameters
       p%numFlaps  = InitInp%numFlaps
       p%numPylons = InitInp%numPylons
-      p%DT        = interval
+      p%DT        = interval             ! This must not be changed: must match the glue code DT
       p%useDummy  = InitInp%useDummy
       
          ! allocate the inputs and outputs
@@ -208,7 +219,15 @@ module KiteFastController
    ! TODO: jjonkman's plan doc assumes that the initial outputs are returned by KFC_Init(), but we aren't doing that here.  GJH 12/19/18
             ! Can we modify the following to send the controller numFlaps, numPylons, and interval and let the controller throw an error and/or change interval as needed? GJH 12/19/18
          ! also add Irot for each rotor.
-         call DLL_KFC_Init_Subroutine ( errStat, errMsg_c ) 
+         
+         allocate(genTorq(p%numPylons*4), stat = errStat)
+         allocate(rtrSpd(p%numPylons*4), stat = errStat)
+         allocate(rtrAcc(p%numPylons*4), stat = errStat)
+         allocate(rtrBladePitch(p%numPylons*4), stat = errStat)
+         allocate(ctrlSettings(p%numFlaps*2+4), stat = errStat)
+         
+         
+         call DLL_KFC_Init_Subroutine ( p%DT, p%numFlaps, p%numPylons, genTorq, rtrSpd, rtrAcc, rtrBladePitch, ctrlSettings, errStat, errMsg_c ) 
       
          call c_to_fortran_string(errMsg_c, errMsg)
          print *, " KFC_Init errStat - ", errStat, " errMsg - ", trim(errMsg)
@@ -219,19 +238,28 @@ module KiteFastController
          
          ! TODO: obtain initial outputs from the DLL and set them
            ! Set outputs to zero for now
-         y%SPyGenTorque = 0.0_ReKi
-         y%PPyGenTorque = 0.0_ReKi
-         y%SPyRtrSpd    = 0.0_ReKi
-         y%PPyRtrSpd    = 0.0_ReKi
-         y%SPyRtrAcc    =   0.0_ReKi  ! rad/s^2
-         y%PPyRtrAcc    =   0.0_ReKi  ! rad/s^2
-         y%SPyBldPitch  = 0.0_ReKi
-         y%PPyBldPitch  = 0.0_ReKi
-         y%SFlp         = 0.0_ReKi
-         y%PFlp         = 0.0_ReKi
-         y%Rudr         = 0.0_ReKi
-         y%SElv         = 0.0_ReKi
-         y%PElv         = 0.0_ReKi
+         c = 1
+         wingOffset = 2*p%numPylons
+         do j=1,p%numPylons
+            do i=1,2
+               y%SPyGenTorque(i,j) = genTorq(c)
+               y%PPyGenTorque(i,j) = genTorq(c + wingOffset)
+               y%SPyRtrSpd(i,j)    = rtrSpd(c)
+               y%PPyRtrSpd(i,j)    = rtrSpd(c + wingOffset)
+               y%SPyRtrAcc(i,j)    = rtrAcc(c)
+               y%PPyRtrAcc(i,j)    = rtrAcc(c + wingOffset)
+               y%SPyBldPitch(i,j)  = rtrBladePitch(c)
+               y%PPyBldPitch(i,j)  = rtrBladePitch(c + wingOffset)
+               c = c + 1
+            end do
+         end do
+         
+         
+         y%SFlp         = ctrlSettings(1:p%numFlaps)
+         y%PFlp         = ctrlSettings(p%numFlaps+1:2*p%numFlaps)
+         y%Rudr         = ctrlSettings(2*p%numFlaps+1:2*p%numFlaps+2)
+         y%SElv         = ctrlSettings(2*p%numFlaps+3:2*p%numFlaps+4)
+         y%PElv         = ctrlSettings(2*p%numFlaps+5:2*p%numFlaps+6)
         
       else
            ! Set outputs to zero except for RtrSpd which is set to be constant for the dummy controller
