@@ -82,7 +82,6 @@ extern int KFAST_Init(
   const char output_file_root[],         // outFileRoot
   int *print_summary_file,               // printSum
   double *gravity,                       // gravity
-  double ground_station_point[],         // windPt
   double mip_dcm[],                      // FusODCM
   int *n_rotor_points,                   // numRtrPts
   double rotor_points[],                 // rtrPts
@@ -118,15 +117,10 @@ extern int KFAST_AssRes(
   double *t,                     // t
   int *first_iteration,          // isInitialTime
   double ground_station_point[], // WindPt
-  double mip_position_prev[],    // FusO_prev
   double mip_position[],         // FusO
-  double mip_dcm_prev[],         // FusODCM_prev
   double mip_dcm[],              // FusODCM
-  double mip_vels_prev[],        // FusOv_prev
   double mip_vels[],             // FusOv
-  double mip_omegas_prev[],      // FusOomegas_prev
   double mip_omegas[],           // FusOomegas
-  double mip_accs_prev[],        // FusOacc_prev
   double mip_accs[],             // FusOacc
   double mip_alphas[],           // FusOalphas
   int *node_count_no_rotors,     // numNodePts

@@ -375,7 +375,6 @@ ModuleKiteFAST::ModuleKiteFAST(unsigned uLabel, const DofOwner *pDO, DataManager
              output_file_root,
              &print_summary_file,
              &gravity,
-             ground_station_point,
              mip_dcm,
              &n_rotor_points,
              rotor_points,
@@ -620,29 +619,11 @@ void ModuleKiteFAST::_AssRes(doublereal *node_loads, doublereal *rotor_loads)
 
   doublereal t = Time.dGet();
 
-  doublereal mip_position_prev[3];
-  Vec3 vec3_mip_pos_prev = mip_node.pNode->GetXPrev();
-  mip_position_prev[0] = vec3_mip_pos_prev[0];
-  mip_position_prev[1] = vec3_mip_pos_prev[1];
-  mip_position_prev[2] = vec3_mip_pos_prev[2];
-
   doublereal mip_position[3];
   Vec3 vec3_mip_pos = mip_node.pNode->GetXCurr();  
   mip_position[0] = vec3_mip_pos[0];
   mip_position[1] = vec3_mip_pos[1];
   mip_position[2] = vec3_mip_pos[2];
-
-  doublereal mip_dcm_prev[9];
-  Mat3x3 mat3_mip_dcm_prev = mip_node.pNode->GetRPrev();
-  mip_dcm_prev[0] = mat3_mip_dcm_prev.dGet(1, 1);
-  mip_dcm_prev[1] = mat3_mip_dcm_prev.dGet(1, 2);
-  mip_dcm_prev[2] = mat3_mip_dcm_prev.dGet(1, 3);
-  mip_dcm_prev[3] = mat3_mip_dcm_prev.dGet(2, 1);
-  mip_dcm_prev[4] = mat3_mip_dcm_prev.dGet(2, 2);
-  mip_dcm_prev[5] = mat3_mip_dcm_prev.dGet(2, 3);
-  mip_dcm_prev[6] = mat3_mip_dcm_prev.dGet(3, 1);
-  mip_dcm_prev[7] = mat3_mip_dcm_prev.dGet(3, 2);
-  mip_dcm_prev[8] = mat3_mip_dcm_prev.dGet(3, 3);
 
   doublereal mip_dcm[9];
   Mat3x3 mat3_mip_dcm = mip_node.pNode->GetRCurr();
@@ -656,35 +637,17 @@ void ModuleKiteFAST::_AssRes(doublereal *node_loads, doublereal *rotor_loads)
   mip_dcm[7] = mat3_mip_dcm.dGet(3, 2);
   mip_dcm[8] = mat3_mip_dcm.dGet(3, 3);
 
-  doublereal mip_vels_prev[3];
-  Vec3 vec3_mip_vels_prev = mip_node.pNode->GetVPrev();
-  mip_vels_prev[0] = vec3_mip_vels_prev[0];
-  mip_vels_prev[1] = vec3_mip_vels_prev[1];
-  mip_vels_prev[2] = vec3_mip_vels_prev[2];
-
   doublereal mip_vels[3];
   Vec3 vec3_mip_vels = mip_node.pNode->GetVCurr();
   mip_vels[0] = vec3_mip_vels[0];
   mip_vels[1] = vec3_mip_vels[1];
   mip_vels[2] = vec3_mip_vels[2];
 
-  doublereal mip_omegas_prev[3];
-  Vec3 vec3_mip_omegas_prev = mip_node.pNode->GetWPrev();
-  mip_omegas_prev[0] = vec3_mip_omegas_prev[0];
-  mip_omegas_prev[1] = vec3_mip_omegas_prev[1];
-  mip_omegas_prev[2] = vec3_mip_omegas_prev[2];
-
   doublereal mip_omegas[3];
   Vec3 vec3_mip_omegas = mip_node.pNode->GetWCurr();
   vec3_mip_omegas[0] = mip_omegas[0];
   vec3_mip_omegas[1] = mip_omegas[1];
   vec3_mip_omegas[2] = mip_omegas[2];
-
-  doublereal mip_accs_prev[3];
-  Vec3 vec3_mip_acc_prev = mip_node.pNode->GetXPPPrev();
-  vec3_mip_acc_prev[0] = mip_accs_prev[0];
-  vec3_mip_acc_prev[1] = mip_accs_prev[1];
-  vec3_mip_acc_prev[2] = mip_accs_prev[2];
 
   doublereal mip_accs[3];
   Vec3 vec3_mip_acc = mip_node.pNode->GetXPPCurr();
@@ -789,15 +752,10 @@ void ModuleKiteFAST::_AssRes(doublereal *node_loads, doublereal *rotor_loads)
   KFAST_AssRes(&t,
                &first_iteration,
                ground_station_point,
-               mip_position_prev,
                mip_position,
-               mip_dcm_prev,
                mip_dcm,
-               mip_vels_prev,
                mip_vels,
-               mip_omegas_prev,
                mip_omegas,
-               mip_accs_prev,
                mip_accs,
                mip_alphas,
                &node_count_no_rotors,
