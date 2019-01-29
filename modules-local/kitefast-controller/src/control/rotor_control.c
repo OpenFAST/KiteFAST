@@ -38,7 +38,9 @@ void MotorControlStep(const PowerSysSimParams *motor_params,
   for (int32_t motor_number = 0; motor_number < kNumMotors; motor_number++) {
 
     double omega_cmd = rotor_cmds[motor_number];
-    printf("rotor cmd = %0.4f \n", omega_cmd);
+    #if DEBUG
+      printf("    rotor cmd = %0.4f \n", omega_cmd);
+    #endif
     // Apply Rate Limit
     #if APPLY_RATE_LIMIT
      omega_cmd = RateLimit(omega_cmd, -motor_params->omega_cmd_rate_limit,
@@ -82,6 +84,7 @@ void MotorControlStep(const PowerSysSimParams *motor_params,
     // Copy variables to output
     motor_state->rotor_torques[motor_number] = torque;
     motor_state->rotor_omegas[motor_number] = motor_state->motor_speeds[motor_number];
+    motor_state->rotor_accel[motor_number]  = rotor_accel;
   }
 }
 

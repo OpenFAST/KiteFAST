@@ -2,14 +2,14 @@
 """ controller_data_analysis.py
 
 This script is used to plot variables from the contoller output file (.csv).
-The .csv contains a header line with all available variables. The user must speicify
+The .csv contains a header line with all available variables. The user must specify
 which variables to plot below using the 'plot_vars' variable. 
 This script will cycle through the .csv, look for the variables that are speicified
 by the user, and then save the values to a final array. This script also creates
 a time vector and inserts it as the first column in the final array. 
 This time vector is calculated by 'dT' and the number of data entries within the .csv
 (essentially the number of rows). 
-Once the final array is assembled, each colum (chosen variable) is plotted 
+Once the final array is assembled, each column (chosen variable) is plotted 
 against the time vector to produce a plot for each chosen variable
 
 The row_count and header_count are the number of rows found within .csv 

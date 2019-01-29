@@ -2,18 +2,35 @@
 #include "KiteFastController.h"
 #include "control/kfc.h"
 
+// KiteFastController.c
+// Intermediary wrapper between Kitefast and Shared Library
+
 void kfc_dll_init(int *errStat, char *errMsg)
 {
-    printf("  debug marker - pre controller_init() \n");
-    controller_init(errStat, errMsg);
-    printf("  debug marker - post controller_init() \n");
+    #ifdef DEBUG //DEBUG preproc found in kfc.h 
+        printf("  debug marker - pre controller_init() \n");
+    #endif
+
+    // Init call to Shared Library
+    controller_init(errStat, errMsg); 
+    
+    #ifdef DEBUG //DEBUG preproc found in kfc.h
+        printf("  debug marker - post controller_init() \n");
+    #endif
 }
 
 void kfc_dll_end(int *errStat, char *errMsg)
 {
-    printf("  debug marker - pre controller_end() \n");
-    controller_end(errStat, errMsg);
-    printf("  debug marker - post controller_end() \n");
+    #ifdef DEBUG //DEBUG preproc found in kfc.h
+        printf("  debug marker - pre controller_end() \n");
+    #endif
+
+    // End call to Shared Library
+    controller_end(errStat, errMsg); 
+
+    #ifdef DEBUG //DEBUG preproc found in kfc.h
+        printf("  debug marker - post controller_end() \n");
+    #endif
 }
 
 void kfc_dll_step(double dcm_g2b_c[], double pqr_c[], double *acc_norm_c,
@@ -23,12 +40,19 @@ void kfc_dll_step(double dcm_g2b_c[], double pqr_c[], double *acc_norm_c,
                   double kFlapA_c[], double Motor_c[],
                   int *errStat, char *errMsg)
 {
-    printf("  debug marker - pre controller_step() \n");
-    controller_step(dcm_g2b_c, pqr_c, acc_norm_c,
+    #ifdef DEBUG //DEBUG preproc found in kfc.h
+        printf("  debug marker - pre controller_step() \n");
+    #endif
+
+    // Step call to Shared Library
+    controller_step(dcm_g2b_c, pqr_c, acc_norm_c, 
                  Xg_c, Vg_c, Vb_c, Ag_c,
                  Ab_c, rho_c, apparent_wind_c,
                  tether_force_c, wind_g_c,
                  kFlapA_c, Motor_c,
                  errStat, errMsg);
-    printf("  debug marker - post controller_step() \n");
+
+    #ifdef DEBUG //DEBUG preproc found in kfc.h
+        printf("  debug marker - post controller_step() \n");
+    #endif
 }
