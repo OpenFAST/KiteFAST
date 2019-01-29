@@ -9,7 +9,8 @@ typedef struct {
 
     ControlOutput controlOutputLog;
     StateEstimate stateEstLog;
-
+    MotorState motor_state;
+    
 } ControlLog;
 
 void ControlLogInit(char* controllerVerNumber);

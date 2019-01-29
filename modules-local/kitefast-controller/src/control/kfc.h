@@ -1,11 +1,13 @@
 #ifndef __KFC_H__
 #define __KFC_H__
 
-#define DEBUG //Comment out to take out of debug mode
-
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+// No major difference between DEBUG mode and Normal mode
+// When DEBUG is enabled, a series of print statements will be enabled.
+#define DEBUG 1 //Comment out to take out of debug mode
 
 #include <stdio.h>
 
