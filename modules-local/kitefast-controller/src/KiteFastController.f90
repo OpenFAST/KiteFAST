@@ -145,6 +145,7 @@ module KiteFastController
       integer(IntKi)                          :: wingOffset, i, j, c
       character(kind=C_CHAR)                  :: errMsg_c(IntfStrLen)
       real(C_DOUBLE), allocatable             :: genTorq(:), rtrSpd(:), rtrAcc(:), rtrBladePitch(:), ctrlSettings(:)
+      real(C_DOUBLE)                          :: dt_c
       
       errStat2 = ErrID_None
       errMsg2  = ''
@@ -226,8 +227,8 @@ module KiteFastController
          allocate(rtrBladePitch(p%numPylons*4), stat = errStat)
          allocate(ctrlSettings(p%numFlaps*2+4), stat = errStat)
          
-         
-         call DLL_KFC_Init_Subroutine ( p%DT, p%numFlaps, p%numPylons, genTorq, rtrSpd, rtrAcc, rtrBladePitch, ctrlSettings, errStat, errMsg_c ) 
+         dt_c = real(p%DT, C_DOUBLE)
+        call DLL_KFC_Init_Subroutine ( dt_c, p%numFlaps, p%numPylons, genTorq, rtrSpd, rtrAcc, rtrBladePitch, ctrlSettings, errStat, errMsg_c )
       
          call c_to_fortran_string(errMsg_c, errMsg)
          print *, " KFC_Init errStat - ", errStat, " errMsg - ", trim(errMsg)
