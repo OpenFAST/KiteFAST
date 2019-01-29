@@ -19,6 +19,7 @@ from .iohandler import Output
 
 class BaseModel():
     def __init__(self):
+        self.title = "BaseModel"
         # initialize with an empty component list
         self.required_components = []
         self.components = []
@@ -38,15 +39,6 @@ class BaseModel():
                 sys.exit(7)
 
     def print_component_info(self):
-        info_file = Output("KiteMain.preprocessor")
-        info_file.write_line("MBDyn preprocessor model information")
-        info_file.write_empty_line()
-
-        total_mass = 0
-        cm_x = 0
-        cm_y = 0
-        cm_z = 0
-
         # put all of the component elements into a 1d array
         flat_list = []
         for element in self.components:
@@ -55,13 +47,31 @@ class BaseModel():
             else:
                 flat_list.append(element)
 
+        # calculate the total mass and cg
+        total_mass = 0
+        cm_x, cm_y, cm_z = 0, 0, 0
+        for element in flat_list:
+            total_mass += element.total_mass
+            cm_x += element.total_mass * (element.center_of_mass.x1 + element.mip.x1)
+            cm_y += element.total_mass * (element.center_of_mass.x2 + element.mip.x2)
+            cm_z += element.total_mass * (element.center_of_mass.x3 + element.mip.x3)
+        cm_x /= total_mass
+        cm_y /= total_mass
+        cm_z /= total_mass
+
+        # export the model info
+        info_file = Output("KiteMain.preprocessor")
+        info_file.write_empty_line()
+        info_file.write_line("MBDyn preprocessor model information")
+        info_file.write_empty_line()
+        info_file.write_line("{:>32} | {:>10} | {:<16}".format("model", "total mass", "center of mass (relative to model mip)"))
+        center_of_mass_string = "{:8.3f},{:8.3f},{:8.3f}".format(cm_x, cm_y, cm_z)
+        info_file.write_line("{:>32} | {:>10.3f} | <{}>".format(self.title, total_mass, center_of_mass_string))
+        info_file.write_empty_line()
+
         # write the component mass info
         info_file.write_line("{:>32} | {:>10} | {:<16}".format("component", "total mass", "center of mass (relative to component)"))
         for element in flat_list:
-            total_mass += element.total_mass
-            cm_x += element.total_mass * element.center_of_mass.x1
-            cm_y += element.total_mass * element.center_of_mass.x2
-            cm_z += element.total_mass * element.center_of_mass.x3
             info_file.write_line("{:>32} | {:>10.3f} | <{}>".format(element.component_name, element.total_mass, element.center_of_mass))
         info_file.write_empty_line()
 
@@ -70,13 +80,30 @@ class BaseModel():
         for element in flat_list:
             if "rotor" in element.component_name:
                 continue
-            info_file.write_line("{:>32} | {}".format(element.component_name, element.nodal_point_masses))
+            point_mass_list_string = "".join(["{:>10.3f}".format(i) for i in element.nodal_point_masses])
+            info_file.write_line("{:>32} | {}".format(element.component_name, point_mass_list_string))
         info_file.write_empty_line()
 
-        # finish calculating and write the kite mass info
-        cm_x /= total_mass
-        cm_y /= total_mass
-        cm_z /= total_mass
-        info_file.write_line("total mass: {:8.3f}".format(total_mass))
-        info_file.write_line("center of mass: <{:8.3f},{:8.3f},{:8.3f}>".format(cm_x, cm_y, cm_z))
+        # write a notice about rotor masses not being included in mbdyn
+        info_file.write_line("NOTE: Due to the design of the rotor load calculation, rotor masses are not included in the mbdyn model")
+        info_file.write_line("      and the gravity loads are instead calculated in KiteFAST. Therefore, mass, center of mass, and inertia")
+        info_file.write_line("      reported above may not match what is reported in MBDyn.")
+
         info_file.end()
+
+class ModelException(Exception):
+    """
+    Exception raised for modeling errors.
+
+    Attributes:
+        component -- the preprocessor component type which contains the error
+        message -- explanation of the error
+    """
+
+    def __init__(self, component, message):
+        super().__init__(message)
+        self.component = component
+        self.message = message
+
+    def __str__(self):
+        return "Error in {}: {}".format(self.component.component_name, self.message)

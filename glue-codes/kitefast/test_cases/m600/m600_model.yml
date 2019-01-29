@@ -23,6 +23,9 @@ simulation_controls:
     print_kitefast_summary_file:
         false
 
+    kitefast_output_file_root_name:
+        "KiteFast"
+
     time:
         timestep:
             1e-3

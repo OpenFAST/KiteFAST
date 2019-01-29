@@ -42,10 +42,6 @@
 
 #include <sstream>
 
-#define SSTR(x) static_cast<std::ostringstream &>(           \
-                    (std::ostringstream() << std::dec << x)) \
-                    .str()
-
 #define USE_SINGLE_PRECISION
 
 #ifndef KiteFAST_MBD_H
@@ -68,91 +64,104 @@ typedef double f_real;
 #define ErrID_Warn 2
 #define ErrID_Severe 3
 #define ErrID_Fatal 4
-#define CHANNEL_LENGTH 10
 #define INTERFACE_STRING_LENGTH 1025
 
-extern int KFAST_Init(double *dt,
-                      int *numFlaps,
-                      int *numPylons,
-                      int *numComp,
-                      int numCompNds[],
-                      int modFlags[],
-                      const char KAD_FileName[],
-                      const char IfW_FileName[],
-                      const char MD_FileName[],
-                      const char KFC_FileName[],
-                      const char outFileRoot[],
-                      int *printSum,
-                      double *gravity,
-                      double windPt[],
-                      double FusODCM[],
-                      int *numRtrPts,
-                      double rtrPts[],
-                      double rtrMass[],
-                      double rtrI_Rot[],
-                      double rtrI_trans[],
-                      double rtrXcm[],
-                      double refPts[],
-                      int *numNodePts,
-                      double nodePts[],
-                      double nodeDCMs[],
-                      int *nFusOuts,
-                      int FusOutNd[],
-                      int *nSWnOuts,
-                      int SWnOutNd[],
-                      int *nPWnOuts,
-                      int PWnOutNd[],
-                      int *nVSOuts,
-                      int VSOutNd[],
-                      int *nSHSOuts,
-                      int SHSOutNd[],
-                      int *nPHSOuts,
-                      int PHSOutNd[],
-                      int *nPylOuts,
-                      int PylOutNd[],
-                      int *numOutChan,
-                      char *chanList[],
-                      int ChanList_len[],
-                      int *errStat,
-                      char errMsg[]);
-extern int KFAST_AssRes(double *t,
-                        int *isInitialTime,
-                        double WindPt[],
-                        double FusO_prev[],
-                        double FusO[],
-                        double FusODCM_prev[],
-                        double FusODCM[],
-                        double FusOv_prev[],
-                        double FusOv[],
-                        double FusOomegas_prev[],
-                        double FusOomegas[],
-                        double FusOacc_prev[],
-                        double FusOacc[],
-                        double FusOalphas[],
-                        int *numNodePts,
-                        double nodePts[],
-                        double nodeDCMs[],
-                        double nodeVels[],
-                        double nodeOmegas[],
-                        double nodeAccs[],
-                        int *numRtrPts,
-                        double rtrPts[],
-                        double rtrDCMs[],
-                        double rtrVels[],
-                        double rtrOmegas[],
-                        double rtrAccs[],
-                        double rtrAlphas[],
-                        double nodeLoads[],
-                        double rtrLoads[],
-                        int *errStat,
-                        char errMsg[]);
-extern int KFAST_AfterPredict(int *errStat, char errMsg[]);
-extern int KFAST_Output(double *t,             // simulation time for the current timestep (s)
-                        int *numGaussLoadPts,  // Total number of gauss points in the MBDyn model
-                        double gaussPtLoads[], // Array of loads in the global coordinate system (3 forces + 3 moments) corresponding to each MBDyn gauss point. ( N, N-m )
-                        int *errStat,
-                        char errMsg[]);
-extern int KFAST_End(int *errStat, char errMsg[]);
+// *** Mapping from kitefastmbd to KiteFAST variable names ***
+
+extern int KFAST_Init(
+  double *time_step,                     // dt
+  int *n_flaps_per_wing,                 // numFlaps
+  int *n_pylons_per_wing,                // numPylons
+  int *n_components,                     // numComp
+  int component_node_counts[],           // numCompNds
+  int kitefast_module_flags[],           // modFlags
+  const char kiteaerodyn_filename[],     // KAD_FileName
+  const char inflowwind_filename[],      // IfW_FileName
+  const char moordyn_filename[],         // MD_FileName
+  const char controller_filename[],      // KFC_FileName
+  const char output_file_root[],         // outFileRoot
+  int *print_summary_file,               // printSum
+  double *gravity,                       // gravity
+  double ground_station_point[],         // windPt
+  double mip_dcm[],                      // FusODCM
+  int *n_rotor_points,                   // numRtrPts
+  double rotor_points[],                 // rtrPts
+  double rotor_masses[],                 // rtrMass
+  double rotor_rotational_inertias[],    // rtrI_Rot
+  double rotor_translational_inertias[], // rtrI_trans
+  double rotor_cm_offsets[],             // rtrXcm
+  double reference_points[],             // refPts
+  int *node_count_no_rotors,             // numNodePts
+  double node_points[],                  // nodePts
+  double node_dcms[],                    // nodeDCMs
+  int *n_fuselage_outputs,               // nodePts
+  int fuselage_output_nodes[],           // nodeDCMs
+  int *n_starboard_wing_outputs,         // nFusOuts
+  int starboard_wing_output_nodes[],     // FusOutNd
+  int *n_port_wing_outputs,              // nSWnOuts
+  int port_wing_output_nodes[],          // SWnOutNd
+  int *n_vertical_stabilizer_outputs,                 // nPWnOuts
+  int vertical_stabilizer_output_nodes[],             // PWnOutNd
+  int *n_starboard_horizontal_stabilizer_outputs,     // nVSOuts
+  int starboard_horizontal_stabilizer_output_nodes[], // VSOutNd
+  int *n_port_horizontal_stabilizer_outputs,          // nSHSOuts
+  int port_horizontal_stabilizer_output_nodes[],      // SHSOutNd
+  int *n_pylon_outputs,                               // nPHSOuts
+  int pylon_output_nodes[],              // PHSOutNd
+  int *n_output_channels,                // nPylOuts
+  char *output_channel_array[],          // PylOutNd
+  int output_channel_lengths[],          // numOutChan
+  int *error_status,                     // chanList
+  char error_message[]                   // ChanList_len
+);
+extern int KFAST_AssRes(
+  double *t,                     // t
+  int *first_iteration,          // isInitialTime
+  double ground_station_point[], // WindPt
+  double mip_position_prev[],    // FusO_prev
+  double mip_position[],         // FusO
+  double mip_dcm_prev[],         // FusODCM_prev
+  double mip_dcm[],              // FusODCM
+  double mip_vels_prev[],        // FusOv_prev
+  double mip_vels[],             // FusOv
+  double mip_omegas_prev[],      // FusOomegas_prev
+  double mip_omegas[],           // FusOomegas
+  double mip_accs_prev[],        // FusOacc_prev
+  double mip_accs[],             // FusOacc
+  double mip_alphas[],           // FusOalphas
+  int *node_count_no_rotors,     // numNodePts
+  double node_points[],          // nodePts
+  double node_dcms[],            // nodeDCMs
+  double node_vels[],            // nodeVels
+  double node_omegas[],          // nodeOmegas
+  double node_accs[],            // nodeAccs
+  int *n_rotor_points,           // numRtrPts
+  double rotor_points[],         // rtrPts
+  double rotor_dcms[],           // nodeDCMs
+  double rotor_vels[],           // nodeVels
+  double rotor_omegas[],         // rtrOmegas
+  double rotor_accs[],           // rtrAccs
+  double rotor_alphas[],         // rtrAlphas
+  double node_loads[],           // nodeLoads
+  double rotor_loads[],          // rtrLoads
+  int *error_status,             // errStat
+  char error_message[]           // errMsg
+);
+extern int KFAST_AfterPredict(
+  int *error_status,             // errStat
+  char error_message[]           // errMsg
+);
+extern int KFAST_Output(
+  double *current_time,          // simulation time for the current timestep (s)
+  int *n_gauss_load_points,      // Total number of gauss points in the MBDyn model
+  double gauss_point_loads[],    // Array of loads in the global coordinate system (3 forces + 3 moments) corresponding to each MBDyn gauss point. ( N, N-m )
+  int *error_status,             // errStat
+  char error_message[]           // errMsg
+);
+extern int KFAST_End(
+  int *error_status,             // errStat
+  char error_message[]           // errMsg
+);
 
 #ifdef __cplusplus
 }
@@ -175,103 +184,15 @@ private:
 
   const static int AbortErrLev = ErrID_Fatal; // abort error level; compare with NWTC Library
 
-  // KFAST_Init interface variables
-  doublereal time_step;                                               // dt
-  // integer n_flaps_per_wing;                                           // numFlaps
-  // integer n_pylons_per_wing;                                          // numPylons
-  // integer n_components;                                               // numComp
-  // integer *component_node_counts;                                     // numCompNds
-  // integer kitefast_module_flags[4];                                   // modFlags
-  // char kiteaerodyn_filename[INTERFACE_STRING_LENGTH];                 // KAD_FileName
-  // char inflowwind_filename[INTERFACE_STRING_LENGTH];                  // IfW_FileName
-  // char moordyn_filename[INTERFACE_STRING_LENGTH];                     // MD_FileName
-  // char controller_filename[INTERFACE_STRING_LENGTH];                  // KFC_FileName
-  // char output_file_root[INTERFACE_STRING_LENGTH];                     // outFileRoot
-  // integer print_summary_file;                                         // printSum
-  // doublereal gravity;                                                 // gravity
-  doublereal ground_station_point[3];                                 // windPt
-  // doublereal fuselage_dcm[9];                                         // FusODCM
-  integer n_rotor_points;                                             // numRtrPts
-  // doublereal *rotor_points;                                           // rtrPts
-  // doublereal *rotor_masses;                                           // rtrMass
-  // doublereal *rotor_rotational_inertias;                              // rtrI_Rot
-  // doublereal *rotor_translational_inertias;                           // rtrI_trans
-  // doublereal *rotor_cm_offsets;                                       // rtrXcm
-  // doublereal *reference_points;                                       // refPts
-  integer node_count_no_rotors;                                       // numNodePts
-  // doublereal *node_points;                                            // nodePts
-  // doublereal *node_dcms;                                              // nodeDCMs
-  // integer n_fuselage_outputs;                                         // nFusOuts
-  // std::vector<integer> fuselage_output_nodes;                         // FusOutNd
-  // integer n_starboard_wing_outputs;                                   // nSWnOuts
-  // std::vector<integer> starboard_wing_output_nodes;                   // SWnOutNd
-  // integer n_port_wing_outputs;                                        // nPWnOuts
-  // std::vector<integer> port_wing_output_nodes;                        // PWnOutNd
-  // integer n_vertical_stabilizer_outputs;                              // nVSOuts
-  // std::vector<integer> vertical_stabilizer_output_nodes;              // VSOutNd
-  // integer n_starboard_horizontal_stabilizer_outputs;                  // nSHSOuts
-  // std::vector<integer> starboard_horizontal_stabilizer_output_nodes;  // SHSOutNd
-  // integer n_port_horizontal_stabilizer_outputs;                       // nPHSOuts
-  // std::vector<integer> port_horizontal_stabilizer_output_nodes;       // PHSOutNd
-  // integer n_pylon_outputs;                                            // nPylOuts
-  // std::vector<integer> pylon_output_nodes;                            // PylOutNd
-  // integer n_output_channels;                                          // numOutChan
-  // std::vector<char *> output_channel_array;                           // chanList
-  // integer *output_channel_lengths;                                    // ChanList_len
-  // error_status                                                        errStat - local variable
-  // error message                                                       errMsg - local variable
-
-  /*
-assres
-node_loads
-rotor_loads
-*/
-
-  // KFAST_AssRes interface variables
-  // commented variables are already declared above
-  // doublereal t;                          // t
-  // integer first_iteration;               // isInitialTime
-  // doublereal ground_station_point[3]; // WindPt
-  // doublereal fuselage_position_prev[3];  // FusO_prev
-  // doublereal fuselage_position[3];       // FusO
-  // doublereal fuselage_dcm_prev[9];       // FusODCM_prev
-  // doublereal fuselage_dcm[9];         // FusODCM
-  // doublereal fuselage_vels_prev[3];      // FusOv_prev
-  // doublereal fuselage_vels[3];           // FusOv
-  // doublereal fuselage_omegas_prev[3];    // FusOomegas_prev
-  // doublereal fuselage_omegas[3];         // FusOomegas
-  // doublereal fuselage_accs_prev[3];      // FusOacc_prev
-  // doublereal fuselage_accs[3];           // FusOacc
-  // doublereal fuselage_alphas[3];         // FusOalphas
-  // integer node_count_no_rotors;       // numNodePts
-  // doublereal *node_points;            // nodePts
-  // doublereal *node_dcms;              // nodeDCMs
-  // doublereal *node_vels;                 // nodeVels
-  // doublereal *node_omegas;               // nodeOmegas
-  // doublereal *node_accs;                 // nodeAccs
-  // integer n_rotor_points;             // numRtrPts
-  // doublereal *rotor_points;           // rtrPts
-  // doublereal *rotor_dcms;                // nodeDCMs
-  // doublereal *rotor_vels;                // nodeVels
-  // doublereal *rotor_omegas;              // rtrOmegas
-  // doublereal *rotor_accs;                // rtrAccs
-  // doublereal *rotor_alphas;              // rtrAlphas
-  // doublereal *node_loads;                // nodeLoads
-  // doublereal *rotor_loads;               // rtrLoads
-  // error_status                           errStat - local variable
-  // error message                          errMsg - local variable
-
-  // KFAST_Output interface variables - all are local
-  // doublereal t;                   // t
-  // integer n_gauss_load_points;    // numGaussLoadPts
-  // doublereal *gauss_point_loads;  // gaussPtLoads
-  // error_status                       errStat
-  // error message                      errMsg
-
-  // other data
+  doublereal time_step;
+  doublereal ground_station_point[3];
+  integer n_rotor_points;
+  integer node_count_no_rotors;
+  integer first_iteration;
   doublereal initial_time;
   integer total_beam_count;
   KiteFASTNode mip_node;
+
   std::vector<KiteFASTNode> nodes;
   std::vector<KiteFASTNode> nodes_fuselage;
   std::vector<KiteFASTNode> nodes_portwing;
@@ -279,10 +200,10 @@ rotor_loads
   std::vector<KiteFASTNode> nodes_vstab;
   std::vector<KiteFASTNode> nodes_porthstab;
   std::vector<KiteFASTNode> nodes_starhstab;
-  std::vector< std::vector<KiteFASTNode> > nodes_starpylons;
-  std::vector< std::vector<KiteFASTNode> > nodes_portpylons;
-  std::vector<KiteFASTNode> nodes_portrotors;
+  std::vector< std::vector<KiteFASTNode> > nodes_starpylons; // < size - n pylons < size - n nodes in pylon >>
+  std::vector< std::vector<KiteFASTNode> > nodes_portpylons; // < size - n pylons < size - n nodes in pylon >>
   std::vector<KiteFASTNode> nodes_starrotors;
+  std::vector<KiteFASTNode> nodes_portrotors;
 
   std::vector<KiteFASTBeam> beams;
   std::vector<KiteFASTBeam> beams_fuselage;
@@ -295,7 +216,6 @@ rotor_loads
   std::vector< std::vector<KiteFASTBeam> > beams_portpylons;
   std::vector<KiteFASTBeam> beams_throwaway;
 
-  // std::vector<std::string> output_channel_vector;
   mutable std::ofstream outputfile;
   DriveOwner Time;
   const DataManager *data_manager;

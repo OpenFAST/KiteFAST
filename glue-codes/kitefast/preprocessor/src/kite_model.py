@@ -15,6 +15,7 @@
 #
 
 from .base_model import BaseModel
+from .base_model import ModelException
 from .main_mbd import MainMBD
 from .main_set import MainSet
 from .components import Fuselage
@@ -36,6 +37,7 @@ class KiteModel(BaseModel):
         super().__init__()
 
         # constants
+        self.title = simulation_dict["title"]
         initial_conditions = simulation_dict["initial_conditions"]
         self.mip_reference_frame = ReferenceFrame(
             name="mip_rf",
@@ -78,15 +80,17 @@ class KiteModel(BaseModel):
         self.fuselage = self.components[0]
         self.starboard_wing = self.components[1]
         self.port_wing = self.components[2]
-        self.starboard_hstab = self.components[3]
-        self.port_hstab = self.components[4]
-        self.vstab = self.components[5]
+        self.vstab = self.components[3]
+        self.starboard_hstab = self.components[4]
+        self.port_hstab = self.components[5]
         self.starboard_pylons = self.components[6]
         self.port_pylons = self.components[7]
         self.starboard_rotors = self.components[8]
         self.port_rotors = self.components[9]
 
         self.joints = self._build_joints()
+
+        self._validate_model()
 
         # simulation setup
         self.main_mbd = MainMBD(simulation_dict,
@@ -124,9 +128,9 @@ class KiteModel(BaseModel):
         fuselage = _build_component(Fuselage, ["fuselage"], 1000)
         starboard_wing = _build_component(Wing, ["wing", "starboard"], 2000)
         port_wing = _build_component(Wing, ["wing", "port"], 3000)
+        vstab = _build_component(VerticalStabilizer, ["vertical_stabilizer"], 6000)
         starboard_hstab = _build_component(HorizontalStabilizer, ["horizontal_stabilizer", "starboard"], 4000)
         port_hstab = _build_component(HorizontalStabilizer, ["horizontal_stabilizer", "port"], 5000)
-        vstab = _build_component(VerticalStabilizer, ["vertical_stabilizer"], 6000)
 
         # pylons
         mbdyn_ref_index = 10000
@@ -162,12 +166,9 @@ class KiteModel(BaseModel):
             rotor = _build_component(RotorAssembly, ["rotor_assembly", "port", i + 1, "lower"], mbdyn_ref_index + 10)
             port_rotors.append(rotor)
 
-        return fuselage, starboard_wing, port_wing, starboard_hstab, port_hstab, vstab, starboard_pylons, port_pylons, starboard_rotors, port_rotors
+        return fuselage, starboard_wing, port_wing, vstab, starboard_hstab, port_hstab, starboard_pylons, port_pylons, starboard_rotors, port_rotors
 
     def _build_joints(self):
-
-        # def _validate_joint_components(component1, component2):
-
 
         def _build_joint(joint_type, node1, node2, joint_count):
             return joint_type(joint_count, node1, node2)
@@ -256,6 +257,70 @@ class KiteModel(BaseModel):
             joints.append(_build_joint(TotalJoint, node1, node2, len(joints) + 1))
         
         return joints
+    
+    def _validate_model(self):
+        
+        # pylons should be given in order from inboard to outboard
+
+        # port pylons should decrease in y as the array index gets larger
+        inner = self.port_pylons[0]
+        for pylon in self.port_pylons[1:]:
+            outer = pylon
+            if not inner.mip.x2 > outer.mip.x2:
+                raise ModelException(pylon, "Invalid order - inboard to outboard")
+            inner = outer
+        
+        # starboard pylons should increase in y as the array index gets larger
+        inner = self.starboard_pylons[0]
+        for pylon in self.starboard_pylons[1:]:
+            outer = pylon
+            if not inner.mip.x2 < outer.mip.x2:
+                raise ModelException(pylon, "Invalid order - inboard to outboard")
+            inner = outer
+
+        # rotors should be given in order from upper to lower and inboard to outboard
+        
+        # even and 0 indexed rotors should have a z greater than odd indexed rotors
+        # except z is flipped in our coordinate system so "up" is smaller z 
+        for i in range(0, len(self.port_rotors), 2):
+            even = self.port_rotors[i]
+            odd = self.port_rotors[i + 1]
+            if not even.mip.x3 < odd.mip.x3:
+                raise ModelException(even, "Invalid order - upper to lower")
+
+        # even and 0 indexed rotors should have a z greater than odd indexed rotors
+        # except z is flipped in our coordinate system so "up" is smaller z
+        for i in range(0, len(self.starboard_rotors), 2):
+            even = self.starboard_rotors[i]
+            odd = self.starboard_rotors[i + 1]
+            if not even.mip.x3 < odd.mip.x3:
+                raise ModelException(even, "Invalid order - upper to lower")
+
+        # port side rotors should decrease in y as the array index gets larger
+        inner_upper = self.port_rotors[0]
+        inner_lower = self.port_rotors[1]
+        for i in range(2, len(self.port_rotors), 2):
+            outer_upper = self.port_rotors[i]
+            outer_lower = self.port_rotors[i + 1]
+            if not inner_upper.mip.x2 > outer_upper.mip.x2:
+                raise ModelException(pylon, "Invalid order - inboard to outboard")
+            if not inner_lower.mip.x2 > outer_lower.mip.x2:
+                raise ModelException(pylon, "Invalid order - inboard to outboard")
+            inner_upper = outer_upper
+            inner_lower = outer_lower
+        
+        # starboard side rotors should increase in y as the array index gets larger
+        inner_upper = self.starboard_rotors[0]
+        inner_lower = self.starboard_rotors[1]
+        for i in range(2, len(self.starboard_rotors), 2):
+            outer_upper = self.starboard_rotors[i]
+            outer_lower = self.starboard_rotors[i + 1]
+            if not inner_upper.mip.x2 < outer_upper.mip.x2:
+                raise ModelException(pylon, "Invalid order - inboard to outboard")
+            if not inner_lower.mip.x2 < outer_lower.mip.x2:
+                raise ModelException(pylon, "Invalid order - inboard to outboard")
+            inner_upper = outer_upper
+            inner_lower = outer_lower
 
     def export(self, output_directory):
         self.main_set.export_set_file(output_directory)
