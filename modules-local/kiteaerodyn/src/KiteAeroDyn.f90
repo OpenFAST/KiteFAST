@@ -56,8 +56,6 @@ subroutine RotorDisk_SetInputs(c_offset, numPylons, V_PyRtr, PyRtrMotions, RtSpd
    character(*),               intent(  out) :: errMsg            !< Error message if errStat /= ErrID_None
    
       ! Local Variables
-   integer(IntKi)                         :: errStat2          ! Error status of the operation (secondary error)
-   character(ErrMsgLen)                   :: errMsg2           ! Error message if errStat2 /= ErrID_None
    integer(IntKi)                         :: i,j,c, index      ! counters
    real(ReKi)                             :: Vrel(3)           ! Relative velocity
    real(ReKi)                             :: V_dot_x           ! Dot product of V and the local x-axis unit vector
@@ -67,7 +65,6 @@ subroutine RotorDisk_SetInputs(c_offset, numPylons, V_PyRtr, PyRtrMotions, RtSpd
    real(ReKi)                             :: tmp(3)            ! temporary vector
    
    real(ReKi)                             :: tmp_sz, tmp_sz_y  ! temporary quantities for calculations
-   real(ReKi)                             :: forces(3), moments(3)
    character(*), parameter                :: routineName = 'RotorDisk_SetInputs'
 
    errStat   = ErrID_None           ! no error has occurred
@@ -122,13 +119,9 @@ subroutine RotorDisk_SetInputs(c_offset, numPylons, V_PyRtr, PyRtrMotions, RtSpd
 
 end subroutine RotorDisk_SetInputs
 !> Routine to compute the rotor loads using a Actuator Disk Method on a per wing basis.
-subroutine RotorDisk_CalcOutput(c_offset, numPylons, V_PyRtr, PyRtrMotions, RtSpds, pitches, dcms, u_ActDsk, p_ActDsk, m_ActDsk, y_ActDsk, PyRtrLoads, errStat, errMsg)
+subroutine RotorDisk_CalcOutput(c_offset, numPylons, dcms, u_ActDsk, p_ActDsk, m_ActDsk, y_ActDsk, PyRtrLoads, errStat, errMsg)
    integer(IntKi),             intent(in   ) :: c_offset          !< Offset into the 1D ActDsk array, either 0 (starboard wing) or numPylons (port wing)
    integer(IntKi),             intent(in   ) :: numPylons         !< Number of pylons
-   real(ReKi),                 intent(in   ) :: V_PyRtr(:,:,:)    !< Undisturbed wind velocities at the rotors (1st index: u,v,w, 2nd index: 1=top, 2=bottom, 3rd index: 1,NumPylons)
-   type(MeshType),             intent(in   ) :: PyRtrMotions(:)   !< Rotor point meshes
-   real(ReKi),                 intent(in   ) :: RtSpds(:,:)       !< Rotor speeds in rad/s for the wing's pylons (1st index: 1=top, 2=bottom, 2nd index: 1,NumPylons)
-   real(ReKi),                 intent(in   ) :: pitches(:,:)      !< Rotor pitches in rad for the wing's pylons (1st index: 1=top, 2=bottom, 2nd index: 1,NumPylons)
    real(ReKi),                 intent(in   ) :: dcms(:,:,:)       !< direct cosine matrix for transforming from global coordinates into the disk local coordinates
    type(ActDsk_InputType),     intent(in   ) :: u_ActDsk(:)       !< Actuator Disk inputs, starboard wing first, followed by port wing
    type(ActDsk_ParameterType), intent(in   ) :: p_ActDsk(:)       !< Actuator Disk parameters
@@ -142,14 +135,7 @@ subroutine RotorDisk_CalcOutput(c_offset, numPylons, V_PyRtr, PyRtrMotions, RtSp
    integer(IntKi)                         :: errStat2          ! Error status of the operation (secondary error)
    character(ErrMsgLen)                   :: errMsg2           ! Error message if errStat2 /= ErrID_None
    integer(IntKi)                         :: i,j,c, index      ! counters
-   real(ReKi)                             :: Vrel(3)           ! Relative velocity
-   real(ReKi)                             :: V_dot_x           ! Dot product of V and the local x-axis unit vector
-   real(ReKi)                             :: x_hat_disk(3)     ! Unit vector normal to the rotor disk
-   real(ReKi)                             :: y_hat_disk(3)     ! Unit vector in the plane of the rotor disk
-   real(ReKi)                             :: z_hat_disk(3)     ! Unit vector in the plane of the rotor disk
-   real(ReKi)                             :: tmp(3)            ! temporary vector
    real(ReKi)                             :: dcm(3,3)          ! direct cosine matrix
-   real(ReKi)                             :: tmp_sz, tmp_sz_y  ! temporary quantities for calculations
    real(ReKi)                             :: forces(3), moments(3)
    character(*), parameter                :: routineName = 'RotorDisk_CalcOutput'
 
@@ -167,9 +153,7 @@ subroutine RotorDisk_CalcOutput(c_offset, numPylons, V_PyRtr, PyRtrMotions, RtSp
          call ActDsk_CalcOutput(u_ActDsk(c), p_ActDsk(c), m_ActDsk(c), y_ActDsk(c), errStat2, errMsg2)
             call SetErrStat( errStat2, errMsg2, errStat, errMsg, RoutineName )
             
-         !dcm(1,:) = x_hat_disk
-         !dcm(2,:) = y_hat_disk
-         !dcm(3,:) = z_hat_disk
+
             
             ! dcm is transform from global to local, but we need local to global so transpose
          dcm = transpose(dcms(:,:,c))
@@ -857,20 +841,17 @@ subroutine CreatePtWngLoadsMesh(origin, numNodes, positions, alignDCM, dhdrls, t
 end subroutine CreatePtWngLoadsMesh
 
 !> Routine to generate the point loads meshes for the rotor components.
-subroutine CreateRtrPtLoadsMesh(origin, motionMesh, mesh, errStat, errMsg)
-   real(ReKi),                   intent(in   )  :: origin(3)         !< Reference position for the mesh in global coordinates
+subroutine CreateRtrPtLoadsMesh(motionMesh, mesh, errStat, errMsg)
    type(MeshType),               intent(inout)  :: motionMesh        !< The sibling mesh 
    type(MeshType),               intent(  out)  :: mesh              !< The resulting mesh 
    integer(IntKi),               intent(  out)  :: errStat           !< Error status of the operation
    character(*),                 intent(  out)  :: errMsg            !< Error message if errStat /= ErrID_None
 
-   ! Local variables
-   real(R8Ki)                                   :: orientation(3,3)  ! node reference orientation
-   
+   ! Local variables  
    integer(intKi)                               :: errStat2          ! temporary Error status
    character(ErrMsgLen)                         :: errMsg2           ! temporary Error message
    character(*), parameter                      :: RoutineName = 'CreateRtrPtLoadsMesh'
-   real(ReKi)                                   :: elemLen           ! Length of a VSM element associated with this data
+   
       ! Initialize variables for this routine
 
    errStat = ErrID_None
@@ -907,7 +888,7 @@ subroutine CreateMeshMappings( u, y, p, m, errStat, errMsg )
 
    integer(intKi)                               :: errStat2          ! temporary Error status
    character(ErrMsgLen)                         :: errMsg2           ! temporary Error message
-   integer(IntKi)                               :: i, j
+   integer(IntKi)                               :: i
    character(*), parameter                      :: routineName = 'CreateMeshMappings'
       ! Initialize variables for this routine
 
@@ -1274,7 +1255,7 @@ subroutine Init_y(y, u, InitInp, p, errStat, errMsg)
       ! Starboard Rotor Meshes 
    do j=1,InitInp%NumPylons
       do i = 1,2
-         call CreateRtrPtLoadsMesh(InitInp%SPyRtrOR(:,i,j), u%SPyRtrMotions(i+(j-1)*InitInp%NumPylons), y%SPyRtrLoads(i+(j-1)*InitInp%NumPylons), errStat2, errMsg2)
+         call CreateRtrPtLoadsMesh(u%SPyRtrMotions(i+(j-1)*InitInp%NumPylons), y%SPyRtrLoads(i+(j-1)*InitInp%NumPylons), errStat2, errMsg2)
             call SetErrStat( errStat2, errMsg2, errStat, errMsg, RoutineName )
             if (errStat >= AbortErrLev) return
       end do
@@ -1284,7 +1265,7 @@ subroutine Init_y(y, u, InitInp, p, errStat, errMsg)
       ! Port Rotor Meshes
    do j=1,InitInp%NumPylons
       do i = 1,2
-         call CreateRtrPtLoadsMesh(InitInp%PPyRtrOR(:,i,j), u%PPyRtrMotions(i+(j-1)*InitInp%NumPylons), y%PPyRtrLoads(i+(j-1)*InitInp%NumPylons), errStat2, errMsg2)
+         call CreateRtrPtLoadsMesh(u%PPyRtrMotions(i+(j-1)*InitInp%NumPylons), y%PPyRtrLoads(i+(j-1)*InitInp%NumPylons), errStat2, errMsg2)
             call SetErrStat( errStat2, errMsg2, errStat, errMsg, RoutineName )
             if (errStat >= AbortErrLev) return
       end do
@@ -1294,10 +1275,9 @@ end subroutine Init_y
 
 !----------------------------------------------------------------------------------------------------------------------------------
 !> This routine initializes KiteAeroDyn meshes and input array variables for use during the simulation.
-subroutine Init_u( u, p, InitInp, nIfWPts, errStat, errMsg )
+subroutine Init_u( u, InitInp, nIfWPts, errStat, errMsg )
 
    type(KAD_InputType),           intent(inout)  :: u                 !< Input data
-   type(KAD_ParameterType),       intent(in   )  :: p                 !< Parameters
    type(KAD_InitInputType),       intent(in   )  :: InitInp           !< Input data for AD initialization routine
    integer(IntKi),                intent(  out)  :: nIfWPts         !< The number of points where we need inflow velocities
    integer(IntKi),                intent(  out)  :: errStat           !< Error status of the operation
@@ -1731,7 +1711,7 @@ subroutine ComputeKiteLoads( p, u, y, m, kiteForces, kiteMoments, errStat, errMs
    
 end subroutine ComputeKiteLoads
 
-subroutine ComputeAeroOnMotionNodes(i, outNds, motionMesh, VSMoffset, u_VSM, y_VSM, u_V, VSMchords, VSMelemLens, airDens, kinVisc, &
+subroutine ComputeAeroOnMotionNodes(i, outNds, motionMesh, VSMoffset, u_VSM, y_VSM, VSMchords, VSMelemLens, airDens, kinVisc, &
                                     speedOfSound, Vinf_v, Vstruct_v, Vind_v, Vrel, DynP, Re, XM, AoA, Cl, Cd, Cm, Fl, Fd, &
                                     Mm, Cn, Cc, Fn, Fc, errStat, errMsg )
             
@@ -1741,7 +1721,6 @@ subroutine ComputeAeroOnMotionNodes(i, outNds, motionMesh, VSMoffset, u_VSM, y_V
    integer(IntKi)      , intent(in   ) :: VSMoffset
    type(VSM_InputType) , intent(in   ) :: u_VSM
    type(VSM_OutputType), intent(in   ) :: y_VSM
-   real(ReKi)          , intent(in   ) :: u_V(:,:)
    real(ReKi)          , intent(in   ) :: VSMchords(:)
    real(ReKi)          , intent(in   ) :: VSMelemLens(:)
    real(ReKi)          , intent(in   ) :: airDens
@@ -1780,8 +1759,8 @@ subroutine ComputeAeroOnMotionNodes(i, outNds, motionMesh, VSMoffset, u_VSM, y_V
 
       ! Local Variables
    real(ReKi)       :: DCM(3,3)
-   real(ReKi)       :: chord, factor, elemLen, F2d, Vx, Vy
-   real(ReKi)       :: Vrel_v(3), Vrel_hat(3), forces(3), moments(3), d_v(3), d_hat(3), l_hat(3)
+   real(ReKi)       :: chord, elemLen, Vx, Vy
+   real(ReKi)       :: Vrel_v(3)
    integer(IntKi)   :: VSMElemIndx, compElemIndx, n1, n2
    character(*), parameter   :: routineName = 'ComputeAeroOnMotionNodes'
    
@@ -1865,11 +1844,10 @@ subroutine ReadKADFile(InitInp, interval, errStat, errMsg)
          ! Local variables
    integer(IntKi)            :: i                ! loop counter
    character(ErrMsgLen)      :: errMsg2          ! temporary Error message if errStat /= ErrID_None
-   integer(IntKi)            :: errStat2, IOS    ! temporary Error status of the operation
+   integer(IntKi)            :: errStat2         ! temporary Error status of the operation
    character(1024)           :: fileName         ! file name
    integer(IntKi)            :: UnIn, UnEc       ! file units
    character(1024)           :: FTitle           ! "File Title": the 2nd line of the input file, which contains a description of its contents
-   character(200)            :: Line             ! temporary storage of a line from the input file (to compare with "default")
    logical                   :: Echo             ! echo flag, true=echo the file
    character(*), parameter   :: routineName = 'ReadKADFile'
    
@@ -2359,7 +2337,6 @@ subroutine ValidateInitData(InitInp, errStat, errMsg)
          ! Local variables
    character(*), parameter                      :: routineName = 'ValidateInitData'
    type(KAD_InputFile)                          :: InpData
-   integer(IntKi)                               :: i
    
          ! Initialize variables for this routine
    errStat = ErrID_None
@@ -2944,7 +2921,6 @@ subroutine KAD_WriteSummary( outRootName, VSM_ElemPts, VSMnumCompElems, errStat,
    
       ! Local variables
    integer                                :: i,k,l                          ! Generic loop counter
-   integer                                :: numComp
    character(1024)                        :: OutFileName
    integer                                :: Un
    
@@ -3197,13 +3173,12 @@ subroutine KAD_MapOutputs(p, u, u_VSM, y, y_VSM, p_VSM, u_ActDsk, y_ActDsk, m, z
    real   (ReKi)               :: DCM(3,3)  
    real   (ReKi)               :: Vstruct_v(3)
    real   (ReKi)               :: Vrel   
-   real   (ReKi)               :: Vind, Vrel_v(3), Vind_v(3), AoA, Cl, Cd, Cm, Fl, Fd, Mm, Cn, Cc, Fn, Fc
+   real   (ReKi)               :: Vind_v(3), AoA, Cl, Cd, Cm, Fl, Fd, Mm, Cn, Cc, Fn, Fc
    real   (ReKi)               :: Re     
    real   (ReKi)               :: XM     
    real   (ReKi)               :: DynP  
    integer(IntKi)              :: VSMoffset
    integer(IntKi)              :: i, j
-   real   (ReKi)               :: chord
    real   (ReKi), allocatable  :: Vinfs_v(:,:)
    real   (ReKi), allocatable  :: chords(:)
    real   (ReKi), allocatable  :: elemLens(:)
@@ -3231,7 +3206,7 @@ subroutine KAD_MapOutputs(p, u, u_VSM, y, y_VSM, p_VSM, u_ActDsk, y_ActDsk, m, z
    !!=======================================   
    do i = 1, p%NFusOuts
                
-      call ComputeAeroOnMotionNodes(i, p%FusOutNd, u%FusMotions, VSMoffset, u_VSM, y_VSM, u%V_Fus, &
+      call ComputeAeroOnMotionNodes(i, p%FusOutNd, u%FusMotions, VSMoffset, u_VSM, y_VSM,  &
                                      p_VSM%Chords, p_VSM%elemLens, p%AirDens, p%KinVisc, p%SpdSound, &
                                      Vinf_v, Vstruct_v, Vind_v, Vrel, DynP, Re, XM, AoA, Cl, Cd, Cm, &
                                      Fl, Fd, Mm, Cn, Cc, Fn, Fc, errStat, errMsg )
@@ -3273,7 +3248,7 @@ subroutine KAD_MapOutputs(p, u, u_VSM, y, y_VSM, p_VSM, u_ActDsk, y_ActDsk, m, z
    !=======================================   
    do i = 1, p%NSWnOuts
       
-      call ComputeAeroOnMotionNodes(i, p%SWnOutNd, u%SWnMotions, VSMoffset, u_VSM, y_VSM, u%V_SWn,  &
+      call ComputeAeroOnMotionNodes(i, p%SWnOutNd, u%SWnMotions, VSMoffset, u_VSM, y_VSM, &
                                       p_VSM%Chords, p_VSM%elemLens, p%AirDens, p%KinVisc, p%SpdSound, Vinf_v, Vstruct_v, Vind_v, &
                                       Vrel, DynP, Re, XM, AoA, Cl, Cd, Cm, Fl, Fd, Mm, Cn, Cc, Fn, Fc, errStat, errMsg )
          if (errStat >= AbortErrLev) then
@@ -3319,7 +3294,7 @@ subroutine KAD_MapOutputs(p, u, u_VSM, y, y_VSM, p_VSM, u_ActDsk, y_ActDsk, m, z
    !=======================================   
    do i = 1, p%NPWnOuts
          
-      call ComputeAeroOnMotionNodes(i, p%PWnOutNd, u%PWnMotions, VSMoffset, u_VSM, y_VSM, u%V_PWn, p_VSM%Chords, &
+      call ComputeAeroOnMotionNodes(i, p%PWnOutNd, u%PWnMotions, VSMoffset, u_VSM, y_VSM, p_VSM%Chords, &
                                     p_VSM%elemLens, p%AirDens, p%KinVisc, p%SpdSound, Vinf_v, Vstruct_v, Vind_v, &
                                     Vrel, DynP, Re, XM, AoA, Cl, Cd, Cm, Fl, Fd, Mm, Cn, Cc, Fn, Fc, errStat, errMsg )
          if (errStat >= AbortErrLev) then
@@ -3364,7 +3339,7 @@ subroutine KAD_MapOutputs(p, u, u_VSM, y, y_VSM, p_VSM, u_ActDsk, y_ActDsk, m, z
    !=======================================   
    do i = 1, p%NVSOuts
          
-      call ComputeAeroOnMotionNodes(i, p%VSOutNd, u%VSMotions, VSMoffset, u_VSM, y_VSM, u%V_VS, p_VSM%Chords, p_VSM%elemLens, &
+      call ComputeAeroOnMotionNodes(i, p%VSOutNd, u%VSMotions, VSMoffset, u_VSM, y_VSM, p_VSM%Chords, p_VSM%elemLens, &
                                     p%AirDens, p%KinVisc, p%SpdSound, Vinf_v, Vstruct_v, Vind_v, Vrel, DynP, Re, XM, AoA, &
                                     Cl, Cd, Cm, Fl, Fd, Mm, Cn, Cc, Fn, Fc, errStat, errMsg )
          if (errStat >= AbortErrLev) then
@@ -3409,7 +3384,7 @@ subroutine KAD_MapOutputs(p, u, u_VSM, y, y_VSM, p_VSM, u_ActDsk, y_ActDsk, m, z
    !=======================================   
    do i = 1, p%NSHSOuts
          
-      call ComputeAeroOnMotionNodes(i, p%SHSOutNd, u%SHSMotions, VSMoffset, u_VSM, y_VSM, u%V_SHS, p_VSM%Chords, p_VSM%elemLens, & 
+      call ComputeAeroOnMotionNodes(i, p%SHSOutNd, u%SHSMotions, VSMoffset, u_VSM, y_VSM, p_VSM%Chords, p_VSM%elemLens, & 
                                     p%AirDens, p%KinVisc, p%SpdSound, Vinf_v, Vstruct_v, Vind_v, Vrel, DynP, Re, XM, AoA, &
                                     Cl, Cd, Cm, Fl, Fd, Mm, Cn, Cc, Fn, Fc, errStat, errMsg )
          if (errStat >= AbortErrLev) then
@@ -3454,7 +3429,7 @@ subroutine KAD_MapOutputs(p, u, u_VSM, y, y_VSM, p_VSM, u_ActDsk, y_ActDsk, m, z
    !=======================================   
    do i = 1, p%NPHSOuts
       
-      call ComputeAeroOnMotionNodes(i, p%PHSOutNd, u%PHSMotions, VSMoffset, u_VSM, y_VSM, u%V_PHS, p_VSM%Chords, p_VSM%elemLens, &
+      call ComputeAeroOnMotionNodes(i, p%PHSOutNd, u%PHSMotions, VSMoffset, u_VSM, y_VSM, p_VSM%Chords, p_VSM%elemLens, &
                                     p%AirDens, p%KinVisc, p%SpdSound, Vinf_v, Vstruct_v, Vind_v, Vrel, DynP, Re, XM, AoA, &
                                     Cl, Cd, Cm, Fl, Fd, Mm, Cn, Cc, Fn, Fc, errStat, errMsg )
          if (errStat >= AbortErrLev) then
@@ -3501,7 +3476,7 @@ subroutine KAD_MapOutputs(p, u, u_VSM, y, y_VSM, p_VSM, u_ActDsk, y_ActDsk, m, z
       do i = 1, p%NPylOuts
          
          Vinfs_v = u%V_SPy(:, :,j)
-         call ComputeAeroOnMotionNodes(i, p%PylOutNd, u%SPyMotions(j), VSMoffset, u_VSM, y_VSM, Vinfs_v, p_VSM%Chords, p_VSM%elemLens, &
+         call ComputeAeroOnMotionNodes(i, p%PylOutNd, u%SPyMotions(j), VSMoffset, u_VSM, y_VSM, p_VSM%Chords, p_VSM%elemLens, &
                                        p%AirDens, p%KinVisc, p%SpdSound, Vinf_v, Vstruct_v, Vind_v, Vrel, DynP, Re, XM, AoA, &
                                        Cl, Cd, Cm, Fl, Fd, Mm, Cn, Cc, Fn, Fc, errStat, errMsg )
          if (errStat >= AbortErrLev) then
@@ -3545,7 +3520,7 @@ subroutine KAD_MapOutputs(p, u, u_VSM, y, y_VSM, p_VSM, u_ActDsk, y_ActDsk, m, z
       do i = 1, p%NPylOuts
          
          Vinfs_v = u%V_PPy(:, :,j)
-         call ComputeAeroOnMotionNodes(i, p%PylOutNd, u%PPyMotions(j), VSMoffset, u_VSM, y_VSM, Vinfs_v, p_VSM%Chords, p_VSM%elemLens, &
+         call ComputeAeroOnMotionNodes(i, p%PylOutNd, u%PPyMotions(j), VSMoffset, u_VSM, y_VSM, p_VSM%Chords, p_VSM%elemLens, &
                                        p%AirDens, p%KinVisc, p%SpdSound, Vinf_v, Vstruct_v, Vind_v, Vrel, DynP, Re, XM, AoA, &
                                         Cl, Cd, Cm, Fl, Fd, Mm, Cn, Cc, Fn, Fc, errStat, errMsg )
          if (errStat >= AbortErrLev) then
@@ -3966,7 +3941,7 @@ subroutine KAD_Init( InitInp, u, p, y, interval, x, xd, z, OtherState, m, InitOu
    ! Create and initialize the Inputs
    !----------------------------------
    
-   call Init_u( u, p, InitInp, nIfWPts, errStat, errMsg )
+   call Init_u( u, InitInp, nIfWPts, errStat, errMsg )
       if ( errStat >= AbortErrLev ) return
       
    
@@ -4293,7 +4268,6 @@ subroutine KAD_CalcOutput( Time, u, p, x, xd, z, OtherState, y, m, errStat, errM
    
    character(*), parameter                :: routineName = 'KAD_CalcOutput'
    integer(IntKi)                         :: n, i, j, c
-   real(ReKi)                             :: forces(3), moments(3), dcm(3,3)
    real(ReKi)                             :: rotorDCMs(3,3,p%NumPylons*4)
    character(ErrMsgLen)                   :: errMsg2     ! temporary Error message if errStat /= ErrID_None
    integer(IntKi)                         :: errStat2    ! temporary Error status of the operation
@@ -4385,9 +4359,9 @@ subroutine KAD_CalcOutput( Time, u, p, x, xd, z, OtherState, y, m, errStat, errM
    call RotorDisk_SetInputs(p%NumPylons*2, p%NumPylons, u%V_PPyRtr, u%PPyRtrMotions, u%RtSpd_PPyRtr, u%Pitch_PPyRtr, m%u_ActDsk, rotorDCMs, errStat, errMsg)
       if ( errStat >= AbortErrLev ) return 
       
-   call RotorDisk_CalcOutput(0,             p%NumPylons, u%V_SPyRtr, u%SPyRtrMotions, u%RtSpd_SPyRtr, u%Pitch_SPyRtr, rotorDCMs, m%u_ActDsk, p%ActDsk, m%ActDsk, m%y_ActDsk, y%SPyRtrLoads, errStat, errMsg)
+   call RotorDisk_CalcOutput(0,             p%NumPylons, rotorDCMs, m%u_ActDsk, p%ActDsk, m%ActDsk, m%y_ActDsk, y%SPyRtrLoads, errStat, errMsg)
       if ( errStat >= AbortErrLev ) return
-   call RotorDisk_CalcOutput(p%NumPylons*2, p%NumPylons, u%V_PPyRtr, u%PPyRtrMotions, u%RtSpd_PPyRtr, u%Pitch_PPyRtr, rotorDCMs, m%u_ActDsk, p%ActDsk, m%ActDsk, m%y_ActDsk, y%PPyRtrLoads, errStat, errMsg)
+   call RotorDisk_CalcOutput(p%NumPylons*2, p%NumPylons, rotorDCMs, m%u_ActDsk, p%ActDsk, m%ActDsk, m%y_ActDsk, y%PPyRtrLoads, errStat, errMsg)
       if ( errStat >= AbortErrLev ) return     
    
    ! Map the output quantities to the AllOuts array

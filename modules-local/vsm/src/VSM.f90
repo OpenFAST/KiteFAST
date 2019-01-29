@@ -261,30 +261,6 @@ SUBROUTINE VSM_WriteOutputs( UnOutFile, Time, y, p, ErrStat, ErrMsg )
 
 
 END SUBROUTINE VSM_WriteOutputs   
-subroutine VSM_WriteOutput( Un, numElem, Gamma, U_Inf_v, U_Ind_v, AoA, Fx, Fy, Mz, residual, errStat, errMsg )
-
-   integer(IntKi), intent(in   ) :: Un  
-   integer(IntKi), intent(in   ) :: numElem
-   real(ReKi),     intent(in   ) :: Gamma
-   real(ReKi),     intent(in   ) :: U_Inf_v(3)
-   real(ReKi),     intent(in   ) :: U_Ind_v(3)
-   real(ReKi),     intent(in   ) :: AoA
-   real(ReKi),     intent(in   ) :: Fx
-   real(ReKi),     intent(in   ) :: Fy
-   real(ReKi),     intent(in   ) :: Mz
-   real(ReKi),     intent(in   ) :: residual
-   integer(IntKi), intent(  out) :: errStat    !< Error status
-   character(*),   intent(  out) :: errMsg     !< Error message
-   
-   character(255)  :: format
-   
-   errStat = ErrID_None
-   errMsg = ''
-   format = ''
-   ! Write an element's output quantities and a line without line return at the end
-   write(Un,format) U_Inf_v, U_Ind_v, AoA, Gamma, residual, Fx, Fy, Mz
-   
-end subroutine VSM_WriteOutput
 
 subroutine VSM_Compute_Influence(CtrlPtMod, KinVisc,  numVolElem, numElem, inPtA, inPtB, U_Inf_v, x_hat, y_hat, chord, noInflow, Phi_v, Phi_AB2D_v, errStat, errMsg)
 
@@ -591,12 +567,12 @@ subroutine VSM_Compute_Influence(CtrlPtMod, KinVisc,  numVolElem, numElem, inPtA
 
 end subroutine VSM_Compute_Influence
 
-subroutine VSM_Compute( AirDens, numVolElem, numElem, elemLens, PtA, PtB, U_Inf_v, x_hat, y_hat, p_AFI, AFIDs, deltaf, chord, Gammas, Phi_v, Phi_AB2D_v, U_Ind_v, alpha, Fx, Fy, Mz, Cl, Cd, Cm, residual, errStat, errMsg)
+subroutine VSM_Compute( AirDens, numVolElem, numElem, elemLens, U_Inf_v, x_hat, y_hat, p_AFI, AFIDs, deltaf, chord, Gammas, Phi_v, Phi_AB2D_v, U_Ind_v, alpha, Fx, Fy, Mz, Cl, Cd, Cm, residual, errStat, errMsg)
 
    real(ReKi),              intent(in   ) :: AirDens
    integer(IntKi),          intent(in   ) :: numVolElem
    integer(IntKi),          intent(in   ) :: numElem
-   real(ReKi),              intent(in   ) :: elemLens(numElem), PtA(3,numElem), PtB(3,numElem), U_Inf_v(3,numElem), x_hat(3,numElem), y_hat(3,numElem)
+   real(ReKi),              intent(in   ) :: elemLens(numElem), U_Inf_v(3,numElem), x_hat(3,numElem), y_hat(3,numElem)
    type(AFI_ParameterType), intent(in   ) :: p_AFI(:)
    integer(IntKi),          intent(in   ) :: AFIDs(numElem)
    real(ReKi),              intent(in   ) :: deltaf(numElem)
@@ -609,7 +585,7 @@ subroutine VSM_Compute( AirDens, numVolElem, numElem, elemLens, PtA, PtB, U_Inf_
   
    integer(IntKi)          :: i,j
    real(ReKi)              :: U_rel_v(3)
-   real(ReKi)              :: Ux, Uy, Cpmin, U_2D, U_Infx, U_Infy, U_Inf_2D , Factor, elemLen, diff(3)
+   real(ReKi)              :: Ux, Uy, U_2D, U_Infx, U_Infy, U_Inf_2D , Factor, elemLen, diff(3)
    type(AFI_OutputType)    :: AFI_Interp
    character(*), parameter :: routineName = 'VSM_Compute'
    
@@ -644,8 +620,7 @@ subroutine VSM_Compute( AirDens, numVolElem, numElem, elemLens, PtA, PtB, U_Inf_
       U_Infx =  dot_product( U_Inf_v(:,j), x_hat(:,j))
       U_Infy  = dot_product( U_Inf_v(:,j), y_hat(:,j))
       U_Inf_2D = sqrt(U_Infx**2 + U_Infy**2)
-      !diff = PtA(:,j) - PtB(:,j)
-      !elemLen = TwoNorm(diff)   ! Use dynamic length instead of the initial length (found in elemLens array)
+
       Factor = 0.5*AirDens*U_2D*elemLens(j)*chord(j)
       
          ! These are in the local airfoil frame 
@@ -885,7 +860,7 @@ subroutine VSM_CalcConstrStateResidual( Time, u, p, z, m, z_residual, errStat, e
    if ( p%LiftMod == 1 ) then
       z_residual%Gammas = 0.0_ReKi
    else   
-      call VSM_Compute( p%AirDens, p%NumVolElem, p%numElem, p%ElemLens, u%PtA, u%PtB, u%U_Inf_v, u%x_hat, u%y_hat, p%AFInfo, p%AFIDs, u%deltaf, p%Chords, z%Gammas, m%Phi_v, m%Phi_AB2D_v, U_Ind_v, alpha, Fx, Fy, Mz, Cl, Cd, Cm, z_residual%Gammas, errStat, errMsg)
+      call VSM_Compute( p%AirDens, p%NumVolElem, p%numElem, p%ElemLens, u%U_Inf_v, u%x_hat, u%y_hat, p%AFInfo, p%AFIDs, u%deltaf, p%Chords, z%Gammas, m%Phi_v, m%Phi_AB2D_v, U_Ind_v, alpha, Fx, Fy, Mz, Cl, Cd, Cm, z_residual%Gammas, errStat, errMsg)
    end if
    
 end subroutine VSM_CalcConstrStateResidual
@@ -1105,7 +1080,7 @@ subroutine VSM_CalcOutput( t, n, u, p, z, OtherState, m, y, errStat, errMsg )
    
    character(*), parameter                          :: routineName = 'VSM_CalcOutput'
    type(VSM_ConstraintStateType)                    :: zTmp, z_residual
-   real(ReKi)                                       :: U_Ind_v(3,p%NumElem), alpha(p%NumElem), Fx(p%numElem), Fy(p%numElem), Mz(p%numElem), Cl(p%numElem), Cd(p%numElem), Cm(p%numElem)
+   real(ReKi)                                       :: alpha(p%NumElem), Fx(p%numElem), Fy(p%numElem), Mz(p%numElem), Cl(p%numElem), Cd(p%numElem), Cm(p%numElem)
    integer(IntKi)                                   :: count, i
    real(ReKi)                                       :: forces(3), moments(3)
    
@@ -1120,20 +1095,20 @@ subroutine VSM_CalcOutput( t, n, u, p, z, OtherState, m, y, errStat, errMsg )
          call VSM_CopyConstrState( z, z_residual, 0, errStat, errMsg )
          call VSM_Solve( t, n, u, p, zTmp, OtherState, m, errStat, errMsg )
             if ( errStat >= AbortErrLev ) return
-         call VSM_Compute( p%AirDens, p%NumVolElem, p%numElem, p%ElemLens, u%PtA, u%PtB, u%U_Inf_v, u%x_hat, u%y_hat, p%AFInfo, p%AFIDs, u%deltaf, p%Chords, zTmp%Gammas, m%Phi_v, m%Phi_AB2D_v, y%Vind, y%AoA, Fx, Fy,Mz, y%Cl, y%Cd, y%Cm, z_residual%Gammas, errStat, errMsg)     
+         call VSM_Compute( p%AirDens, p%NumVolElem, p%numElem, p%ElemLens, u%U_Inf_v, u%x_hat, u%y_hat, p%AFInfo, p%AFIDs, u%deltaf, p%Chords, zTmp%Gammas, m%Phi_v, m%Phi_AB2D_v, y%Vind, y%AoA, Fx, Fy,Mz, y%Cl, y%Cd, y%Cm, z_residual%Gammas, errStat, errMsg)     
             if ( errStat >= AbortErrLev ) return
       else
             ! TODO: may want to store this z_residual as a miscvar to avoid the copy here
          call VSM_CopyConstrState( z, z_residual, 0, errStat, errMsg )
          call VSM_Compute_Influence(p%CtrlPtMod, p%KinVisc, p%NumVolElem, p%numElem, u%PtA, u%PtB, u%U_Inf_v, u%x_hat, u%y_hat, p%Chords, m%NoInflow, m%Phi_v, m%Phi_AB2D_v, errStat, errMsg)
             if ( errStat >= AbortErrLev ) return
-         call VSM_Compute( p%AirDens, p%NumVolElem, p%numElem, p%ElemLens, u%PtA, u%PtB, u%U_Inf_v, u%x_hat, u%y_hat, p%AFInfo, p%AFIDs, u%deltaf, p%Chords, z%Gammas, m%Phi_v, m%Phi_AB2D_v, y%Vind, y%AoA, Fx, Fy, Mz, y%Cl, y%Cd, y%Cm, z_residual%Gammas, errStat, errMsg)
+         call VSM_Compute( p%AirDens, p%NumVolElem, p%numElem, p%ElemLens, u%U_Inf_v, u%x_hat, u%y_hat, p%AFInfo, p%AFIDs, u%deltaf, p%Chords, z%Gammas, m%Phi_v, m%Phi_AB2D_v, y%Vind, y%AoA, Fx, Fy, Mz, y%Cl, y%Cd, y%Cm, z_residual%Gammas, errStat, errMsg)
             if ( errStat >= AbortErrLev ) return
       end if
    else
          ! Compute Loads without induction, all states (Gammas are zero)
       call VSM_CopyConstrState( z, z_residual, 0, errStat, errMsg )
-      call VSM_Compute( p%AirDens, p%NumVolElem, p%numElem, p%ElemLens, u%PtA, u%PtB, u%U_Inf_v, u%x_hat, u%y_hat, p%AFInfo, p%AFIDs, u%deltaf, p%Chords, z%Gammas, m%Phi_v, m%Phi_AB2D_v, y%Vind, y%AoA, Fx, Fy, Mz, y%Cl, y%Cd, y%Cm, z_residual%Gammas, errStat, errMsg)
+      call VSM_Compute( p%AirDens, p%NumVolElem, p%numElem, p%ElemLens, u%U_Inf_v, u%x_hat, u%y_hat, p%AFInfo, p%AFIDs, u%deltaf, p%Chords, z%Gammas, m%Phi_v, m%Phi_AB2D_v, y%Vind, y%AoA, Fx, Fy, Mz, y%Cl, y%Cd, y%Cm, z_residual%Gammas, errStat, errMsg)
          if ( errStat >= AbortErrLev ) return
 
    end if

@@ -470,10 +470,8 @@ subroutine ValidateInitData(InitInp, errStat, errMsg)
    character(*),                     intent(  out)  :: errMsg      !< Error message if errStat /= ErrID_None
 
          ! Local variables
-   integer(IntKi)                               :: i,j,k,ln    ! counters
+   integer(IntKi)                               :: i           ! counter
    real(ReKi)                                   :: minVal      ! temporary value
-   character(ErrMsgLen)                         :: errMsg2     ! temporary Error message if ErrStat /= ErrID_None
-   integer(IntKi)                               :: errStat2    ! temporary Error status of the operation
    character(*), parameter                      :: routineName = 'ValidateInitData'
 
          ! Initialize variables for this routine
@@ -572,9 +570,7 @@ subroutine ActDsk_Init( InitInp, u, p, y, interval, &
    character(*),                     intent(  out)  :: errMsg      !< Error message if errStat /= ErrID_None
 
 
-      ! Local variables
-   integer(IntKi)                               :: i,j, iNode, iOffset
-    
+   
       ! Initialize variables for this routine
    errStat = ErrID_None
    errMsg  = ""
