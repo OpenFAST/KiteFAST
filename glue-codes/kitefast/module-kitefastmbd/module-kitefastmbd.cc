@@ -776,9 +776,6 @@ void ModuleKiteFAST::_AssRes(doublereal *node_loads, doublereal *rotor_loads)
                &error_status,
                error_message);
   
-  // After the first call to AssRes, set this to NO - 0
-  first_iteration = 0;
-  
   printdebug("KFAST_AssRes error");
   printdebug("    status: " + std::to_string(error_status) + ";");
   printdebug("    message: " + std::string(error_message) + ";");
@@ -862,6 +859,9 @@ void ModuleKiteFAST::BeforePredict(VectorHandler &X, VectorHandler &XP, VectorHa
 void ModuleKiteFAST::AfterPredict(VectorHandler &X, VectorHandler &XP)
 {
   printdebug("AfterPredict");
+
+  // After the first time step is complete, set this to NO - 0
+  first_iteration = 0;
 
   int error_status;
   char error_message[INTERFACE_STRING_LENGTH];
