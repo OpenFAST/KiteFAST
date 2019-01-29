@@ -15,11 +15,11 @@ module KiteFAST
 
 private
 
-   type(ProgDesc), parameter  :: KFAST_Ver = ProgDesc( 'KiteFAST', '', '' )
-   integer,        parameter  :: IntfStrLen  = 1025       ! length of strings through the C interface
-   type(KFAST_ParameterType)  :: p
-   type(KFAST_MiscVarType)    :: m
-   type(KFAST_OtherStateType)    :: OtherSt
+   type(ProgDesc), parameter        :: KFAST_Ver = ProgDesc( 'KiteFASTMBD', '', '' )
+   integer,        parameter        :: IntfStrLen  = 1025       ! length of strings through the C interface
+   type(KFAST_ParameterType), save  :: p
+   type(KFAST_MiscVarType), save    :: m
+   type(KFAST_OtherStateType), save :: OtherSt
    !type(KFAST_InputType)      :: u
    !type(KFAST_OutputType)     :: y
    
@@ -58,21 +58,6 @@ end do
 
 end subroutine
 
-subroutine SetBridleForce(m)
-
-   type(KFAST_MiscVarType),   intent(inout) :: m
-
-   integer(IntKi) :: i, numFairLeads
-   
-   m%tether_forceb_prev = 0.0_ReKi
-   numFairLeads = size(m%MD%y%PtFairLeadLoad%Force,2)
-   do i = 1, numFairLeads
-      m%tether_forceb_prev = m%tether_forceb_prev + m%MD%y%PtFairLeadLoad%Force(:,i) 
-   end do
-   m%tether_forceb_prev = m%tether_forceb_prev/real(numFairLeads,ReKi)
-   
-end subroutine SetBridleForce
-
 subroutine WriteNodeInfo(SumFileUnit, CompIndx, nNds, Pts, NdDCMs, FusO, RefPt, NOuts, OutNds, errStat, errMsg )
    integer(IntKi),                  intent(in   ) :: SumFileUnit          ! the unit number for the summary file
    integer(IntKi),                  intent(in   ) :: CompIndx
@@ -89,14 +74,12 @@ subroutine WriteNodeInfo(SumFileUnit, CompIndx, nNds, Pts, NdDCMs, FusO, RefPt, 
       ! Local variables
    integer                                        :: k,l                  ! Generic loop counter      
 
-   character(200)                                 :: Frmt                 ! a string to hold a format statement
-   integer                                        :: errStat2              
-   character(ErrMsgLen)                           :: errMsg2              ! error messages
    integer(IntKi)                                 :: TmpErrStat           ! Temporary error status for checking how the WRITE worked
    character(32)                                  :: Components(12)
    character(1)                                   :: NoValStr = '-'
-   character(1)                                   :: OutNumStr
+   character(4)                                   :: OutNumStr
    character(19)                                  :: NodeType(3)
+   character(3)                                   :: CompAbrv(6)
    real(ReKi)                                     :: globalPt(3), kitePt(3), kitePt2(3)
 
    !-------------------------------------------------------------------------------------------------      
@@ -120,6 +103,8 @@ subroutine WriteNodeInfo(SumFileUnit, CompIndx, nNds, Pts, NdDCMs, FusO, RefPt, 
                 'Finite-element node', & 
                 'Gauss point        '/)
 
+   CompAbrv = (/'FUS', 'SWN', 'PWN', ' VS', 'SHS', 'PHS'/)
+   
       ! reference point
    write(SumFileUnit,'(3X,A32,2X,A19,4X,A1,10X,A1,8X,3(F7.3,1X))',IOSTAT=TmpErrStat) Components(CompIndx), NodeType(1), NoValStr, NoValStr, RefPt(1), RefPt(2), RefPt(3)
       
@@ -127,23 +112,23 @@ subroutine WriteNodeInfo(SumFileUnit, CompIndx, nNds, Pts, NdDCMs, FusO, RefPt, 
    do k = 1,nNds
       globalPt = Pts(:,k) - FusO
       kitePt = matmul(NdDCMs(:,:,k), globalPt)
-      OutNumStr = NoValStr
+      OutNumStr = ' -  '
       do l= 1,NOuts
          if ( k == OutNds(l) ) then
-            OutNumStr = Num2LStr(l)
+            OutNumStr = trim(CompAbrv(CompIndx))//Num2LStr(l)
             continue
          end if
       end do
          
-      write(SumFileUnit,'(3X,A32,2X,A19,4X,A1,10X,A1,8X,3(F7.3,1X))',IOSTAT=TmpErrStat) Components(CompIndx), NodeType(2), Num2LStr(k), OutNumStr, kitePt(1), kitePt(2), kitePt(3)
+      write(SumFileUnit,'(3X,A32,2X,A19,4X,A1,9X,A4,6X,3(F7.3,1X))',IOSTAT=TmpErrStat) Components(CompIndx), NodeType(2), Num2LStr(k), OutNumStr, kitePt(1), kitePt(2), kitePt(3)
    end do
       
       ! gauss points
    do k = 1,nNds-1
-      OutNumStr = NoValStr
+      OutNumStr = ' -  '
       do l= 1,NOuts
          if ( k == OutNds(l) ) then
-            OutNumStr = Num2LStr(l)
+            OutNumStr = trim(CompAbrv(CompIndx))//Num2LStr(l)
             continue
          end if
       end do
@@ -157,7 +142,7 @@ subroutine WriteNodeInfo(SumFileUnit, CompIndx, nNds, Pts, NdDCMs, FusO, RefPt, 
          kitePt = (1.0-sqrt(3.0)/3.0)*kitePt + (sqrt(3.0)/3.0)*kitePt2
       end if
          
-      write(SumFileUnit,'(3X,A32,2X,A19,4X,A1,10X,A1,8X,3(F7.3,1X))',IOSTAT=TmpErrStat) Components(CompIndx), NodeType(3), Num2LStr(k), OutNumStr, kitePt(1), kitePt(2), kitePt(3)
+      write(SumFileUnit,'(3X,A32,2X,A19,4X,A1,9X,A4,6X,3(F7.3,1X))',IOSTAT=TmpErrStat) Components(CompIndx), NodeType(3), Num2LStr(k), OutNumStr, kitePt(1), kitePt(2), kitePt(3)
    end do   
       
 
@@ -185,8 +170,6 @@ subroutine KFAST_RotorCalcs(NacDCM, NacOmega, NacAcc, NacAlpha, RtrSpd, GenTorq,
    real(ReKi),             intent(  out) :: Mreact(3)
    integer(IntKi),         intent(  out) :: errStat    ! Error status of the operation
    character(*),           intent(  out) :: errMsg     ! Error message if ErrStat /= ErrID_None
-
-   integer(IntKi)  :: i, j, iNd
  
    real(R8Ki)      :: xhat(3)           ! rotor system x-axis expressed in the global inertial system
    real(R8Ki)      :: cm_r(3)           ! vector from rotor reference point to the rotor center of mass (cm) expressed in the global system
@@ -561,7 +544,7 @@ subroutine KFAST_ProcessOutputs()
    m%AllOuts(KiteRoll ) = val3(1)
    m%AllOuts(KitePitch) = val3(2)
    m%AllOuts(KiteYaw  ) = val3(3)
-   val3 = matmul(m%FusODCM,m%FusOvels)
+   val3 = matmul(m%FusODCM,m%FusOv)
    m%AllOuts(KiteTVx  ) = val3(1)
    m%AllOuts(KiteTVy  ) = val3(2)
    m%AllOuts(KiteTVz  ) = val3(3)
@@ -607,8 +590,6 @@ subroutine KFAST_WriteOutput( t, p, y_KAD, y_MD, y_IfW, errStat, errMsg )
    character(*),                  intent(   out ) :: errMsg               ! Error message if ErrStat /= ErrID_None
    
       ! Local variables
-   integer                                        :: i                    ! Generic loop counter      
-   character(1024)                                :: OutFileName          ! The name of the output file  including the full path.
    integer                                        :: errStat2              
    character(ErrMsgLen)                           :: errMsg2                ! error messages
    character(200)                                 :: Frmt                                      ! A string to hold a format specifier
@@ -639,12 +620,14 @@ subroutine KFAST_WriteOutput( t, p, y_KAD, y_MD, y_IfW, errStat, errMsg )
         call WrNumAryFileNR ( p%UnOutFile, real(y_KAD%WriteOutput,SiKi), Frmt, errStat2, errMsg2 )
       end if
       
-      if ( p%numMDOuts > 0 ) then
-            call WrNumAryFileNR ( p%UnOutFile, real(y_MD%WriteOutput,SiKi), Frmt, errStat2, errMsg2 )
-      end if
       if ( p%numIfWOuts > 0 ) then
             call WrNumAryFileNR ( p%UnOutFile, real(y_IfW%WriteOutput,SiKi), Frmt, errStat2, errMsg2 )
       end if
+      
+      if ( p%numMDOuts > 0 ) then
+            call WrNumAryFileNR ( p%UnOutFile, real(y_MD%WriteOutput,SiKi), Frmt, errStat2, errMsg2 )
+      end if
+      
       write (p%UnOutFile,'()')
 
    end if   ! there are any requested outputs   
@@ -672,10 +655,8 @@ subroutine KFAST_OpenOutput( ProgVer, OutRootName, p, KAD_InitOut, MD_InitOut, I
       ! Local variables
    integer                                        :: i                    ! Generic loop counter      
    character(1024)                                :: OutFileName          ! The name of the output file  including the full path.
-   character(200)                                 :: Frmt                 ! a string to hold a format statement
    integer                                        :: errStat2              
-   character(ErrMsgLen)                           :: errMsg2                ! error messages
-   
+   character(1024)                                :: gitVersionStr
    !-------------------------------------------------------------------------------------------------      
    ! Initialize local variables
    !-------------------------------------------------------------------------------------------------      
@@ -684,7 +665,7 @@ subroutine KFAST_OpenOutput( ProgVer, OutRootName, p, KAD_InitOut, MD_InitOut, I
    p%OutSFmt = "A10"  
    p%OutFmt  = "ES10.3E2"
    p%Delim = ' '
-   
+   gitVersionStr = QueryGitVersion()
    
    !-------------------------------------------------------------------------------------------------      
    ! Open the output file, if necessary, and write the header
@@ -722,13 +703,13 @@ subroutine KFAST_OpenOutput( ProgVer, OutRootName, p, KAD_InitOut, MD_InitOut, I
          ! Write the output file header
       
       write (p%UnOutFile,'(/,A/)', IOSTAT=errStat2)  'These predictions were generated by '//trim(GETNVD(ProgVer))//&
-                      ' on '//CurDate()//' at '//CurTime()//'.'
+                      ' on '//CurDate()//' at '//CurTime()//' using commit: '//trim(gitVersionStr)//'.'
       
       write(p%UnOutFile, '(//)') ! add 3 lines to make file format consistant with FAST v8 (headers on line 7; units on line 8) [this allows easier post-processing]
 
          ! Write the names of the output channels:
       
-      call WrFileNR ( p%UnOutFile, '   Time   ' )
+      call WrFileNR ( p%UnOutFile, '   Time        ' )
       if ( p%numKFASTOuts > 0 ) then
          do i=1,p%numKFASTOuts
             call WrFileNR ( p%UnOutFile, p%Delim//p%OutParam(i)%Name )
@@ -739,16 +720,17 @@ subroutine KFAST_OpenOutput( ProgVer, OutRootName, p, KAD_InitOut, MD_InitOut, I
             call WrFileNR ( p%UnOutFile, p%Delim//KAD_InitOut%WriteOutputHdr(i) )
          end do ! I
       end if
-      if ( p%numMDOuts > 0 ) then
-         do i=1,p%numMDOuts
-            call WrFileNR ( p%UnOutFile, p%Delim//MD_InitOut%WriteOutputHdr(i) )
-         end do ! I
-      end if
       if ( p%numIfWOuts > 0 ) then
          do i=1,p%numIfWOuts
             call WrFileNR ( p%UnOutFile, p%Delim//IfW_InitOut%WriteOutputHdr(i) )
          end do ! I
       end if
+      if ( p%numMDOuts > 0 ) then
+         do i=1,p%numMDOuts
+            call WrFileNR ( p%UnOutFile, p%Delim//MD_InitOut%WriteOutputHdr(i) )
+         end do ! I
+      end if
+      
       write (p%UnOutFile,'()')
       
       
@@ -756,7 +738,7 @@ subroutine KFAST_OpenOutput( ProgVer, OutRootName, p, KAD_InitOut, MD_InitOut, I
       
          ! Write the names of the output channel units:
       
-      call WrFileNR ( p%UnOutFile, '    s     ' )
+      call WrFileNR ( p%UnOutFile, '    s          ' )
       
       if ( p%numKFASTOuts > 0 ) then
          do i=1,p%numKFASTOuts
@@ -768,16 +750,17 @@ subroutine KFAST_OpenOutput( ProgVer, OutRootName, p, KAD_InitOut, MD_InitOut, I
             call WrFileNR ( p%UnOutFile, p%Delim//KAD_InitOut%WriteOutputUnt(i) )
          end do ! I
       end if
-      if ( p%numMDOuts > 0 ) then
-         do i=1,p%numMDOuts
-            call WrFileNR ( p%UnOutFile, p%Delim//MD_InitOut%WriteOutputUnt(i) )
-         end do ! I
-      end if
       if ( p%numIfWOuts > 0 ) then
          do i=1,p%numIfWOuts
             call WrFileNR ( p%UnOutFile, p%Delim//IfW_InitOut%WriteOutputUnt(i) )
          end do ! I
       end if
+      if ( p%numMDOuts > 0 ) then
+         do i=1,p%numMDOuts
+            call WrFileNR ( p%UnOutFile, p%Delim//MD_InitOut%WriteOutputUnt(i) )
+         end do ! I
+      end if
+      
       write (p%UnOutFile,'()')
 
    end if   ! there are any requested outputs   
@@ -808,19 +791,19 @@ subroutine KFAST_WriteSummary( Prog, OutRootName, p, m, KAD_InitOut, MD_InitOut,
       ! Local variables
    integer                                        :: i,k,l                  ! Generic loop counter      
    character(1024)                                :: OutFileName          ! The name of the output file  including the full path.
-   character(200)                                 :: Frmt                 ! a string to hold a format statement
    integer                                        :: errStat2              
    character(ErrMsgLen)                           :: errMsg2              ! error messages
    integer(IntKi)                                 :: TmpErrStat           ! Temporary error status for checking how the WRITE worked
    integer(IntKi)                                 :: SumFileUnit          ! the unit number for the InflowWindsummary file
    character(32)                                  :: Components(12)
    character(1)                                   :: NoValStr = '-'
-   character(1)                                   :: OutNumStr
+   character(4)                                   :: OutNumStr
    character(19)                                  :: NodeType(3)
    real(ReKi)                                     :: xloc, yloc, zloc
    real(ReKi)                                     :: globalPt(3), kitePt(3), kitePt2(3)
    character(255)                                 :: enabledModules
    character(255)                                 :: disabledModules
+   character(1024)                                :: gitVersionStr
    !-------------------------------------------------------------------------------------------------      
    ! Initialize local variables
    !-------------------------------------------------------------------------------------------------      
@@ -844,7 +827,7 @@ subroutine KFAST_WriteSummary( Prog, OutRootName, p, m, KAD_InitOut, MD_InitOut,
    xloc = 0.0
    yloc = 0.0
    zloc = 0.0
-   
+   gitVersionStr = QueryGitVersion()
    SumFileUnit = -1
    call GetNewUnit( SumFileUnit )
    OutFileName = trim(OutRootName)//'.sum'
@@ -854,7 +837,7 @@ subroutine KFAST_WriteSummary( Prog, OutRootName, p, m, KAD_InitOut, MD_InitOut,
 
          ! Write the summary file header
    write(SumFileUnit,'(/,A/)',IOSTAT=TmpErrStat)   'This summary file was generated by '//trim( Prog%Name )//&
-                     ' '//trim( Prog%Ver )//' on '//CurDate()//' at '//CurTime()//'.'
+                     ' '//trim( Prog%Ver )//' on '//CurDate()//' at '//CurTime()//' using commit: '//trim(gitVersionStr)//'.'
    
    !write(SumFileUnit,'(A20)',IOSTAT=TmpErrStat) '   compiled with:   '
    !write(SumFileUnit,'(A1)',IOSTAT=TmpErrStat) ''
@@ -863,16 +846,18 @@ subroutine KFAST_WriteSummary( Prog, OutRootName, p, m, KAD_InitOut, MD_InitOut,
    
    enabledModules  = ' '
    disabledModules = ' '
-   if (p%useIfW) then
-      enabledModules  = 'InflowWind'
-   else
-      disabledModules = 'InflowWind'
-   end if
    if (p%useKAD) then
-      enabledModules  = trim(enabledModules)//', KiteAeroDyn'
+      enabledModules  = ' KiteAeroDyn'
    else
-      disabledModules = trim(disabledModules)//', KiteAeroDyn'
+      disabledModules = ' KiteAeroDyn'
    end if
+   
+   if (p%useIfW) then
+      enabledModules  = trim(enabledModules)//', InflowWind'
+   else
+      disabledModules = trim(disabledModules)//', InflowWind'
+   end if
+   
    if (p%useMD) then
       enabledModules  = trim(enabledModules)//', MoorDyn'
    else
@@ -915,23 +900,23 @@ subroutine KFAST_WriteSummary( Prog, OutRootName, p, m, KAD_InitOut, MD_InitOut,
       do k = 1,p%numSPyNds(i)
          globalPt = m%SPyPts(:,k,i) - m%FusO
          kitePt = matmul(m%SPyNdDCMs(:,:,k,i), globalPt)
-         OutNumStr = NoValStr
+         OutNumStr = ' -  '
          do l= 1,p%NPylOuts
             if ( k == p%PylOutNds(l) ) then
-               OutNumStr = Num2LStr(l)
+               OutNumStr = 'SP'//Num2LStr(i)//Num2LStr(l)
                continue
             end if
          end do
          
-         write(SumFileUnit,'(3X,A,8X,A19,4X,A1,10X,A1,8X,3(F7.3,1X))',IOSTAT=TmpErrStat) trim(Components(7))//num2lstr(i), NodeType(2), Num2LStr(k), OutNumStr, kitePt(1), kitePt(2), kitePt(3)
+         write(SumFileUnit,'(3X,A,8X,A19,4X,A1,9X,A4,6X,3(F7.3,1X))',IOSTAT=TmpErrStat) trim(Components(7))//num2lstr(i), NodeType(2), Num2LStr(k), OutNumStr, kitePt(1), kitePt(2), kitePt(3)
       end do
       
          ! gauss points
       do k = 1,p%numSPyNds(i)-1
-         OutNumStr = NoValStr
+         OutNumStr = ' -  '
          do l= 1,p%NPylOuts
             if ( k == p%PylOutNds(l) ) then
-               OutNumStr = Num2LStr(l)
+               OutNumStr = 'SP'//Num2LStr(i)//Num2LStr(l)
                continue
             end if
          end do
@@ -945,7 +930,7 @@ subroutine KFAST_WriteSummary( Prog, OutRootName, p, m, KAD_InitOut, MD_InitOut,
             kitePt = (1.0-sqrt(3.0)/3.0)*kitePt + (sqrt(3.0)/3.0)*kitePt2
          end if
 
-         write(SumFileUnit,'(3X,A,8X,A19,4X,A1,10X,A1,8X,3(F7.3,1X))',IOSTAT=TmpErrStat) trim(Components(7))//num2lstr(i), NodeType(3), Num2LStr(k), OutNumStr, kitePt(1), kitePt(2), kitePt(3)
+         write(SumFileUnit,'(3X,A,8X,A19,4X,A1,9X,A4,6X,3(F7.3,1X))',IOSTAT=TmpErrStat) trim(Components(7))//num2lstr(i), NodeType(3), Num2LStr(k), OutNumStr, kitePt(1), kitePt(2), kitePt(3)
       end do   
          
          ! reference point
@@ -955,23 +940,23 @@ subroutine KFAST_WriteSummary( Prog, OutRootName, p, m, KAD_InitOut, MD_InitOut,
       do k = 1,p%numPPyNds(i)
          globalPt = m%PPyPts(:,k,i) - m%FusO
          kitePt = matmul(m%PPyNdDCMs(:,:,k,i), globalPt)
-         OutNumStr = NoValStr
+         OutNumStr = ' -  '
          do l= 1,p%NPylOuts
             if ( k == p%PylOutNds(l) ) then
-               OutNumStr = Num2LStr(l)
+               OutNumStr = 'PP'//Num2LStr(i)//Num2LStr(l)
                continue
             end if
          end do
          
-         write(SumFileUnit,'(3X,A,13X,A19,4X,A1,10X,A1,8X,3(F7.3,1X))',IOSTAT=TmpErrStat) trim(Components(8))//num2lstr(i), NodeType(2), Num2LStr(k), OutNumStr, kitePt(1), kitePt(2), kitePt(3)
+         write(SumFileUnit,'(3X,A,13X,A19,4X,A1,9X,A4,6X,3(F7.3,1X))',IOSTAT=TmpErrStat) trim(Components(8))//num2lstr(i), NodeType(2), Num2LStr(k), OutNumStr, kitePt(1), kitePt(2), kitePt(3)
       end do
       
          ! gauss points
       do k = 1,p%numPPyNds(i)-1
-         OutNumStr = NoValStr
+         OutNumStr = ' -  '
          do l= 1,p%NPylOuts
             if ( k == p%PylOutNds(l) ) then
-               OutNumStr = Num2LStr(l)
+               OutNumStr = 'PP'//Num2LStr(i)//Num2LStr(l)
                continue
             end if
          end do
@@ -985,7 +970,7 @@ subroutine KFAST_WriteSummary( Prog, OutRootName, p, m, KAD_InitOut, MD_InitOut,
             kitePt = (1.0-sqrt(3.0)/3.0)*kitePt + (sqrt(3.0)/3.0)*kitePt2
          end if
 
-         write(SumFileUnit,'(3X,A,13X,A19,4X,A1,10X,A1,8X,3(F7.3,1X))',IOSTAT=TmpErrStat) trim(Components(8))//num2lstr(i), NodeType(3), Num2LStr(k), OutNumStr, kitePt(1), kitePt(2), kitePt(3)
+         write(SumFileUnit,'(3X,A,13X,A19,4X,A1,9X,A4,6X,3(F7.3,1X))',IOSTAT=TmpErrStat) trim(Components(8))//num2lstr(i), NodeType(3), Num2LStr(k), OutNumStr, kitePt(1), kitePt(2), kitePt(3)
       end do   
          
    end do
@@ -1014,7 +999,7 @@ subroutine KFAST_WriteSummary( Prog, OutRootName, p, m, KAD_InitOut, MD_InitOut,
    
    write(SumFileUnit,'()')
    write(SumFileUnit,'(A)'   ,IOSTAT=TmpErrStat) '   Number  Name       Units      Generated by'
-   write(SumFileUnit,'(A)'   ,IOSTAT=TmpErrStat) '    (-)    (-)         (-)       (KiteFASTMBD, KiteAeroDyn, InflowWind, MoorDyn, Controller)'
+   write(SumFileUnit,'(A)'   ,IOSTAT=TmpErrStat) '    (-)    (-)         (-)       (KiteFASTMBD, KiteAeroDyn, InflowWind, MoorDyn)'
    write(SumFileUnit,'(A)'   ,IOSTAT=TmpErrStat) '      0   Time        (s)        KiteFASTMBD'
    k = 1
    do i = 1,p%numKFASTOuts
@@ -1026,20 +1011,18 @@ subroutine KFAST_WriteSummary( Prog, OutRootName, p, m, KAD_InitOut, MD_InitOut,
          write(SumFileUnit,'(3X,I4,2X,A11,2X,A9,2X,A)',IOSTAT=TmpErrStat) k, KAD_InitOut%WriteOutputHdr(i), KAD_InitOut%WriteOutputUnt(i), 'KiteAeroDyn'
          k = k + 1
       end do
-      !
-      do i = 1,p%numMDOuts
-         write(SumFileUnit,'(3X,I4,2X,A11,2X,A9,2X,A)',IOSTAT=TmpErrStat) k, MD_InitOut%WriteOutputHdr(i), MD_InitOut%WriteOutputUnt(i), 'MoorDyn'
-         k = k + 1
-      end do
+      
       do i = 1,p%numIfWOuts
          write(SumFileUnit,'(3X,I4,2X,A11,2X,A9,2X,A)',IOSTAT=TmpErrStat) k, IfW_InitOut%WriteOutputHdr(i), IfW_InitOut%WriteOutputUnt(i), 'InflowWind'
          k = k + 1
       end do
+      
+      do i = 1,p%numMDOuts
+         write(SumFileUnit,'(3X,I4,2X,A11,2X,A9,2X,A)',IOSTAT=TmpErrStat) k, MD_InitOut%WriteOutputHdr(i), MD_InitOut%WriteOutputUnt(i), 'MoorDyn'
+         k = k + 1
+      end do
+      
       write (SumFileUnit,'()')
-   
-   
-   
-   
    
    if ( TmpErrStat /= 0 ) then
       call SetErrStat(ErrID_Fatal,'Error writing to summary file.',ErrStat,ErrMsg,'')
@@ -1058,7 +1041,7 @@ subroutine TransferLoadsToMBDyn( p, m, nodeLoads_c, rtrLoads_c, errStat, errMsg 
    integer(IntKi),            intent(  out) :: errStat         !< Error status of the operation
    character(*),              intent(  out) :: errMsg          !< Error message if errStat /= ErrID_None
 
-   integer(IntKi)  :: i, istart, j,k,c, compOffset
+   integer(IntKi)  :: i,j,k,c, compOffset
    integer(IntKi)           :: errStat2              ! error status values
    character(ErrMsgLen)     :: errMsg2                ! error messages
    character(*), parameter  :: routineName = 'TransferLoadsToMBDyn'
@@ -1801,29 +1784,25 @@ subroutine CreateMeshMappings(m, p, KAD, MD, errStat, errMsg)
    
    if ( p%useMD ) then
       ! Need to transfer the MBDyn bridle point motions to MoorDyn
-   call MeshMapCreate( m%mbdWngMotions, m%MD%u(2)%PtFairleadDisplacement, m%MD_L2_2_P, errStat2, errMsg2 )
+   call MeshMapCreate( m%mbdWngMotions, MD%u(2)%PtFairleadDisplacement, m%MD_L2_2_P, errStat2, errMsg2 )
       call SetErrStat( errStat2, errMsg2, errStat, errMsg, ' CreateMeshMappings: m%MD_L2_2_P' )     
             if (ErrStat>=AbortErrLev) return
       ! Need to transfer the MoorDyn bridle point loads back the to MBDyn wing mesh for loads
-   call MeshMapCreate( m%MD%y%PtFairleadLoad, m%mbdWngLoads,  m%MD_P_2_P, errStat2, errMsg2 )
+   call MeshMapCreate( MD%y%PtFairleadLoad, m%mbdWngLoads,  m%MD_P_2_P, errStat2, errMsg2 )
       call SetErrStat( errStat2, errMsg2, errStat, errMsg, ' CreateMeshMappings: m%MD_P_2_P' )     
             if (ErrStat>=AbortErrLev) return
    end if 
    
 end subroutine CreateMeshMappings
 
-subroutine TransferMBDynInputs2MBDMeshes( FusO, p, m, errStat, errMsg )
-   real(ReKi),                intent(in   ) :: FusO(3)
+subroutine TransferMBDynInputs2MBDMeshes( p, m, errStat, errMsg )
    type(KFAST_ParameterType), intent(in   ) :: p
    type(KFAST_MiscVarType),   intent(inout) :: m
    integer(IntKi),            intent(  out) :: errStat                    ! Error status of the operation
    character(*),              intent(  out) :: errMsg                     ! Error message if errStat /= ErrID_None
 
-   integer(IntKi)   :: i,j, c
+   integer(IntKi)   :: i,j
    character(*), parameter    :: routineName = 'TransferMBDynInputs2KADMeshes'
-   integer(intKi)             :: errStat2          ! temporary Error status
-   character(ErrMsgLen)       :: errMsg2           ! temporary Error message
-
    
    errStat = ErrID_None
    errMsg  = ''
@@ -1957,9 +1936,7 @@ subroutine TransferMBDynInputs2KADMeshes( FusO, p, m, errStat, errMsg )
 end subroutine TransferMBDynInputs2KADMeshes
 
 
-subroutine TransferMBDynInitInputs( WindPt_c, FusO, numNodePts_c, nodePts_c, nodeDCMs_c, rtrPts_c, p, m, errStat, errMsg )
-   real(C_DOUBLE),            intent(in   ) :: WindPt_c(3)                      ! The location of the ground station point where the freestream wind is measured [global coordinates] (m)
-   real(ReKi),                intent(in   ) :: FusO(3)                          ! Location of principal kite reference point in global coordinates
+subroutine TransferMBDynInitInputs( numNodePts_c, nodePts_c, nodeDCMs_c, rtrPts_c, p, m, errStat, errMsg )
    integer(C_INT),            intent(in   ) :: numNodePts_c                  ! total number of array elements in the nodal points array
    real(C_DOUBLE),            intent(in   ) :: nodePts_c(:)       ! 1D array containing all the nodal point coordinate data
    real(C_DOUBLE),            intent(in   ) :: nodeDCMs_c(:)         ! 1D array containing all the nodal DCM data
@@ -1970,7 +1947,7 @@ subroutine TransferMBDynInitInputs( WindPt_c, FusO, numNodePts_c, nodePts_c, nod
    character(*),              intent(  out) :: errMsg                     ! Error message if errStat /= ErrID_None
 
 
-   integer(IntKi)   :: i, j, c, n, v, tplynodes
+   integer(IntKi)   :: i, j, c, n, tplynodes
 
    errStat = ErrID_None
    errMsg  = ''
@@ -2086,8 +2063,7 @@ subroutine TransferMBDynInitInputs( WindPt_c, FusO, numNodePts_c, nodePts_c, nod
 end subroutine TransferMBDynInitInputs
 
 
-subroutine TransferMBDynInputs( FusO, numNodePts_c, nodePts_c,  nodeDCMs_c, nodeVels_c, nodeOmegas_c, nodeAccs_c, rtrPts_c, rtrDCMs_c, rtrVels_c, rtrOmegas_c, rtrAccs_c, rtrAlphas_c, p, m, errStat, errMsg )
-   real(ReKi),                intent(in   ) :: FusO(3)           ! Location of principal kite reference point in global coordinates
+subroutine TransferMBDynInputs( numNodePts_c, nodePts_c,  nodeDCMs_c, nodeVels_c, nodeOmegas_c, nodeAccs_c, rtrPts_c, rtrDCMs_c, rtrVels_c, rtrOmegas_c, rtrAccs_c, rtrAlphas_c, p, m, errStat, errMsg )
    integer(C_INT),            intent(in   ) :: numNodePts_c      ! total number of array elements in the nodal points array
    real(C_DOUBLE),            intent(in   ) :: nodePts_c(:)      ! 1D array containing all the nodal point coordinate data
    real(C_DOUBLE),            intent(in   ) :: nodeDCMs_c(:)     ! 1D array containing all the nodal DCM data
@@ -2238,7 +2214,7 @@ subroutine TransferMBDynInputs( FusO, numNodePts_c, nodePts_c,  nodeDCMs_c, node
    end do
    
       ! Now attach this motion data to the MBDyn motion meshes and transfer motions to the corresponding KAD input meshes
-   call TransferMBDynInputs2MBDMeshes( FusO, p, m, errStat, errMsg )
+   call TransferMBDynInputs2MBDMeshes( p, m, errStat, errMsg )
    
 end subroutine TransferMBDynInputs
 subroutine TransferMBDynLoadInputs( numNodeLoadsPts_c, nodeLoads_c, p, m, errStat, errMsg )
@@ -2296,19 +2272,16 @@ subroutine TransferMBDynLoadInputs( numNodeLoadsPts_c, nodeLoads_c, p, m, errSta
   
 end subroutine TransferMBDynLoadInputs
   
-subroutine TransferMBDynToIfW( WindPt_c, FusO, numNodePtElem_c, nodePts_c, rtrPts_c, p, m, errStat, errMsg )
+subroutine TransferMBDynToIfW( WindPt_c, FusO, p, m, errStat, errMsg )
    real(C_DOUBLE),            intent(in   ) :: WindPt_c(3)                      ! The location of the ground station point where the freestream wind is measured [global coordinates] (m)
    real(ReKi),                intent(in   ) :: FusO(3)                          ! Location of principal kite reference point in global coordinates
-   integer(C_INT),            intent(in   ) :: numNodePtElem_c                  ! total number of array elements in the nodal points array
-   real(C_DOUBLE),            intent(in   ) :: nodePts_c(numNodePtElem_c)       ! 1D array containing all the nodal point coordinate data
-   real(C_DOUBLE),            intent(in   ) :: rtrPts_c(:)                      ! 1D array of the rotor positions in global coordinates (m)
    type(KFAST_ParameterType), intent(in   ) :: p
    type(KFAST_MiscVarType),   intent(inout) :: m
    integer(IntKi),            intent(  out) :: errStat                    ! Error status of the operation
    character(*),              intent(  out) :: errMsg                     ! Error message if errStat /= ErrID_None
 
 
-   integer(IntKi)   :: i, j, n, c, v
+   integer(IntKi)   :: i, j, c, v
 
    errStat = ErrID_None
    errMsg  = ''
@@ -2393,7 +2366,7 @@ end function cstrlen
 
 
 subroutine KFAST_Init(dt_c, numFlaps, numPylons, numComp, numCompNds, modFlags, KAD_FileName_c, IfW_FileName_c, MD_FileName_c, KFC_FileName_c, &
-                       outFileRoot_c, printSum, gravity, WindPt_c, FusODCM_c, numRtrPts_c, rtrPts_c, rtrMass_c, rtrI_Rot_c, rtrI_trans_c, rtrXcm_c, refPts_c, &
+                       outFileRoot_c, printSum, gravity, FusODCM_c, numRtrPts_c, rtrPts_c, rtrMass_c, rtrI_Rot_c, rtrI_trans_c, rtrXcm_c, refPts_c, &
                        numNodePts_c, nodePts_c, nodeDCMs_c, nFusOuts_c, FusOutNd_c, nSWnOuts_c, SWnOutNd_c, &
                        nPWnOuts_c, PWnOutNd_c, nVSOuts_c, VSOutNd_c, nSHSOuts_c, SHSOutNd_c, nPHSOuts_c, PHSOutNd_c, nPylOuts_c, PylOutNd_c, numOutChan_c, chanlist_c, chanlist_len_c, errStat_c, errMsg_c ) BIND (C, NAME='KFAST_Init')
    IMPLICIT NONE
@@ -2413,7 +2386,6 @@ subroutine KFAST_Init(dt_c, numFlaps, numPylons, numComp, numCompNds, modFlags, 
    character(kind=C_CHAR), intent(in   ) :: outFileRoot_c(IntfStrLen)      ! Full path and basename of the KiteFAST output file.
    integer(C_INT),         intent(in   ) :: printSum                       ! Print the Summary file?  1 = Yes, 0 = No.
    real(C_DOUBLE),         intent(in   ) :: gravity                        ! Scalar gravity constant.  (m/s^2)
-   real(C_DOUBLE),         intent(in   ) :: WindPt_c(3)                    ! Initial position of the ground station where the fixed wind measurement is taken, expressed in global coordinates. (m)
    real(C_DOUBLE),         intent(in   ) :: FusODCM_c(9)                   ! Initial DCM matrix to transform the location of the Kite Fuselage reference point from global to kite coordinates.
    integer(C_INT),         intent(in   ) :: numRtrPts_c                    ! Total number of rotor points (both wings).
    real(C_DOUBLE),         intent(in   ) :: rtrPts_c(numRtrPts_c*3)                    ! Initial location of each rotor's reference point [RRP] in global coordinates. (m)
@@ -2447,9 +2419,7 @@ subroutine KFAST_Init(dt_c, numFlaps, numPylons, numComp, numCompNds, modFlags, 
 
       ! Local variables
    real(DbKi)                      :: dt
-   real(ReKi)                      :: FusO(3) ! SWnO(3), PWnO(3), VSO(3), SHSO(3), PHSO(3), zero_vec(3)
-   real(R8Ki)                      :: FusODCM(3,3)
-   !real(ReKi)                      :: SPyO(3,numPylons), PPyO(3,numPylons)
+   real(ReKi)                      :: FusO(3)
    type(KAD_InitInputType)         :: KAD_InitInp
    type(KAD_InitOutputType)        :: KAD_InitOut
    integer(IntKi)                  :: errStat, errStat2
@@ -2461,12 +2431,10 @@ subroutine KFAST_Init(dt_c, numFlaps, numPylons, numComp, numCompNds, modFlags, 
    type(KFC_InitInputType)         :: KFC_InitInp
    type(KFC_InitOutputType)        :: KFC_InitOut
    character(*), parameter         :: routineName = 'KFAST_Init'
-   integer(IntKi)                  :: i,j,c, n, count, maxSPyNds, maxPPyNds
+   integer(IntKi)                  :: i,j,c, count, maxSPyNds, maxPPyNds
    real(DbKi)                      :: interval
    CHARACTER(ChanLen)              :: OutList(MaxOutPts)              ! MaxOutPts is defined in KiteFAST_IO.f90, ChanLen defined in NWTC_Base.f90
    character, pointer              :: chanName_f(:)            
-   character(kind=c_char), pointer :: fptr(:,:)
-   character(11), allocatable :: fstrings(:)
    integer(IntKi) :: lenstr, maxPyNds
    CHARACTER(ChanLen)              :: tmpStr
    ! Initialize all the sub-modules : MoorDyn, KiteAeroDyn, Controller, and InflowWind
@@ -2505,10 +2473,6 @@ subroutine KFAST_Init(dt_c, numFlaps, numPylons, numComp, numCompNds, modFlags, 
    
    if ( modFlags(4) > 0 ) then
       p%useKFC = .true.
-         ! Validate some of the input data
-   !   if ( numFlaps /=  3 )  call SetErrStat( ErrID_FATAL, "Due to the Controller interface requirements, numFlaps must be set to 3", errStat, errMsg, routineName )
-   !   if ( numPylons /=  2 ) call SetErrStat( ErrID_FATAL, "Due to the Controller interface requirements, numPylons must be set to 2", errStat, errMsg, routineName )
-   !   if ( .not. EqualRealNos(REAL(dt, DbKi) ,0.01_DbKi) )  call SetErrStat( ErrID_FATAL, "Due to the Controller requirements, dt must be set to 0.01", errStat, errMsg, routineName )
    else
       p%useKFC = .false.
    end if
@@ -2519,38 +2483,48 @@ subroutine KFAST_Init(dt_c, numFlaps, numPylons, numComp, numCompNds, modFlags, 
       ! Set KiteFAST parameters
    p%dt = dt
    p%Gravity = gravity
+   if ( gravity < 0.0_ReKi ) call SetErrStat(ErrID_Fatal,'Scalar gravity value must be greater than or equal to zero',errStat,errMsg,routineName)
+      if (errStat >= AbortErrLev ) then
+         call TransferErrors(errStat, errMsg, errStat_c, errMsg_c)
+         return
+      end if 
+      
    p%outFileRoot = transfer(outFileRoot_c(1:IntfStrLen-1),p%outFileRoot)
    call RemoveNullChar(p%outFileRoot)
    
    p%numFlaps    = numFlaps
    p%numPylons   = numPylons
    
-   ! Initialize miscVars  
+   ! Initialize miscVars and OtherStates
    
-   m%tether_forceb_prev = 0.0_ReKi ! TODO: zero here in case MD is off, but if MD on, can we get this from InitOut of MoorDyn so that we have an actual value??? GJH
-   m%IfW_FusO_prev      = 0.0_ReKi 
-   m%IfW_ground_prev    = 0.0_ReKi 
-   call AllocAry( m%SPyAeroTorque_prev, 2, p%numPylons, 'm%SPyAeroTorque_prev', errStat2,errMsg2 )
+   OtherSt%IfW_FusO      = 0.0_ReKi 
+   OtherSt%IfW_ground    = 0.0_ReKi 
+   
+   call AllocAry( OtherSt%SPyRtrLoads, 3, 2, p%numPylons, 'OtherSt%SPyRtrLoads', errStat2,errMsg2 )
       call SetErrStat(errStat2,errMsg2,errStat,errMsg,routineName)
-   call AllocAry( m%PPyAeroTorque_prev, 2, p%numPylons, 'm%SPyAeroTorque_prev', errStat2,errMsg2 )
+   call AllocAry( OtherSt%PPyRtrLoads, 3, 2, p%numPylons, 'OtherSt%PPyRtrLoads', errStat2,errMsg2 )
       call SetErrStat(errStat2,errMsg2,errStat,errMsg,routineName)
-      
+   call AllocAry( OtherSt%SPyRtrDCMs, 3, 3, 2, numPylons, 'OtherSt%SPyRtrDCMs', errStat2, errMsg2 )
+         call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
+   call AllocAry( OtherSt%PPyRtrDCMs, 3, 3, 2, numPylons, 'OtherSt%PPyRtrDCMs', errStat2, errMsg2 )
+         call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )   
+         
       ! Set the Rotor-related parameters
-   call AllocAry(m%SPyRtrMass, 2, p%numPylons, 'm%SPyRtrMass', errStat2,errMsg2)
+   call AllocAry(p%SPyRtrMass, 2, p%numPylons, 'p%SPyRtrMass', errStat2,errMsg2)
       call SetErrStat(errStat2,errMsg2,errStat,errMsg,routineName)
-   call AllocAry(m%PPyRtrMass, 2, p%numPylons, 'm%PPyRtrMass', errStat2,errMsg2)
+   call AllocAry(p%PPyRtrMass, 2, p%numPylons, 'p%PPyRtrMass', errStat2,errMsg2)
       call SetErrStat(errStat2,errMsg2,errStat,errMsg,routineName)
-   call AllocAry(m%SPyRtrIrot, 2, p%numPylons, 'm%SPyRtrIrot', errStat2,errMsg2)
+   call AllocAry(p%SPyRtrIrot, 2, p%numPylons, 'p%SPyRtrIrot', errStat2,errMsg2)
       call SetErrStat(errStat2,errMsg2,errStat,errMsg,routineName)
-   call AllocAry(m%PPyRtrIrot, 2, p%numPylons, 'm%PPyRtrIrot', errStat2,errMsg2)
+   call AllocAry(p%PPyRtrIrot, 2, p%numPylons, 'p%PPyRtrIrot', errStat2,errMsg2)
       call SetErrStat(errStat2,errMsg2,errStat,errMsg,routineName)
-   call AllocAry(m%SPyRtrItrans, 2, p%numPylons, 'm%SPyRtrItrans', errStat2,errMsg2)
+   call AllocAry(p%SPyRtrItrans, 2, p%numPylons, 'p%SPyRtrItrans', errStat2,errMsg2)
       call SetErrStat(errStat2,errMsg2,errStat,errMsg,routineName)
-   call AllocAry(m%PPyRtrItrans, 2, p%numPylons, 'm%PPyRtrItrans', errStat2,errMsg2)
+   call AllocAry(p%PPyRtrItrans, 2, p%numPylons, 'p%PPyRtrItrans', errStat2,errMsg2)
       call SetErrStat(errStat2,errMsg2,errStat,errMsg,routineName)
-   call AllocAry(m%SPyRtrXcm, 2, p%numPylons, 'm%SPyRtrXcm', errStat2,errMsg2)
+   call AllocAry(p%SPyRtrXcm, 2, p%numPylons, 'p%SPyRtrXcm', errStat2,errMsg2)
       call SetErrStat(errStat2,errMsg2,errStat,errMsg,routineName)
-   call AllocAry(m%PPyRtrXcm, 2, p%numPylons, 'm%PPyRtrXcm', errStat2,errMsg2)
+   call AllocAry(p%PPyRtrXcm, 2, p%numPylons, 'p%PPyRtrXcm', errStat2,errMsg2)
       call SetErrStat(errStat2,errMsg2,errStat,errMsg,routineName)  
    call AllocAry(m%SPyRtrFReact, 3, 2, p%numPylons, 'm%SPyRtrFReact', errStat2,errMsg2)
       call SetErrStat(errStat2,errMsg2,errStat,errMsg,routineName)
@@ -2565,21 +2539,29 @@ subroutine KFAST_Init(dt_c, numFlaps, numPylons, numComp, numCompNds, modFlags, 
       return
    end if
    
-!TODO: Need to figure out how to initialize these to something other than zero, if there are initial conditions which produce aerodynamic torque on the rotors
-   m%SPyAeroTorque_prev = 0.0_ReKi
-   m%PPyAeroTorque_prev = 0.0_ReKi
+      ! Initialize these to zero in case we are not using KAD and hence will never compute them
+   OtherSt%SPyRtrLoads = 0.0_ReKi
+   OtherSt%PPyRtrLoads = 0.0_ReKi
    
    count = 1
    do j = 1, p%numPylons
       do i = 1,2
-         m%SPyRtrMass(i,j)   = rtrMass_c(count)    
-         m%PPyRtrMass(i,j)   = rtrMass_c(numRtrPts_c/2+count)   
-         m%SPyRtrIrot(i,j)   = rtrI_Rot_c(count)    
-         m%PPyRtrIrot(i,j)   = rtrI_Rot_c(numRtrPts_c/2+count)  
-         m%SPyRtrItrans(i,j) = rtrI_Trans_c(count)    
-         m%PPyRtrItrans(i,j) = rtrI_Trans_c(numRtrPts_c/2+count)  
-         m%SPyRtrXcm(i,j)    = rtrXcm_c(count)    
-         m%PPyRtrXcm(i,j)    = rtrXcm_c(numRtrPts_c/2+count)  
+         p%SPyRtrXcm(i,j)    = rtrXcm_c(count)    
+         p%PPyRtrXcm(i,j)    = rtrXcm_c(numRtrPts_c/2+count)  
+         
+         p%SPyRtrMass(i,j)   = rtrMass_c(count)  
+            if ( p%SPyRtrMass(i,j) < 0.0_RekI )  call SetErrStat( ErrID_Fatal, 'Rotor mass must be greater or equal to zero', errStat, errMsg, routineName )           
+         p%PPyRtrMass(i,j)   = rtrMass_c(numRtrPts_c/2+count)  
+            if ( p%PPyRtrMass(i,j) < 0.0_RekI )  call SetErrStat( ErrID_Fatal, 'Rotor mass must be greater or equal to zero', errStat, errMsg, routineName )
+         p%SPyRtrIrot(i,j)   = rtrI_Rot_c(count)  
+            if ( p%SPyRtrIrot(i,j) < 0.0_RekI )  call SetErrStat( ErrID_Fatal, 'Rotor rotational inertia must be greater or equal to zero', errStat, errMsg, routineName )       
+         p%PPyRtrIrot(i,j)   = rtrI_Rot_c(numRtrPts_c/2+count)  
+            if ( p%PPyRtrIrot(i,j) < 0.0_RekI )  call SetErrStat( ErrID_Fatal, 'Rotor rotational inertia must be greater or equal to zero', errStat, errMsg, routineName ) 
+         p%SPyRtrItrans(i,j) = rtrI_Trans_c(count)    
+            if ( (p%SPyRtrItrans(i,j) - p%SPyRtrMass(i,j)*p%SPyRtrXcm(i,j)*p%SPyRtrXcm(i,j)  ) < 0.0_RekI )  call SetErrStat( ErrID_Fatal, 'Rotor translational inertia relative to rotor CM must be greater or equal to zero', errStat, errMsg, routineName )    
+         p%PPyRtrItrans(i,j) = rtrI_Trans_c(numRtrPts_c/2+count)  
+             if ( (p%PPyRtrItrans(i,j) - p%PPyRtrMass(i,j)*p%PPyRtrXcm(i,j)*p%PPyRtrXcm(i,j)  ) < 0.0_RekI )  call SetErrStat( ErrID_Fatal, 'Rotor translational inertia relative to rotor CM must be greater or equal to zero', errStat, errMsg, routineName )    
+        
          count = count + 1
       end do
    end do
@@ -2621,17 +2603,7 @@ subroutine KFAST_Init(dt_c, numFlaps, numPylons, numComp, numCompNds, modFlags, 
          call TransferErrors(errStat, errMsg, errStat_c, errMsg_c)
          return
       end if
-      
-      !KAD_InitInp%SWnOR =  SwnO - FusO
-      !KAD_InitInp%SWnOR = matmul(m%FusODCM,KAD_InitInp%SWnOR)
-      !KAD_InitInp%PWnOR =  PwnO - FusO
-      !KAD_InitInp%PWnOR = matmul(m%FusODCM,KAD_InitInp%PWnOR)
-      !KAD_InitInp%VSOR =  VSO - FusO
-      !KAD_InitInp%VSOR = matmul(m%FusODCM,KAD_InitInp%VSOR)
-      !KAD_InitInp%SHSOR =  SHSO - FusO
-      !KAD_InitInp%SHSOR = matmul(m%FusODCM,KAD_InitInp%SHSOR)
-      !KAD_InitInp%PHSOR =  PHSO - FusO
-      !KAD_InitInp%PHSOR = matmul(m%FusODCM,KAD_InitInp%PHSOR)
+
 
       ! Set the component reference point locations as expressed in the kite-local coordinate system
       ! NOTE: The data coming from the Preprocessor is already in the kite-local system, so there are no transformation needed.
@@ -2641,27 +2613,7 @@ subroutine KFAST_Init(dt_c, numFlaps, numPylons, numComp, numCompNds, modFlags, 
       KAD_InitInp%SHSOR =  m%SHSO 
       KAD_InitInp%PHSOR =  m%PHSO 
       
-      !do i = 1, numPylons
-      !   KAD_InitInp%SPyOR(:,i) = SPyO(:,i) - FusO
-      !   KAD_InitInp%SPyOR(:,i) = matmul(m%FusODCM,KAD_InitInp%SPyOR(:,i))
-      !end do
-      !do i = 1, numPylons
-      !   KAD_InitInp%PPyOR(:,i) = PPyO(:,i) - FusO
-      !   KAD_InitInp%PPyOR(:,i) = matmul(m%FusODCM,KAD_InitInp%PPyOR(:,i))
-      !end do
-      !
-      !do i = 1, numPylons
-      !   KAD_InitInp%SPyRtrOR(:,1,i) = m%SPyRtrO(:,1,i) - FusO   
-      !   KAD_InitInp%SPyRtrOR(:,1,i) = matmul(m%FusODCM,KAD_InitInp%SPyRtrOR(:,1,i))
-      !   KAD_InitInp%SPyRtrOR(:,2,i) = m%SPyRtrO(:,2,i) - FusO   
-      !   KAD_InitInp%SPyRtrOR(:,2,i) = matmul(m%FusODCM,KAD_InitInp%SPyRtrOR(:,2,i))     
-      !end do
-      !do i = 1, numPylons
-      !   KAD_InitInp%PPyRtrOR(:,1,i) = m%PPyRtrO(:,1,i) - FusO   
-      !   KAD_InitInp%PPyRtrOR(:,1,i) = matmul(m%FusODCM,KAD_InitInp%PPyRtrOR(:,1,i))
-      !   KAD_InitInp%PPyRtrOR(:,2,i) = m%PPyRtrO(:,2,i) - FusO   
-      !   KAD_InitInp%PPyRtrOR(:,2,i) = matmul(m%FusODCM,KAD_InitInp%PPyRtrOR(:,2,i))     
-      !end do
+
    
       do i = 1, numPylons
          KAD_InitInp%SPyOR(:,i) = m%SPyO(:,i)
@@ -2681,11 +2633,16 @@ subroutine KFAST_Init(dt_c, numFlaps, numPylons, numComp, numCompNds, modFlags, 
       
       call KAD_Init(KAD_InitInp, m%KAD%u(1), m%KAD%p, m%KAD%y, interval, m%KAD%x, m%KAD%xd, m%KAD%z, m%KAD%OtherSt, m%KAD%m, KAD_InitOut, errStat2, errMsg2 )
          call SetErrStat(errStat2,errMsg2,errStat,errMsg,routineName)
-         if (errStat >= AbortErrLev ) then
-            call TransferErrors(errStat, errMsg, errStat_c, errMsg_c)
-            return
-         end if
- 
+         
+      if ( .not. EqualRealNos(interval,dt) ) then
+        call SetErrStat(ErrID_Fatal,'KiteAeroDyn DT must be equal to MBDyn DT',errStat,errMsg,routineName) 
+      end if
+      
+      if (errStat >= AbortErrLev ) then
+         call TransferErrors(errStat, errMsg, errStat_c, errMsg_c)
+         return
+      end if
+      
       p%AirDens = KAD_InitOut%AirDens
    else
       p%AirDens = 1.225_ReKi   ! Default air density
@@ -2712,22 +2669,16 @@ subroutine KFAST_Init(dt_c, numFlaps, numPylons, numComp, numCompNds, modFlags, 
       call InflowWind_Init( IfW_InitInp, m%IfW%u, m%IfW%p, m%IfW%x, m%IfW%xd, m%IfW%z,  &
                             m%IfW%OtherSt, m%IfW%y, m%IfW%m, interval, IfW_InitOut, errStat2, errMsg2 )
          call SetErrStat(errStat2,errMsg2,errStat,errMsg,routineName)
-         if (errStat >= AbortErrLev ) then
-            call TransferErrors(errStat, errMsg, errStat_c, errMsg_c)
-            return
-         end if
          
-         ! Need to populate some data for the controller for the initial time, before an actual timestep occurs.  
-! TODO: This assumes initial time is 0.0!
-      call InflowWind_CalcOutput(0.0_DbKi, m%IfW%u, m%IfW%p, m%IfW%x, m%IfW%xd, m%IfW%z, m%IfW%OtherSt, m%IfW%y, m%IfW%m, errStat2, errMsg2 )
-         call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
-         if (errStat >= AbortErrLev ) then
-            call TransferErrors(errStat, errMsg, errStat_c, errMsg_c)
-            return
-         end if
-      m%IfW_FusO_prev   = m%IfW%y%VelocityUVW(:,2)
-      m%IfW_ground_prev = m%IfW%y%VelocityUVW(:,1)
-      
+       if ( .not. EqualRealNos(interval,dt) ) then
+        call SetErrStat(ErrID_Fatal,'InflowWind DT must be equal to MBDyn DT',errStat,errMsg,routineName) 
+       end if
+       
+      if (errStat >= AbortErrLev ) then
+         call TransferErrors(errStat, errMsg, errStat_c, errMsg_c)
+         return
+      end if
+ 
    end if
    
 !----------------------------------------------------------------
@@ -2751,10 +2702,15 @@ subroutine KFAST_Init(dt_c, numFlaps, numPylons, numComp, numCompNds, modFlags, 
       call MD_Init( MD_InitInp, m%MD%u(2), m%MD%p, m%MD%x, m%MD%xd, m%MD%z, &
                      m%MD%OtherSt, m%MD%y, m%MD%m, interval, MD_InitOut, errStat2, errMsg2 )
          call SetErrStat(errStat2,errMsg2,errStat,errMsg,routineName)
-         if (errStat >= AbortErrLev ) then
-            call TransferErrors(errStat, errMsg, errStat_c, errMsg_c)
-            return
-         end if
+         
+      if ( .not. EqualRealNos(interval,dt) ) then
+         call SetErrStat(ErrID_Fatal,'MoorDyn DT must be equal to MBDyn DT',errStat,errMsg,routineName) 
+      end if
+       
+      if (errStat >= AbortErrLev ) then
+         call TransferErrors(errStat, errMsg, errStat_c, errMsg_c)
+         return
+      end if
          
             ! Copy t+dt inputs to t for the next timestep
          call MD_CopyInput( m%MD%u(2), m%MD%u(1), MESH_NEWCOPY, errStat2, errMsg2 )
@@ -2775,10 +2731,7 @@ subroutine KFAST_Init(dt_c, numFlaps, numPylons, numComp, numCompNds, modFlags, 
 !----------------------------------------------------------------
 ! Initialize the Controller Module
 !----------------------------------------------------------------
-   
-   
-   
-      
+  
    KFC_InitInp%DLL_FileName = transfer(KFC_FileName_c(1:IntfStrLen-1),KFC_InitInp%DLL_FileName)
    call RemoveNullChar(KFC_InitInp%DLL_FileName)
 
@@ -2838,6 +2791,7 @@ subroutine KFAST_Init(dt_c, numFlaps, numPylons, numComp, numCompNds, modFlags, 
    call AllocAry(m%VSLoadInpts ,6, p%numVSNds -1, 'm%VSLoadInpts', errStat2, errMsg2)
    call AllocAry(m%SHSLoadInpts,6, p%numSHSNds-1, 'm%SHSLoadInpts', errStat2, errMsg2)
    call AllocAry(m%PHSLoadInpts,6, p%numPHSNds-1, 'm%PHSLoadInpts', errStat2, errMsg2)
+   
    maxPyNds = 0
    do i = 1, p%numPylons
       maxPyNds = max(maxPyNds, p%numSPyNds(i))
@@ -2872,8 +2826,9 @@ subroutine KFAST_Init(dt_c, numFlaps, numPylons, numComp, numCompNds, modFlags, 
       p%PylOutNds(i)  = PylOutNd_c(i)
    end do
 
-!==========================================
-! TESTING TRANSFER OF OUTPUT CHANNEL NAMES
+
+   !  TRANSFER OF OUTPUT CHANNEL NAMES
+   
    do i = 1,numOutChan_c
       
       call c_f_pointer(chanlist_c(i),chanName_f, [chanlist_len_c(i)])
@@ -2883,8 +2838,8 @@ subroutine KFAST_Init(dt_c, numFlaps, numPylons, numComp, numCompNds, modFlags, 
       OutList(i) = tmpStr(1:lenstr-1)
      ! write(*,*) trim(OutList(i)),'T'
    end do
+
    
-!==========================================
       ! Set parameters for output channels:
    call KFAST_SetOutParam(OutList, p%numKFASTOuts, p, errStat2, errMsg2 ) ! requires:  sets: p%OutParam.
       call SetErrStat(errStat2,errMsg2,errStat,errMsg,routineName)
@@ -3094,7 +3049,7 @@ contains
    
    
    
-   call TransferMBDynInitInputs( WindPt_c, FusO, numNodePts_c, nodePts_c, nodeDCMs_c, rtrPts_c, p, m, errStat2, errMsg2 )
+   call TransferMBDynInitInputs( numNodePts_c, nodePts_c, nodeDCMs_c, rtrPts_c, p, m, errStat2, errMsg2 )
       call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
   
 !----------------------------------------------------------------
@@ -3186,7 +3141,7 @@ contains
                        
 end subroutine KFAST_Init
 
-subroutine KFAST_AssRes(t_c, isInitialTime_c, WindPt_c, FusO_prev_c, FusO_c, FusODCM_prev_c, FusODCM_c, FusOv_prev_c, FusOv_c, FusOomegas_prev_c, FusOomegas_c, FusOacc_prev_c, FusOacc_c, FusOalphas_c, numNodePts_c, nodePts_c, &
+subroutine KFAST_AssRes(t_c, isInitialTime_c, WindPt_c, FusO_c, FusODCM_c, FusOv_c, FusOomegas_c, FusOacc_c, FusOalphas_c, numNodePts_c, nodePts_c, &
                           nodeDCMs_c, nodeVels_c, nodeOmegas_c, nodeAccs_c,  numRtrPts_c, rtrPts_c, &
                           rtrDCMs_c, rtrVels_c, rtrOmegas_c, rtrAccs_c, rtrAlphas_c, nodeLoads_c, rtrLoads_c, errStat_c, errMsg_c ) BIND (C, NAME='KFAST_AssRes')
    IMPLICIT NONE
@@ -3194,15 +3149,10 @@ subroutine KFAST_AssRes(t_c, isInitialTime_c, WindPt_c, FusO_prev_c, FusO_c, Fus
    real(C_DOUBLE),         intent(in   ) :: t_c                          !  simulation time for the current timestep (s)
    integer(C_INT),         intent(in   ) :: isInitialTime_c              !  1 = first time KFAST_AssRes has been called for this particular timestep, 0 = otherwise
    real(C_DOUBLE),         intent(in   ) :: WindPt_c(3)                  !  Position of the ground station where the fixed wind measurement is taken, expressed in global coordinates. (m)
-   real(C_DOUBLE),         intent(in   ) :: FusO_prev_c(3)               !  Previous timestep position of the Fuselage reference point, expressed in global coordinates. (m) 
    real(C_DOUBLE),         intent(in   ) :: FusO_c(3)                    !  Current  timestep position of the Fuselage reference point, expressed in global coordinates. (m) 
-   real(C_DOUBLE),         intent(in   ) :: FusODCM_prev_c(9)            !  Previous timestep DCM matrix to transform the location of the Fuselage reference point from global to kite coordinates.
    real(C_DOUBLE),         intent(in   ) :: FusODCM_c(9)                 !  Current  timestep DCM matrix to transform the location of the Fuselage reference point from global to kite coordinates.
-   real(C_DOUBLE),         intent(in   ) :: FusOv_prev_c(3)              !  Previous timestep velocity of the Fuselage reference point, expressed in global coordinates. (m/s) 
    real(C_DOUBLE),         intent(in   ) :: FusOv_c(3)                   !  Current timestep velocity of the Fuselage reference point, expressed in global coordinates. (m/s)
-   real(C_DOUBLE),         intent(in   ) :: FusOomegas_prev_c(3)         !  Previous timestep rotational velocity of the Fuselage reference point, expressed in global coordinates. (rad/s) 
    real(C_DOUBLE),         intent(in   ) :: FusOomegas_c(3)              !  Current timestep rotational velocity of the Fuselage reference point, expressed in global coordinates. (rad/s) 
-   real(C_DOUBLE),         intent(in   ) :: FusOacc_prev_c(3)            !  Previous timestep translational acceleration of the Fuselage reference point, expressed in global coordinates. (m/s^2) 
    real(C_DOUBLE),         intent(in   ) :: FusOacc_c(3)                 !  Current timestep translational acceleration of the Fuselage reference point, expressed in global coordinates. (m/s^2) 
    real(C_DOUBLE),         intent(in   ) :: FusOalphas_c(3)              !  Current timestep rotational acceleration of the Fuselage reference point, expressed in global coordinates. (rad/s^2) 
    integer(C_INT),         intent(in   ) :: numNodePts_c                 !  Total umber of MBDyn structural nodes. This must match what was sent during KFAST_Init, but is useful here for sizing Fortran arrays.
@@ -3235,14 +3185,9 @@ subroutine KFAST_AssRes(t_c, isInitialTime_c, WindPt_c, FusO_prev_c, FusO_c, Fus
    integer(IntKi)           :: isInitialTime                  ! Is this the initial time of the simulation 1=Yes, should we update the states? 0=yes, 1=no
    real(DbKi)               :: t                              ! simulations time (s)
    real(DbKi)               :: utimes(2)                      ! t-p%dt and t timestep values (s)
-   real(ReKi)               :: FusO(3)                        ! fuselage (or kite) reference point location in global (inertial) coordinates at time t (m)
-   real(ReKi)               :: FusO_prev(3)                   ! fuselage (or kite) reference point location in global (inertial) coordinates at time t-p%dt (m)
-   real(ReKi)               :: FusOv_prev(3)                  ! fuselage reference point translational velocities in global (inertial) coordinates at time t-p%dt (m)
-   real(ReKi)               :: FusODCM_prev(3,3)              ! fuselage reference point DCM to transform from global to kite coordinates at time t-p%dt
-   real(ReKi)               :: FusOomegas_prev(3)             ! fuselage reference point rotational velocities in global coordinates at time t-p%dt (m/s)
-   real(ReKi)               :: FusOacc_prev(3)                ! fuselage reference point accelerations in global coordinates at time t-p%dt (m/s^2)
    real(ReKi)               :: AeroMoment(3)                  ! AeroDynamic moment on a rotor as computed by KAD (N-m)
-   real(ReKi)               :: AeroForce(3)                   ! AeroDynamic force on a rotor as computed by KAD (N)
+   real(ReKi)               :: xhat(3)                        ! 
+   real(ReKi)               :: AeroForce(3)                   ! AeroDynamic force on a rotor as computed by KAD (N)              ! 
    integer(IntKi)           :: errStat, errStat2              ! error status values
    character(ErrMsgLen)     :: errMsg, errMsg2                ! error messages
    character(*), parameter  :: routineName = 'KFAST_AssRes'
@@ -3264,15 +3209,8 @@ subroutine KFAST_AssRes(t_c, isInitialTime_c, WindPt_c, FusO_prev_c, FusO_c, Fus
    
       ! Transfer fuselage (kite) principal point inputs
    m%FusO          = FusO_c
-   FusO_prev       = FusO_prev_c
-   FusOv_prev      = FusOv_prev_c
-   FusOomegas_prev = FusOomegas_prev_c
-   FusOacc_prev    = FusOacc_prev_c
-   FusODCM_prev    = reshape(FusODCM_prev_c,(/3,3/)) 
-   
-      ! these are possible output channels (to be written to an output file) so we will store these for later use
    m%FusODCM       = reshape(FusODCM_c,(/3,3/))          
-   m%FusOvels      = FusOv_c        
+   m%FusOv         = FusOv_c        
    m%FusOomegas    = FusOomegas_c    
    m%FusOaccs      = FusOacc_c      
    m%FusOalphas    = FusOalphas_c
@@ -3280,47 +3218,16 @@ subroutine KFAST_AssRes(t_c, isInitialTime_c, WindPt_c, FusO_prev_c, FusO_c, Fus
       ! Transfer C-based nodal and rotor quantities into Fortran-based data structures (and the MBD motion meshes)
       !   The resulting data resides inside the MiscVars data structure (m)
 
-   call TransferMBDynInputs( m%FusO, numNodePts_c, nodePts_c, nodeDCMs_c, nodeVels_c, nodeOmegas_c, nodeAccs_c, rtrPts_c, rtrDCMs_c, rtrVels_c, rtrOmegas_c, rtrAccs_c, rtrAlphas_c, p, m, errStat2, errMsg2 )
+   call TransferMBDynInputs( numNodePts_c, nodePts_c, nodeDCMs_c, nodeVels_c, nodeOmegas_c, nodeAccs_c, rtrPts_c, rtrDCMs_c, rtrVels_c, rtrOmegas_c, rtrAccs_c, rtrAlphas_c, p, m, errStat2, errMsg2 )
          call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
          if (errStat >= AbortErrLev ) then
             call TransferErrors(errStat, errMsg, errStat_c, errMsg_c)
             return
          end if
-         
-   
-         
-   if ( p%useKAD ) then
-            ! Now transfer MBD motions mesh data to the corresponding KAD input meshes
-      call TransferMBDynInputs2KADMeshes( m%FusO, p, m, errStat, errMsg )
-   
-   end if
-   
-
-! -------------------------------------------------------------------------
-! InflowWind
-! -------------------------------------------------------------------------      
-      ! The inputs to InflowWind are the positions where wind velocities [the outputs] are to be computed.  These inputs are set above by
-      !  the TransferMBDynInputs() call.  The inputs are for t+dt timestep.
-   if ( p%useIfW ) then
-      call TransferMBDynToIfW( WindPt_c, m%FusO, numNodePts_c, nodePts_c, rtrPts_c, p, m, errStat2, errMsg2 )
-         call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
-         if (errStat >= AbortErrLev ) then
-            call TransferErrors(errStat, errMsg, errStat_c, errMsg_c)
-            return
-         end if
-        
-      call InflowWind_CalcOutput(t, m%IfW%u, m%IfW%p, m%IfW%x, m%IfW%xd, m%IfW%z, m%IfW%OtherSt, m%IfW%y, m%IfW%m, errStat2, errMsg2 )
-         call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
-         if (errStat >= AbortErrLev ) then
-            call TransferErrors(errStat, errMsg, errStat_c, errMsg_c)
-            return
-         end if
-   end if
-   
-   
-! -------------------------------------------------------------------------
-! MoorDyn
-! ------------------------------------------------------------------------- 
+           
+   ! -------------------------------------------------------------------------
+   ! MoorDyn
+   ! ------------------------------------------------------------------------- 
    
    if ( p%useMD ) then
      
@@ -3361,6 +3268,7 @@ subroutine KFAST_AssRes(t_c, isInitialTime_c, WindPt_c, FusO_prev_c, FusO_c, Fus
             call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
 
       if ( isInitialTime < 1 ) then
+         call MD_CopyInput( OtherSt%MD_u, m%MD%u(1), MESH_NEWCOPY, errStat2, errMsg2 )
          call MD_UpdateStates( utimes(1), n, m%MD%u, utimes, m%MD%p, m%MD%x_copy, m%MD%xd, m%MD%z, m%MD%OtherSt, m%MD%m, errStat2, errMsg2 )
             call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
                if (errStat >= AbortErrLev ) then
@@ -3383,10 +3291,7 @@ subroutine KFAST_AssRes(t_c, isInitialTime_c, WindPt_c, FusO_prev_c, FusO_c, Fus
          call TransferErrors(errStat, errMsg, errStat_c, errMsg_c)
          return
       end if
-      if ( isInitialTime == 1 ) then
-         call SetBridleForce(m)     ! This is needed for the initial timestep because the controller will need to know the bridle force.  
-                                    !   Normally this gets set during AfterPredict() and the controller is using the previous timestep's bridle force.
-      end if
+      
 !print *, "Finished MD_CalcOutput" 
 !print *, "m%MD%y%PtFairLeadLoad%Force(1,1): "//trim(num2lstr(m%MD%y%PtFairLeadLoad%Force(1,1)))//", m%MD%y%PtFairLeadLoad%Force(2,1): "//trim(num2lstr(m%MD%y%PtFairLeadLoad%Force(2,1)))//", m%MD%y%PtFairLeadLoad%Force(3,1): "//trim(num2lstr(m%MD%y%PtFairLeadLoad%Force(3,1)))
 !print *, "m%MD%y%PtFairLeadLoad%Force(1,2): "//trim(num2lstr(m%MD%y%PtFairLeadLoad%Force(1,2)))//", m%MD%y%PtFairLeadLoad%Force(2,2): "//trim(num2lstr(m%MD%y%PtFairLeadLoad%Force(2,2)))//", m%MD%y%PtFairLeadLoad%Force(3,2): "//trim(num2lstr(m%MD%y%PtFairLeadLoad%Force(3,2)))
@@ -3394,7 +3299,37 @@ subroutine KFAST_AssRes(t_c, isInitialTime_c, WindPt_c, FusO_prev_c, FusO_c, Fus
 !print *, "m%MD%y%PtFairLeadLoad%Moment(1,2): "//trim(num2lstr(m%MD%y%PtFairLeadLoad%Moment(1,2)))//", m%MD%y%PtFairLeadLoad%Moment(2,2): "//trim(num2lstr(m%MD%y%PtFairLeadLoad%Moment(2,2)))//", m%MD%y%PtFairLeadLoad%Moment(3,2): "//trim(num2lstr(m%MD%y%PtFairLeadLoad%Moment(3,2)))  
 !m%MD%y%PtFairLeadLoad%Force(:,1)=0.0_ReKi
 !m%MD%y%PtFairLeadLoad%Force(:,2)=0.0_ReKi
+      
    end if
+         
+   if ( p%useKAD ) then
+            ! Now transfer MBD motions mesh data to the corresponding KAD input meshes
+      call TransferMBDynInputs2KADMeshes( m%FusO, p, m, errStat, errMsg )
+   
+   end if
+   
+
+! -------------------------------------------------------------------------
+! InflowWind
+! -------------------------------------------------------------------------      
+      ! The inputs to InflowWind are the positions where wind velocities [the outputs] are to be computed.  These inputs are set above by
+      !  the TransferMBDynInputs() call.  The inputs are for t+dt timestep.
+   if ( p%useIfW ) then
+      call TransferMBDynToIfW( WindPt_c, m%FusO, p, m, errStat2, errMsg2 )
+         call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
+         if (errStat >= AbortErrLev ) then
+            call TransferErrors(errStat, errMsg, errStat_c, errMsg_c)
+            return
+         end if
+        
+      call InflowWind_CalcOutput(t, m%IfW%u, m%IfW%p, m%IfW%x, m%IfW%xd, m%IfW%z, m%IfW%OtherSt, m%IfW%y, m%IfW%m, errStat2, errMsg2 )
+         call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
+         if (errStat >= AbortErrLev ) then
+            call TransferErrors(errStat, errMsg, errStat_c, errMsg_c)
+            return
+         end if
+   end if
+
 
 
 ! -------------------------------------------------------------------------
@@ -3402,31 +3337,47 @@ subroutine KFAST_AssRes(t_c, isInitialTime_c, WindPt_c, FusO_prev_c, FusO_c, Fus
 ! -------------------------------------------------------------------------      
    ! TODO: Do we even want to call KFC_Step() for the initial timestep?  Currently we need to because we need the GenTorque, flap settings, and rotor speeds
    !       and the Controller Init does not return this data.
-   if (OtherSt%NewTime) then
-      
+   if (OtherSt%NewTime .and. (isInitialTime < 1) ) then
+
 ! TODO: Need to work out how we generate a controller output signal for the very first timestep (t=0.0)
-         
+
          ! NOTE: The controller is stepping from t - p%dt (GetXPrev in MBDyn) to t (GetXCur in MBDyn)
          !       therefore, all inputs to KFC needs to be at time, t - p%dt.
-      m%KFC%u%dcm_g2b       = matmul(FusODCM_prev, transpose(p%DCM_Fast2Ctrl))
-      m%KFC%u%pqr           = matmul(FusODCM_prev, FusOomegas_prev)
-      m%KFC%u%acc_norm      = TwoNorm(FusOacc_prev)
-      m%KFC%u%Xg            = FusO_prev - p%anchorPt
+      if ( p%useKAD ) then
+         do j = 1,p%numPylons
+            do i = 1,2
+               
+               xhat   = OtherSt%SPyRtrDCMs(1,:,i,j)
+               AeroMoment = OtherSt%SPyRtrLoads(:,i,j)
+               m%KFC%u%SPyAeroTorque(i,j) = dot_product(xhat, AeroMoment )            
+
+               xhat   = OtherSt%PPyRtrDCMs(1,:,i,j) 
+               AeroMoment = OtherSt%PPyRtrLoads(:,i,j)
+               m%KFC%u%PPyAeroTorque(i,j) = dot_product(xhat, AeroMoment )
+
+            end do
+         end do
+      else
+         m%KFC%u%SPyAeroTorque = 0.0_ReKi
+         m%KFC%u%PPyAeroTorque = 0.0_ReKi
+      end if
+      
+      m%KFC%u%tether_forceb = matmul(OtherSt%FusODCM, OtherSt%totalFairLeadLoads)
+      m%KFC%u%dcm_g2b       = matmul(OtherSt%FusODCM, transpose(p%DCM_Fast2Ctrl))
+      m%KFC%u%pqr           = matmul(OtherSt%FusODCM, OtherSt%FusOomegas)
+      m%KFC%u%acc_norm      = TwoNorm(OtherSt%FusOacc)
+      m%KFC%u%Xg            = OtherSt%FusO - p%anchorPt
       m%KFC%u%Xg            = matmul(p%DCM_Fast2Ctrl, m%KFC%u%Xg)
-      m%KFC%u%Vg            = matmul(p%DCM_Fast2Ctrl, FusOv_prev)
-      m%KFC%u%Vb            = matmul(FusODCM_prev, FusOv_prev)
-      m%KFC%u%Ag            = matmul(p%DCM_Fast2Ctrl, FusOacc_prev)
-      m%KFC%u%Ab            = matmul(FusODCM_prev, FusOacc_prev)
+      m%KFC%u%Vg            = matmul(p%DCM_Fast2Ctrl, OtherSt%FusOv)
+      m%KFC%u%Vb            = matmul(OtherSt%FusODCM, OtherSt%FusOv)
+      m%KFC%u%Ag            = matmul(p%DCM_Fast2Ctrl, OtherSt%FusOacc)
+      m%KFC%u%Ab            = matmul(OtherSt%FusODCM, OtherSt%FusOacc)
       m%KFC%u%rho           = p%AirDens
-      m%KFC%u%apparent_wind = m%IfW_FusO_prev - FusOv_prev
-      m%KFC%u%wind_g        = matmul(p%DCM_Fast2Ctrl, m%IfW_ground_prev)
+      m%KFC%u%apparent_wind = OtherSt%IfW_FusO - OtherSt%FusOv
+      m%KFC%u%wind_g        = matmul(p%DCM_Fast2Ctrl, OtherSt%IfW_ground)
          
       m%KFC%u%apparent_wind = matmul(p%DCM_Fast2Ctrl, m%KFC%u%apparent_wind)
-      m%KFC%u%tether_forceb = m%tether_forceb_prev  ! tether bridle force at time t  TODO: Still need to see how to properly set this for the initial timestep
-         
-! TODO: Need to implement aero torques, and how to handle initial timestep, too.
-      m%KFC%u%SPyAeroTorque   = m%SPyAeroTorque_prev
-      m%KFC%u%PPyAeroTorque   = m%PPyAeroTorque_prev
+     
          
       call KFC_Step(utimes(1), m%KFC%u, m%KFC%p, m%KFC%y, errStat2, errMsg2 )
          call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
@@ -3555,8 +3506,7 @@ subroutine KFAST_AssRes(t_c, isInitialTime_c, WindPt_c, FusO_prev_c, FusO_c, Fus
          end if
    end if
    
-   ! Compute the Rotor Reaction Loads
-   ! TODO: Need to set this up to actually work when useKFC = false and/or useKAD=false!
+      ! Compute the Rotor Reaction Loads
    do j = 1, p%numPylons
       do i = 1,2
          c = (j-1)*2 + i
@@ -3572,7 +3522,7 @@ subroutine KFAST_AssRes(t_c, isInitialTime_c, WindPt_c, FusO_prev_c, FusO_c, Fus
 
          call KFAST_RotorCalcs(m%SPyRtrDCMs(:,:,i,j), m%SPyRtrOmegas(:,i,j), m%SPyRtrAccs(:,i,j), m%SPyRtrAlphas(:,i,j), &
                                m%KFC%y%SPyRtrSpd(i,j), m%KFC%y%SPyGenTorque(i,j), AeroForce, AeroMoment , &
-                               p%Gravity, m%SPyRtrMass(i,j),   m%SPyRtrIrot(i,j),     m%SPyRtrItrans(i,j), m%SPyRtrXcm(i,j), &
+                               p%Gravity, p%SPyRtrMass(i,j),   p%SPyRtrIrot(i,j),     p%SPyRtrItrans(i,j), p%SPyRtrXcm(i,j), &
                                m%SPyRtrFReact(:,i,j), m%SPyRtrMReact(:,i,j), errStat2, errMsg2 ) 
    
             ! Port Rotors
@@ -3586,7 +3536,7 @@ subroutine KFAST_AssRes(t_c, isInitialTime_c, WindPt_c, FusO_prev_c, FusO_c, Fus
 
          call KFAST_RotorCalcs(m%PPyRtrDCMs(:,:,i,j), m%PPyRtrOmegas(:,i,j), m%PPyRtrAccs(:,i,j), m%PPyRtrAlphas(:,i,j), &
                                m%KFC%y%PPyRtrSpd(i,j), m%KFC%y%PPyGenTorque(i,j), AeroForce, AeroMoment, &
-                               p%Gravity, m%PPyRtrMass(i,j),   m%PPyRtrIrot(i,j),     m%PPyRtrItrans(i,j), m%PPyRtrXcm(i,j), &
+                               p%Gravity, p%PPyRtrMass(i,j),   p%PPyRtrIrot(i,j),     p%PPyRtrItrans(i,j), p%PPyRtrXcm(i,j), &
                                m%PPyRtrFReact(:,i,j), m%PPyRtrMReact(:,i,j), errStat2, errMsg2 ) 
       end do
    end do
@@ -3611,51 +3561,61 @@ subroutine KFAST_AfterPredict(errStat_c, errMsg_c) BIND (C, NAME='KFAST_AfterPre
    character(ErrMsgLen)            :: errMsg, errMsg2
    character(*), parameter         :: routineName = 'KFAST_AfterPredict'
    integer(IntKi)                  :: numFairLeads, i, count, j
-   real(ReKi)                      :: xhat(3), moment(3)
+
    errStat = ErrID_None
    errMsg  = ''
 
+      ! Reset the NewTime flag to indicate that the next call to KFAST_AssRes() will be for a new timestep
    OtherSt%NewTime = .true.
+
+      ! transfer t+dt quantities to t outquantities for use by the controller during the next timestep
+      ! NOTE: we always have at a minimum a dummy controller
    
-      ! Copy the temporary states and place them into the actual versions
-   call MD_CopyContState   ( m%MD%x_copy, m%MD%x, MESH_NEWCOPY, errStat2, errMsg2 )
-      call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
-   call KAD_CopyConstrState( m%KAD%z_copy, m%KAD%z, MESH_NEWCOPY, errStat2, errMsg2 )
-      call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
+      ! MBDyn Quantities
+   OtherSt%SPyRtrDCMs = m%SPyRtrDCMs
+   OtherSt%PPyRtrDCMs = m%PPyRtrDCMs
       
-      ! Copy t+dt inputs to t for the next timestep
-   call MD_CopyInput( m%MD%u(2), m%MD%u(1), MESH_NEWCOPY, errStat2, errMsg2 )
-   
-      ! transfer t+dt outputs to t outputs for use by the controller during the next timestep
-   if ( p%useKFC ) then
-     
-      if ( p%useIfW ) then       
-            ! Need previous timestep's inflow at ground station for the next call to KFC calcoutput
-         m%IfW_ground_prev = m%IfW%y%VelocityUVW(:,1)     
-            ! Need previous timestep's inflow at FusO for the next call to KFC calcoutput    
-         m%IfW_FusO_prev = m%IfW%y%VelocityUVW(:,2)
-      end if
+   OtherSt%FusODCM    = m%FusODCM
+   OtherSt%FusO       = m%FusO
+   OtherSt%FusOv      = m%FusOv
+   OtherSt%FusOomegas = m%FusOomegas
+   OtherSt%FusOacc    = m%FusOaccs
+
+
+   if ( p%useIfW ) then       
+         ! Need previous timestep's inflow at ground station for the next call to KFC calcoutput
+      OtherSt%IfW_ground = m%IfW%y%VelocityUVW(:,1)     
+         ! Need previous timestep's inflow at FusO for the next call to KFC calcoutput    
+      OtherSt%IfW_FusO   = m%IfW%y%VelocityUVW(:,2)
+   end if
        
-         ! transfer t+dt MoorDyn bridle forces to t forces for use by the controller during the next timestep     
-      if ( p%useMD ) then
-         call SetBridleForce(m)   
-      end if
+      ! transfer t+dt MoorDyn bridle forces to t forces for use by the controller during the next timestep     
+   if ( p%useMD ) then
+                  ! Copy the temporary states and place them into the actual versions
+      call MD_CopyContState   ( m%MD%x_copy, m%MD%x, MESH_NEWCOPY, errStat2, errMsg2 )
+         call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
+         ! Copy t+dt inputs to t for the next timestep
+      call MD_CopyInput( m%MD%u(2), OtherSt%MD_u, MESH_NEWCOPY, errStat2, errMsg2 )
+         call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
+         
+      numFairLeads = size(m%MD%y%PtFairLeadLoad%Force,2)
+      OtherSt%totalFairLeadLoads = 0.0_ReKi
+      do i = 1, numFairLeads
+         OtherSt%totalFairLeadLoads = OtherSt%totalFairLeadLoads + m%MD%y%PtFairLeadLoad%Force(:,i) 
+      end do
+   end if
       
-      if ( p%useKAD ) then
-         do j = 1,p%numPylons
-            do i = 1,2
-               count = (j-1)*2 + i
-               xhat   = m%SPyRtrDCMs(1,:,i,j)
-               moment = m%KAD%y%SPyRtrLoads(count)%Moment(:,1)
-               m%SPyAeroTorque_prev(i,j) = dot_product(xhat, moment )
-               xhat   = m%PPyRtrDCMs(1,:,i,j)
-               count = p%numPylons*2 + (j-1)*2 + i
-               moment = m%KAD%y%PPyRtrLoads(count)%Moment(:,1)
-               m%PPyAeroTorque_prev(i,j) = dot_product(xhat, moment )
-            end do
+   if ( p%useKAD ) then
+      call KAD_CopyConstrState( m%KAD%z_copy, m%KAD%z, MESH_NEWCOPY, errStat2, errMsg2 )
+         call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
+      do j = 1,p%numPylons
+         do i = 1,2
+            count = (j-1)*2 + i
+            OtherSt%SPyRtrLoads(:,i,j) = m%KAD%y%SPyRtrLoads(count)%Moment(:,1)
+            count = p%numPylons*2 + (j-1)*2 + i
+            OtherSt%PPyRtrLoads(:,i,j) = m%KAD%y%PPyRtrLoads(count)%Moment(:,1)  
          end do
-      end if
-      
+      end do
    end if
    
               ! transfer Fortran variables to C:  
@@ -3737,10 +3697,10 @@ subroutine KFAST_End(errStat_c, errMsg_c) BIND (C, NAME='KFAST_End')
          call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
    end if
    
-   if ( p%useKFC ) then
-      call KFC_End(m%KFC%p, errStat2, errMsg2)
-         call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
-   end if
+   
+   call KFC_End(m%KFC%p, errStat2, errMsg2)
+      call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
+   
    
    
    

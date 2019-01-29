@@ -59,11 +59,6 @@ typedef   ^    MiscVarType    KAD_Data         KAD              -    -   -  "Kit
 typedef   ^    MiscVarType    IfW_Data         IfW              -    -   -  "InflowWind framework data" -
 typedef   ^    MiscVarType    MD_Data          MD               -    -   -  "MoorDyn framework data" -
 typedef   ^    MiscVarType    KFC_Data         KFC              -    -   -  "KiteFAST Controller framework data" -
-typedef   ^    MiscVarType    ReKi             IfW_ground_prev {3}   -   -  "Previous timestep inflow at ground station" m/s
-typedef   ^    MiscVarType    ReKi             IfW_FusO_prev   {3}   -   -  "Previous timestep inflow at fuselage reference point" m/s
-typedef   ^    MiscVarType    ReKi             tether_forceb_prev {3} -  -  "Previous timestep averaged bridle load coming from the tether module" N
-typedef   ^    MiscVarType    ReKi             SPyAeroTorque_prev {:}{:} - - " (2 x numPylons) Previous timestep aerodynamic torque on the starboard rotors" N-m
-typedef   ^    MiscVarType    ReKi             PPyAeroTorque_prev {:}{:} - - " (2 x numPylons) Previous timestep aerodynamic torque on the port rotors" N-m
 typedef   ^    MiscVarType    MeshType         mbdFusMotions    -    -   -  "" -
 typedef   ^    MiscVarType    MeshType         mbdSWnMotions    -    -   -  "" -
 typedef   ^    MiscVarType    MeshType         mbdPWnMotions    -    -   -  "" -
@@ -116,7 +111,7 @@ typedef   ^    MiscVarType    ReKi             SHSPts        {:}{:}  -  - "" m
 typedef   ^    MiscVarType    ReKi             PHSPts        {:}{:}  -  - "" m
 typedef   ^    MiscVarType    ReKi             SPyPts      {:}{:}{:} -  - "" m
 typedef   ^    MiscVarType    ReKi             PPyPts      {:}{:}{:} -  - "" m
-typedef   ^    MiscVarType    ReKi             FusOvels         {:}  -  - "" m/s
+typedef   ^    MiscVarType    ReKi             FusOv            {:}  -  - "" m/s
 typedef   ^    MiscVarType    ReKi             FusVels       {:}{:}  -  - "" m/s
 typedef   ^    MiscVarType    ReKi             SWnVels       {:}{:}  -  - "" m/s
 typedef   ^    MiscVarType    ReKi             PWnVels       {:}{:}  -  - "" m/s
@@ -173,14 +168,6 @@ typedef   ^    MiscVarType    R8Ki             SHSNdDCMs   {:}{:}{:} -  - "" -
 typedef   ^    MiscVarType    R8Ki             PHSNdDCMs   {:}{:}{:} -  - "" -
 typedef   ^    MiscVarType    R8Ki             SPyNdDCMs {:}{:}{:}{:} - - "" -
 typedef   ^    MiscVarType    R8Ki             PPyNdDCMs {:}{:}{:}{:} - - "" -
-typedef   ^    MiscVarType    ReKi             SPyRtrMass   {:}{:}    - - "" kg
-typedef   ^    MiscVarType    ReKi             PPyRtrMass   {:}{:}    - - "" kg
-typedef   ^    MiscVarType    ReKi             SPyRtrIrot   {:}{:}    - - "" kg-m^2
-typedef   ^    MiscVarType    ReKi             PPyRtrIrot   {:}{:}    - - "" kg-m^2
-typedef   ^    MiscVarType    ReKi             SPyRtrItrans {:}{:}    - - "" kg-m^2
-typedef   ^    MiscVarType    ReKi             PPyRtrItrans {:}{:}    - - "" kg-m^2
-typedef   ^    MiscVarType    ReKi             SPyRtrXcm    {:}{:}    - - "" m
-typedef   ^    MiscVarType    ReKi             PPyRtrXcm    {:}{:}    - - "" m
 typedef   ^    MiscVarType    ReKi             SPyRtrFReact {:}{:}{:} - - "" N
 typedef   ^    MiscVarType    ReKi             PPyRtrFReact {:}{:}{:} - - "" N
 typedef   ^    MiscVarType    ReKi             SPyRtrMReact {:}{:}{:} - - "" N-m
@@ -211,6 +198,14 @@ typedef   ^  ^              IntKi            numSPyNds  {:} -  -  "Number of sta
 typedef   ^  ^              IntKi            numPPyNds  {:} -  -  "Number of port pylon structural nodes" -
 typedef   ^  ^              ReKi             anchorPt   {3} -  -  "Anchor point for the kite tether" m
 typedef   ^  ^              ReKi             DCM_Fast2Ctrl {3}{3} - - "DCM between FAST inertial and the Controller's reference frame" -
+typedef   ^  ^              ReKi             SPyRtrMass   {:}{:}    - - "" kg
+typedef   ^  ^              ReKi             PPyRtrMass   {:}{:}    - - "" kg
+typedef   ^  ^              ReKi             SPyRtrIrot   {:}{:}    - - "" kg-m^2
+typedef   ^  ^              ReKi             PPyRtrIrot   {:}{:}    - - "" kg-m^2
+typedef   ^  ^              ReKi             SPyRtrItrans {:}{:}    - - "" kg-m^2
+typedef   ^  ^              ReKi             PPyRtrItrans {:}{:}    - - "" kg-m^2
+typedef   ^  ^              ReKi             SPyRtrXcm    {:}{:}    - - "" m
+typedef   ^  ^              ReKi             PPyRtrXcm    {:}{:}    - - "" m
 typedef	 ^	 ^	             CHARACTER(1024)	outFileRoot -	-	-	"Rootname of the KiteFAST output file(s)"	-
 typedef	 ^	 ^	             IntKi	         numOuts	   -	 0	   -	  "Total number of outputs requested (across all modules)"	-
 typedef	 ^	 ^	             IntKi	         numKFASTOuts  -	 0	   -	  "Number of KFAST-specific outputs requested"	-
@@ -239,4 +234,17 @@ typedef	 ^	 ^	             CHARACTER(1)	   Delim	      -	-	-	"Column delimiter f
 typedef   ^  ^              IntKi            UnOutFile   -	-	-	"File unit for the KAD-generated output file"	-
 
 # ..... Other States ................................................................................................................
-typedef   ^  OtherStateType logical          NewTime       -    -   -  "" -
+typedef   ^  OtherStateType logical          NewTime             -     -   -  "" -
+typedef   ^  ^              ReKi             IfW_ground         {3}    -   -  "Previous timestep inflow at ground station" m/s
+typedef   ^  ^              ReKi             IfW_FusO           {3}    -   -  "Previous timestep inflow at fuselage reference point" m/s
+typedef   ^  ^              ReKi             totalFairLeadLoads {3}    -   -  "Previous timestep total fairlead loads from the tether module in global coordinates" N
+typedef   ^  ^              DbKi             SPyRtrDCMs         {:}{:}{:}{:} - - "Previous timestep starboard rotor/nacelle DCM" -
+typedef   ^  ^              DbKi             PPyRtrDCMs         {:}{:}{:}{:} - - "Previous timestep port rotor/nacelle DCM" -
+typedef   ^  ^              ReKi             SPyRtrLoads        {:}{:}{:} -   -  "(2 x numPylons) Previous timestep rotor moments on the starboard rotors in global coordinates" N-m
+typedef   ^  ^              ReKi             PPyRtrLoads        {:}{:}{:} -   -  "(2 x numPylons) Previous timestep rotor moments on the port rotors in global coordinates" N-m
+typedef   ^  ^              ReKi             FusO               {3}    -   -  "fuselage (or kite) reference point location in global (inertial) coordinates at time t-p%dt" m
+typedef   ^  ^              ReKi             FusOv              {3}    -   -  "fuselage reference point translational velocities in global (inertial) coordinates at time t-p%dt" m
+typedef   ^  ^              ReKi             FusODCM            {3}{3} -   -  "fuselage reference point DCM to transform from global to kite coordinates at time t-p%dt"
+typedef   ^  ^              ReKi             FusOomegas         {3}    -   -  "fuselage reference point rotational velocities in global coordinates at time t-p%dt" m/s
+typedef   ^  ^              ReKi             FusOacc            {3}    -   -  "fuselage reference point accelerations in global coordinates at time t-p%dt" m/s^2
+typedef   ^  ^              MD_InputType     MD_u                -     -   -  "The previous timesteps MoorDyn inputs" -

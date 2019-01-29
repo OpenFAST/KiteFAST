@@ -451,7 +451,7 @@ int main(int argc, char *argv[])
 */
 
     // This is called as part of the user module constructor
-    KFAST_Init(&dt, &numFlaps, &numPylons, &numComp, pNumCompNds, pModFlags, KAD_FileName, IfW_FileName, MD_FileName, KFC_FileName, outFileRoot, &printSum, &gravity, pWindPt,
+    KFAST_Init(&dt, &numFlaps, &numPylons, &numComp, pNumCompNds, pModFlags, KAD_FileName, IfW_FileName, MD_FileName, KFC_FileName, outFileRoot, &printSum, &gravity,
        pFusODCM, &numRtrPts, pRtrPts, pRtrMass, pRtrI_Rot, pRtrI_Trans, pRtrXcm, pRefPts, &numNodePts, pNodePts, pNodeDCMs,
        &nFusOuts, FusOutNd, &nSWnOuts, SWnOutNd, &nPWnOuts, PWnOutNd, &nVSOuts, VSOutNd, &nSHSOuts, SHSOutNd, &nPHSOuts, PHSOutNd, &nPylOuts, PylOutNd, &numOutChan, outChanList, pChanList_len, &errStat, errMsg);
 
@@ -478,7 +478,7 @@ int main(int argc, char *argv[])
     pFusO[1] = pRefPts[1];
     pFusO[2] = pRefPts[2];
 
-    pFusO_prev = (double *)malloc(3 * sizeof(double));
+   /* pFusO_prev = (double *)malloc(3 * sizeof(double));
     pFusO_prev[0] = pRefPts[0];
     pFusO_prev[1] = pRefPts[1];
     pFusO_prev[2] = pRefPts[2];
@@ -487,27 +487,27 @@ int main(int argc, char *argv[])
     pFusOv_prev = (double *)malloc(3 * sizeof(double));
     pFusOv_prev[0] = -50.0;
     pFusOv_prev[1] =  0.0;
-    pFusOv_prev[2] =  0.0;
+    pFusOv_prev[2] =  0.0;*/
 
     pFusOv = (double *)malloc(3 * sizeof(double));
     pFusOv[0] = -50.0;
     pFusOv[1] = 0.0;
     pFusOv[2] = 0.0;
 
-    pFusOomegas_prev = (double *)malloc(3 * sizeof(double));
+    /*pFusOomegas_prev = (double *)malloc(3 * sizeof(double));
     pFusOomegas_prev[0] = 0.0;
     pFusOomegas_prev[1] = 0.0;
-    pFusOomegas_prev[2] = 0.0;
+    pFusOomegas_prev[2] = 0.0;*/
 
     pFusOomegas = (double *)malloc(3 * sizeof(double));
     pFusOomegas[0] = 0.0;
     pFusOomegas[1] = 0.0;
     pFusOomegas[2] = 0.0;
 
-    pFusOacc_prev    = (double *)malloc(3*sizeof(double));
+   /* pFusOacc_prev    = (double *)malloc(3*sizeof(double));
     pFusOacc_prev[0] = 0.0;
     pFusOacc_prev[1] = 0.0;
-    pFusOacc_prev[2] = 0.0;
+    pFusOacc_prev[2] = 0.0;*/
 
     pFusOacc = (double *)malloc(3 * sizeof(double));
     pFusOacc[0] = 0.0;
@@ -568,8 +568,8 @@ int main(int argc, char *argv[])
 
     // This returns the loads from KiteFAST at the initial time
     isInitialTime = 1;  // we do not advance the states for the first call to KFAST_AssRes(), we only want to compute the output loads
-    KFAST_AssRes(&t, &isInitialTime, pWindPt, pFusO_prev, pFusO, pFusODCM_prev, pFusODCM, pFusOv_prev, pFusOv, 
-       pFusOomegas_prev, pFusOomegas, pFusOacc_prev, pFusOacc, pFusOalphas, &numNodePts, pNodePts, pNodeDCMs,
+    KFAST_AssRes(&t, &isInitialTime, pWindPt, pFusO, pFusODCM,  pFusOv, 
+       pFusOomegas,  pFusOacc, pFusOalphas, &numNodePts, pNodePts, pNodeDCMs,
                     pNodeVels, pNodeOmegas, pNodeAccs,
                     &numRtrPts, pRtrPts, pRtrDCMs, pRtrVels, pRtrOmegas, pRtrAccs, pRtrAlphas,
                     pNodeLoads, pRtrLoads, &errStat, errMsg);
@@ -619,8 +619,8 @@ int main(int argc, char *argv[])
         // For now we will simulate constant positions, velocities, and accelerations
 
         // AssRes()
-        KFAST_AssRes(&t, &isInitialTime, pWindPt, pFusO_prev, pFusO, pFusODCM_prev, pFusODCM, pFusOv_prev, pFusOv,
-           pFusOomegas_prev, pFusOomegas, pFusOacc_prev, pFusOacc, pFusOalphas, &numNodePts, pNodePts, pNodeDCMs,
+        KFAST_AssRes(&t, &isInitialTime, pWindPt, pFusO, pFusODCM, pFusOv,
+           pFusOomegas, pFusOacc, pFusOalphas, &numNodePts, pNodePts, pNodeDCMs,
            pNodeVels, pNodeOmegas, pNodeAccs,
            &numRtrPts, pRtrPts, pRtrDCMs, pRtrVels, pRtrOmegas, pRtrAccs, pRtrAlphas,
            pNodeLoads, pRtrLoads, &errStat, errMsg);
