@@ -62,7 +62,7 @@ class MainMBD():
         self.horizontal_stabilizer_starboard_outputs = output["horizontal_stabilizer_starboard_outputs"]
         self.horizontal_stabilizer_port_outputs = output["horizontal_stabilizer_port_outputs"]
         self.pylon_outputs = output["pylon_outputs"]
-        self.output_channels = output["output_channels"]
+        self.output_channels = [] if output["output_channels"] is None else output["output_channels"]
 
         self.keypoints = keypoints
 
@@ -272,14 +272,17 @@ class MainMBD():
         _write_output_lines(self.horizontal_stabilizer_port_outputs, "horizontal_stabilizer_port_outputs")
         _write_output_lines(self.pylon_outputs, "pylon_outputs")
         output.write_line("        output_channels,")
-        output.write_line("            {},".format(len(self.output_channels)))
-        for i, channel in enumerate(self.output_channels):
-            output_string = "            {}".format(channel)
-            if i == len(self.output_channels)-1 :
-                output_string += ";"
-            else:
-                output_string += ","
-            output.write_line(output_string)
+        if len(self.output_channels) == 0:
+            output.write_line("            {};".format(len(self.output_channels)))
+        else:
+            output.write_line("            {},".format(len(self.output_channels)))
+            for i, channel in enumerate(self.output_channels):
+                output_string = "            {}".format(channel)
+                if i == len(self.output_channels)-1 :
+                    output_string += ";"
+                else:
+                    output_string += ","
+                output.write_line(output_string)
         output.write_line("end: elements;")
         output.write_empty_line()
 
