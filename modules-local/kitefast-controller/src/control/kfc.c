@@ -49,21 +49,20 @@ ControlGlobal controlglob = {	.flight_status = {
 // 		- for initial motor guesses -> try zeros
 // 			- If that doesnt work try running MotorStep() within MotorInit()
 // 
-void controller_init(int *errStat, char *errMsg)
+void controller_init(int *numFlaps, int *numPylons, double I_rot[], double *Requested_dT, int *errStat, char *errMsg)
+// void controller_init(int *errStat, char *errMsg)
 {
 	printf("   controller_init\n");
-	// Perform Checks
+	//==== Perform Checks ====// 
 	// flap check
-	int numFlapsKFAST = 8; // placeholder for new input
-	assert(numFlapsKFAST == kNumFlaps);
+	assert(*numFlaps == kNumFlaps);
 	// pylonCheck
-	int numPylonsKFAST = 2; // placeholder for new input
-	assert(numPylonsKFAST == 2); // TODO - JPM, find suitable input for pylons instead of hardcoded val
+	assert(*numPylons == 2); // TODO - JPM, find suitable input for pylons instead of hardcoded val
 	// time step check
-	double dTKFAST = 0.01; // placeholder for new input (sec)
-	assert(dTKFAST == g_sys.ts);
-
-	// Controller Version Number
+	assert(*Requested_dT == g_sys.ts);
+	// check I of Rotors
+	
+	//==== Controller Version Number ====//
 	// Version Log:
 	// 0.1.0 - Inner Crosswind Step included and working
 	// 0.2.0 - Power Loop Step included and working
@@ -125,11 +124,14 @@ void controller_init(int *errStat, char *errMsg)
 // TODO:
 // 		- Fill in kFlapA_c summary above
 // 		- Connect with new Inputs/Outputs from Kitefast (waiting on Update)
+
 void controller_step(double dcm_g2b_c[], double pqr_c[], double *acc_norm_c,
 					 double Xg_c[], double Vg_c[], double Vb_c[], double Ag_c[],
 					 double Ab_c[], double *rho_c, double apparent_wind_c[],
 					 double tether_force_c[], double wind_g_c[],
-					 double kFlapA_c[], double Motor_c[],
+					 double kFlapA_c[], double Motor_c[], double GenTorque[],
+					 double RotorBladePitch[], double RotorAccel[], 
+					 double RotorSpeed[], double AeroTorque[],
 					 int *errStat, char *errMsg)
 {
 	#ifdef DEBUG //DEBUG preproc found in kfc.h

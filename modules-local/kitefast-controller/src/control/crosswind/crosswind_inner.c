@@ -391,7 +391,7 @@ static double ControlAlpha(double alpha_cmd, double alpha, double dCL_cmd,
   // If both the pitot and loadcells have failed, then we have no
   // accurate method of estimating angle-of-attack so we hold the
   // integrator.
-  IntegratorMode int_mode =s
+  IntegratorMode int_mode =
       flags->alpha_beta_fault ? kIntegratorModeHold : kIntegratorModeIntegrate;
 
   Integrator(alpha_cmd - alpha, params->int_alpha_min, params->int_alpha_max,
