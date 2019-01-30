@@ -103,7 +103,7 @@ subroutine WriteNodeInfo(SumFileUnit, CompIndx, nNds, Pts, NdDCMs, FusO, RefPt, 
                 'Finite-element node', & 
                 'Gauss point        '/)
 
-   CompAbrv = (/'FUS', 'SWN', 'PWN', ' VS', 'SHS', 'PHS'/)
+   CompAbrv = (/'Fus', 'SWn', 'PWn', ' VS', 'SHS', 'PHS'/)
    
       ! reference point
    write(SumFileUnit,'(3X,A32,2X,A19,4X,A1,10X,A1,8X,3(F7.3,1X))',IOSTAT=TmpErrStat) Components(CompIndx), NodeType(1), NoValStr, NoValStr, RefPt(1), RefPt(2), RefPt(3)
@@ -2429,7 +2429,6 @@ subroutine KFAST_Init(dt_c, numFlaps, numPylons, numComp, numCompNds, modFlags, 
    type(MD_InitInputType)          :: MD_InitInp
    type(MD_InitOutputType)         :: MD_InitOut
    type(KFC_InitInputType)         :: KFC_InitInp
-   type(KFC_InitOutputType)        :: KFC_InitOut
    character(*), parameter         :: routineName = 'KFAST_Init'
    integer(IntKi)                  :: i,j,c, count, maxSPyNds, maxPPyNds
    real(DbKi)                      :: interval
@@ -2740,8 +2739,16 @@ subroutine KFAST_Init(dt_c, numFlaps, numPylons, numComp, numCompNds, modFlags, 
       
    KFC_InitInp%numPylons    = numPylons
    KFC_InitInp%numFlaps     = numFlaps
-   interval = dt
+   
+   call AllocAry(KFC_InitInp%SPyRtrIrot, 2, p%numPylons, 'KFC_InitInp%SPyRtrIrot', errStat2,errMsg2)
+      call SetErrStat(errStat2,errMsg2,errStat,errMsg,routineName)
+   call AllocAry(KFC_InitInp%PPyRtrIrot, 2, p%numPylons, 'KFC_InitInp%PPyRtrIrot', errStat2,errMsg2)
+      call SetErrStat(errStat2,errMsg2,errStat,errMsg,routineName)
       
+   interval = dt
+   KFC_InitInp%SPyRtrIrot = p%SPyRtrIrot 
+   KFC_InitInp%PPyRtrIrot = p%PPyRtrIrot
+   
    ! Are we actually calling into a controller DLL / SO, or are we simply using a dummy controller to set the rotor speed (constant and hardcoded in the Fortran KFC_Init() routine)
    !   and set the generator torque to be equal and opposite to the aerodynamic torque.
       
@@ -2751,7 +2758,7 @@ subroutine KFAST_Init(dt_c, numFlaps, numPylons, numComp, numCompNds, modFlags, 
       KFC_InitInp%UseDummy = .true.
    end if
       
-   call KFC_Init(KFC_InitInp, m%KFC%u, m%KFC%p, m%KFC%y, interval, KFC_InitOut, errStat2, errMsg2 )
+   call KFC_Init(KFC_InitInp, m%KFC%u, m%KFC%p, m%KFC%y, interval, errStat2, errMsg2 )
       call SetErrStat(errStat2,errMsg2,errStat,errMsg,routineName)
       if (errStat >= AbortErrLev ) then
          call TransferErrors(errStat, errMsg, errStat_c, errMsg_c)

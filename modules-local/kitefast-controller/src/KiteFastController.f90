@@ -6,7 +6,7 @@
 !!
 ! ..................................................................................................................................
 !! ## LICENSING 
-!! Copyright (C) 2018  National Renewable Energy Laboratory
+!! Copyright (C) 2019  National Renewable Energy Laboratory
 !!
 !!    This file is part of KiteFAST.
 !!
@@ -37,17 +37,18 @@ module KiteFastController
       !> Definition of the DLL Interface for the SuperController
       !! 
    abstract interface
-      subroutine KFC_DLL_Init_PROC ( dt, numFlaps, numPylons, genTorq, rtrSpd, rtrAcc, rtrBladePitch, ctrlSettings, errStat, errMsg )  BIND(C)
+      subroutine KFC_DLL_Init_PROC ( dt, numFlaps, numPylons, rtrIrot, genTorq, rtrSpd, rtrAcc, rtrBladePitch, ctrlSettings, errStat, errMsg )  BIND(C)
          use, intrinsic :: ISO_C_Binding
          real(C_DOUBLE),         intent(in   ) :: dt                  !< required simulation time step
          integer(C_INT),         intent(in   ) :: numFlaps            !< number of flaps per wing in the Kite model
          integer(C_INT),         intent(in   ) :: numPylons           !< number of pylons per wing in the Kite model
-         real(C_DOUBLE),         intent(  out) :: genTorq(:)          !< The initial generator torques, specified as Top Rotor then Bottom Rotor for inboard Starboard pylon, 
+         real(C_DOUBLE),         intent(in   ) :: rtrIrot(:)          !< The rotor rotational inertias (m^3), follows ordering for genTorq.
+         real(C_DOUBLE),         intent(inout) :: genTorq(:)          !< The initial generator torques, specified as Top Rotor then Bottom Rotor for inboard Starboard pylon, 
                                                                       !<   then repeat moving outboard.  Then repeat for port side, starting inboard and moving outboard.
-         real(C_DOUBLE),         intent(  out) :: rtrSpd(:)           !< The initial rotor speeds (rad/s), follows ordering for genTorq.
-         real(C_DOUBLE),         intent(  out) :: rtrAcc(:)           !< The initial rotor accelerations (rad/s^2), follows ordering for genTorq.
-         real(C_DOUBLE),         intent(  out) :: rtrBladePitch(:)    !< The initial rotor-collective blade pitch angles (rad), follows ordering for genTorq.
-         real(C_DOUBLE),         intent(  out) :: ctrlSettings(:)     !< The initial control surfaces angles(rad), Starts with starboard wing flaps (numFlaps of them), then port wing flaps, 
+         real(C_DOUBLE),         intent(inout) :: rtrSpd(:)           !< The initial rotor speeds (rad/s), follows ordering for genTorq.
+         real(C_DOUBLE),         intent(inout) :: rtrAcc(:)           !< The initial rotor accelerations (rad/s^2), follows ordering for genTorq.
+         real(C_DOUBLE),         intent(inout) :: rtrBladePitch(:)    !< The initial rotor-collective blade pitch angles (rad), follows ordering for genTorq.
+         real(C_DOUBLE),         intent(inout) :: ctrlSettings(:)     !< The initial control surfaces angles(rad), Starts with starboard wing flaps (numFlaps of them), then port wing flaps, 
                                                                       !<   then 2 rudder values, then 2 starboard elevators, then 2 port elevators.
          integer(C_INT),         intent(  out) :: errStat             !< error status code (uses NWTC_Library error codes)
          character(kind=C_CHAR), intent(inout) :: errMsg          (*) !< Error Message from DLL to simulation code        
@@ -56,7 +57,7 @@ module KiteFastController
 
    abstract interface
       subroutine KFC_DLL_Step_PROC ( dcm_g2b_c, pqr_c, acc_norm_c, Xg_c, Vg_c, Vb_c, Ag_c, Ab_c, rho_c, apparent_wind_c, &
-         tether_forceb_c, wind_g_c, kFlapA_c, Motor_c, errStat, errMsg )  BIND(C)
+         tether_forceb_c, wind_g_c,  genTorq, rtrSpd, rtrAcc, rtrBladePitch, ctrlSettings, errStat, errMsg )  BIND(C)
          use, intrinsic :: ISO_C_Binding
          real(C_DOUBLE),         intent(in   ) :: dcm_g2b_c(9)      
          real(C_DOUBLE),         intent(in   ) :: pqr_c(3)          
@@ -70,11 +71,16 @@ module KiteFastController
          real(C_DOUBLE),         intent(in   ) :: apparent_wind_c(3)
          real(C_DOUBLE),         intent(in   ) :: tether_forceb_c(3) 
          real(C_DOUBLE),         intent(in   ) :: wind_g_c(3) 
-         real(C_DOUBLE),         intent(  out) :: kFlapA_c(10)                      
-         real(C_DOUBLE),         intent(  out) :: Motor_c(8)
-         integer(C_INT),         intent(inout) :: errStat           !< error status code (uses NWTC_Library error codes)
-         character(kind=C_CHAR), intent(inout) :: errMsg(1025)      !< Error Message from DLL to simulation code        
-      end subroutine KFC_DLL_Step_PROC   
+         real(C_DOUBLE),         intent(inout) :: genTorq(:)            !< The generator torques, specified as Top Rotor then Bottom Rotor for inboard Starboard pylon, 
+                                                                        !<   then repeat moving outboard.  Then repeat for port side, starting inboard and moving outboard.
+         real(C_DOUBLE),         intent(inout) :: rtrSpd(:)             !< The rotor speeds (rad/s), follows ordering for genTorq.
+         real(C_DOUBLE),         intent(inout) :: rtrAcc(:)             !< The rotor accelerations (rad/s^2), follows ordering for genTorq.
+         real(C_DOUBLE),         intent(inout) :: rtrBladePitch(:)      !< The rotor-collective blade pitch angles (rad), follows ordering for genTorq.
+         real(C_DOUBLE),         intent(inout) :: ctrlSettings(:)       !< The control surfaces angles(rad), Starts with starboard wing flaps (numFlaps of them), then port wing flaps, 
+                                                                        !<   then 2 rudder values, then 2 starboard elevators, then 2 port elevators.
+         integer(C_INT),         intent(inout) :: errStat               !< error status code (uses NWTC_Library error codes)
+         character(kind=C_CHAR), intent(inout) :: errMsg(1025)          !< Error Message from DLL to simulation code        
+      end subroutine KFC_DLL_Step_PROC                                  
    end interface   
  
    abstract interface
@@ -91,6 +97,42 @@ module KiteFastController
   
    contains   
    
+   subroutine MapKFCOutputs( numFlaps, numPylons, genTorq, rtrSpd, rtrAcc, rtrBladePitch, ctrlSettings, y)
+      integer(IntKi),       intent(in   ) :: numFlaps
+      integer(IntKi),       intent(in   ) :: numPylons
+      real(C_DOUBLE),       intent(in   ) :: genTorq(:)
+      real(C_DOUBLE),       intent(in   ) :: rtrSpd(:)
+      real(C_DOUBLE),       intent(in   ) :: rtrAcc(:)
+      real(C_DOUBLE),       intent(in   ) :: rtrBladePitch(:)
+      real(C_DOUBLE),       intent(in   ) :: ctrlSettings(:)
+      type(KFC_OutputType), intent(inout) :: y
+      
+      integer(IntKi)                :: wingOffset, i, j, c
+      
+         ! Set outputs to zero for now
+      c = 1
+      wingOffset = 2*numPylons
+      do j=1,numPylons
+         do i=1,2
+            y%SPyGenTorque(i,j) = genTorq(c)
+            y%PPyGenTorque(i,j) = genTorq(c + wingOffset)
+            y%SPyRtrSpd(i,j)    = rtrSpd(c)
+            y%PPyRtrSpd(i,j)    = rtrSpd(c + wingOffset)
+            y%SPyRtrAcc(i,j)    = rtrAcc(c)
+            y%PPyRtrAcc(i,j)    = rtrAcc(c + wingOffset)
+            y%SPyBldPitch(i,j)  = rtrBladePitch(c)
+            y%PPyBldPitch(i,j)  = rtrBladePitch(c + wingOffset)
+            c = c + 1
+         end do
+      end do
+      
+      y%SFlp         = ctrlSettings(1:numFlaps)
+      y%PFlp         = ctrlSettings(numFlaps+1:2*numFlaps)
+      y%Rudr         = ctrlSettings(2*numFlaps+1:2*numFlaps+2)
+      y%SElv         = ctrlSettings(2*numFlaps+3:2*numFlaps+4)
+      y%PElv         = ctrlSettings(2*numFlaps+5:2*numFlaps+6)
+         
+   end subroutine MapKFCOutputs 
    
    subroutine KFC_End(p, errStat, errMsg)
 
@@ -124,7 +166,7 @@ module KiteFastController
       
    end subroutine KFC_End
 
-   subroutine KFC_Init(InitInp, u, p, y, interval, InitOut, errStat, errMsg )
+   subroutine KFC_Init(InitInp, u, p, y, interval, errStat, errMsg )
 
       type(KFC_InitInputType),      intent(in   )  :: InitInp     !< Input data for initialization routine
       type(KFC_InputType),          intent(inout)  :: u           !< An initial guess for the input
@@ -132,7 +174,6 @@ module KiteFastController
       type(KFC_OutputType),         intent(  out)  :: y           !< Initial system outputs 
       real(DbKi),                   intent(inout)  :: interval    !< Coupling interval in seconds: 
                                                                   !<   Input is the timestep size requested by caller, returned is the Controller's required timestep
-      type(KFC_InitOutputType),     intent(  out)  :: InitOut     !< Output for initialization routine
       integer(IntKi),               intent(  out)  :: errStat     !< Error status of the operation
       character(*),                 intent(  out)  :: errMsg      !< Error message if errStat /= ErrID_None
  
@@ -142,10 +183,10 @@ module KiteFastController
       character(ErrMsgLen)                    :: errMsg2                      ! The error message, if an error occurred
       procedure(KFC_DLL_Init_PROC),pointer    :: DLL_KFC_Init_Subroutine       ! The address of the controller cc_init procedure in the DLL
       
-      integer(IntKi)                          :: wingOffset, i, j, c
       character(kind=C_CHAR)                  :: errMsg_c(IntfStrLen)
-      real(C_DOUBLE), allocatable             :: genTorq(:), rtrSpd(:), rtrAcc(:), rtrBladePitch(:), ctrlSettings(:)
+      real(C_DOUBLE), allocatable             :: rtrIrot(:), genTorq(:), rtrSpd(:), rtrAcc(:), rtrBladePitch(:), ctrlSettings(:)
       real(C_DOUBLE)                          :: dt_c
+      integer(IntKi)                          :: wingOffset, i, j, c
       
       errStat2 = ErrID_None
       errMsg2  = ''
@@ -217,10 +258,7 @@ module KiteFastController
             ! Call the DLL (first associate the address from the procedure in the DLL with the subroutine):
          call C_F_PROCPOINTER( p%DLL_Trgt%ProcAddr(1), DLL_KFC_Init_Subroutine) 
       
-   ! TODO: jjonkman's plan doc assumes that the initial outputs are returned by KFC_Init(), but we aren't doing that here.  GJH 12/19/18
-            ! Can we modify the following to send the controller numFlaps, numPylons, and interval and let the controller throw an error and/or change interval as needed? GJH 12/19/18
-         ! also add Irot for each rotor.
-         
+         allocate(rtrIrot(p%numPylons*4), stat = errStat)
          allocate(genTorq(p%numPylons*4), stat = errStat)
          allocate(rtrSpd(p%numPylons*4), stat = errStat)
          allocate(rtrAcc(p%numPylons*4), stat = errStat)
@@ -228,7 +266,18 @@ module KiteFastController
          allocate(ctrlSettings(p%numFlaps*2+4), stat = errStat)
          
          dt_c = real(p%DT, C_DOUBLE)
-        call DLL_KFC_Init_Subroutine ( dt_c, p%numFlaps, p%numPylons, genTorq, rtrSpd, rtrAcc, rtrBladePitch, ctrlSettings, errStat, errMsg_c )
+         
+         c = 1
+         wingOffset = 2*p%numPylons
+         do j=1,p%numPylons
+            do i=1,2
+               rtrIrot(c)              = InitInp%SPyRtrIrot(i,j)
+               rtrIrot(c + wingOffset) = InitInp%PPyRtrIrot(i,j)
+               c = c + 1
+            end do
+         end do
+            
+         call DLL_KFC_Init_Subroutine ( dt_c, p%numFlaps, p%numPylons, rtrIrot, genTorq, rtrSpd, rtrAcc, rtrBladePitch, ctrlSettings, errStat, errMsg_c ) 
       
          call c_to_fortran_string(errMsg_c, errMsg)
          print *, " KFC_Init errStat - ", errStat, " errMsg - ", trim(errMsg)
@@ -237,31 +286,9 @@ module KiteFastController
          if (errStat >= AbortErrLev ) return
          print *, " debug marker - post errStat >= Abort"
          
-         ! TODO: obtain initial outputs from the DLL and set them
-           ! Set outputs to zero for now
-         c = 1
-         wingOffset = 2*p%numPylons
-         do j=1,p%numPylons
-            do i=1,2
-               y%SPyGenTorque(i,j) = genTorq(c)
-               y%PPyGenTorque(i,j) = genTorq(c + wingOffset)
-               y%SPyRtrSpd(i,j)    = rtrSpd(c)
-               y%PPyRtrSpd(i,j)    = rtrSpd(c + wingOffset)
-               y%SPyRtrAcc(i,j)    = rtrAcc(c)
-               y%PPyRtrAcc(i,j)    = rtrAcc(c + wingOffset)
-               y%SPyBldPitch(i,j)  = rtrBladePitch(c)
-               y%PPyBldPitch(i,j)  = rtrBladePitch(c + wingOffset)
-               c = c + 1
-            end do
-         end do
-         
-         
-         y%SFlp         = ctrlSettings(1:p%numFlaps)
-         y%PFlp         = ctrlSettings(p%numFlaps+1:2*p%numFlaps)
-         y%Rudr         = ctrlSettings(2*p%numFlaps+1:2*p%numFlaps+2)
-         y%SElv         = ctrlSettings(2*p%numFlaps+3:2*p%numFlaps+4)
-         y%PElv         = ctrlSettings(2*p%numFlaps+5:2*p%numFlaps+6)
-        
+         ! obtain initial outputs from the DLL and set them
+         call MapKFCOutputs( p%numFlaps, p%numPylons, genTorq, rtrSpd, rtrAcc, rtrBladePitch, ctrlSettings, y)
+ 
       else
            ! Set outputs to zero except for RtrSpd which is set to be constant for the dummy controller
          y%SPyGenTorque = 0.0_ReKi
@@ -280,10 +307,7 @@ module KiteFastController
          y%PElv         = 0.0_ReKi
          
       end if
-      
-      
-      
-      
+
    end subroutine KFC_Init
 
    subroutine KFC_Step(t, u, p, y, errStat, errMsg )
@@ -312,9 +336,9 @@ module KiteFastController
       real(C_DOUBLE)                                :: tether_forceb_c(3) 
       real(C_DOUBLE)                                :: wind_g_c(3)       
       character(kind=C_CHAR)                        :: errMsg_c(IntfStrLen)
-      real(C_DOUBLE)                                :: kFlapA_c(10)                   
-      real(C_DOUBLE)                                :: Motor_c(8)
 
+      real(C_DOUBLE), allocatable                   :: genTorq(:), rtrSpd(:), rtrAcc(:), rtrBladePitch(:), ctrlSettings(:)
+      
       errStat2 = ErrID_None
       errMsg2  = ''
       
@@ -334,57 +358,22 @@ module KiteFastController
       
       
       if (.not. p%useDummy) then
+         allocate(genTorq(p%numPylons*4), stat = errStat)
+         allocate(rtrSpd(p%numPylons*4), stat = errStat)
+         allocate(rtrAcc(p%numPylons*4), stat = errStat)
+         allocate(rtrBladePitch(p%numPylons*4), stat = errStat)
+         allocate(ctrlSettings(p%numFlaps*2+4), stat = errStat)
+         
             ! Call the DLL (first associate the address from the procedure in the DLL with the subroutine):
          call C_F_PROCPOINTER( p%DLL_Trgt%ProcAddr(2), DLL_KFC_Step_Subroutine) 
-         call DLL_KFC_Step_Subroutine ( dcm_g2b_c, pqr_c, acc_norm_c, Xg_c, Vg_c, Vb_c, Ag_c, Ab_c, rho_c, apparent_wind_c, tether_forceb_c, wind_g_c, kFlapA_c, Motor_c, errStat, errMsg_c ) 
+         call DLL_KFC_Step_Subroutine ( dcm_g2b_c, pqr_c, acc_norm_c, Xg_c, Vg_c, Vb_c, Ag_c, Ab_c, rho_c, apparent_wind_c, tether_forceb_c, wind_g_c, genTorq, rtrSpd, rtrAcc, rtrBladePitch, ctrlSettings, errStat, errMsg_c ) 
          call c_to_fortran_string(errMsg_c, errMsg)
 
          print *, " KFC_Step errStat - ", errStat, " errMsg - ", trim(errMsg)
 
-            ! Convert the controller outputs into the KiteFAST Fortran-style controller outputs
-         y%SFlp(1) = kFlapA_c(5)
-         y%SFlp(2) = kFlapA_c(7)
-         y%SFlp(3) = kFlapA_c(8)
-         y%PFlp(1) = kFlapA_c(4)
-         y%PFlp(2) = kFlapA_c(2)
-         y%PFlp(3) = kFlapA_c(1)
-         y%Rudr(:) = kFlapA_c(10)
-         y%SElv(:) = kFlapA_c(9)
-         y%PElv(:) = kFlapA_c(9)   
-      
-         y%SPyGenTorque(1,1) = Motor_c(7)  ! starboard top rotor, pylon 1 (inboard)
-         y%SPyGenTorque(2,1) = Motor_c(2)  ! starboard bottom rotor, pylon 1 (inboard)
-         y%SPyGenTorque(1,2) = Motor_c(8)  ! starboard top rotor, pylon 2 (outboard)
-         y%SPyGenTorque(2,2) = Motor_c(1)  ! starboard bottom rotor, pylon 2 (outboard)
-         y%PPyGenTorque(1,1) = Motor_c(6)  ! port top rotor, pylon 1 (inboard)
-         y%PPyGenTorque(2,1) = Motor_c(3)  ! port bottom rotor, pylon 1 (inboard)
-         y%PPyGenTorque(1,2) = Motor_c(5)  ! port top rotor, pylon 2 (outboard)
-         y%PPyGenTorque(2,2) = Motor_c(4)  ! port bottom rotor, pylon 2 (outboard)
- 
-   !TODO: How to we obtain rotor speeds?
-         y%SPyRtrSpd(1,1) = 0.0  !RtrSpd_c(7)  ! starboard top rotor, pylon 1 (inboard)
-         y%SPyRtrSpd(2,1) = 0.0  !RtrSpd_c(2)  ! starboard bottom rotor, pylon 1 (inboard)
-         y%SPyRtrSpd(1,2) = 0.0  !RtrSpd_c(8)  ! starboard top rotor, pylon 2 (outboard)
-         y%SPyRtrSpd(2,2) = 0.0  !RtrSpd_c(1)  ! starboard bottom rotor, pylon 2 (outboard)
-         y%PPyRtrSpd(1,1) = 0.0  !RtrSpd_c(6)  ! port top rotor, pylon 1 (inboard)
-         y%PPyRtrSpd(2,1) = 0.0  !RtrSpd_c(3)  ! port bottom rotor, pylon 1 (inboard)
-         y%PPyRtrSpd(1,2) = 0.0  !RtrSpd_c(5)  ! port top rotor, pylon 2 (outboard)
-         y%PPyRtrSpd(2,2) = 0.0  !RtrSpd_c(4)  ! port bottom rotor, pylon 2 (outboard)
-
-   ! TODO: Are we still receiving rotor accelerations from controller?
-         y%SPyRtrAcc(1,1) = 0.0_ReKi ! starboard top rotor, pylon 1 (inboard)
-         y%SPyRtrAcc(2,1) = 0.0_ReKi ! starboard bottom rotor, pylon 1 (inboard)
-         y%SPyRtrAcc(1,2) = 0.0_ReKi ! starboard top rotor, pylon 2 (outboard)
-         y%SPyRtrAcc(2,2) = 0.0_ReKi ! starboard bottom rotor, pylon 2 (outboard)
-         y%PPyRtrAcc(1,1) = 0.0_ReKi ! port top rotor, pylon 1 (inboard)
-         y%PPyRtrAcc(2,1) = 0.0_ReKi ! port bottom rotor, pylon 1 (inboard)
-         y%PPyRtrAcc(1,2) = 0.0_ReKi ! port top rotor, pylon 2 (outboard)
-         y%PPyRtrAcc(2,2) = 0.0_ReKi ! port bottom rotor, pylon 2 (outboard)
-
-         ! Currently blade pitch is not being set by controller and was initialized to 0.0
-         y%SPyBldPitch  = 0.0_ReKi
-         y%PPyBldPitch  = 0.0_ReKi
-            ! TODO Error checking
+         ! obtain initial outputs from the DLL and set them
+         call MapKFCOutputs( p%numFlaps, p%numPylons, genTorq, rtrSpd, rtrAcc, rtrBladePitch, ctrlSettings, y)
+         
       else
          
          ! TODO: Determine what would be a realistic dummy set of speed and the correct signs for each rotor
