@@ -59,7 +59,7 @@ void controller_init(int *numFlaps, int *numPylons, double I_rot[], double *Requ
 	// pylonCheck
 	assert(*numPylons == 2); // TODO - JPM, find suitable input for pylons instead of hardcoded val
 	// time step check
-	assert(*Requested_dT == g_sys.ts);
+	assert(Requested_dT == g_sys.ts);
 	// check I of Rotors
 	
 	//==== Controller Version Number ====//
