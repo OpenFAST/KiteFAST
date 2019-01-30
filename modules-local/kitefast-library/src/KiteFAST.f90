@@ -2634,7 +2634,7 @@ subroutine KFAST_Init(dt_c, numFlaps, numPylons, numComp, numCompNds, modFlags, 
       call KAD_Init(KAD_InitInp, m%KAD%u(1), m%KAD%p, m%KAD%y, interval, m%KAD%x, m%KAD%xd, m%KAD%z, m%KAD%OtherSt, m%KAD%m, KAD_InitOut, errStat2, errMsg2 )
          call SetErrStat(errStat2,errMsg2,errStat,errMsg,routineName)
          
-      if ( .not. EqualRealNos(interval,dt) ) then
+      if ( .not. EqualRealNos(real(interval, ReKi), real(dt,ReKi)) ) then
         call SetErrStat(ErrID_Fatal,'KiteAeroDyn DT must be equal to MBDyn DT',errStat,errMsg,routineName) 
       end if
       
