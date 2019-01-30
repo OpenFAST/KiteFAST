@@ -146,7 +146,7 @@ subroutine RotorDisk_CalcOutput(c_offset, numPylons, dcms, u_ActDsk, p_ActDsk, m
    
    do j=1,numPylons
       do i=1,2
-         index = i + (j-1)*numPylons
+         index = i + (j-1)*2
          c = c+1
             
             ! Compute the outputs from the Actuator disk model for a particular rotor

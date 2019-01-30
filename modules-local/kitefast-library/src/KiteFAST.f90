@@ -3612,7 +3612,6 @@ subroutine KFAST_AfterPredict(errStat_c, errMsg_c) BIND (C, NAME='KFAST_AfterPre
          do i = 1,2
             count = (j-1)*2 + i
             OtherSt%SPyRtrLoads(:,i,j) = m%KAD%y%SPyRtrLoads(count)%Moment(:,1)
-            count = p%numPylons*2 + (j-1)*2 + i
             OtherSt%PPyRtrLoads(:,i,j) = m%KAD%y%PPyRtrLoads(count)%Moment(:,1)  
          end do
       end do
