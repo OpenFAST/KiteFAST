@@ -136,10 +136,10 @@ module KiteFastController
       call DispNVD( KFC_Ver )  ! Display the version of this interface
       
          ! Check that key Kite model components match the requirements of this controller interface.
-      ! if (InitInp%numFlaps /= 3) call SetErrStat( ErrID_Fatal, 'The current KiteFAST controller interface requires numFlaps = 3', errStat, errMsg, routineName )
-      ! if (InitInp%numPylons /= 2) call SetErrStat( ErrID_Fatal, 'The current KiteFAST controller interface requires numPylons = 2', errStat, errMsg, routineName )
-      ! if (.not. EqualRealNos(interval, 0.01_DbKi)) call SetErrStat( ErrID_Fatal, 'The current KiteFAST controller interface requires DT = 0.01 seconds', errStat, errMsg, routineName )
-      !    if (errStat >= AbortErrLev ) return
+      if (InitInp%numFlaps /= 3) call SetErrStat( ErrID_Fatal, 'The current KiteFAST controller interface requires numFlaps = 3', errStat, errMsg, routineName )
+      if (InitInp%numPylons /= 2) call SetErrStat( ErrID_Fatal, 'The current KiteFAST controller interface requires numPylons = 2', errStat, errMsg, routineName )
+      if (.not. EqualRealNos(interval, 0.01_DbKi)) call SetErrStat( ErrID_Fatal, 'The current KiteFAST controller interface requires DT = 0.01 seconds', errStat, errMsg, routineName )
+         if (errStat >= AbortErrLev ) return
          
       p%numFlaps  = InitInp%numFlaps
       p%numPylons = InitInp%numPylons
