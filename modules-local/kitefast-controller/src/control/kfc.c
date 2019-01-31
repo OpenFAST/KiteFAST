@@ -49,8 +49,9 @@ ControlGlobal controlglob = {	.flight_status = {
 // 		- for initial motor guesses -> try zeros
 // 			- If that doesnt work try running MotorStep() within MotorInit()
 // 
-void controller_init(int *numFlaps, int *numPylons, double I_rot[], double *Requested_dT, int *errStat, char *errMsg)
-// void controller_init(int *errStat, char *errMsg)
+void controller_init(double *Requested_dT, int *numFlaps, int *numPylons, double genTorq[], 
+                  double rotorSpeed[], double rotorAccel[], double rotorBlPit[], 
+                  double ctrlSettins[], double I_rot[], int *errStat, char *errMsg)
 {
 	printf("   controller_init\n");
 	//==== Perform Checks ====// 
@@ -59,7 +60,7 @@ void controller_init(int *numFlaps, int *numPylons, double I_rot[], double *Requ
 	// pylonCheck
 	assert(*numPylons == 2); // TODO - JPM, find suitable input for pylons instead of hardcoded val
 	// time step check
-	assert(Requested_dT == g_sys.ts);
+	assert(*Requested_dT == *g_sys.ts);
 	// check I of Rotors
 	
 	//==== Controller Version Number ====//
@@ -87,6 +88,17 @@ void controller_init(int *numFlaps, int *numPylons, double I_rot[], double *Requ
 
 	// Init Control Logging
 	ControlLogInit((char*)controllerVerNumber);
+
+	// Give inital guesses:
+	for (int i=0; i<kNumMotors; i++){
+		genTorq[i]	  = 0;
+		rotorSpeed[i] = 0;
+		rotorAccel[i] = 0;
+		rotorBlPit[i] = 0;
+	}
+	for (int i=0; i<kNumMotors; i++){
+		ctrlSettins[i] = 0;
+	}
 
 	char tmp[] = "   controller initializing";
 	int i;
