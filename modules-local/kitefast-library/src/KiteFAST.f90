@@ -2669,7 +2669,7 @@ subroutine KFAST_Init(dt_c, numFlaps, numPylons, numComp, numCompNds, modFlags, 
                             m%IfW%OtherSt, m%IfW%y, m%IfW%m, interval, IfW_InitOut, errStat2, errMsg2 )
          call SetErrStat(errStat2,errMsg2,errStat,errMsg,routineName)
          
-       if ( .not. EqualRealNos(interval,dt) ) then
+       if ( .not. EqualRealNos(real(interval, ReKi), real(dt,ReKi)) ) then
         call SetErrStat(ErrID_Fatal,'InflowWind DT must be equal to MBDyn DT',errStat,errMsg,routineName) 
        end if
        
