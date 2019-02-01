@@ -187,7 +187,22 @@ subroutine KFAST_RotorCalcs(NacDCM, NacOmega, NacAcc, NacAlpha, RtrSpd, GenTorq,
    gvec(1)  = 0.0_ReKi
    gvec(2)  = 0.0_ReKi
    gvec(3)  =-g
-   
+   !write(*,*) '-------------------------------------------'
+   !write(*,*) 'NacDCM(1,:) = ', real(NacDCM(1,:), SiKi)
+   !write(*,*) 'NacDCM(2,:) = ', real(NacDCM(2,:), SiKi)
+   !write(*,*) 'NacDCM(3,:) = ', real(NacDCM(3,:), SiKi)
+   !write(*,*) 'NacOmega = ', NacOmega
+   !write(*,*) 'NacAcc   = ', NacAcc
+   !write(*,*) 'NacAlpha = ', NacAlpha
+   !write(*,*) 'mass   = ', mass
+   !write(*,*) 'xhat   = ', real(xhat,SiKi)
+   !write(*,*) 'Xcm    = ', Xcm
+   !write(*,*) 'Irot   = ', Irot
+   !write(*,*) 'Itran  = ', Itran
+   !write(*,*) 'RtrSpd = ', RtrSpd
+   !write(*,*) 'GenTorq= ', GenTorq
+   !write(*,*) 'F_Aero = ', F_Aero
+   !write(*,*) 'M_Aero = ', M_Aero
       ! Compute the inputs relative to the rotor/drivetrain CM and expressed in the local nacelle coordinate system
    cm_r     = Xcm*xhat
    Icm_Tran = Itran - mass*Xcm*Xcm
@@ -464,7 +479,7 @@ subroutine KFAST_ProcessOutputs()
       
             dcm = matmul( transpose(m%mbdSPyMotions(j)%RefOrientation(:,:,iNd)), m%mbdSPyMotions(j)%Orientation(:,:,iNd)  )
             dcm = matmul( transpose(m%FusODCM), dcm )
-            val3 = EulerExtract(dcm)
+            val3 = R2D_D*EulerExtract(dcm)
             m%AllOuts(SPRDx(i,j)) = val3(1)
             m%AllOuts(SPRDy(i,j)) = val3(2)
             m%AllOuts(SPRDz(i,j)) = val3(3)
@@ -498,7 +513,7 @@ subroutine KFAST_ProcessOutputs()
       
             dcm = matmul( transpose(m%mbdPPyMotions(j)%RefOrientation(:,:,iNd)), m%mbdPPyMotions(j)%Orientation(:,:,iNd)  )
             dcm = matmul( transpose(m%FusODCM), dcm )
-            val3 = EulerExtract(dcm)
+            val3 = R2D_D*EulerExtract(dcm)
             m%AllOuts(PPRDx(i,j)) = val3(1)
             m%AllOuts(PPRDy(i,j)) = val3(2)
             m%AllOuts(PPRDz(i,j)) = val3(3)
@@ -3313,6 +3328,7 @@ subroutine KFAST_AssRes(t_c, isInitialTime_c, WindPt_c, FusO_c, FusODCM_c, FusOv
          
    if ( p%useKAD ) then
             ! Now transfer MBD motions mesh data to the corresponding KAD input meshes
+            ! NOTE: I need the KAD input meshes populated here because the TransferMBDynToIFW will reference those input meshes.
       call TransferMBDynInputs2KADMeshes( m%FusO, p, m, errStat, errMsg )
    
    end if
