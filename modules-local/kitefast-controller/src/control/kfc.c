@@ -51,7 +51,7 @@ ControlGlobal controlglob = {	.flight_status = {
 // 
 void controller_init(double *Requested_dT, int *numFlaps, int *numPylons, double genTorq[], 
                   double rotorSpeed[], double rotorAccel[], double rotorBlPit[], 
-                  double ctrlSettins[], double I_rot[], int *errStat, char *errMsg)
+                  double ctrlSettings[], double I_rot[], int *errStat, char *errMsg)
 {
 	printf("   controller_init\n");
 	//==== Perform Checks ====// 
@@ -96,8 +96,8 @@ void controller_init(double *Requested_dT, int *numFlaps, int *numPylons, double
 		rotorAccel[i] = 0;
 		rotorBlPit[i] = 0;
 	}
-	for (int i=0; i<kNumMotors; i++){
-		ctrlSettins[i] = 0;
+	for (int i=0; i<kNumFlaps; i++){
+		ctrlSettings[i] = 0;
 	}
 
 	char tmp[] = "   controller initializing";
@@ -137,11 +137,12 @@ void controller_init(double *Requested_dT, int *numFlaps, int *numPylons, double
 // 		- Fill in kFlapA_c summary above
 // 		- Connect with new Inputs/Outputs from Kitefast (waiting on Update)
 
+
 void controller_step(double dcm_g2b_c[], double pqr_c[], double *acc_norm_c,
 					 double Xg_c[], double Vg_c[], double Vb_c[], double Ag_c[],
 					 double Ab_c[], double *rho_c, double apparent_wind_c[],
 					 double tether_force_c[], double wind_g_c[],
-					 double kFlapA_c[], double Motor_c[], double GenTorque[],
+					 double CtrlSettings[], double GenTorque[],
 					 double RotorBladePitch[], double RotorAccel[], 
 					 double RotorSpeed[], double AeroTorque[],
 					 int *errStat, char *errMsg)
@@ -149,14 +150,14 @@ void controller_step(double dcm_g2b_c[], double pqr_c[], double *acc_norm_c,
 	#ifdef DEBUG //DEBUG preproc found in kfc.h
 		printf("   controller_step\n");
 	#endif
-	// placeholders for new inputs:
-	double ext_torques[kNumMotors] = {}; //coming in as Aerotorque
+	// // placeholders for new inputs:
+	// double ext_torques[] = AeroTorque; //coming in as Aerotorque
 	//Convert the inputs from controller_step and assins the values that correspond to the inputs of CSim
+	
 	AssignInputs(dcm_g2b_c, pqr_c, acc_norm_c,
 				 Xg_c, Vg_c, Vb_c, Ag_c,
 				 Ab_c, rho_c, apparent_wind_c,
 				 tether_force_c, wind_g_c,
-				 kFlapA_c, Motor_c, ext_torques,
 				 errStat, errMsg, &controlglob.state_est,
 				 &controlglob.state.motor_state);
 
@@ -176,7 +177,7 @@ void controller_step(double dcm_g2b_c[], double pqr_c[], double *acc_norm_c,
 	MotorControlStep(GetMotorParamsUnsafe(), 
 		&(GetSystemParamsUnsafe()->rotors[0]), 
 		&GetSystemParamsUnsafe()->power_sys, 
-		controlglob.raw_control_output.rotors, ext_torques, 
+		controlglob.raw_control_output.rotors, AeroTorque, 
 		&controlglob.state.motor_state);
 
 	char tmp[] = "   controller stepping";
@@ -191,11 +192,12 @@ void controller_step(double dcm_g2b_c[], double pqr_c[], double *acc_norm_c,
 	ControlLogEntry(&control_log);
 
 	// Connects values that are in ControlOutput data struct to the final outputs that Kitefast is expecting.
-	double Gen_Torque[kNumMotors]  = {}; // placeholder for new input
-	double Rotor_Accel[kNumMotors] = {}; // placeholder for new input
-	double Rotor_Speed[kNumMotors] = {}; // placeholder for new input
-	double Blade_Pitch[kNumMotors] = {}; // placeholder for new input
-	AssignOutputs(kFlapA_c, Motor_c, Gen_Torque, Rotor_Accel, Rotor_Speed, Blade_Pitch,
+	// double Gen_Torque[kNumMotors]  = {}; // placeholder for new input
+	// double Rotor_Accel[kNumMotors] = {}; // placeholder for new input
+	// double Rotor_Speed[kNumMotors] = {}; // placeholder for new input
+	// double Blade_Pitch[kNumMotors] = {}; // placeholder for new input
+
+	AssignOutputs(CtrlSettings, GenTorque, RotorAccel, RotorSpeed, RotorBladePitch,
 	errStat, errMsg, &controlglob.raw_control_output, &controlglob.state.motor_state);
 }
 
