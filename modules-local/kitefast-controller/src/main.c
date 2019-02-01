@@ -26,24 +26,24 @@
     double rotorBlPit   [8]={1,2,3,4,5,6,7,8};
     double ctrlSettins  [8]={1,2,3,4,5,6,7,8};
     double i_rot        [8]={1,2,3,4,5,6,7,8};
-    double kFlapA_c[3]= {0,0,0};
-    double Motor_c[8]= {0,0,0,0,0,0,0,0};
+    double CtrlSettings[3]= {0,0,0};
+    // double Motor_c[8]= {0,0,0,0,0,0,0,0};
     double AeroTorque[8] = {0,0,0,0,0,0,0,0};
 
     kfc_dll_init(&dT, &numFlaps, &numPylons, 
-                  genTorq, rotorSpeed,
+                  i_rot, genTorq, rotorSpeed,
                   rotorAccel, rotorBlPit, 
-                  ctrlSettins, i_rot,
+                  ctrlSettins,
                   &errStat, &errMsg); 
-    // kfc_dll_init(&errStat, &errMsg);
+
     kfc_dll_end(&errStat, &errMsg);
 
     kfc_dll_step(dcm_g2b_c, pqr_c, &acc_norm_c,
         Xg_c, Vg_c, Vb_c, Ag_c,
         Ab_c, &rho_c, apparent_wind_c,  
-        tether_force_c, wing_g_c, AeroTorque, genTorq,
+        tether_force_c, wing_g_c, genTorq,
         rotorSpeed, rotorAccel, rotorBlPit,
-        kFlapA_c, Motor_c,
+        CtrlSettings,
         &errStat, &errMsg);
 
     return 0;

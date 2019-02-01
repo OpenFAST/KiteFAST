@@ -2,7 +2,7 @@
 simple_m600_model driver input file
 --- SIMULATION CONTROL ---
 False     Echo      ! Echo input data to <RootName>.ech? (flag)
-1.0       DTAero    ! Time interval for aerodynamic calculations (s)
+0.001     DTAero    ! Time interval for aerodynamic calculations (s)
 1         LiftMod   ! Lifting-line calculation model (-) (switch) {1:geometric AoA, 2:vortex method}
 0         RotorMod  ! Rotor calculation model (-) (switch) {0:none, 1:actuator disk}
 True      UseCm     ! Include aerodynamic pitching moment in calculations? (flag)

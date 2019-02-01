@@ -8,13 +8,11 @@
 #include "control/estimator/estimator_types.h"
 #include "control/ground_station_frame.h"
 
-
 void AssignInputs(double dcm_g2b_c[], double pqr_c[], double *acc_norm_c,
 	double Xg_c[], double Vg_c[], double Vb_c[], double Ag_c[],
 	double Ab_c[], double *rho_c, double apparent_wind_c[],
-	double tether_force_c[], double wind_g_c[],
-	double kFlapA_c[], double Motor_c[], double ext_torques[],
-	int *errStat, char *errMsg, StateEstimate *state_est, MotorState *motor_state){
+	double tether_force_c[], double wind_g_c[],	int *errStat, char *errMsg,
+	StateEstimate *state_est, MotorState *motor_state){
 
 	#if DEBUG
 		printf("  dcm_g2b_c = [%0.4f, %0.4f, %0.4f],[%0.4f, %0.4f, %0.4f],[%0.4f, %0.4f, %0.4f] \n",
@@ -90,36 +88,36 @@ void AssignInputs(double dcm_g2b_c[], double pqr_c[], double *acc_norm_c,
 	state_est->wind_g.vector.y = wind_g_c[1];
 	state_est->wind_g.vector.z = wind_g_c[2];
 	state_est->wind_g.dir_f = VecGToAzimuth(&state_est->wind_g.vector);
-	// Motor_c
-	for (int i = 0; i<kNumMotors; i++){
-		motor_state->rotor_omegas[i] = Motor_c[i];
-	}
+	// // Motor_c
+	// for (int i = 0; i<kNumMotors; i++){
+	// 	motor_state->rotor_omegas[i] = Motor_c[i];
+	// }
 	
 }
 
-void AssignOutputs(double kFlapA_c[], double Motor_c[], double Gen_Torque[],
+void AssignOutputs(double CtrlSettings[], double Gen_Torque[],
 	double Rotor_Accel[], double Rotor_Speed[], double Blade_Pitch[],
-	int *errStat, char *errMsg, ControlOutput* raw_control_output, MotorState* motor_state){
-
+	int *errStat, char *errMsg, 
+	ControlOutput* raw_control_output, MotorState* motor_state){
 	//kFlap_A
-	kFlapA_c[0] = raw_control_output->flaps[kFlapA1];
-	kFlapA_c[1] = raw_control_output->flaps[kFlapA2];
-	kFlapA_c[2] = raw_control_output->flaps[kFlapA4];
-	kFlapA_c[3] = raw_control_output->flaps[kFlapA5];
-	kFlapA_c[4] = raw_control_output->flaps[kFlapA7];
-	kFlapA_c[5] = raw_control_output->flaps[kFlapA8];
-	kFlapA_c[6] = raw_control_output->flaps[kFlapEle];
-	kFlapA_c[7] = raw_control_output->flaps[kFlapRud];
+	CtrlSettings[0] = raw_control_output->flaps[kFlapA1];
+	CtrlSettings[1] = raw_control_output->flaps[kFlapA2];
+	CtrlSettings[2] = raw_control_output->flaps[kFlapA4];
+	CtrlSettings[3] = raw_control_output->flaps[kFlapA5];
+	CtrlSettings[4] = raw_control_output->flaps[kFlapA7];
+	CtrlSettings[5] = raw_control_output->flaps[kFlapA8];
+	CtrlSettings[6] = raw_control_output->flaps[kFlapEle];
+	CtrlSettings[7] = raw_control_output->flaps[kFlapRud];
 
-	//Motor speeds	
-	Motor_c[0] = motor_state->motor_speeds[kMotor1];
-	Motor_c[1] = motor_state->motor_speeds[kMotor2];
-	Motor_c[2] = motor_state->motor_speeds[kMotor3];
-	Motor_c[3] = motor_state->motor_speeds[kMotor4];
-	Motor_c[4] = motor_state->motor_speeds[kMotor5];
-	Motor_c[5] = motor_state->motor_speeds[kMotor6];
-	Motor_c[6] = motor_state->motor_speeds[kMotor7];
-	Motor_c[7] = motor_state->motor_speeds[kMotor8];
+	// //Motor speeds	
+	// Motor_c[0] = motor_state->motor_speeds[kMotor1];
+	// Motor_c[1] = motor_state->motor_speeds[kMotor2];
+	// Motor_c[2] = motor_state->motor_speeds[kMotor3];
+	// Motor_c[3] = motor_state->motor_speeds[kMotor4];
+	// Motor_c[4] = motor_state->motor_speeds[kMotor5];
+	// Motor_c[5] = motor_state->motor_speeds[kMotor6];
+	// Motor_c[6] = motor_state->motor_speeds[kMotor7];
+	// Motor_c[7] = motor_state->motor_speeds[kMotor8];
 
 	//Generator Torques
 	Gen_Torque[0] = motor_state->rotor_torques[kMotor1];
