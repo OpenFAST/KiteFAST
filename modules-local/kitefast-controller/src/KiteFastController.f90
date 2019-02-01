@@ -34,7 +34,7 @@ module KiteFastController
    integer,        parameter    :: IntfStrLen  = 1025       ! length of strings through the C interface
    type(ProgDesc), parameter    :: KFC_Ver = ProgDesc( 'KiteFastController', '', '' )
 
-      !> Definition of the DLL Interface for the SuperController
+      !> Definition of the DLL Interface for the KiteFast Controller
       !! 
    abstract interface
       subroutine KFC_DLL_Init_PROC ( dt, numFlaps, numPylons, rtrIrot, genTorq, rtrSpd, rtrAcc, rtrBladePitch, ctrlSettings, errStat, errMsg )  BIND(C)
