@@ -605,6 +605,14 @@ int main(int argc, char *argv[])
         return errStat;
     }
 
+    
+    // AfterPredict()
+    KFAST_AfterPredict(&errStat, errMsg);
+    if (errStat != 0)
+    {
+       printf("%s\n", errMsg);
+       return errStat;
+    }
 
 
     //Now we begin calls associated with the time marching loop of MBDyn
@@ -631,6 +639,14 @@ int main(int argc, char *argv[])
             return errStat;
         }
 
+        // Output()
+        KFAST_Output(&t, &numGaussPtLoadsElem, pGaussPtLoads, &errStat, errMsg);
+        if (errStat != 0)
+        {
+           printf("%s\n", errMsg);
+           return errStat;
+        }
+
         // AfterPredict()
         KFAST_AfterPredict(&errStat, errMsg);
         if (errStat != 0)
@@ -639,13 +655,7 @@ int main(int argc, char *argv[])
             return errStat;
         }
 
-        // Output()
-        KFAST_Output(&t, &numGaussPtLoadsElem, pGaussPtLoads, &errStat, errMsg);
-        if (errStat != 0)
-        {
-            printf("%s\n", errMsg);
-            return errStat;
-        }
+       
 
     }
 
