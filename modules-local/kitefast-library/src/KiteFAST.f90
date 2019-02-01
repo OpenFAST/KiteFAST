@@ -203,15 +203,17 @@ subroutine KFAST_RotorCalcs(NacDCM, NacOmega, NacAcc, NacAlpha, RtrSpd, GenTorq,
    tmp = NacAcc + tmp2 + tmp
    RtrAccCM_kite = matmul(NacDCM,tmp)
    RtrAlpha_kite = matmul(NacDCM,NacAlpha)
+
    FcmReact(1) = -Fcm_Aero(1) - mass*gvec(1) + mass*RtrAccCM_kite(1)
    FcmReact(2) = -Fcm_Aero(2) - mass*gvec(2) + mass*RtrAccCM_kite(2)
    FcmReact(3) = -Fcm_Aero(3) - mass*gvec(3) + mass*RtrAccCM_kite(3)
    McmReact(1) = GenTorq
    McmReact(2) = -Mcm_Aero(2) + Irot*RtrAlpha_kite(2) + (Irot - Icm_Tran)*RtrOmega_kite(3)*RtrOmega_kite(1)
-   McmReact(3) = -Mcm_Aero(3) + Irot*RtrAlpha_kite(3) + (Irot - Icm_Tran)*RtrOmega_kite(2)*RtrOmega_kite(1)
+   McmReact(3) = -Mcm_Aero(3) + Irot*RtrAlpha_kite(3) - (Irot - Icm_Tran)*RtrOmega_kite(2)*RtrOmega_kite(1)
    Freact      = -matmul(transpose(NacDCM),FcmReact)
    Mreact      = -matmul(transpose(NacDCM),McmReact) + cross_product(cm_r,Freact)
-   
+   !write(*,*) 'Freact = ', Freact
+   !write(*,*) 'Mreact = ', Mreact
 end subroutine KFAST_RotorCalcs
 
 !====================================================================================================
