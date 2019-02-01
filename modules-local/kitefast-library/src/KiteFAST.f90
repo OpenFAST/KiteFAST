@@ -3248,7 +3248,62 @@ subroutine KFAST_AssRes(t_c, isInitialTime_c, WindPt_c, FusO_c, FusODCM_c, FusOv
             call TransferErrors(errStat, errMsg, errStat_c, errMsg_c)
             return
          end if
-           
+         
+   ! -------------------------------------------------------------------------
+   ! Controller
+   ! -------------------------------------------------------------------------      
+   
+   if (OtherSt%NewTime .and. (isInitialTime < 1) ) then
+
+         ! NOTE: The controller is stepping from t - p%dt (GetXPrev in MBDyn) to t (GetXCur in MBDyn)
+         !       therefore, all inputs to KFC needs to be at time, t - p%dt.
+      if ( p%useKAD ) then
+         do j = 1,p%numPylons
+            do i = 1,2
+               
+               xhat   = OtherSt%SPyRtrDCMs(1,:,i,j)
+               AeroMoment = OtherSt%SPyRtrLoads(:,i,j)
+               m%KFC%u%SPyAeroTorque(i,j) = dot_product(xhat, AeroMoment )            
+
+               xhat   = OtherSt%PPyRtrDCMs(1,:,i,j) 
+               AeroMoment = OtherSt%PPyRtrLoads(:,i,j)
+               m%KFC%u%PPyAeroTorque(i,j) = dot_product(xhat, AeroMoment )
+
+            end do
+         end do
+      else
+         m%KFC%u%SPyAeroTorque = 0.0_ReKi
+         m%KFC%u%PPyAeroTorque = 0.0_ReKi
+      end if
+      
+      m%KFC%u%tether_forceb = matmul(OtherSt%FusODCM, OtherSt%totalFairLeadLoads)
+      m%KFC%u%dcm_g2b       = matmul(OtherSt%FusODCM, transpose(p%DCM_Fast2Ctrl))
+      m%KFC%u%pqr           = matmul(OtherSt%FusODCM, OtherSt%FusOomegas)
+      m%KFC%u%acc_norm      = TwoNorm(OtherSt%FusOacc)
+      m%KFC%u%Xg            = OtherSt%FusO - p%anchorPt
+      m%KFC%u%Xg            = matmul(p%DCM_Fast2Ctrl, m%KFC%u%Xg)
+      m%KFC%u%Vg            = matmul(p%DCM_Fast2Ctrl, OtherSt%FusOv)
+      m%KFC%u%Vb            = matmul(OtherSt%FusODCM, OtherSt%FusOv)
+      m%KFC%u%Ag            = matmul(p%DCM_Fast2Ctrl, OtherSt%FusOacc)
+      m%KFC%u%Ab            = matmul(OtherSt%FusODCM, OtherSt%FusOacc)
+      m%KFC%u%rho           = p%AirDens
+      m%KFC%u%apparent_wind = OtherSt%IfW_FusO - OtherSt%FusOv
+      m%KFC%u%wind_g        = matmul(p%DCM_Fast2Ctrl, OtherSt%IfW_ground)
+         
+      m%KFC%u%apparent_wind = matmul(p%DCM_Fast2Ctrl, m%KFC%u%apparent_wind)
+     
+         
+      call KFC_Step(utimes(1), m%KFC%u, m%KFC%p, m%KFC%y, errStat2, errMsg2 )
+         call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
+      if (errStat >= AbortErrLev ) then
+         call TransferErrors(errStat, errMsg, errStat_c, errMsg_c)
+         return
+      end if
+      
+      OtherSt%NewTime = .false. ! only call the controller once per timestep
+      
+   end if
+             
    ! -------------------------------------------------------------------------
    ! MoorDyn
    ! ------------------------------------------------------------------------- 
@@ -3357,64 +3412,7 @@ subroutine KFAST_AssRes(t_c, isInitialTime_c, WindPt_c, FusO_c, FusODCM_c, FusOv
 
 
 
-! -------------------------------------------------------------------------
-! Controller
-! -------------------------------------------------------------------------      
-   ! TODO: Do we even want to call KFC_Step() for the initial timestep?  Currently we need to because we need the GenTorque, flap settings, and rotor speeds
-   !       and the Controller Init does not return this data.
-   if (OtherSt%NewTime .and. (isInitialTime < 1) ) then
 
-! TODO: Need to work out how we generate a controller output signal for the very first timestep (t=0.0)
-
-         ! NOTE: The controller is stepping from t - p%dt (GetXPrev in MBDyn) to t (GetXCur in MBDyn)
-         !       therefore, all inputs to KFC needs to be at time, t - p%dt.
-      if ( p%useKAD ) then
-         do j = 1,p%numPylons
-            do i = 1,2
-               
-               xhat   = OtherSt%SPyRtrDCMs(1,:,i,j)
-               AeroMoment = OtherSt%SPyRtrLoads(:,i,j)
-               m%KFC%u%SPyAeroTorque(i,j) = dot_product(xhat, AeroMoment )            
-
-               xhat   = OtherSt%PPyRtrDCMs(1,:,i,j) 
-               AeroMoment = OtherSt%PPyRtrLoads(:,i,j)
-               m%KFC%u%PPyAeroTorque(i,j) = dot_product(xhat, AeroMoment )
-
-            end do
-         end do
-      else
-         m%KFC%u%SPyAeroTorque = 0.0_ReKi
-         m%KFC%u%PPyAeroTorque = 0.0_ReKi
-      end if
-      
-      m%KFC%u%tether_forceb = matmul(OtherSt%FusODCM, OtherSt%totalFairLeadLoads)
-      m%KFC%u%dcm_g2b       = matmul(OtherSt%FusODCM, transpose(p%DCM_Fast2Ctrl))
-      m%KFC%u%pqr           = matmul(OtherSt%FusODCM, OtherSt%FusOomegas)
-      m%KFC%u%acc_norm      = TwoNorm(OtherSt%FusOacc)
-      m%KFC%u%Xg            = OtherSt%FusO - p%anchorPt
-      m%KFC%u%Xg            = matmul(p%DCM_Fast2Ctrl, m%KFC%u%Xg)
-      m%KFC%u%Vg            = matmul(p%DCM_Fast2Ctrl, OtherSt%FusOv)
-      m%KFC%u%Vb            = matmul(OtherSt%FusODCM, OtherSt%FusOv)
-      m%KFC%u%Ag            = matmul(p%DCM_Fast2Ctrl, OtherSt%FusOacc)
-      m%KFC%u%Ab            = matmul(OtherSt%FusODCM, OtherSt%FusOacc)
-      m%KFC%u%rho           = p%AirDens
-      m%KFC%u%apparent_wind = OtherSt%IfW_FusO - OtherSt%FusOv
-      m%KFC%u%wind_g        = matmul(p%DCM_Fast2Ctrl, OtherSt%IfW_ground)
-         
-      m%KFC%u%apparent_wind = matmul(p%DCM_Fast2Ctrl, m%KFC%u%apparent_wind)
-     
-         
-      call KFC_Step(utimes(1), m%KFC%u, m%KFC%p, m%KFC%y, errStat2, errMsg2 )
-         call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
-      if (errStat >= AbortErrLev ) then
-         call TransferErrors(errStat, errMsg, errStat_c, errMsg_c)
-         return
-      end if
-      
-      OtherSt%NewTime = .false. ! only call the controller once per timestep
-      
-   end if
-  
 
 ! -------------------------------------------------------------------------
 ! KiteAeroDyn
