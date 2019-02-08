@@ -106,6 +106,7 @@ void controller_init(double *Requested_dT, int *numFlaps, int *numPylons, double
 	{
 		errMsg[i] = tmp[i];
 	}
+	*errStat = 0;
 }
 
 // Controller Step -> Highest Level of Shared library
