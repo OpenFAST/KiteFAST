@@ -10,7 +10,7 @@ extern "C" {
 #define DEBUG 1 //Comment out to take out of debug mode
 
 #include <stdio.h>
-void controller_init(double *Requested_dT, int *numFlaps, int *numPylons, double genTorq[], 
+void controller_init(double Requested_dT, int numFlaps, int numPylons, double genTorq[], 
                   double rotorSpeed[], double rotorAccel[], double rotorBlPit[], 
                   double ctrlSettins[], double I_rot[], int *errStat, char *errMsg);
 

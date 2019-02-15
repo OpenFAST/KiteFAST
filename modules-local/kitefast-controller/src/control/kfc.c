@@ -49,18 +49,18 @@ ControlGlobal controlglob = {	.flight_status = {
 // 		- for initial motor guesses -> try zeros
 // 			- If that doesnt work try running MotorStep() within MotorInit()
 // 
-void controller_init(double *Requested_dT, int *numFlaps, int *numPylons, double genTorq[], 
+void controller_init(double Requested_dT, int numFlaps, int numPylons, double genTorq[], 
                   double rotorSpeed[], double rotorAccel[], double rotorBlPit[], 
                   double ctrlSettings[], double I_rot[], int *errStat, char *errMsg)
 {
 	printf("   controller_init\n");
 	//==== Perform Checks ====// 
 	// flap check
-	assert(*numFlaps == kNumFlaps);
+	assert(numFlaps == kNumFlaps);
 	// pylonCheck
-	assert(*numPylons == 2); // TODO - JPM, find suitable input for pylons instead of hardcoded val
+	assert(numPylons == 2); // TODO - JPM, find suitable input for pylons instead of hardcoded val
 	// time step check
-	assert(*Requested_dT == *g_sys.ts);
+	assert(Requested_dT == *g_sys.ts);
 	// check I of Rotors
 	
 	//==== Controller Version Number ====//
