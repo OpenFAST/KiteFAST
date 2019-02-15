@@ -278,7 +278,7 @@ module KiteFastController
             end do
          end do
             
-         call DLL_KFC_Init_Subroutine ( dt_c, p%numFlaps, p%numPylons, rtrIrot, genTorq, rtrSpd, rtrAcc, rtrBladePitch, ctrlSettings, errStat, errMsg_c ) 
+         call DLL_KFC_Init_Subroutine ( dt_c, p%numFlaps*2+6, p%numPylons, rtrIrot, genTorq, rtrSpd, rtrAcc, rtrBladePitch, ctrlSettings, errStat, errMsg_c ) 
       
          call c_to_fortran_string(errMsg_c, errMsg)
          print *, " KFC_Init errStat - ", errStat, " errMsg - ", trim(errMsg)
