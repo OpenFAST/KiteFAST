@@ -22,7 +22,50 @@ import numpy as np
 
 
 class BaseComponent():
+    """
+    BaseComponent is the super class from which all non-rotor components are created.
+    It handles parsing the component dictionary and instantiating all subcomponents
+    like Beam and StructuralNode. Finally, export routines for MBDyn input files
+    are included here.
+    """
+
     def __init__(self, component_name, model_dict, interpolator, mbdyn_ref_index, primary_axis):
+        """
+        inputs:
+            component_name: str - a unique identifier for this component
+
+            model_dict: dict - a description of this component as parsed from the input file;
+                it should contain the following key-values:
+                {
+                    "keypoint": Vec3,
+
+                    "element_end_nodes": [Vec3],
+
+                    "twist": [float],
+
+                    "component": [str],
+
+                    "point_mass": [float],
+
+                    "stiffness_matrix": [[float]],
+
+                    "mass_distribution": [[float]],
+
+                    "cm_offsets": [[float]],
+
+                    "inertias": [[float]]
+                }
+
+            interpolator: func - the function to use when interpolating values between node locations;
+                this allows subclasses to determine on which axis to do interpolations
+
+            mbdyn_ref_index: int - a value to use when identifying this component in mbdyn
+            
+            primary_axis: str - string representation of this component's primary axis; [x1 | x2 | x3]
+
+        outputs:
+            self: BaseComponent - an instantiated BaseComponent object
+        """
 
         # inputs
         self.component_name = component_name
