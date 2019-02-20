@@ -97,7 +97,7 @@ function CoefInterp(RtSpd, pitch, Vrel, skew, p, errStat, errMsg)
 
          iRtSpd_Lo = iRtSpd_Lo - 1
 
-      else if ( RtSpd >= p%RtSpds(iRtSpd_Lo+1) )  then
+      else if ( RtSpd > p%RtSpds(iRtSpd_Lo+1) )  then
 
          iRtSpd_Lo = iRtSpd_Lo + 1
 
@@ -144,7 +144,7 @@ function CoefInterp(RtSpd, pitch, Vrel, skew, p, errStat, errMsg)
 
          iPitch_Lo = iPitch_Lo - 1
 
-      else if ( pitch >= p%Pitches(iPitch_Lo+1) )  then
+      else if ( pitch > p%Pitches(iPitch_Lo+1) )  then
 
          iPitch_Lo = iPitch_Lo + 1
 
@@ -167,7 +167,7 @@ function CoefInterp(RtSpd, pitch, Vrel, skew, p, errStat, errMsg)
 
          iVrel_Lo = iVrel_Lo - 1
 
-      else if ( Vrel >= p%Vrels(iVrel_Lo+1) )  then
+      else if ( Vrel > p%Vrels(iVrel_Lo+1) )  then
 
          iVrel_Lo = iVrel_Lo + 1
 
