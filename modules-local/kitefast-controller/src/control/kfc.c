@@ -60,7 +60,7 @@ void controller_init(double Requested_dT, int numFlaps, int numPylons, double ge
 	// pylonCheck
 	assert(numPylons == 2); // TODO - JPM, find suitable input for pylons instead of hardcoded val
 	// time step check
-	//assert(Requested_dT == *g_sys.ts);
+	assert(Requested_dT == *g_sys.ts);
 	// check I of Rotors
 	
 	//==== Controller Version Number ====//
@@ -148,16 +148,16 @@ void controller_step(double t, double dcm_g2b_c[], double pqr_c[], double *acc_n
 					 double RotorSpeed[], double AeroTorque[],
 					 int *errStat, char *errMsg)
 {
-	double tmp;
+
 	#ifdef DEBUG //DEBUG preproc found in kfc.h
-		printf("   controller_step\n");
+//		printf("   controller_step\n");
 	#endif
 	// // placeholders for new inputs:
 	// double ext_torques[] = AeroTorque; //coming in as Aerotorque
 	//Convert the inputs from controller_step and assins the values that correspond to the inputs of CSim
-	tmp = fmod(t,*g_sys.ts);
-	printf(" debug - t = %f, dt = %f, fmod = %f\n",t, *g_sys.ts, tmp);
-if ( tmp < 0.00001) {	
+
+	printf(" debug - t = %f\n",t);
+	
     printf(" debug - ACTUALLY STEPPING \n");
 	AssignInputs(dcm_g2b_c, pqr_c, acc_norm_c,
 				 Xg_c, Vg_c, Vb_c, Ag_c,
@@ -201,7 +201,7 @@ if ( tmp < 0.00001) {
 	// double Rotor_Accel[kNumMotors] = {}; // placeholder for new input
 	// double Rotor_Speed[kNumMotors] = {}; // placeholder for new input
 	// double Blade_Pitch[kNumMotors] = {}; // placeholder for new input
-}
+
 	AssignOutputs(CtrlSettings, GenTorque, RotorAccel, RotorSpeed, RotorBladePitch,
 	errStat, errMsg, &controlglob.raw_control_output, &controlglob.state.motor_state);
 }
