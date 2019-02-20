@@ -132,7 +132,7 @@ fuselage:
 
 wing:
     number_of_flaps_per_wing:
-        1
+        3
 
     starboard:
         element_end_nodes:
