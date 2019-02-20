@@ -1,5 +1,5 @@
 #include "control/kfc.h"
-
+#include <math.h>
 #include "control/crosswind/crosswind.h"
 #include "control/controller_conversion.h"
 #include "control/controller_util.h"
@@ -60,7 +60,7 @@ void controller_init(double Requested_dT, int numFlaps, int numPylons, double ge
 	// pylonCheck
 	assert(numPylons == 2); // TODO - JPM, find suitable input for pylons instead of hardcoded val
 	// time step check
-	assert(Requested_dT == *g_sys.ts);
+	//assert(Requested_dT == *g_sys.ts);
 	// check I of Rotors
 	
 	//==== Controller Version Number ====//
@@ -139,7 +139,7 @@ void controller_init(double Requested_dT, int numFlaps, int numPylons, double ge
 // 		- Connect with new Inputs/Outputs from Kitefast (waiting on Update)
 
 
-void controller_step(double dcm_g2b_c[], double pqr_c[], double *acc_norm_c,
+void controller_step(double t, double dcm_g2b_c[], double pqr_c[], double *acc_norm_c,
 					 double Xg_c[], double Vg_c[], double Vb_c[], double Ag_c[],
 					 double Ab_c[], double *rho_c, double apparent_wind_c[],
 					 double tether_force_c[], double wind_g_c[],
@@ -148,13 +148,17 @@ void controller_step(double dcm_g2b_c[], double pqr_c[], double *acc_norm_c,
 					 double RotorSpeed[], double AeroTorque[],
 					 int *errStat, char *errMsg)
 {
+	double tmp;
 	#ifdef DEBUG //DEBUG preproc found in kfc.h
 		printf("   controller_step\n");
 	#endif
 	// // placeholders for new inputs:
 	// double ext_torques[] = AeroTorque; //coming in as Aerotorque
 	//Convert the inputs from controller_step and assins the values that correspond to the inputs of CSim
-	
+	tmp = fmod(t,*g_sys.ts);
+	printf(" debug - t = %f, dt = %f, fmod = %f\n",t, *g_sys.ts, tmp);
+if ( tmp < 0.00001) {	
+    printf(" debug - ACTUALLY STEPPING \n");
 	AssignInputs(dcm_g2b_c, pqr_c, acc_norm_c,
 				 Xg_c, Vg_c, Vb_c, Ag_c,
 				 Ab_c, rho_c, apparent_wind_c,
@@ -197,7 +201,7 @@ void controller_step(double dcm_g2b_c[], double pqr_c[], double *acc_norm_c,
 	// double Rotor_Accel[kNumMotors] = {}; // placeholder for new input
 	// double Rotor_Speed[kNumMotors] = {}; // placeholder for new input
 	// double Blade_Pitch[kNumMotors] = {}; // placeholder for new input
-
+}
 	AssignOutputs(CtrlSettings, GenTorque, RotorAccel, RotorSpeed, RotorBladePitch,
 	errStat, errMsg, &controlglob.raw_control_output, &controlglob.state.motor_state);
 }

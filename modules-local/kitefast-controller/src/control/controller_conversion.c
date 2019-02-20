@@ -100,14 +100,28 @@ void AssignOutputs(double CtrlSettings[], double Gen_Torque[],
 	int *errStat, char *errMsg, 
 	ControlOutput* raw_control_output, MotorState* motor_state){
 	//kFlap_A
-	CtrlSettings[0] = raw_control_output->flaps[kFlapA1];
-	CtrlSettings[1] = raw_control_output->flaps[kFlapA2];
-	CtrlSettings[2] = raw_control_output->flaps[kFlapA4];
-	CtrlSettings[3] = raw_control_output->flaps[kFlapA5];
-	CtrlSettings[4] = raw_control_output->flaps[kFlapA7];
-	CtrlSettings[5] = raw_control_output->flaps[kFlapA8];
-	CtrlSettings[6] = raw_control_output->flaps[kFlapEle];
+	CtrlSettings[0] = raw_control_output->flaps[kFlapA5]; //Starboard wing control ID 1
+	CtrlSettings[1] = raw_control_output->flaps[kFlapA7]; //Starboard wing control ID 2
+	CtrlSettings[2] = raw_control_output->flaps[kFlapA8]; //Starboard wing control ID 3
+	CtrlSettings[3] = raw_control_output->flaps[kFlapA4]; //Port      wing control ID 1
+	CtrlSettings[4] = raw_control_output->flaps[kFlapA2]; //Port      wing control ID 2
+	CtrlSettings[5] = raw_control_output->flaps[kFlapA1]; //Port      wing control ID 3
+	CtrlSettings[6] = raw_control_output->flaps[kFlapRud]; // Two Ruder surfaces
 	CtrlSettings[7] = raw_control_output->flaps[kFlapRud];
+	CtrlSettings[8] = raw_control_output->flaps[kFlapEle];
+	CtrlSettings[9] = raw_control_output->flaps[kFlapEle];
+	CtrlSettings[10] = raw_control_output->flaps[kFlapEle];
+	CtrlSettings[11] = raw_control_output->flaps[kFlapEle];
+
+	// Blade Pitch
+	Blade_Pitch[0] = 0.0;
+	Blade_Pitch[1] = 0.0; 
+	Blade_Pitch[2] = 0.0; 
+	Blade_Pitch[3] = 0.0; 
+	Blade_Pitch[4] = 0.0; 
+	Blade_Pitch[5] = 0.0; 
+	Blade_Pitch[6] = 0.0; 
+	Blade_Pitch[7] = 0.0; 
 
 	// //Motor speeds	
 	// Motor_c[0] = motor_state->motor_speeds[kMotor1];
@@ -120,34 +134,34 @@ void AssignOutputs(double CtrlSettings[], double Gen_Torque[],
 	// Motor_c[7] = motor_state->motor_speeds[kMotor8];
 
 	//Generator Torques
-	Gen_Torque[0] = motor_state->rotor_torques[kMotor1];
-	Gen_Torque[1] = motor_state->rotor_torques[kMotor2];
-	Gen_Torque[2] = motor_state->rotor_torques[kMotor3];
-	Gen_Torque[3] = motor_state->rotor_torques[kMotor4];
-	Gen_Torque[4] = motor_state->rotor_torques[kMotor5];
-	Gen_Torque[5] = motor_state->rotor_torques[kMotor6];
-	Gen_Torque[6] = motor_state->rotor_torques[kMotor7];
-	Gen_Torque[7] = motor_state->rotor_torques[kMotor8];
+	Gen_Torque[0] = motor_state->rotor_torques[kMotor7]; // Starboard inner Top = kMotor7
+	Gen_Torque[1] = motor_state->rotor_torques[kMotor2]; // Starboard inner Bot = kMotor2
+	Gen_Torque[2] = motor_state->rotor_torques[kMotor8]; // Starboard outer Top = kMotor8
+	Gen_Torque[3] = motor_state->rotor_torques[kMotor1]; // Starboard outer Bot = kMotor1
+	Gen_Torque[4] = motor_state->rotor_torques[kMotor6]; // Port      inner Top = kMotor6
+	Gen_Torque[5] = motor_state->rotor_torques[kMotor3]; // Port      inner Bot = kMotor3
+	Gen_Torque[6] = motor_state->rotor_torques[kMotor5]; // Port      outer Top = kMotor5
+	Gen_Torque[7] = motor_state->rotor_torques[kMotor4]; // Port      outer Bot = kMotor4
 
 	// Rotor Accelerations
-	Rotor_Accel[0] = motor_state->rotor_accel[kMotor1];
+	Rotor_Accel[0] = motor_state->rotor_accel[kMotor7];
 	Rotor_Accel[1] = motor_state->rotor_accel[kMotor2];
-	Rotor_Accel[2] = motor_state->rotor_accel[kMotor3];
-	Rotor_Accel[3] = motor_state->rotor_accel[kMotor4];
-	Rotor_Accel[4] = motor_state->rotor_accel[kMotor5];
-	Rotor_Accel[5] = motor_state->rotor_accel[kMotor6];
-	Rotor_Accel[6] = motor_state->rotor_accel[kMotor7];
-	Rotor_Accel[7] = motor_state->rotor_accel[kMotor8];
+	Rotor_Accel[2] = motor_state->rotor_accel[kMotor8];
+	Rotor_Accel[3] = motor_state->rotor_accel[kMotor1];
+	Rotor_Accel[4] = motor_state->rotor_accel[kMotor6];
+	Rotor_Accel[5] = motor_state->rotor_accel[kMotor3];
+	Rotor_Accel[6] = motor_state->rotor_accel[kMotor5];
+	Rotor_Accel[7] = motor_state->rotor_accel[kMotor4];
 
 	// Rotor Speeds
-	Rotor_Speed[0] = motor_state->rotor_omegas[kMotor1];
+	Rotor_Speed[0] = motor_state->rotor_omegas[kMotor7];
 	Rotor_Speed[1] = motor_state->rotor_omegas[kMotor2];
-	Rotor_Speed[2] = motor_state->rotor_omegas[kMotor3];
-	Rotor_Speed[3] = motor_state->rotor_omegas[kMotor4];
-	Rotor_Speed[4] = motor_state->rotor_omegas[kMotor5];
-	Rotor_Speed[5] = motor_state->rotor_omegas[kMotor6];
-	Rotor_Speed[6] = motor_state->rotor_omegas[kMotor7];
-	Rotor_Speed[7] = motor_state->rotor_omegas[kMotor8];
+	Rotor_Speed[2] = motor_state->rotor_omegas[kMotor8];
+	Rotor_Speed[3] = motor_state->rotor_omegas[kMotor1];
+	Rotor_Speed[4] = motor_state->rotor_omegas[kMotor6];
+	Rotor_Speed[5] = motor_state->rotor_omegas[kMotor3];
+	Rotor_Speed[6] = motor_state->rotor_omegas[kMotor5];
+	Rotor_Speed[7] = motor_state->rotor_omegas[kMotor4];
 		
 	#if DEBUG
 		printf("  kFlapA_c = [%0.4f, %0.4f, %0.4f, %0.4f, %0.4f, %0.4f, %0.4f, %0.4f] \n",
