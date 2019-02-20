@@ -645,9 +645,9 @@ void ModuleKiteFAST::_AssRes(doublereal *node_loads, doublereal *rotor_loads)
 
   doublereal mip_omegas[3];
   Vec3 vec3_mip_omegas = mip_node.pNode->GetWCurr();
-  vec3_mip_omegas[0] = mip_omegas[0];
-  vec3_mip_omegas[1] = mip_omegas[1];
-  vec3_mip_omegas[2] = mip_omegas[2];
+  mip_omegas[0] = vec3_mip_omegas[0];
+  mip_omegas[1] = vec3_mip_omegas[1];
+  mip_omegas[2] = vec3_mip_omegas[2];
 
   doublereal mip_accs[3];
   Vec3 vec3_mip_acc = mip_node.pNode->GetXPPCurr();
