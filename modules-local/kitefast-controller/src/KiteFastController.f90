@@ -56,10 +56,11 @@ module KiteFastController
    end interface   
 
    abstract interface
-      subroutine KFC_DLL_Step_PROC ( dcm_g2b_c, pqr_c, acc_norm_c, Xg_c, Vg_c, Vb_c, Ag_c, Ab_c, rho_c, apparent_wind_c, &
+      subroutine KFC_DLL_Step_PROC ( t_c, dcm_g2b_c, pqr_c, acc_norm_c, Xg_c, Vg_c, Vb_c, Ag_c, Ab_c, rho_c, apparent_wind_c, &
          tether_forceb_c, wind_g_c, aeroTorq, genTorq, rtrSpd, rtrAcc, rtrBladePitch, ctrlSettings, errStat, errMsg )  BIND(C)
          use, intrinsic :: ISO_C_Binding
-         real(C_DOUBLE),         intent(in   ) :: dcm_g2b_c(9)      
+         real(C_DOUBLE), value,  intent(in   ) :: t_c                 !<simulation time (s)
+         real(C_DOUBLE),         intent(in   ) :: dcm_g2b_c(9)
          real(C_DOUBLE),         intent(in   ) :: pqr_c(3)          
          real(C_DOUBLE),         intent(in   ) :: acc_norm_c    
          real(C_DOUBLE),         intent(in   ) :: Xg_c(3)           
@@ -278,7 +279,7 @@ module KiteFastController
             end do
          end do
             
-         call DLL_KFC_Init_Subroutine ( dt_c, p%numFlaps*2+6, p%numPylons, rtrIrot, genTorq, rtrSpd, rtrAcc, rtrBladePitch, ctrlSettings, errStat, errMsg_c ) 
+         call DLL_KFC_Init_Subroutine ( dt_c, p%numFlaps*2+2, p%numPylons, rtrIrot, genTorq, rtrSpd, rtrAcc, rtrBladePitch, ctrlSettings, errStat, errMsg_c ) 
       
          call c_to_fortran_string(errMsg_c, errMsg)
          print *, " KFC_Init errStat - ", errStat, " errMsg - ", trim(errMsg)
@@ -328,14 +329,15 @@ module KiteFastController
       integer(IntKi)                                :: errStat2       ! The error status code
       character(ErrMsgLen)                          :: errMsg2        ! The error message, if an error occurred     
       procedure(KFC_DLL_Step_PROC),pointer          :: DLL_KFC_Step_Subroutine              ! The address of the supercontroller sc_calcoutputs procedure in the DLL
-      real(C_DOUBLE)                                :: dcm_g2b_c(9)      
-      real(C_DOUBLE)                                :: pqr_c(3)          
-      real(C_DOUBLE)                                :: acc_norm_c    
-      real(C_DOUBLE)                                :: Xg_c(3)           
-      real(C_DOUBLE)                                :: Vg_c(3)           
-      real(C_DOUBLE)                                :: Vb_c(3)           
-      real(C_DOUBLE)                                :: Ag_c(3)           
-      real(C_DOUBLE)                                :: Ab_c(3)           
+      real(C_DOUBLE)                                :: t_c
+      real(C_DOUBLE)                                :: dcm_g2b_c(9)
+      real(C_DOUBLE)                                :: pqr_c(3)
+      real(C_DOUBLE)                                :: acc_norm_c
+      real(C_DOUBLE)                                :: Xg_c(3)
+      real(C_DOUBLE)                                :: Vg_c(3)
+      real(C_DOUBLE)                                :: Vb_c(3)
+      real(C_DOUBLE)                                :: Ag_c(3)
+      real(C_DOUBLE)                                :: Ab_c(3)
       real(C_DOUBLE)                                :: rho_c          
       real(C_DOUBLE)                                :: apparent_wind_c(3)
       real(C_DOUBLE)                                :: tether_forceb_c(3) 
@@ -348,6 +350,7 @@ module KiteFastController
       errMsg2  = ''
       
          ! Cast and massage inputs to match DLL datatypes
+      t_c             = t
       dcm_g2b_c       = reshape(u%dcm_g2b,(/9/))
       pqr_c           = u%pqr
       acc_norm_c      = u%acc_norm
@@ -379,18 +382,35 @@ module KiteFastController
                c = c + 1
             end do
          end do
-
+         if (mod(t,0.01_DbKi) < 0.00001) then
+            print *, " ========================================"
+            print *, " KFC_Step - Inputs at time = ", t
+            print *, " debug - SPyAeroTorque: ", u%SPyAeroTorque
+            print *, " debug - PPyAeroTorque: ", u%PPyAeroTorque
+            print *, " debug - AeroTorq     : ", AeroTorq
+            print *, " debug - pqr          : ", u%pqr
+            print *, " debug - acc_norm     : ", u%acc_norm
+            print *, " debug - Xg           : ", u%Xg
+            print *, " debug - Vg           : ", u%Vg
+            print *, " debug - Vb           : ", u%Vb
+            print *, " debug - Ag           : ", u%Ag
+            print *, " debug - Ab           : ", u%Ab
+            print *, " debug - apparent_wind: ", u%apparent_wind
+            print *, " debug - tether_forceb: ", u%tether_forceb
+            print *, " debug - wind_g       : ", u%wind_g
+         end if
             ! Call the DLL (first associate the address from the procedure in the DLL with the subroutine):
          call C_F_PROCPOINTER( p%DLL_Trgt%ProcAddr(2), DLL_KFC_Step_Subroutine) 
-         call DLL_KFC_Step_Subroutine ( dcm_g2b_c, pqr_c, acc_norm_c, Xg_c, Vg_c, Vb_c, Ag_c, Ab_c, rho_c, apparent_wind_c, tether_forceb_c, wind_g_c, AeroTorq, genTorq, rtrSpd, rtrAcc, rtrBladePitch, ctrlSettings, errStat, errMsg_c ) 
+         call DLL_KFC_Step_Subroutine ( t_c, dcm_g2b_c, pqr_c, acc_norm_c, Xg_c, Vg_c, Vb_c, Ag_c, Ab_c, rho_c, apparent_wind_c, tether_forceb_c, wind_g_c, AeroTorq, genTorq, rtrSpd, rtrAcc, rtrBladePitch, ctrlSettings, errStat, errMsg_c ) 
          call c_to_fortran_string(errMsg_c, errMsg)
-
-         print *, " KFC_Step errStat - ", errStat, " errMsg - ", trim(errMsg)
-
-         print *, " debug - genTorq     : ", genTorq
-         print *, " debug - rtrSpd      : ", rtrSpd
-         print *, " debug - ctrlSettings: ", ctrlSettings
-
+         if (mod(t,0.01_DbKi) < 0.00001) then
+          ! print *, " KFC_Step errStat - ", errStat, " errMsg - ", trim(errMsg)
+            print *, " KFC_Step - Outputs "
+            print *, " debug - genTorq     : ", genTorq
+            print *, " debug - rtrSpd      : ", rtrSpd
+            print *, " debug - ctrlSettings: ", ctrlSettings
+            print *, " ========================================"
+         end if
          ! obtain initial outputs from the DLL and set them
          call MapKFCOutputs( p%numFlaps, p%numPylons, genTorq, rtrSpd, rtrAcc, rtrBladePitch, ctrlSettings, y)
          
