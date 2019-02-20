@@ -2,9 +2,9 @@
 simple_m600_model driver input file
 --- SIMULATION CONTROL ---
 False     Echo      ! Echo input data to <RootName>.ech? (flag)
-0.001     DTAero    ! Time interval for aerodynamic calculations (s)
-1         LiftMod   ! Lifting-line calculation model (-) (switch) {1:geometric AoA, 2:vortex method}
-0         RotorMod  ! Rotor calculation model (-) (switch) {0:none, 1:actuator disk}
+0.0005     DTAero    ! Time interval for aerodynamic calculations (s)
+2         LiftMod   ! Lifting-line calculation model (-) (switch) {1:geometric AoA, 2:vortex method}
+1         RotorMod  ! Rotor calculation model (-) (switch) {0:none, 1:actuator disk}
 True      UseCm     ! Include aerodynamic pitching moment in calculations? (flag)
 --- ENVIRONMENTAL CONDITIONS ---
 1.225     AirDens   ! Air density (kg/m^3) [>0.0]
@@ -361,13 +361,13 @@ PylX      PylY      PylZ      PylTwist  PylChord  PylAFID
 RtrRad    RtrInFile
 (m)       (string)
 1.15      "simple_actuator_disk.dat"          ! STI
-1.15      "simple_actuator_disk.dat"          ! SBI
-1.15      "simple_actuator_disk.dat"          ! STO
+1.15      "simple_actuator_diskN.dat"          ! SBI
+1.15      "simple_actuator_diskN.dat"          ! STO
 1.15      "simple_actuator_disk.dat"          ! SBO
-1.15      "simple_actuator_disk.dat"          ! PTI
+1.15      "simple_actuator_diskN.dat"          ! PTI
 1.15      "simple_actuator_disk.dat"          ! PBI
 1.15      "simple_actuator_disk.dat"          ! PTO
-1.15      "simple_actuator_disk.dat"          ! PBO
+1.15      "simple_actuator_diskN.dat"          ! PBO
 --- OUTPUT ---
 True                             SumPrint           Print summary data to <RootName>.sum? (flag)
 2                                OutSwtch           Output requested channels to? (-) (switch) {1=KiteFAST.KAD.out/KiteFAST.VSM.out, 2=GlueCode.out, 3=three files]
