@@ -93,7 +93,7 @@ EXTERNAL_ROUTINE void KFAST_AssRes(
    char   errMsg[]              // Error message
                                    );
 
-EXTERNAL_ROUTINE void KFAST_AfterPredict(int *errStat, char errMsg[]);
+EXTERNAL_ROUTINE void KFAST_AfterPredict(double *t, int *errStat, char errMsg[]);
 EXTERNAL_ROUTINE void KFAST_Output(
    double *t,                   // simulation time for the current timestep (s)
    int *numGaussLoadPts,        // Total number of gauss points in the MBDyn model

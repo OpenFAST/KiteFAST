@@ -267,7 +267,7 @@ module KiteFastController
          allocate(rtrBladePitch(p%numPylons*4), stat = errStat)
          allocate(ctrlSettings(p%numFlaps*2+6), stat = errStat)
          
-         dt_c = real(p%DT, C_DOUBLE)
+         dt_c = real(0.01, C_DOUBLE)  ! This is hardcoded for the Makani Controller
          
          c = 1
          wingOffset = 2*p%numPylons
@@ -382,7 +382,7 @@ module KiteFastController
                c = c + 1
             end do
          end do
-         if (mod(t,0.01_DbKi) < 0.00001) then
+
             print *, " ========================================"
             print *, " KFC_Step - Inputs at time = ", t
             print *, " debug - SPyAeroTorque: ", u%SPyAeroTorque
@@ -398,19 +398,19 @@ module KiteFastController
             print *, " debug - apparent_wind: ", u%apparent_wind
             print *, " debug - tether_forceb: ", u%tether_forceb
             print *, " debug - wind_g       : ", u%wind_g
-         end if
+
             ! Call the DLL (first associate the address from the procedure in the DLL with the subroutine):
          call C_F_PROCPOINTER( p%DLL_Trgt%ProcAddr(2), DLL_KFC_Step_Subroutine) 
          call DLL_KFC_Step_Subroutine ( t_c, dcm_g2b_c, pqr_c, acc_norm_c, Xg_c, Vg_c, Vb_c, Ag_c, Ab_c, rho_c, apparent_wind_c, tether_forceb_c, wind_g_c, AeroTorq, genTorq, rtrSpd, rtrAcc, rtrBladePitch, ctrlSettings, errStat, errMsg_c ) 
          call c_to_fortran_string(errMsg_c, errMsg)
-         if (mod(t,0.01_DbKi) < 0.00001) then
+
           ! print *, " KFC_Step errStat - ", errStat, " errMsg - ", trim(errMsg)
             print *, " KFC_Step - Outputs "
             print *, " debug - genTorq     : ", genTorq
             print *, " debug - rtrSpd      : ", rtrSpd
             print *, " debug - ctrlSettings: ", ctrlSettings
             print *, " ========================================"
-         end if
+
          ! obtain initial outputs from the DLL and set them
          call MapKFCOutputs( p%numFlaps, p%numPylons, genTorq, rtrSpd, rtrAcc, rtrBladePitch, ctrlSettings, y)
          

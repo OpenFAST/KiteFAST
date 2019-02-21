@@ -3253,7 +3253,7 @@ subroutine KFAST_AssRes(t_c, isInitialTime_c, WindPt_c, FusO_c, FusODCM_c, FusOv
    ! Controller
    ! -------------------------------------------------------------------------      
    
-   if (OtherSt%NewTime .and. (isInitialTime < 1) ) then
+   if (OtherSt%NewTime .and. (isInitialTime < 1) .and. EqualRealNos(real(mod(t, 0.01_DbKi),ReKi),0.0_ReKi) ) then
 
          ! NOTE: The controller is stepping from t - p%dt (GetXPrev in MBDyn) to t (GetXCur in MBDyn)
          !       therefore, all inputs to KFC needs to be at time, t - p%dt.
@@ -3293,7 +3293,7 @@ subroutine KFAST_AssRes(t_c, isInitialTime_c, WindPt_c, FusO_c, FusODCM_c, FusOv
       m%KFC%u%apparent_wind = matmul(p%DCM_Fast2Ctrl, m%KFC%u%apparent_wind)
      
          
-      call KFC_Step(utimes(1), m%KFC%u, m%KFC%p, m%KFC%y, errStat2, errMsg2 )
+      call KFC_Step(t-0.01_DbKi, m%KFC%u, m%KFC%p, m%KFC%y, errStat2, errMsg2 )
          call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
       if (errStat >= AbortErrLev ) then
          call TransferErrors(errStat, errMsg, errStat_c, errMsg_c)
@@ -3574,9 +3574,9 @@ subroutine KFAST_AssRes(t_c, isInitialTime_c, WindPt_c, FusO_c, FusODCM_c, FusOv
 
 end subroutine KFAST_AssRes
 
-subroutine KFAST_AfterPredict(errStat_c, errMsg_c) BIND (C, NAME='KFAST_AfterPredict')
+subroutine KFAST_AfterPredict(t_c, errStat_c, errMsg_c) BIND (C, NAME='KFAST_AfterPredict')
    IMPLICIT NONE
-
+   real(C_DOUBLE),         intent(in   ) :: t_c
    integer(C_INT),         intent(  out) :: errStat_c      
    character(kind=C_CHAR), intent(  out) :: errMsg_c(IntfStrLen)   
 
@@ -3584,62 +3584,65 @@ subroutine KFAST_AfterPredict(errStat_c, errMsg_c) BIND (C, NAME='KFAST_AfterPre
    character(ErrMsgLen)            :: errMsg, errMsg2
    character(*), parameter         :: routineName = 'KFAST_AfterPredict'
    integer(IntKi)                  :: numFairLeads, i, count, j
-
+   real(DbKi)                      :: t
    errStat = ErrID_None
    errMsg  = ''
 
       ! Reset the NewTime flag to indicate that the next call to KFAST_AssRes() will be for a new timestep
    OtherSt%NewTime = .true.
-
-      ! transfer t+dt quantities to t outquantities for use by the controller during the next timestep
-      ! NOTE: we always have at a minimum a dummy controller
+   t = t_c
    
-      ! MBDyn Quantities
-   OtherSt%SPyRtrDCMs = m%SPyRtrDCMs
-   OtherSt%PPyRtrDCMs = m%PPyRtrDCMs
+   if ( EqualRealNos(real(mod(t-p%dt, 0.01_DbKi),ReKi),0.0_ReKi) ) then
+   print *, "Updating controller inputs"
+         ! transfer t+dt quantities to t outquantities for use by the controller during the next timestep
+         ! NOTE: we always have at a minimum a dummy controller
       
-   OtherSt%FusODCM    = m%FusODCM
-   OtherSt%FusO       = m%FusO
-   OtherSt%FusOv      = m%FusOv
-   OtherSt%FusOomegas = m%FusOomegas
-   OtherSt%FusOacc    = m%FusOaccs
-
-
-   if ( p%useIfW ) then       
-         ! Need previous timestep's inflow at ground station for the next call to KFC calcoutput
-      OtherSt%IfW_ground = m%IfW%y%VelocityUVW(:,1)     
-         ! Need previous timestep's inflow at FusO for the next call to KFC calcoutput    
-      OtherSt%IfW_FusO   = m%IfW%y%VelocityUVW(:,2)
-   end if
-       
-      ! transfer t+dt MoorDyn bridle forces to t forces for use by the controller during the next timestep     
-   if ( p%useMD ) then
-                  ! Copy the temporary states and place them into the actual versions
-      call MD_CopyContState   ( m%MD%x_copy, m%MD%x, MESH_NEWCOPY, errStat2, errMsg2 )
-         call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
-         ! Copy t+dt inputs to t for the next timestep
-      call MD_CopyInput( m%MD%u(2), OtherSt%MD_u, MESH_NEWCOPY, errStat2, errMsg2 )
-         call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
+         ! MBDyn Quantities
+      OtherSt%SPyRtrDCMs = m%SPyRtrDCMs
+      OtherSt%PPyRtrDCMs = m%PPyRtrDCMs
          
-      numFairLeads = size(m%MD%y%PtFairLeadLoad%Force,2)
-      OtherSt%totalFairLeadLoads = 0.0_ReKi
-      do i = 1, numFairLeads
-         OtherSt%totalFairLeadLoads = OtherSt%totalFairLeadLoads + m%MD%y%PtFairLeadLoad%Force(:,i) 
-      end do
-   end if
+      OtherSt%FusODCM    = m%FusODCM
+      OtherSt%FusO       = m%FusO
+      OtherSt%FusOv      = m%FusOv
+      OtherSt%FusOomegas = m%FusOomegas
+      OtherSt%FusOacc    = m%FusOaccs
       
-   if ( p%useKAD ) then
-      call KAD_CopyConstrState( m%KAD%z_copy, m%KAD%z, MESH_NEWCOPY, errStat2, errMsg2 )
-         call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
-      do j = 1,p%numPylons
-         do i = 1,2
-            count = (j-1)*2 + i
-            OtherSt%SPyRtrLoads(:,i,j) = m%KAD%y%SPyRtrLoads(count)%Moment(:,1)          
-            OtherSt%PPyRtrLoads(:,i,j) = m%KAD%y%PPyRtrLoads(count)%Moment(:,1)  
+      
+      if ( p%useIfW ) then       
+            ! Need previous timestep's inflow at ground station for the next call to KFC calcoutput
+         OtherSt%IfW_ground = m%IfW%y%VelocityUVW(:,1)     
+            ! Need previous timestep's inflow at FusO for the next call to KFC calcoutput    
+         OtherSt%IfW_FusO   = m%IfW%y%VelocityUVW(:,2)
+      end if
+          
+         ! transfer t+dt MoorDyn bridle forces to t forces for use by the controller during the next timestep     
+      if ( p%useMD ) then
+                     ! Copy the temporary states and place them into the actual versions
+         call MD_CopyContState   ( m%MD%x_copy, m%MD%x, MESH_NEWCOPY, errStat2, errMsg2 )
+            call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
+            ! Copy t+dt inputs to t for the next timestep
+         call MD_CopyInput( m%MD%u(2), OtherSt%MD_u, MESH_NEWCOPY, errStat2, errMsg2 )
+            call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
+            
+         numFairLeads = size(m%MD%y%PtFairLeadLoad%Force,2)
+         OtherSt%totalFairLeadLoads = 0.0_ReKi
+         do i = 1, numFairLeads
+            OtherSt%totalFairLeadLoads = OtherSt%totalFairLeadLoads + m%MD%y%PtFairLeadLoad%Force(:,i) 
          end do
-      end do
-   end if
+      end if
    
+      if ( p%useKAD ) then
+         call KAD_CopyConstrState( m%KAD%z_copy, m%KAD%z, MESH_NEWCOPY, errStat2, errMsg2 )
+            call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
+         do j = 1,p%numPylons
+            do i = 1,2
+               count = (j-1)*2 + i
+               OtherSt%SPyRtrLoads(:,i,j) = m%KAD%y%SPyRtrLoads(count)%Moment(:,1)          
+               OtherSt%PPyRtrLoads(:,i,j) = m%KAD%y%PPyRtrLoads(count)%Moment(:,1)  
+            end do
+         end do
+      end if
+   end if
               ! transfer Fortran variables to C:  
    errStat_c = errStat
    errMsg    = trim(errMsg)//C_NULL_CHAR

@@ -142,6 +142,7 @@ extern int KFAST_AssRes(
   char error_message[]           // errMsg
 );
 extern int KFAST_AfterPredict(
+  double *t,                     // t
   int *error_status,             // errStat
   char error_message[]           // errMsg
 );

@@ -862,10 +862,10 @@ void ModuleKiteFAST::AfterPredict(VectorHandler &X, VectorHandler &XP)
 
   // After the first time step is complete, set this to NO - 0
   first_iteration = 0;
-
+  doublereal t = Time.dGet();
   int error_status;
   char error_message[INTERFACE_STRING_LENGTH];
-  KFAST_AfterPredict(&error_status, error_message);
+  KFAST_AfterPredict(&t, &error_status, error_message);
   printdebug("KFAST_AfterPredict error");
   printdebug("    status: " + std::to_string(error_status) + ";");
   printdebug("    message: " + std::string(error_message) + ";");
