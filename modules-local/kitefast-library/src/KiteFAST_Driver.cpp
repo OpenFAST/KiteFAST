@@ -607,7 +607,7 @@ int main(int argc, char *argv[])
 
     
     // AfterPredict()
-    KFAST_AfterPredict(&errStat, errMsg);
+    KFAST_AfterPredict(&t, &errStat, errMsg);
     if (errStat != 0)
     {
        printf("%s\n", errMsg);
