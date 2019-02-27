@@ -99,7 +99,7 @@ class Input():
         # unpack component info
         # component = {
         #     "keypoint": Vec3,
-        #     "element_end_nodes": [[float]],
+        #     "element_end_nodes": [Vec3],
         #     "twist": [float],
         #     "component": [str],
         #     "point_mass": [float],
