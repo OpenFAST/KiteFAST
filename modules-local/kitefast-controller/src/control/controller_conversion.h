@@ -3,7 +3,6 @@
 
 #include <stdbool.h>
 
-
 #include "control/control_types.h"
 #include "control/physics/motor_types.h"
 

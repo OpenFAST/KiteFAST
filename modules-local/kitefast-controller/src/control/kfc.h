@@ -7,7 +7,7 @@ extern "C" {
 
 // No major difference between DEBUG mode and Normal mode
 // When DEBUG is enabled, a series of print statements will be enabled.
-#define DEBUG 1 //Comment out to take out of debug mode
+#define DEBUG 1 //Set Debug to 0 to take out of debug mode
 
 #include <stdio.h>
 void controller_init(double Requested_dT, int numFlaps, int numPylons, double genTorq[], 

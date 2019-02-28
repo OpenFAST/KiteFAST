@@ -178,13 +178,15 @@ void controller_step(double t, double dcm_g2b_c[], double pqr_c[], double *acc_n
 		printf("   debug marker - post crosswindstep \n");
 	#endif
 	// Motor Control Step
-	SetMotorDirection(controlglob.raw_control_output.rotors);
 	MotorControlStep(GetMotorParamsUnsafe(), 
 		&(GetSystemParamsUnsafe()->rotors[0]), 
 		&GetSystemParamsUnsafe()->power_sys, 
 		controlglob.raw_control_output.rotors, AeroTorque, 
 		&controlglob.state.motor_state);
 
+	SetMotorDirection(controlglob.state.motor_state.rotor_omegas,
+		controlglob.state.motor_state.rotor_accel, 
+		controlglob.state.motor_state.rotor_torques);
 	char tmp[] = "   controller stepping";
 	int i;
 	for (i = 0; i < sizeof(tmp); i++)

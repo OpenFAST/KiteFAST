@@ -7,6 +7,7 @@
 #include "control/control_types.h"
 #include "control/estimator/estimator_types.h"
 #include "control/ground_station_frame.h"
+#include "kfc.h"
 
 void AssignInputs(double dcm_g2b_c[], double pqr_c[], double *acc_norm_c,
 	double Xg_c[], double Vg_c[], double Vb_c[], double Ag_c[],
@@ -99,6 +100,19 @@ void AssignOutputs(double CtrlSettings[], double Gen_Torque[],
 	double Rotor_Accel[], double Rotor_Speed[], double Blade_Pitch[],
 	int *errStat, char *errMsg, 
 	ControlOutput* raw_control_output, MotorState* motor_state){
+		
+	// Kite Fast control surfaces convention
+	// starboard-wing-1
+	// starboard-wing-2
+	// port-wing-1
+	// port-wing-2
+	// starboard-horizontalstab-1
+	// starboard-horizontalstab-2
+	// port-horizontalstab-1
+	// port-horizontalstab-2
+	// verticalstab-1
+	// verticalstab-2
+	
 	//kFlap_A
 	CtrlSettings[0] = raw_control_output->flaps[kFlapA5]; //Starboard wing control ID 1
 	CtrlSettings[1] = raw_control_output->flaps[kFlapA7]; //Starboard wing control ID 2
@@ -144,14 +158,15 @@ void AssignOutputs(double CtrlSettings[], double Gen_Torque[],
 	Gen_Torque[7] = motor_state->rotor_torques[kMotor4]; // Port      outer Bot = kMotor4
 
 	// Rotor Accelerations
-	Rotor_Accel[0] = motor_state->rotor_accel[kMotor7];
-	Rotor_Accel[1] = motor_state->rotor_accel[kMotor2];
-	Rotor_Accel[2] = motor_state->rotor_accel[kMotor8];
-	Rotor_Accel[3] = motor_state->rotor_accel[kMotor1];
-	Rotor_Accel[4] = motor_state->rotor_accel[kMotor6];
-	Rotor_Accel[5] = motor_state->rotor_accel[kMotor3];
-	Rotor_Accel[6] = motor_state->rotor_accel[kMotor5];
-	Rotor_Accel[7] = motor_state->rotor_accel[kMotor4];
+
+	Rotor_Accel[0] = motor_state->rotor_accel[kMotor7];		// (-)
+	Rotor_Accel[1] = motor_state->rotor_accel[kMotor2];		// (+)
+	Rotor_Accel[2] = motor_state->rotor_accel[kMotor8];		// (+)
+	Rotor_Accel[3] = motor_state->rotor_accel[kMotor1];		// (-)
+	Rotor_Accel[4] = motor_state->rotor_accel[kMotor6];		// (-)
+	Rotor_Accel[5] = motor_state->rotor_accel[kMotor3];		// (+)
+	Rotor_Accel[6] = motor_state->rotor_accel[kMotor5];		// (+)
+	Rotor_Accel[7] = motor_state->rotor_accel[kMotor4];		// (-)
 
 	// Rotor Speeds
 	Rotor_Speed[0] = motor_state->rotor_omegas[kMotor7];
@@ -162,17 +177,18 @@ void AssignOutputs(double CtrlSettings[], double Gen_Torque[],
 	Rotor_Speed[5] = motor_state->rotor_omegas[kMotor3];
 	Rotor_Speed[6] = motor_state->rotor_omegas[kMotor5];
 	Rotor_Speed[7] = motor_state->rotor_omegas[kMotor4];
-		
+
+	double test = raw_control_output->rotors[kMotor7];
 	#if DEBUG
 		printf("  kFlapA_c = [%0.4f, %0.4f, %0.4f, %0.4f, %0.4f, %0.4f, %0.4f, %0.4f] \n",
-					kFlapA_c[0],
-					kFlapA_c[1],
-					kFlapA_c[2],
-					kFlapA_c[3],
-					kFlapA_c[4],
-					kFlapA_c[5],
-					kFlapA_c[6],
-					kFlapA_c[7]);
+					CtrlSettings[0],
+					CtrlSettings[1],
+					CtrlSettings[2],
+					CtrlSettings[3],
+					CtrlSettings[4],
+					CtrlSettings[5],
+					CtrlSettings[6],
+					CtrlSettings[7]);
 		printf("  Gen_Torque = [%0.4f, %0.4f, %0.4f, %0.4f, %0.4f, %0.4f, %0.4f, %0.4f] \n",
 					Gen_Torque[0],
 					Gen_Torque[1],

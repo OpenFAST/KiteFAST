@@ -6,20 +6,92 @@
 
 #include "common/c_math/util.h"
 
-void SetMotorDirection(double rotor_cmds[]){
+void SetMotorDirection(double rotor_omegas[], double rotor_accel[], double rotor_torques[]){
+// Kitefast Motor Order -> Kitefast sign convention
+// 
+// [0] starboard-inboard-top      (-)
+// [1] starboard-inboard-bottom   (+)
+// [2] starboard-outboard-top     (+)
+// [3] starboard-outboard-bottom  (-)
+// [4] port-inboard-top           (-)
+// [5] port-inboard-bottom        (+)
+// [6] port-outboard-top          (+)
+// [7] port-outboard-bottom       (-)
+
+// Controller Motor Order -> Makani Sign Convention
+// 
+// Table:  location, #, name and rotational direction
+// (Pos or Neg) of each rotor, from the position of standing in front of and facing the kite.
+// 
+// 8. STo  | 7. STi|          | 6. PTi  | 5. PTo                       
+// Pos     | Neg   |          | Neg     | Pos
+// ----------------------------------------------
+// Starboard Wing  | Fuselage | Port Wing
+// ----------------------------------------------
+// 1. SBo  | 2. SBi|          | 3. PBi  | 4. PBo
+// Neg     | Pos   |          | Pos     | Neg
+// 
+// The propellers follow
+// the sign convention where positive means
+// that the propeller is rotating in a positive direction (i.e. right
+// hand rule) about the propeller axis, which is predominately in the
+// same direction as the body x-axis.
+// 
+
   double motor_dir[] = {
-    1,    // Motor 1
-    -1,   // Motor 2 
-    -1,   // Motor 3
-    1,    // Motor 4
-    -1,   // Motor 5
-    1,    // Motor 6
-    1,    // Motor 7
-    -1,   // Motor 8
+    -1,   // Motor 1
+    1,    // Motor 2 
+    1,    // Motor 3
+    -1,   // Motor 4
+    1,    // Motor 5
+    -1,   // Motor 6
+    -1,   // Motor 7
+    1,    // Motor 8
    };
 
+  // evaluate signs
   for (int i=0; i<kNumMotors; i++){
-      rotor_cmds[i] = rotor_cmds[i] * motor_dir[i];
+    // Rotor_speeds
+    if (rotor_omegas[i] > 0 && motor_dir[i] > 0){
+      // Do nothing sign is correct direction
+    }
+    else if (rotor_omegas[i] > 0 && motor_dir[i] < 0){
+      rotor_omegas[i] = rotor_omegas[i] * motor_dir[i];
+    }
+    else if (rotor_omegas[i] < 0 && motor_dir[i] > 0){
+      rotor_omegas[i] = rotor_omegas[i] * -motor_dir[i];
+    }
+    else if (rotor_omegas[i] < 0 && motor_dir[i] < 0){
+      // Do nothing sign is correct direction
+    }
+
+    // Rotor_accel
+    if (rotor_accel[i] > 0 && motor_dir[i] > 0){
+      // Do nothing sign is correct direction
+    }
+    else if (rotor_accel[i] > 0 && motor_dir[i] < 0){
+      rotor_accel[i] = rotor_accel[i] * motor_dir[i];
+    }
+    else if (rotor_accel[i] < 0 && motor_dir[i] > 0){
+      rotor_accel[i] = rotor_accel[i] * -motor_dir[i];
+    }
+    else if (rotor_accel[i] < 0 && motor_dir[i] < 0){
+      // Do nothing sign is correct direction
+    }
+
+    // Rotor_Torque
+    if (rotor_torques[i] > 0 && motor_dir[i] > 0){
+      // Do nothing sign is correct direction
+    }
+    else if (rotor_torques[i] > 0 && motor_dir[i] < 0){
+      rotor_torques[i] = rotor_torques[i] * motor_dir[i];
+    }
+    else if (rotor_torques[i] < 0 && motor_dir[i] > 0){
+      rotor_torques[i] = rotor_torques[i] * -motor_dir[i];
+    }
+    else if (rotor_torques[i] < 0 && motor_dir[i] < 0){
+      // Do nothing sign is correct direction
+    }
   }
 }
 

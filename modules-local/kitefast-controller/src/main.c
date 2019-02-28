@@ -6,6 +6,7 @@
     int errStat = 1;
     char errMsg = 'l';
     double dT = 0.01;
+    double t_c = dT;
     int numFlaps = 8;
     int numPylons = 2;
     double dcm_g2b_c[9] = {0.7213,0.0803,0.6880,-0.0426,0.9965,-0.0717,-0.6913,0.0224,0.722}; //first step of crosswind
@@ -21,6 +22,7 @@
     double tether_force_c[3]= {-4783.5,95.4776,8838.0};
     double wing_g_c[3]= {-5.8650, -0.1156, 2.2478};
     double genTorq[8] = {1,2,3,4,5,6,7,8};
+    // double AeroTorque[8] = {1,2,3,4,5,6,7,8};
     double rotorSpeed   [8]={1,2,3,4,5,6,7,8};
     double rotorAccel   [8]={1,2,3,4,5,6,7,8};
     double rotorBlPit   [8]={1,2,3,4,5,6,7,8};
@@ -30,21 +32,23 @@
     // double Motor_c[8]= {0,0,0,0,0,0,0,0};
     double AeroTorque[8] = {0,0,0,0,0,0,0,0};
 
-    kfc_dll_init(&dT, &numFlaps, &numPylons, 
+    kfc_dll_init(dT, numFlaps, numPylons, 
                   i_rot, genTorq, rotorSpeed,
                   rotorAccel, rotorBlPit, 
                   ctrlSettins,
                   &errStat, &errMsg); 
 
-    kfc_dll_end(&errStat, &errMsg);
-
-    kfc_dll_step(dcm_g2b_c, pqr_c, &acc_norm_c,
+    kfc_dll_step(t_c, dcm_g2b_c, pqr_c, &acc_norm_c,
         Xg_c, Vg_c, Vb_c, Ag_c,
         Ab_c, &rho_c, apparent_wind_c,  
-        tether_force_c, wing_g_c, genTorq,
+        tether_force_c, wing_g_c, AeroTorque, genTorq,
         rotorSpeed, rotorAccel, rotorBlPit,
         CtrlSettings,
         &errStat, &errMsg);
 
+    kfc_dll_end(&errStat, &errMsg);
+
     return 0;
  }
+
+ 

@@ -15,7 +15,7 @@ typedef struct TorqueLimits {
 } TorqueLimits;
 
 // Applies directions to the motor speeds.
-void SetMotorDirection(double rotor_cmds[]);
+void SetMotorDirection(double rotor_omegas[], double rotor_accel[], double rotor_torques[]);
 
 // Calculates upper and lower torque limits based on the voltage,
 // rotational velocity, motor parameters, and programmed current
