@@ -2649,9 +2649,10 @@ subroutine KFAST_Init(dt_c, numFlaps, numPylons, numComp, numCompNds, modFlags, 
       
       call KAD_Init(KAD_InitInp, m%KAD%u(1), m%KAD%p, m%KAD%y, interval, m%KAD%x, m%KAD%xd, m%KAD%z, m%KAD%OtherSt, m%KAD%m, KAD_InitOut, errStat2, errMsg2 )
          call SetErrStat(errStat2,errMsg2,errStat,errMsg,routineName)
-         
-      if ( .not. EqualRealNos(real(interval, ReKi), real(dt,ReKi)) ) then
-        call SetErrStat(ErrID_Fatal,'KiteAeroDyn DT must be equal to MBDyn DT',errStat,errMsg,routineName) 
+      m%KAD%dt = interval  
+  
+      if ( .not. EqualRealNos(mod(real(interval, ReKi), real(dt,ReKi)), 0.0_ReKi) ) then
+        call SetErrStat(ErrID_Fatal,'KiteAeroDyn DT must be an integer multiple of MBDyn DT',errStat,errMsg,routineName) 
       end if
       
       if (errStat >= AbortErrLev ) then
@@ -2781,9 +2782,13 @@ subroutine KFAST_Init(dt_c, numFlaps, numPylons, numComp, numCompNds, modFlags, 
          call TransferErrors(errStat, errMsg, errStat_c, errMsg_c)
          return
       end if
+   m%KFC%dt = interval  
+  
+   if ( .not. EqualRealNos(mod(real(interval, ReKi), real(dt,ReKi)), 0.0_ReKi) ) then
+      call SetErrStat(ErrID_Fatal,'KiteFASTController DT must be an integer multiple of MBDyn DT',errStat,errMsg,routineName) 
+   end if
    
-   
-   OtherSt%NewTime = .true.  ! This flag is needed to tell us when we have advanced time, and hence need to call the Controller's Step routine
+   OtherSt%NewTime = .true.  ! This flag is needed to tell us when we have advanced time, and hence need to call the Controller's and KAD Step routines
    
 ! -------------------------------------------------------------------------
 ! Initialize mesh-mapping data
@@ -3253,8 +3258,8 @@ subroutine KFAST_AssRes(t_c, isInitialTime_c, WindPt_c, FusO_c, FusODCM_c, FusOv
    ! Controller
    ! -------------------------------------------------------------------------      
    
-   if (OtherSt%NewTime .and. (isInitialTime < 1) .and. EqualRealNos(real(mod(t, 0.01_DbKi),ReKi),0.0_ReKi) ) then
-
+   if (OtherSt%NewTime .and. (isInitialTime < 1) .and. EqualRealNos(real(mod(t, m%KFC%dt),ReKi),0.0_ReKi) ) then
+	  
          ! NOTE: The controller is stepping from t - p%dt (GetXPrev in MBDyn) to t (GetXCur in MBDyn)
          !       therefore, all inputs to KFC needs to be at time, t - p%dt.
       if ( p%useKAD ) then
@@ -3293,14 +3298,14 @@ subroutine KFAST_AssRes(t_c, isInitialTime_c, WindPt_c, FusO_c, FusODCM_c, FusOv
       m%KFC%u%apparent_wind = matmul(p%DCM_Fast2Ctrl, m%KFC%u%apparent_wind)
      
          
-      call KFC_Step(t-0.01_DbKi, m%KFC%u, m%KFC%p, m%KFC%y, errStat2, errMsg2 )
+      call KFC_Step(t-m%KFC%dt, m%KFC%u, m%KFC%p, m%KFC%y, errStat2, errMsg2 )
          call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
       if (errStat >= AbortErrLev ) then
          call TransferErrors(errStat, errMsg, errStat_c, errMsg_c)
          return
       end if
       
-      OtherSt%NewTime = .false. ! only call the controller once per timestep
+      
       
    end if
              
@@ -3419,115 +3424,117 @@ subroutine KFAST_AssRes(t_c, isInitialTime_c, WindPt_c, FusO_c, FusODCM_c, FusOv
 ! -------------------------------------------------------------------------      
    
    if ( p%useKAD ) then
-      
-         ! Outputs from Controller for KAD (note: we always at least have a dummy controller to generate the necessary data)
-      m%KAD%u(1)%Ctrl_SFlp = m%KFC%y%SFlp
-      m%KAD%u(1)%Ctrl_PFlp = m%KFC%y%PFlp
-      m%KAD%u(1)%Ctrl_Rudr = m%KFC%y%Rudr
-      m%KAD%u(1)%Ctrl_SElv = m%KFC%y%SElv
-      m%KAD%u(1)%Ctrl_PElv = m%KFC%y%PElv
-      m%KAD%u(1)%Pitch_SPyRtr = m%KFC%y%SPyBldPitch   ! Controller only sets these to zero at this point.
-      m%KAD%u(1)%Pitch_PPyRtr = m%KFC%y%PPyBldPitch
-      m%KAD%u(1)%RtSpd_SPyRtr = m%KFC%y%SPyRtrSpd
-      m%KAD%u(1)%RtSpd_PPyRtr = m%KFC%y%PPyRtrSpd
-      
-      if ( p%useIfW ) then
+      if ( OtherSt%NewTime .and. EqualRealNos(real(mod(t, m%KAD%dt),ReKi),0.0_ReKi) ) then
+         call WrScr("Updating KAD Outputs")
+            ! Outputs from Controller for KAD (note: we always at least have a dummy controller to generate the necessary data)
+         m%KAD%u(1)%Ctrl_SFlp = m%KFC%y%SFlp
+         m%KAD%u(1)%Ctrl_PFlp = m%KFC%y%PFlp
+         m%KAD%u(1)%Ctrl_Rudr = m%KFC%y%Rudr
+         m%KAD%u(1)%Ctrl_SElv = m%KFC%y%SElv
+         m%KAD%u(1)%Ctrl_PElv = m%KFC%y%PElv
+         m%KAD%u(1)%Pitch_SPyRtr = m%KFC%y%SPyBldPitch   ! Controller only sets these to zero at this point.
+         m%KAD%u(1)%Pitch_PPyRtr = m%KFC%y%PPyBldPitch
+         m%KAD%u(1)%RtSpd_SPyRtr = m%KFC%y%SPyRtrSpd
+         m%KAD%u(1)%RtSpd_PPyRtr = m%KFC%y%PPyRtrSpd
          
-            ! Transfer Inflow Wind outputs to the various KAD inflow inputs
-         c=3
-         do i = 1,size(m%KAD%u(1)%V_Fus,2)
-            m%KAD%u(1)%V_Fus(:,i)   = m%IfW%y%VelocityUVW(:,c)
-            c = c+1
-         end do
-         do i = 1,size(m%KAD%u(1)%V_SWn,2)
-            m%KAD%u(1)%V_SWn(:,i)   = m%IfW%y%VelocityUVW(:,c)
-            c = c+1
-         end do
-         do i = 1,size(m%KAD%u(1)%V_PWn,2)
-            m%KAD%u(1)%V_PWn(:,i)   = m%IfW%y%VelocityUVW(:,c)
-            c = c+1
-         end do
-         do i = 1,size(m%KAD%u(1)%V_VS,2)
-            m%KAD%u(1)%V_VS(:,i)   = m%IfW%y%VelocityUVW(:,c)
-            c = c+1
-         end do
-         do i = 1,size(m%KAD%u(1)%V_SHS,2)
-            m%KAD%u(1)%V_SHS(:,i)   = m%IfW%y%VelocityUVW(:,c)
-            c = c+1
-         end do
-         do i = 1,size(m%KAD%u(1)%V_PHS,2)
-            m%KAD%u(1)%V_PHS(:,i)   = m%IfW%y%VelocityUVW(:,c)
-            c = c+1
-         end do
-         do j = 1,p%numPylons
-            do i = 1,size(m%KAD%u(1)%V_SPy,2)
-               m%KAD%u(1)%V_SPy(:,i,j)   = m%IfW%y%VelocityUVW(:,c)
+         if ( p%useIfW ) then
+            
+               ! Transfer Inflow Wind outputs to the various KAD inflow inputs
+            c=3
+            do i = 1,size(m%KAD%u(1)%V_Fus,2)
+               m%KAD%u(1)%V_Fus(:,i)   = m%IfW%y%VelocityUVW(:,c)
                c = c+1
             end do
-         end do
-         do j = 1,p%numPylons
-            do i = 1,size(m%KAD%u(1)%V_PPy,2)
-               m%KAD%u(1)%V_PPy(:,i,j)   = m%IfW%y%VelocityUVW(:,c)
+            do i = 1,size(m%KAD%u(1)%V_SWn,2)
+               m%KAD%u(1)%V_SWn(:,i)   = m%IfW%y%VelocityUVW(:,c)
                c = c+1
             end do
-         end do   
-         do i = 1,p%numPylons
-            m%KAD%u(1)%V_SPyRtr(:,1,i) = m%IfW%y%VelocityUVW(:,c)
-            c = c+1
-            m%KAD%u(1)%V_SPyRtr(:,2,i) = m%IfW%y%VelocityUVW(:,c)
-            c = c+1
-         end do
-         do i = 1,p%numPylons
-            m%KAD%u(1)%V_PPyRtr(:,1,i) = m%IfW%y%VelocityUVW(:,c)
-            c = c+1
-            m%KAD%u(1)%V_PPyRtr(:,2,i) = m%IfW%y%VelocityUVW(:,c)
-            c = c+1
-         end do
-      else
-         m%KAD%u(1)%V_Fus     = 0.0_ReKi
-         m%KAD%u(1)%V_SWn     = 0.0_ReKi
-         m%KAD%u(1)%V_PWn     = 0.0_ReKi
-         m%KAD%u(1)%V_VS      = 0.0_ReKi
-         m%KAD%u(1)%V_SHS     = 0.0_ReKi
-         m%KAD%u(1)%V_PHS     = 0.0_ReKi
-         m%KAD%u(1)%V_SPy     = 0.0_ReKi
-         m%KAD%u(1)%V_PPy     = 0.0_ReKi         
-         m%KAD%u(1)%V_SPyRtr  = 0.0_ReKi    
-         m%KAD%u(1)%V_PPyRtr  = 0.0_ReKi  
-      end if
+            do i = 1,size(m%KAD%u(1)%V_PWn,2)
+               m%KAD%u(1)%V_PWn(:,i)   = m%IfW%y%VelocityUVW(:,c)
+               c = c+1
+            end do
+            do i = 1,size(m%KAD%u(1)%V_VS,2)
+               m%KAD%u(1)%V_VS(:,i)   = m%IfW%y%VelocityUVW(:,c)
+               c = c+1
+            end do
+            do i = 1,size(m%KAD%u(1)%V_SHS,2)
+               m%KAD%u(1)%V_SHS(:,i)   = m%IfW%y%VelocityUVW(:,c)
+               c = c+1
+            end do
+            do i = 1,size(m%KAD%u(1)%V_PHS,2)
+               m%KAD%u(1)%V_PHS(:,i)   = m%IfW%y%VelocityUVW(:,c)
+               c = c+1
+            end do
+            do j = 1,p%numPylons
+               do i = 1,size(m%KAD%u(1)%V_SPy,2)
+                  m%KAD%u(1)%V_SPy(:,i,j)   = m%IfW%y%VelocityUVW(:,c)
+                  c = c+1
+               end do
+            end do
+            do j = 1,p%numPylons
+               do i = 1,size(m%KAD%u(1)%V_PPy,2)
+                  m%KAD%u(1)%V_PPy(:,i,j)   = m%IfW%y%VelocityUVW(:,c)
+                  c = c+1
+               end do
+            end do   
+            do i = 1,p%numPylons
+               m%KAD%u(1)%V_SPyRtr(:,1,i) = m%IfW%y%VelocityUVW(:,c)
+               c = c+1
+               m%KAD%u(1)%V_SPyRtr(:,2,i) = m%IfW%y%VelocityUVW(:,c)
+               c = c+1
+            end do
+            do i = 1,p%numPylons
+               m%KAD%u(1)%V_PPyRtr(:,1,i) = m%IfW%y%VelocityUVW(:,c)
+               c = c+1
+               m%KAD%u(1)%V_PPyRtr(:,2,i) = m%IfW%y%VelocityUVW(:,c)
+               c = c+1
+            end do
+         else
+            m%KAD%u(1)%V_Fus     = 0.0_ReKi
+            m%KAD%u(1)%V_SWn     = 0.0_ReKi
+            m%KAD%u(1)%V_PWn     = 0.0_ReKi
+            m%KAD%u(1)%V_VS      = 0.0_ReKi
+            m%KAD%u(1)%V_SHS     = 0.0_ReKi
+            m%KAD%u(1)%V_PHS     = 0.0_ReKi
+            m%KAD%u(1)%V_SPy     = 0.0_ReKi
+            m%KAD%u(1)%V_PPy     = 0.0_ReKi         
+            m%KAD%u(1)%V_SPyRtr  = 0.0_ReKi    
+            m%KAD%u(1)%V_PPyRtr  = 0.0_ReKi  
+         end if
  
-      
+       
 
 ! TODO: Should we clean up/destroy the old version of m%KAD%z_copy ?
-      call KAD_CopyConstrState( m%KAD%z, m%KAD%z_copy, MESH_NEWCOPY, errStat2, errMsg2 )
-         call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
-         if (errStat >= AbortErrLev ) then
-            call TransferErrors(errStat, errMsg, errStat_c, errMsg_c)
-            return
-         end if
-         
-      if ( isInitialTime < 1 ) then
-            ! Copy the inputs
-            ! NOTE: KAD only has constraint/algebraic states, it only needs the inputs at t.  
-            !       We copied these inputs to t-dt only to ensure that both times are specified. 
-            !       (so that the interface follows the standard module template, but the inputs at t-dt are not used by KAD).
-         call KAD_CopyInput(m%KAD%u(1),m%KAD%u(2), MESH_NEWCOPY, errStat2, errMsg2)
-            call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
-         call KAD_UpdateStates( utimes(1), n, m%KAD%u, utimes, m%KAD%p, m%KAD%x, m%KAD%xd, m%KAD%z_copy, m%KAD%OtherSt, m%KAD%m, errStat2, errMsg2 )
+         call KAD_CopyConstrState( m%KAD%z, m%KAD%z_copy, MESH_NEWCOPY, errStat2, errMsg2 )
             call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
             if (errStat >= AbortErrLev ) then
                call TransferErrors(errStat, errMsg, errStat_c, errMsg_c)
                return
             end if
-      end if
-           
-      call KAD_CalcOutput( t, m%KAD%u(1), m%KAD%p, m%KAD%x, m%KAD%xd, m%KAD%z_copy, m%KAD%OtherSt, m%KAD%y, m%KAD%m, errStat2, errMsg2 )
-         call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
-         if (errStat >= AbortErrLev ) then
-            call TransferErrors(errStat, errMsg, errStat_c, errMsg_c)
-            return
+            
+         if ( isInitialTime < 1 ) then
+               ! Copy the inputs
+               ! NOTE: KAD only has constraint/algebraic states, it only needs the inputs at t.  
+               !       We copied these inputs to t-dt only to ensure that both times are specified. 
+               !       (so that the interface follows the standard module template, but the inputs at t-dt are not used by KAD).
+            call KAD_CopyInput(m%KAD%u(1),m%KAD%u(2), MESH_NEWCOPY, errStat2, errMsg2)
+               call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
+            call KAD_UpdateStates( utimes(1), n, m%KAD%u, utimes, m%KAD%p, m%KAD%x, m%KAD%xd, m%KAD%z_copy, m%KAD%OtherSt, m%KAD%m, errStat2, errMsg2 )
+               call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
+               if (errStat >= AbortErrLev ) then
+                  call TransferErrors(errStat, errMsg, errStat_c, errMsg_c)
+                  return
+               end if
          end if
-   end if
+              
+         call KAD_CalcOutput( t, m%KAD%u(1), m%KAD%p, m%KAD%x, m%KAD%xd, m%KAD%z_copy, m%KAD%OtherSt, m%KAD%y, m%KAD%m, errStat2, errMsg2 )
+            call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
+            if (errStat >= AbortErrLev ) then
+               call TransferErrors(errStat, errMsg, errStat_c, errMsg_c)
+               return
+            end if
+      end if       ! if ( OtherSt%NewTime .and. EqualRealNos(real(mod(t, 0.01_DbKi),ReKi),0.0_ReKi) )
+   end if          ! if ( p%useKAD )
    
       ! Compute the Rotor Reaction Loads
    do j = 1, p%numPylons
@@ -3564,7 +3571,7 @@ subroutine KFAST_AssRes(t_c, isInitialTime_c, WindPt_c, FusO_c, FusODCM_c, FusOv
       end do
    end do
    
-   
+   OtherSt%NewTime = .false. ! only call the controller and KAD once per timestep
    
    call TransferLoadsToMBDyn(p, m, nodeLoads_c, rtrLoads_c, errStat2, errMsg2 )
       call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )

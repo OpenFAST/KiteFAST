@@ -30,7 +30,8 @@ typedef    ^                   ^               KAD_DiscreteStateType   xd  - - -
 typedef    ^                   ^               KAD_ConstraintStateType z  - - - "Constraint states for KiteAeroDyn module" -
 typedef    ^                   ^               KAD_ConstraintStateType z_copy  - - - "Constraint states copy for KiteAeroDyn module" -
 typedef    ^                   ^               KAD_OtherStateType      OtherSt  - - - "Other states for KiteAeroDyn module" -
-typedef    ^                   ^               KAD_OutputType     y  - - - "Output data for KiteAeroDyn module" -    
+typedef    ^                   ^               KAD_OutputType     y  - - - "Output data for KiteAeroDyn module" -   
+typedef    ^                   ^               DbKi               dt - - - "KiteAeroDyn requested DT" s 
 typedef    KiteFAST/KFAST    IfW_Data          InflowWind_ParameterType       p  - - - "Parameter data for InflowWind module" -
 typedef    ^                   ^               InflowWind_InputType           u  - - - "Input data for InflowWind module" -
 typedef    ^                   ^               InflowWind_MiscVarType         m  - - - "Misc vars for InflowWind module" -
@@ -51,6 +52,7 @@ typedef    ^                   ^               MD_OutputType           y  - - - 
 typedef    KiteFAST/KFAST   KFC_Data           KFC_ParameterType   p  - - - "Parameter data for KiteFAST controller module" -
 typedef    ^                   ^               KFC_InputType       u  - - - "Input data for KiteFAST controller module" -
 typedef    ^                   ^               KFC_OutputType      y  - - - "Output data for KiteFAST controller module" -
+typedef    ^                   ^               DbKi               dt - - - "KiteFastController requested DT" s 
  
 # ..... Misc/Optimization variables.................................................................................................
 # Define any data that are used only for efficiency purposes (these variables are not associated with time):
