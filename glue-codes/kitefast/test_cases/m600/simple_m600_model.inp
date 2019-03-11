@@ -360,10 +360,10 @@ PylX      PylY      PylZ      PylTwist  PylChord  PylAFID
 --- ROTOR PROPERTIES ---
 RtrRad    RtrInFile
 (m)       (string)
-1.15      "simple_actuator_disk.dat"          ! STI
-1.15      "simple_actuator_diskN.dat"          ! SBI
-1.15      "simple_actuator_diskN.dat"          ! STO
-1.15      "simple_actuator_disk.dat"          ! SBO
+1.15      "simple_actuator_diskN.dat"          ! STI
+1.15      "simple_actuator_disk.dat"          ! SBI
+1.15      "simple_actuator_disk.dat"          ! STO
+1.15      "simple_actuator_diskN.dat"          ! SBO
 1.15      "simple_actuator_diskN.dat"          ! PTI
 1.15      "simple_actuator_disk.dat"          ! PBI
 1.15      "simple_actuator_disk.dat"          ! PTO
