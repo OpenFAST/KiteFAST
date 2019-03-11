@@ -3260,8 +3260,8 @@ subroutine KFAST_AssRes(t_c, isInitialTime_c, WindPt_c, FusO_c, FusODCM_c, FusOv
    
    if (OtherSt%NewTime .and. (isInitialTime < 1) .and. EqualRealNos(real(mod(t, m%KFC%dt),ReKi),0.0_ReKi) ) then
 	  
-         ! NOTE: The controller is stepping from t - p%dt (GetXPrev in MBDyn) to t (GetXCur in MBDyn)
-         !       therefore, all inputs to KFC needs to be at time, t - p%dt.
+         ! NOTE: The controller is stepping from t - m%KFC%dt to t (GetXCur in MBDyn)
+         !       therefore, all inputs to KFC needs to be at time, t - m%KFC%dt.
       if ( p%useKAD ) then
          do j = 1,p%numPylons
             do i = 1,2
@@ -3571,11 +3571,11 @@ subroutine KFAST_AssRes(t_c, isInitialTime_c, WindPt_c, FusO_c, FusODCM_c, FusOv
       end do
    end do
    
-   OtherSt%NewTime = .false. ! only call the controller and KAD once per timestep
-   
    call TransferLoadsToMBDyn(p, m, nodeLoads_c, rtrLoads_c, errStat2, errMsg2 )
       call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
       
+   OtherSt%NewTime = .false. ! only call the controller and KAD once per timestep
+
    call TransferErrors(errStat, errMsg, errStat_c, errMsg_c)
    return
 
@@ -3597,14 +3597,30 @@ subroutine KFAST_AfterPredict(t_c, errStat_c, errMsg_c) BIND (C, NAME='KFAST_Aft
 
       ! Reset the NewTime flag to indicate that the next call to KFAST_AssRes() will be for a new timestep
    OtherSt%NewTime = .true.
-   t = t_c
    
-   if ( EqualRealNos(real(mod(t-p%dt, 0.01_DbKi),ReKi),0.0_ReKi) ) then
-   print *, "Updating controller inputs"
-         ! transfer t+dt quantities to t outquantities for use by the controller during the next timestep
+   t = t_c  
+         
+   if ( p%useMD ) then
+         ! Copy the temporary states and place them into the actual versions
+      call MD_CopyContState   ( m%MD%x_copy, m%MD%x, MESH_NEWCOPY, errStat2, errMsg2 )
+         call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
+         ! Copy t+dt inputs to t for the next timestep
+      call MD_CopyInput( m%MD%u(2), OtherSt%MD_u, MESH_NEWCOPY, errStat2, errMsg2 )
+         call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
+   end if
+     
+   if ( p%useKAD ) then
+         call KAD_CopyConstrState( m%KAD%z_copy, m%KAD%z, MESH_NEWCOPY, errStat2, errMsg2 )
+   end if
+   
+  
+   if ( EqualRealNos(real(mod(t-p%dt, m%KFC%dt),ReKi),0.0_ReKi) ) then
+         ! NOTE: After Predict has actually incremented the timestep compared to the last AssRes() call.
+         ! We want to see if the most recent AssRes() time is an integer multiple of the Controller timestep.
+         ! If so, then we will update the controller inputs for use the next time the Controller Step is called.
+         ! 
          ! NOTE: we always have at a minimum a dummy controller
       
-         ! MBDyn Quantities
       OtherSt%SPyRtrDCMs = m%SPyRtrDCMs
       OtherSt%PPyRtrDCMs = m%PPyRtrDCMs
          
@@ -3623,14 +3639,7 @@ subroutine KFAST_AfterPredict(t_c, errStat_c, errMsg_c) BIND (C, NAME='KFAST_Aft
       end if
           
          ! transfer t+dt MoorDyn bridle forces to t forces for use by the controller during the next timestep     
-      if ( p%useMD ) then
-                     ! Copy the temporary states and place them into the actual versions
-         call MD_CopyContState   ( m%MD%x_copy, m%MD%x, MESH_NEWCOPY, errStat2, errMsg2 )
-            call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
-            ! Copy t+dt inputs to t for the next timestep
-         call MD_CopyInput( m%MD%u(2), OtherSt%MD_u, MESH_NEWCOPY, errStat2, errMsg2 )
-            call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
-            
+      if ( p%useMD ) then           
          numFairLeads = size(m%MD%y%PtFairLeadLoad%Force,2)
          OtherSt%totalFairLeadLoads = 0.0_ReKi
          do i = 1, numFairLeads
@@ -3639,8 +3648,6 @@ subroutine KFAST_AfterPredict(t_c, errStat_c, errMsg_c) BIND (C, NAME='KFAST_Aft
       end if
    
       if ( p%useKAD ) then
-         call KAD_CopyConstrState( m%KAD%z_copy, m%KAD%z, MESH_NEWCOPY, errStat2, errMsg2 )
-            call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
          do j = 1,p%numPylons
             do i = 1,2
                count = (j-1)*2 + i
@@ -3649,6 +3656,7 @@ subroutine KFAST_AfterPredict(t_c, errStat_c, errMsg_c) BIND (C, NAME='KFAST_Aft
             end do
          end do
       end if
+      
    end if
               ! transfer Fortran variables to C:  
    errStat_c = errStat
