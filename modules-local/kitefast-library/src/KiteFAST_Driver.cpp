@@ -604,7 +604,7 @@ int main(int argc, char *argv[])
         printf("%s\n", "Quitting due to error in KFAST_OUTPUT");
         return errStat;
     }
-
+    t = t + dt;  // MBDyn increments time before AfterPredict()
     
     // AfterPredict()
     KFAST_AfterPredict(&t, &errStat, errMsg);
@@ -620,7 +620,7 @@ int main(int argc, char *argv[])
     nFinal = 2;
     for (n = 2; n <= nFinal; n++) 
     {
-        t = t + dt;
+        
 
         // Modify positions and velocities and accelerations
 
@@ -647,8 +647,11 @@ int main(int argc, char *argv[])
            return errStat;
         }
 
+        t = t + dt;  // MBDyn increments time before AfterPredict()
+
+       
         // AfterPredict()
-        KFAST_AfterPredict(&errStat, errMsg);
+        KFAST_AfterPredict(&t, &errStat, errMsg);
         if (errStat != 0)
         {
             printf("%s\n", errMsg);
