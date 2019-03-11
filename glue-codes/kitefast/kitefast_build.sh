@@ -42,6 +42,7 @@ function install_if_not_found {
 
 function package_installed {
   print "Checking for "$1
+  echo $packages | grep -q $1
   return $?
 }
 
