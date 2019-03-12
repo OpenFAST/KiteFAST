@@ -3220,7 +3220,8 @@ subroutine KFAST_AssRes(t_c, isInitialTime_c, WindPt_c, FusO_c, FusODCM_c, FusOv
    integer(IntKi)           :: errStat, errStat2              ! error status values
    character(ErrMsgLen)     :: errMsg, errMsg2                ! error messages
    character(*), parameter  :: routineName = 'KFAST_AssRes'
-   
+   logical                  :: test
+   real(SiKi)               :: fracStep
    errStat = ErrID_None
    errMsg  = ''
    
@@ -3257,8 +3258,9 @@ subroutine KFAST_AssRes(t_c, isInitialTime_c, WindPt_c, FusO_c, FusODCM_c, FusOv
    ! -------------------------------------------------------------------------
    ! Controller
    ! -------------------------------------------------------------------------      
-   
-   if (OtherSt%NewTime .and. (isInitialTime < 1) .and. EqualRealNos(real(mod(t, m%KFC%dt),ReKi),0.0_ReKi) ) then
+   fracStep = modulo( real(t,SiKi), real(m%KFC%dt,SiKi) )
+   test = EqualRealNos( fracStep , 0.0_SiKi )
+   if ( OtherSt%NewTime .and. (isInitialTime < 1) .and. test ) then
 	  
          ! NOTE: The controller is stepping from t - m%KFC%dt to t (GetXCur in MBDyn)
          !       therefore, all inputs to KFC needs to be at time, t - m%KFC%dt.
@@ -3424,8 +3426,11 @@ subroutine KFAST_AssRes(t_c, isInitialTime_c, WindPt_c, FusO_c, FusODCM_c, FusOv
 ! -------------------------------------------------------------------------      
    
    if ( p%useKAD ) then
-      if ( OtherSt%NewTime .and. EqualRealNos(real(mod(t, m%KAD%dt),ReKi),0.0_ReKi) ) then
-         call WrScr("Updating KAD Outputs")
+   fracStep = modulo( real(t,SiKi), real(m%KAD%dt,SiKi) )
+   test = EqualRealNos( fracStep , 0.0_SiKi )
+   
+      if ( OtherSt%NewTime .and. test ) then
+         ! call WrScr("Updating KAD Outputs")
             ! Outputs from Controller for KAD (note: we always at least have a dummy controller to generate the necessary data)
          m%KAD%u(1)%Ctrl_SFlp = m%KFC%y%SFlp
          m%KAD%u(1)%Ctrl_PFlp = m%KFC%y%PFlp
@@ -3592,6 +3597,8 @@ subroutine KFAST_AfterPredict(t_c, errStat_c, errMsg_c) BIND (C, NAME='KFAST_Aft
    character(*), parameter         :: routineName = 'KFAST_AfterPredict'
    integer(IntKi)                  :: numFairLeads, i, count, j
    real(DbKi)                      :: t
+   real(SiKi)                      :: fracStep
+   logical                         :: test
    errStat = ErrID_None
    errMsg  = ''
 
@@ -3613,8 +3620,9 @@ subroutine KFAST_AfterPredict(t_c, errStat_c, errMsg_c) BIND (C, NAME='KFAST_Aft
          call KAD_CopyConstrState( m%KAD%z_copy, m%KAD%z, MESH_NEWCOPY, errStat2, errMsg2 )
    end if
    
-  
-   if ( EqualRealNos(real(mod(t-p%dt, m%KFC%dt),ReKi),0.0_ReKi) ) then
+   fracStep = modulo( real(t-p%dt,SiKi), real(m%KFC%dt,SiKi) )
+   test = EqualRealNos( fracStep , 0.0_SiKi )
+   if ( test ) then
          ! NOTE: After Predict has actually incremented the timestep compared to the last AssRes() call.
          ! We want to see if the most recent AssRes() time is an integer multiple of the Controller timestep.
          ! If so, then we will update the controller inputs for use the next time the Controller Step is called.
