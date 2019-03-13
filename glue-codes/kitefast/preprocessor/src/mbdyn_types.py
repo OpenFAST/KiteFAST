@@ -551,107 +551,125 @@ def IntegralNPR(n1, n2, p1, p2, r1, r2, l1, l2):
 
 def beam_mass_distribution(x1, y1, z1,
                            x2, y2, z2,
-                           m_l1, m_l2,
-                           cm_offset1, cm_offset2,
-                           ixx_l1, iyy_l1, izz_l1,
-                           ixy_l1, ixz_l1, iyz_l1,
-                           ixx_l2, iyy_l2, izz_l2,
-                           ixy_l2, ixz_l2, iyz_l2,
-                           primary_direction):
+                           m1, m2,
+                           ixx1, iyy1, izz1,
+                           ixy1, ixz1, iyz1,
+                           ixx2, iyy2, izz2,
+                           ixy2, ixz2, iyz2):
 
-    # move the input coordinates to 0, 0, 0
-    # so that the calculation is relative to the element, not the kite
-    x1, x2 = x1 - x1, x2 - x1
-    y1, y2 = y1 - y1, y2 - y1
-    z1, z2 = z1 - z1, z2 - z1
+    Lb = x2 - x1
+    M = (m1 + m2) / 2.0 * Lb
 
-    # volume quanitities
-    if primary_direction == "x1":
-        a, b = x1, x2
-        cmx_offset1, cmx_offset2 = 0, 0
-        cmy_offset1, cmy_offset2 = cm_offset1[0], cm_offset2[0]
-        cmz_offset1, cmz_offset2 = cm_offset1[1], cm_offset2[1]
-    elif primary_direction == "x2":
-        a, b = y1, y2
-        cmx_offset1, cmx_offset2 = cm_offset1[0], cm_offset2[0]
-        cmy_offset1, cmy_offset2 = 0, 0
-        cmz_offset1, cmz_offset2 = cm_offset1[1], cm_offset2[1]
-    elif primary_direction == "x3":
-        a, b = z1, z2
-        cmx_offset1, cmx_offset2 = cm_offset1[0], cm_offset2[0]
-        cmy_offset1, cmy_offset2 = cm_offset1[1], cm_offset2[1]
-        cmz_offset1, cmz_offset2 = 0, 0
+    XgM = (Lb / 6.0) * ((2 * m2 + m1) * Lb + 3 * x1 * (m1 + m2))
+    YgM = (Lb / 6.0) * ((2 * m1 + m2) * y1 + (2 * m2 + m1) * y2)
+    ZgM = (Lb / 6.0) * ((2 * m1 + m2) * z1 + (2 * m2 + m1) * z2)
 
-    # element properties
-    L = b - a
-    M = IntegralN(m_l1, m_l2, a, b)
+    M1 = (3 * m1 + m2) / 8 * Lb
+    M2 = M - M1
 
-    # these centers of gravity are local to this element
-    Xg = IntegralNP(m_l1, m_l2, x1 + cmx_offset1, x2 + cmx_offset2, a, b) / M
-    Yg = IntegralNP(m_l1, m_l2, y1 + cmy_offset1, y2 + cmy_offset2, a, b) / M
-    Zg = IntegralNP(m_l1, m_l2, z1 + cmz_offset1, z2 + cmz_offset2, a, b) / M
+    Ixx = (Lb / 12.0) \
+        * (
+            6 * (ixx1 + ixx2)
+            + m1 * (3 * y1**2 + 2 * y1 * y2 + y2**2 + 3 * z1**2 + 2 * z1 * z2 + z2**2)
+            + m2 * (y1**2 + 2 * y1 * y2 + 3 * y2**2 + z1**2 + 2 * z1 * z2 + 3 * z2**2)
+        )
+    Iyy = (Lb / 12.0) \
+        * (
+            6 * (iyy1 + iyy2)
+            + m1 * (Lb**2 + 4 * Lb * x1 + 6 * x1**2 + 3 * z1**2 + 2 * z1 * z2 + z2**2)
+            + m2 * (3 * Lb**2 + 8 * Lb * x1 + 6 * x1**2 + z1**2 + 2 * z1 * z2 + 3 * z2**2)
+        )
+    Izz = (Lb / 12.0) \
+        * (
+            6 * (izz1 + izz2)
+            + m1 * (Lb**2 + 4 * Lb * x1 + 6 * x1**2 + 3 * y1**2 + 2 * y1 * y2 + y2**2)
+            + m2 * (3 * Lb**2 + 8 * Lb * x1 + 6 * x1**2 + y1**2 + 2 * y1 * y2 + 3 * y2**2)
+        )
+    Ixy = (Lb / 12.0) \
+        * (
+            6 * (ixy1 + ixy2)
+            + m1 * (Lb * (y1 + y2) + 2 * x1 * (2 * y1 + y2))
+            + m2 * (Lb * (y1 + 3 * y2) + 2 * x1 * (y1 + 2 * y2))
+        )
+    Ixz = (Lb / 12.0) \
+        * (
+            6 * (ixz1 + ixz2)
+            + m1 * (Lb * (z1 + z2) + 2 * x1 * (2 * z1 + z2))
+            + m2 * (Lb * (z1 + 3 * z2) + 2 * x1 * (z1 + 2 * z2))
+        )
+    Iyz = (Lb / 12.0) \
+        * (
+            6 * (iyz1 + iyz2)
+            + m1 * (y2 * (z1 + z2) + y1 * (3 * z1 + z2))
+            + m2 * (y1 * (z1 + z2) + y2 * (z1 + 3 * z2))
+    )
+
+    Ixx1 = (Lb / 192) \
+        * (
+            24 * (3 * ixx1 + ixx2)
+            + m1 * (45 * y1**2 + 22 * y1 * y2 + 5 * y2**2 + 45 * z1**2 + 22 * z1 * z2 + 5 * z2**2)
+            + m2 * (11 * y1**2 + 10 * y1 * y2 + 3 * y2**2 + 11 * z1**2 + 10 * z1 * z2 + 3 * z2**2)
+        )
+
+    Iyy1 = (Lb / 192) \
+        * (
+            24 * (3 * iyy1 + iyy2)
+            + m1 * (5 * Lb**2 + 32 * Lb * x1 + 72 * x1**2 + 45 * z1**2 + 22 * z1 * z2 + 5 * z2**2)
+            + m2 * (3 * Lb**2 + 16 * Lb * x1 + 24 * x1**2 + 11 * z1**2 + 10 * z1 * z2 + 3 * z2**2)
+        )
+
+    Izz1 = (Lb / 192) \
+        * (
+            24 * (3 * izz1 + izz2)
+            + m1 * (5 * Lb**2 + 32 * Lb * x1 + 72 * x1**2 + 45 * y1**2 + 22 * y1 * y2 + 5 * y2**2)
+            + m2 * (3 * Lb**2 + 16 * Lb * x1 + 24 * x1**2 + 11 * y1**2 + 10 * y1 * y2 + 3 * y2**2)
+        )
+
+    Ixy1 = (Lb / 192) \
+        * (
+            24 * (3 * ixy1 + ixy2)
+            + m1 * (11 * Lb * y1 + 56 * x1 * y1 + 5 * Lb * y2 + 16 * x1 * y2)
+            + m2 * (5 * Lb * y1 + 16 * x1 * y1 + 3 * Lb * y2 + 8 * x1 * y2)
+        )
+
+    Ixz1 = (Lb / 192) \
+        * (
+            24 * (3 * ixz1 + ixz2)
+            + m1 * (11 * Lb * z1 + 56 * x1 * z1 + 5 * Lb * z2 + 16 * x1 * z2)
+            + m2 * (5 * Lb * z1 + 16 * x1 * z1 + 3 * Lb * z2 + 8 * x1 * z2)
+        )
     
-    Ixx = IntegralN(ixx_l1, ixx_l2, a, b) + IntegralN_times_P2plusR2(m_l1, m_l2, y1, y2, z1, z2, a, b)
-    Iyy = IntegralN(iyy_l1, iyy_l2, a, b) + IntegralN_times_P2plusR2(m_l1, m_l2, x1, x2, z1, z2, a, b)
-    Izz = IntegralN(izz_l1, izz_l2, a, b) + IntegralN_times_P2plusR2(m_l1, m_l2, x1, x2, y1, y2, a, b)
+    Iyz1 = (Lb / 192) \
+        * (
+            24 * (3 * iyz1 + iyz2)
+            + m1 * (45 * y1 * z1 + 11 * y2 * z1 + 11 * y1 * z2 + 5 * y2 * z2)
+            + m2 * (11 * y1 * z1 + 5 * y2 * z1 + 5 * y1 * z2 + 3 * y2 * z2)
+        )
 
-    # print("should be: ", 5**3 / 3)
-    # print("{:>8} {:>8} {:>8}".format("I11", "I22", "I33"))
-    # print("{:>8.4} {:>8.4} {:>8.4}".format(Ixx, Iyy, Izz))
-
-    Ixy = IntegralN(ixy_l1, ixy_l2, b, a) + IntegralNPR(m_l1, m_l2, x1, x2, y1, y2, b, a)
-    Ixz = IntegralN(ixz_l1, ixz_l2, b, a) + IntegralNPR(m_l1, m_l2, x1, x2, z1, z2, b, a)
-    Iyz = IntegralN(iyz_l1, iyz_l2, b, a) + IntegralNPR(m_l1, m_l2, y1, y2, z1, z2, b, a)
-
-    # nodal quantities
-    if primary_direction == "x1":
-        M2 = (Xg - x1) * M / L
-        Xg1, Xg2 = 0.0, 0.0
-        Yg1, Yg2 = Yg, Yg
-        Zg1, Zg2 = Zg, Zg
-    elif primary_direction == "x2":
-        M2 = (Yg - y1) * M / L
-        Xg1, Xg2 = Xg, Xg
-        Yg1, Yg2 = 0.0, 0.0
-        Zg1, Zg2 = Zg, Zg
-    elif primary_direction == "x3":
-        M2 = (Zg - z1) * M / L
-        Xg1, Xg2 = Xg, Xg
-        Yg1, Yg2 = Yg, Yg
-        Zg1, Zg2 = 0.0, 0.0
-    M1 = M - M2
-
-    # def _calculate_node_inertia_component(I11, I22, I33, M, L, m2, dCG1, dCG2, dCG3):
-    #     # return (I11 - M * (dCG2**2 + dCG3**2)) / 2, \
-    #     #        (I22 - M * dCG3**2 - M2 * L**2) / 2, \
-    #     #        (I33 - M * dCG2**2 - M2 * L**2) / 2
-    #     return I11 / 2, I22 / 2, I33 / 2
-
-    # if primary_direction == "x1":
-    #     Ixx1, Iyy1, Izz1 = _calculate_node_inertia_component(Ixx, Iyy, Izz, M, L, M2, Xg, Yg, Zg)
-    # elif primary_direction == "x2":
-    #     Iyy1, Ixx1, Izz1 = _calculate_node_inertia_component(Iyy, Ixx, Izz, M, L, M2, Yg, Xg, Zg)
-    # elif primary_direction == "x3":
-    #     Izz1, Iyy1, Ixx1 = _calculate_node_inertia_component(Izz, Iyy, Ixx, M, L, M2, Zg, Yg, Xg)
-
-    # split the inertias between loads
-    Ixx1 = Ixx / 2.0
-    Iyy1 = Iyy / 2.0
-    Izz1 = Izz / 2.0
-    Ixx2, Iyy2, Izz2 = Ixx1, Iyy1, Izz1
+    Xg = XgM / M
+    Yg = YgM / M
+    Zg = ZgM / M
+    R = -1 * np.array([Xg, Yg, Zg])
     
-    Ixy1 = 0
-    Ixy2 = Ixy1
-    Ixz1 = 0
-    Ixz2 = Ixz1
-    Iyz1 = 0
-    Iyz2 = Iyz1
+    Ixx1G = Ixx1 - M1 * (np.sum(R**2) - R[0] * R[0])
+    Iyy1G = Iyy1 - M1 * (np.sum(R**2) - R[1] * R[1])
+    Izz1G = Izz1 - M1 * (np.sum(R**2) - R[2] * R[2])
+    Ixy1G = Ixy1 - M1 * (-1 * R[0] * R[1])
+    Ixz1G = Ixz1 - M1 * (-1 * R[0] * R[2])
+    Iyz1G = Iyz1 - M1 * (-1 * R[1] * R[2])
+
+    Ixx2G = Ixx - Ixx1G - M * (np.sum(R**2) - R[0] * R[0])
+    Iyy2G = Iyy - Iyy1G - M * (np.sum(R**2) - R[1] * R[1])
+    Izz2G = Izz - Izz1G - M * (np.sum(R**2) - R[2] * R[2])
+    Ixy2G = Ixy - Ixy1G - M * (-1 * R[0] * R[1])
+    Ixz2G = Ixz - Ixz1G - M * (-1 * R[0] * R[2])
+    Iyz2G = Iyz - Iyz1G - M * (-1 * R[1] * R[2])
 
     return M1, \
-        Xg1, Yg1, Zg1, \
-        Ixx1, Iyy1, Izz1, \
-        Ixy1, Ixz1, Iyz1, \
+        Xg, Yg, Zg, \
+        Ixx1G, Iyy1G, Izz1G, \
+        Ixy1G, Ixz1G, Iyz1G, \
         M2, \
-        Xg2, Yg2, Zg2, \
-        Ixx2, Iyy2, Izz2, \
-        Ixy2, Ixz2, Iyz2
+        Xg, Yg, Zg, \
+        Ixx2G, Iyy2G, Izz2G, \
+        Ixy2G, Ixz2G, Iyz2G
