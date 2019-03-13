@@ -342,43 +342,132 @@ class Beam3():
                              gauss_last_point)
             )
 
-        # lumped mass calculation
-        self.m1, \
-            self.cm_offx1, self.cm_offy1, self.cm_offz1, \
+        # lumped mass and inertia calculation
+        if self.primary_direction == "x1":
+            # global - local beam
+            # x (x1) = x (x1)
+            # y (x2) = y (x2)
+            # z (x3) = z (x3)
+            self.m1, \
+            self.cmx1, self.cmy1, self.cmz1, \
             self.ixx1, self.iyy1, self.izz1, \
             self.ixy1, self.ixz1, self.iyz1, \
             self.m2_1, \
-            self.cm_offx2_1, self.cm_offy2_1, self.cm_offz2_1, \
+            self.cmx2_1, self.cmy2_1, self.cmz2_1, \
             self.ixx2_1, self.iyy2_1, self.izz2_1, \
             self.ixy2_1, self.ixz2_1, self.iyz2_1 = beam_mass_distribution(
                 self.node_first.position.x1, self.node_first.position.x2, self.node_first.position.x3,
                 self.node_mid.position.x1, self.node_mid.position.x2, self.node_mid.position.x3,
                 self.mass_first, self.mass_mid,
-                self.cm_offset_first, self.cm_offset_mid,
                 self.inertia_first[0], self.inertia_first[1], self.inertia_first[2],
                 self.inertia_first[3], self.inertia_first[4], self.inertia_first[5],
                 self.inertia_mid[0], self.inertia_mid[1], self.inertia_mid[2],
-                self.inertia_mid[3], self.inertia_mid[4], self.inertia_mid[5],
-                self.primary_direction
+                self.inertia_mid[3], self.inertia_mid[4], self.inertia_mid[5]
             )
 
-        self.m2_2, \
-            self.cm_offx2_2, self.cm_offy2_2, self.cm_offz2_2, \
+            self.m2_2, \
+            self.cmx2_2, self.cmy2_2, self.cmz2_2, \
             self.ixx2_2, self.iyy2_2, self.izz2_2, \
             self.ixy2_2, self.ixz2_2, self.iyz2_2, \
             self.m3, \
-            self.cm_offx3, self.cm_offy3, self.cm_offz3, \
+            self.cmx3, self.cmy3, self.cmz3, \
             self.ixx3, self.iyy3, self.izz3, \
             self.ixy3, self.ixz3, self.iyz3 = beam_mass_distribution(
                 self.node_mid.position.x1, self.node_mid.position.x2, self.node_mid.position.x3,
                 self.node_last.position.x1, self.node_last.position.x2, self.node_last.position.x3,
                 self.mass_mid, self.mass_last,
-                self.cm_offset_mid, self.cm_offset_last,
                 self.inertia_mid[0], self.inertia_mid[1], self.inertia_mid[2],
                 self.inertia_mid[3], self.inertia_mid[4], self.inertia_mid[5],
                 self.inertia_last[0], self.inertia_last[1], self.inertia_last[2],
-                self.inertia_last[3], self.inertia_last[4], self.inertia_last[5],
-                self.primary_direction
+                self.inertia_last[3], self.inertia_last[4], self.inertia_last[5]
+            )
+
+        elif self.primary_direction == "x2":
+            # permutate the indeces to pass the global coordinate into the beams reference frame
+            # global - local beam
+            # y (x2) = x (x1)
+            # z (x3) = y (x2)
+            # x (x1) = z (x3)
+            #
+            # in place of these => pass these
+            # x y z => y z x
+            # xy xz yz => yz xy xz
+            self.m1, \
+            self.cmy1, self.cmz1, self.cmx1, \
+            self.iyy1, self.izz1, self.ixx1, \
+            self.iyz1, self.ixy1, self.ixz1, \
+            self.m2_1, \
+            self.cmy2_1, self.cmz2_1, self.cmx2_1, \
+            self.iyy2_1, self.izz2_1, self.ixx2_1, \
+            self.iyz2_1, self.ixy2_1, self.ixz2_1 = beam_mass_distribution(
+                self.node_first.position.x2, self.node_first.position.x3, self.node_first.position.x1,
+                self.node_mid.position.x2, self.node_mid.position.x3, self.node_mid.position.x1,
+                self.mass_first, self.mass_mid,
+                self.inertia_first[1], self.inertia_first[2], self.inertia_first[0],
+                self.inertia_first[5], self.inertia_first[3], self.inertia_first[4],
+                self.inertia_mid[1], self.inertia_mid[2], self.inertia_mid[0],
+                self.inertia_mid[5], self.inertia_mid[3], self.inertia_mid[4]
+            )
+
+            self.m2_2, \
+            self.cmy2_2, self.cmz2_2, self.cmx2_2, \
+            self.iyy2_2, self.izz2_2, self.ixx2_2, \
+            self.iyz2_2, self.ixy2_2, self.ixz2_2, \
+            self.m3, \
+            self.cmy3, self.cmz3, self.cmx3, \
+            self.iyy3, self.izz3, self.ixx3, \
+            self.iyz3, self.ixy3, self.ixz3 = beam_mass_distribution(
+                self.node_mid.position.x2, self.node_mid.position.x3, self.node_mid.position.x1,
+                self.node_last.position.x2, self.node_last.position.x3, self.node_last.position.x1,
+                self.mass_mid, self.mass_last,
+                self.inertia_mid[1], self.inertia_mid[2], self.inertia_mid[0],
+                self.inertia_mid[5], self.inertia_mid[3], self.inertia_mid[4],
+                self.inertia_last[1], self.inertia_last[2], self.inertia_last[0],
+                self.inertia_last[5], self.inertia_last[3], self.inertia_last[4]
+            )
+
+        elif self.primary_direction == "x3":
+            # permutate the indeces to pass the global coordinate into the beams reference frame
+            # global - local beam
+            # z (x3) = x (x1)
+            # x (x1) = y (x2)
+            # y (x2) = z (x3)
+            # 
+            # in place of these => pass these
+            # x y z => z x y
+            # xy xz yz => xz yz xy
+            self.m1, \
+            self.cmz1, self.cmx1, self.cmy1, \
+            self.izz1, self.ixx1, self.iyy1, \
+            self.ixz1, self.iyz1, self.ixy1, \
+            self.m2_1, \
+            self.cmz2_1, self.cmx2_1, self.cmy2_1, \
+            self.izz2_1, self.ixx2_1, self.iyy2_1, \
+            self.ixz2_1, self.iyz2_1, self.ixy2_1 = beam_mass_distribution(
+                self.node_first.position.x3, self.node_first.position.x1, self.node_first.position.x2,
+                self.node_mid.position.x3, self.node_mid.position.x1, self.node_mid.position.x2,
+                self.mass_first, self.mass_mid,
+                self.inertia_first[0], self.inertia_first[1], self.inertia_first[2],
+                self.inertia_first[3], self.inertia_first[4], self.inertia_first[5],
+                self.inertia_mid[0], self.inertia_mid[1], self.inertia_mid[2],
+                self.inertia_mid[3], self.inertia_mid[4], self.inertia_mid[5]
+            )
+
+            self.m2_2, \
+            self.cmz2_2, self.cmx2_2, self.cmy2_2, \
+            self.izz2_2, self.ixx2_2, self.iyy2_2, \
+            self.ixz2_2, self.iyz2_2, self.ixy2_2, \
+            self.m3, \
+            self.cmz3, self.cmx3, self.cmy3, \
+            self.izz3, self.ixx3, self.iyy3, \
+            self.ixz3, self.iyz3, self.ixy3 = beam_mass_distribution(
+                self.node_mid.position.x3, self.node_mid.position.x1, self.node_mid.position.x2,
+                self.node_last.position.x3, self.node_last.position.x1, self.node_last.position.x2,
+                self.mass_mid, self.mass_last,
+                self.inertia_mid[2], self.inertia_mid[0], self.inertia_mid[1],
+                self.inertia_mid[4], self.inertia_mid[5], self.inertia_mid[3],
+                self.inertia_last[2], self.inertia_last[0], self.inertia_last[1],
+                self.inertia_last[4], self.inertia_last[5], self.inertia_last[3]
             )
 
         self.m2 = self.m2_1 + self.m2_2
