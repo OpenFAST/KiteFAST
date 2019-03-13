@@ -447,10 +447,10 @@ class Beam3():
                 self.node_first.position.x3, self.node_first.position.x1, self.node_first.position.x2,
                 self.node_mid.position.x3, self.node_mid.position.x1, self.node_mid.position.x2,
                 self.mass_first, self.mass_mid,
-                self.inertia_first[0], self.inertia_first[1], self.inertia_first[2],
-                self.inertia_first[3], self.inertia_first[4], self.inertia_first[5],
-                self.inertia_mid[0], self.inertia_mid[1], self.inertia_mid[2],
-                self.inertia_mid[3], self.inertia_mid[4], self.inertia_mid[5]
+                self.inertia_first[2], self.inertia_first[0], self.inertia_first[1],
+                self.inertia_first[4], self.inertia_first[5], self.inertia_first[3],
+                self.inertia_mid[2], self.inertia_mid[0], self.inertia_mid[1],
+                self.inertia_mid[4], self.inertia_mid[5], self.inertia_mid[3]
             )
 
             self.m2_2, \
