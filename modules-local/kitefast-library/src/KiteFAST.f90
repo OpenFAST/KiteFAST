@@ -2435,7 +2435,7 @@ subroutine KFAST_Init(dt_c, numFlaps, numPylons, numComp, numCompNds, modFlags, 
    character(kind=C_CHAR), intent(  out) :: errMsg_c(IntfStrLen)           ! Error message
 
       ! Local variables
-   real(DbKi)                      :: dt
+   real(DbKi)                      :: dt, test
    real(ReKi)                      :: FusO(3)
    type(KAD_InitInputType)         :: KAD_InitInp
    type(KAD_InitOutputType)        :: KAD_InitOut
@@ -2649,12 +2649,13 @@ subroutine KFAST_Init(dt_c, numFlaps, numPylons, numComp, numCompNds, modFlags, 
       
       call KAD_Init(KAD_InitInp, m%KAD%u(1), m%KAD%p, m%KAD%y, interval, m%KAD%x, m%KAD%xd, m%KAD%z, m%KAD%OtherSt, m%KAD%m, KAD_InitOut, errStat2, errMsg2 )
          call SetErrStat(errStat2,errMsg2,errStat,errMsg,routineName)
-      m%KAD%dt = interval  
+        
   
       if ( .not. EqualRealNos(mod(real(interval, ReKi), real(dt,ReKi)), 0.0_ReKi) ) then
         call SetErrStat(ErrID_Fatal,'KiteAeroDyn DT must be an integer multiple of MBDyn DT',errStat,errMsg,routineName) 
       end if
-      
+      OtherSt%KAD_nCycles = nint(interval / dt) 
+	  
       if (errStat >= AbortErrLev ) then
          call TransferErrors(errStat, errMsg, errStat_c, errMsg_c)
          return
@@ -2788,6 +2789,7 @@ subroutine KFAST_Init(dt_c, numFlaps, numPylons, numComp, numCompNds, modFlags, 
       call SetErrStat(ErrID_Fatal,'KiteFASTController DT must be an integer multiple of MBDyn DT',errStat,errMsg,routineName) 
    end if
    
+   OtherSt%KFC_nCycles = nint(interval / dt) 
    OtherSt%NewTime = .true.  ! This flag is needed to tell us when we have advanced time, and hence need to call the Controller's and KAD Step routines
    
 ! -------------------------------------------------------------------------
@@ -3210,7 +3212,7 @@ subroutine KFAST_AssRes(t_c, isInitialTime_c, WindPt_c, FusO_c, FusODCM_c, FusOv
    
    ! Local variables
    
-   integer(IntKi)           :: n, c, i, j                     ! counters
+   integer(IntKi)           :: n, n2, c, i, j                 ! counters
    integer(IntKi)           :: isInitialTime                  ! Is this the initial time of the simulation 1=Yes, should we update the states? 0=yes, 1=no
    real(DbKi)               :: t                              ! simulations time (s)
    real(DbKi)               :: utimes(2)                      ! t-p%dt and t timestep values (s)
@@ -3221,12 +3223,14 @@ subroutine KFAST_AssRes(t_c, isInitialTime_c, WindPt_c, FusO_c, FusODCM_c, FusOv
    character(ErrMsgLen)     :: errMsg, errMsg2                ! error messages
    character(*), parameter  :: routineName = 'KFAST_AssRes'
    logical                  :: test
-   real(SiKi)               :: fracStep
+   real(SiKi)               :: fracStep, t_s, dt_s
+
    errStat = ErrID_None
    errMsg  = ''
    
    isInitialTime = isInitialTime_c
    t = t_c
+   t_s = real(t,SiKi)
    
    if (isInitialTime > 0 ) then
       utimes(1) = t
@@ -3236,7 +3240,7 @@ subroutine KFAST_AssRes(t_c, isInitialTime_c, WindPt_c, FusO_c, FusODCM_c, FusOv
       
    utimes(2) = t
    n = utimes(1) / p%DT
-   
+   n2= utimes(2) / p%DT
       ! Transfer fuselage (kite) principal point inputs
    m%FusO          = FusO_c
    m%FusODCM       = reshape(FusODCM_c,(/3,3/))          
@@ -3258,10 +3262,13 @@ subroutine KFAST_AssRes(t_c, isInitialTime_c, WindPt_c, FusO_c, FusODCM_c, FusOv
    ! -------------------------------------------------------------------------
    ! Controller
    ! -------------------------------------------------------------------------      
-   fracStep = modulo( real(t,SiKi), real(m%KFC%dt,SiKi) )
-   test = EqualRealNos( fracStep , 0.0_SiKi )
-   if ( OtherSt%NewTime .and. (isInitialTime < 1) .and. test ) then
-	  
+   !fracStep = modulo( real(t,SiKi), real(m%KFC%dt,SiKi) )
+   !dt_s = real(m%KFC%dt,SiKi)
+   !fracStep = t_s - floor(t_s/dt_s)* dt_s
+   !test = EqualRealNos( fracStep , 0.0_SiKi )
+   
+   if ( OtherSt%NewTime .and. (isInitialTime < 1) .and. (mod(n2,OtherSt%KFC_nCycles) == 0) ) then
+      print *, "Stepping KFC at t = ", t
          ! NOTE: The controller is stepping from t - m%KFC%dt to t (GetXCur in MBDyn)
          !       therefore, all inputs to KFC needs to be at time, t - m%KFC%dt.
       if ( p%useKAD ) then
@@ -3426,10 +3433,19 @@ subroutine KFAST_AssRes(t_c, isInitialTime_c, WindPt_c, FusO_c, FusODCM_c, FusOv
 ! -------------------------------------------------------------------------      
    
    if ( p%useKAD ) then
-   fracStep = modulo( real(t,SiKi), real(m%KAD%dt,SiKi) )
-   test = EqualRealNos( fracStep , 0.0_SiKi )
-   
-      if ( OtherSt%NewTime .and. test ) then
+   !fracStep2 = mod( real(t,DbKi), real(m%KAD%dt,DbKi) )
+   !fracStep2 = t - (INT(t/m%KAD%dt) * m%KAD%dt)
+   !dt_s = real(m%KAD%dt,SiKi)
+   !fracStep = t_s - floor(t_s/dt_s)* dt_s
+   !test = EqualRealNos( fracStep , 0.0_SiKi )
+   ! if ( .not. test  ) then
+	  ! print *, "Holding KAD at t and fracStep = ", t, fracStep
+   ! else if ( test ) then
+      ! print *, "Stepping KAD at t = ", t
+   ! end if
+	  
+      if ( OtherSt%NewTime .and. (mod(n2,OtherSt%KAD_nCycles) == 0) ) then
+         print *, "Stepping KAD at t = ", t
          ! call WrScr("Updating KAD Outputs")
             ! Outputs from Controller for KAD (note: we always at least have a dummy controller to generate the necessary data)
          m%KAD%u(1)%Ctrl_SFlp = m%KFC%y%SFlp
@@ -3597,8 +3613,8 @@ subroutine KFAST_AfterPredict(t_c, errStat_c, errMsg_c) BIND (C, NAME='KFAST_Aft
    character(*), parameter         :: routineName = 'KFAST_AfterPredict'
    integer(IntKi)                  :: numFairLeads, i, count, j
    real(DbKi)                      :: t
-   real(SiKi)                      :: fracStep
-   logical                         :: test
+   integer(IntKi)                  :: n
+   
    errStat = ErrID_None
    errMsg  = ''
 
@@ -3620,9 +3636,11 @@ subroutine KFAST_AfterPredict(t_c, errStat_c, errMsg_c) BIND (C, NAME='KFAST_Aft
          call KAD_CopyConstrState( m%KAD%z_copy, m%KAD%z, MESH_NEWCOPY, errStat2, errMsg2 )
    end if
    
-   fracStep = modulo( real(t-p%dt,SiKi), real(m%KFC%dt,SiKi) )
-   test = EqualRealNos( fracStep , 0.0_SiKi )
-   if ( test ) then
+   !fracStep = modulo( real(t-p%dt,SiKi), real(m%KFC%dt,SiKi) )
+   !t_s = t - p%dt
+   n = t / p%dt
+   
+   if ( (mod(n,OtherSt%KFC_nCycles) == 0) ) then
          ! NOTE: After Predict has actually incremented the timestep compared to the last AssRes() call.
          ! We want to see if the most recent AssRes() time is an integer multiple of the Controller timestep.
          ! If so, then we will update the controller inputs for use the next time the Controller Step is called.
