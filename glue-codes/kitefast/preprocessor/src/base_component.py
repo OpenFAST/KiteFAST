@@ -610,6 +610,7 @@ class BaseComponent():
 
     def export_all(self, output_directory):
         self.export_node_file(output_directory)
+        self.export_body_file(output_directory)
         self.export_beam_file(output_directory)
         self.export_element_file(output_directory)
 
@@ -628,7 +629,7 @@ class BaseComponent():
     def export_element_file(self, output_directory):
         output = Output("{}/{}.structural".format(output_directory, self.component_name))
 
-        output.write_line("# Beam elements for the fuselage")
+        output.write_line("# Beam elements for the {}".format(self.component_name))        
         output.write_empty_line()
         output.write_line("set: integer {}_beam = {};".format(self.component_name, self.mbdyn_ref_index))
         output.write_empty_line()
@@ -640,23 +641,18 @@ class BaseComponent():
             output.write_empty_line()
         output.end()
 
+    def export_body_file(self, output_directory):
+        output = Output("{}/{}.body".format(output_directory, self.component_name))
+        output.write_line("# Bodies for the {}".format(self.component_name))        
+        output.write_empty_line()
+        for body in self.bodies:
+            output.write_line(str(body))
+            output.write_empty_line()
+        output.end()
+
     def export_beam_file(self, output_directory):
         output = Output("{}/{}.beam".format(output_directory, self.component_name))
         output.write_line("# Generic beam element properties for the beams")
-        output.write_empty_line()
-        output.write_line("# *** inertial properties ***")
-        output.write_line("body: curr_beam, beam_node1,")
-        output.write_line("    m1,")
-        output.write_line("    reference, node, cm_offx1, cm_offy1, cm_offz1,")
-        output.write_line("    diag, Ixx1, Iyy1, Izz1;")
-        output.write_line("body: curr_beam + 1, beam_node2,")
-        output.write_line("    m2,")
-        output.write_line("    reference, node, cm_offx2, cm_offy2, cm_offz2,")
-        output.write_line("    diag, Ixx2, Iyy2, Izz2;")
-        output.write_line("body: curr_beam + 2, beam_node3,")
-        output.write_line("    m3,")
-        output.write_line("    reference, node, cm_offx3, cm_offy3, cm_offz3,")
-        output.write_line("    diag, Ixx3, Iyy3, Izz3;")
         output.write_empty_line()
         output.write_line("# *** elastic properties ***")
         output.write_line("beam3:  curr_beam,")

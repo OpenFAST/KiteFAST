@@ -143,13 +143,19 @@ class MainMBD():
         output.write_line("      + {}  # 1 for each nacelle".format(str(len(self.starboard_rotors) + len(self.port_rotors))))
         output.write_line("    ;")
         output.write_empty_line()
+        output.write_line("    set: integer body_count =")
+        for component in self.component_list:
+            output.write_line(
+                "      + {}_body_count".format(component.component_name))
+        output.write_line("    ;")
+        output.write_empty_line()
         output.write_line("    set: integer beam_count =")
         for component in self.component_list:
             output.write_line("      + {}_beam_count".format(component.component_name))
         output.write_line("    ;")
         output.write_empty_line()
         output.write_line("    rigid bodies:")
-        output.write_line("      + 3 * beam_count")
+        output.write_line("      + body_count")
         output.write_line("      + {}  # 1 for each rotor".format(str(len(self.starboard_rotors) + len(self.port_rotors))))
         output.write_line("      + {}  # 1 for each nacelle".format(str(len(self.starboard_rotors) + len(self.port_rotors))))
         output.write_line("    ;")
@@ -179,6 +185,8 @@ class MainMBD():
             output.write_line("        ")
         for component in self.component_list:
             output.write_line("    include: \"{}.structural\";".format(component.component_name))
+        for component in self.component_list:
+            output.write_line("    include: \"{}.body\";".format(component.component_name))
         for component in self.starboard_rotors + self.port_rotors:
             output.write_line("    include: \"{}.elements\";".format(component.component_name))
         output.write_empty_line()

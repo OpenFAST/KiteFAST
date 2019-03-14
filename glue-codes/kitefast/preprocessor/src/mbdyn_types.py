@@ -297,55 +297,20 @@ class Beam3():
                                           "_55", "_56",
                                                  "_66"]
         refid = "set: curr_beam = {};".format(self.id)
-        beamref1 = "set: beam_ref1 = mip_rf;"
-        beamref2 = "set: beam_ref2 = mip_rf;"
         twist1 = "set: twist1 = {};".format(self.gauss_first_twist)
         twist2 = "set: twist2 = {};".format(self.gauss_last_twist)
         node1 = "set: beam_node1 = {};".format(self.node_first.id)
         node2 = "set: beam_node2 = {};".format(self.node_mid.id)
         node3 = "set: beam_node3 = {};".format(self.node_last.id)
-        mass1 = "set: m1 = {};".format(self.m1)
-        mass2 = "set: m2 = {};".format(self.m2)
-        mass3 = "set: m3 = {};".format(self.m3)
-        cmoffx1 = "set: cm_offx1 = {};".format(self.cm_offx1)
-        cmoffy1 = "set: cm_offy1 = {};".format(self.cm_offy1)
-        cmoffz1 = "set: cm_offz1 = {};".format(self.cm_offz1)
-        cmoffx2 = "set: cm_offx2 = {};".format(self.cm_offx2)
-        cmoffy2 = "set: cm_offy2 = {};".format(self.cm_offy2)
-        cmoffz2 = "set: cm_offz2 = {};".format(self.cm_offz2)
-        cmoffx3 = "set: cm_offx3 = {};".format(self.cm_offx3)
-        cmoffy3 = "set: cm_offy3 = {};".format(self.cm_offy3)
-        cmoffz3 = "set: cm_offz3 = {};".format(self.cm_offz3)
-        ixx1 = "set: Ixx1 = {};".format(self.ixx1)
-        ixx2 = "set: Ixx2 = {};".format(self.ixx2)
-        ixx3 = "set: Ixx3 = {};".format(self.ixx3)
-        iyy1 = "set: Iyy1 = {};".format(self.iyy1)
-        iyy2 = "set: Iyy2 = {};".format(self.iyy2)
-        iyy3 = "set: Iyy3 = {};".format(self.iyy3)
-        izz1 = "set: Izz1 = {};".format(self.izz1)
-        izz2 = "set: Izz2 = {};".format(self.izz2)
-        izz3 = "set: Izz3 = {};".format(self.izz3)
         stiffness1, stiffness2 = "", ""
         for i in range(21):
             stiffness1 += "set: k1{} = {};\n".format(ks[i], self.gauss_first_stiffness[i])
             stiffness2 += "set: k2{} = {};\n".format(ks[i], self.gauss_last_stiffness[i])
-        l_beam = "set: L_beam = {};".format(self.length)
-        return "\n".join([refid, l_beam,
-                          beamref1, beamref2,
-                          twist1, twist2,
-                          node1, node2, node3,
-                          mass1, mass2, mass3,
-                          cmoffx1, cmoffy1, cmoffz1,
-                          cmoffx2, cmoffy2, cmoffz2,
-                          cmoffx3, cmoffy3, cmoffz3,
-                          ixx1, ixx2, ixx3,
-                          iyy1, iyy2, iyy3,
-                          izz1, izz2, izz3,
-                          stiffness1, stiffness2
-                          ])
-
-        )
-        )
-        )
-    
+        return "\n".join(
+            [
+                refid,
+                twist1, twist2,
+                node1, node2, node3,
+                stiffness1, stiffness2
+            ]
         )

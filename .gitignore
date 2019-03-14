@@ -51,6 +51,7 @@ vs-build/
 *.out
 *.sum
 *.beam
+*.body
 *.nodes
 *.structural
 *.elements
