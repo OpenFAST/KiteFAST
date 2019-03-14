@@ -356,8 +356,10 @@ class Beam3():
             self.cmx2_1, self.cmy2_1, self.cmz2_1, \
             self.ixx2_1, self.iyy2_1, self.izz2_1, \
             self.ixy2_1, self.ixz2_1, self.iyz2_1 = beam_mass_distribution(
-                self.node_first.position.x1, self.node_first.position.x2, self.node_first.position.x3,
-                self.node_mid.position.x1, self.node_mid.position.x2, self.node_mid.position.x3,
+                self.node_first.position.x1,
+                self.node_first.cm_offset_first[0], self.node_first.cm_offset_first[1],
+                self.node_mid.position.x1,
+                self.node_mid.cm_offset_mid[0], self.node_mid.cm_offset_mid[1],
                 self.mass_first, self.mass_mid,
                 self.inertia_first[0], self.inertia_first[1], self.inertia_first[2],
                 self.inertia_first[3], self.inertia_first[4], self.inertia_first[5],
@@ -373,8 +375,10 @@ class Beam3():
             self.cmx3, self.cmy3, self.cmz3, \
             self.ixx3, self.iyy3, self.izz3, \
             self.ixy3, self.ixz3, self.iyz3 = beam_mass_distribution(
-                self.node_mid.position.x1, self.node_mid.position.x2, self.node_mid.position.x3,
-                self.node_last.position.x1, self.node_last.position.x2, self.node_last.position.x3,
+                self.node_mid.position.x1,
+                self.node_mid.cm_offset_mid[0], self.node_mid.cm_offset_mid[1],
+                self.node_last.position.x1,
+                self.node_last.cm_offset_last[0], self.node_last.cm_offset_last[1],
                 self.mass_mid, self.mass_last,
                 self.inertia_mid[0], self.inertia_mid[1], self.inertia_mid[2],
                 self.inertia_mid[3], self.inertia_mid[4], self.inertia_mid[5],
@@ -400,8 +404,10 @@ class Beam3():
             self.cmy2_1, self.cmz2_1, self.cmx2_1, \
             self.iyy2_1, self.izz2_1, self.ixx2_1, \
             self.iyz2_1, self.ixy2_1, self.ixz2_1 = beam_mass_distribution(
-                self.node_first.position.x2, self.node_first.position.x3, self.node_first.position.x1,
-                self.node_mid.position.x2, self.node_mid.position.x3, self.node_mid.position.x1,
+                self.node_first.position.x2,
+                self.node_first.cm_offset_first[0], self.node_first.cm_offset_first[1],
+                self.node_mid.position.x2,
+                self.node_mid.cm_offset_mid[0], self.node_mid.cm_offset_mid[1],
                 self.mass_first, self.mass_mid,
                 self.inertia_first[1], self.inertia_first[2], self.inertia_first[0],
                 self.inertia_first[5], self.inertia_first[3], self.inertia_first[4],
@@ -417,8 +423,10 @@ class Beam3():
             self.cmy3, self.cmz3, self.cmx3, \
             self.iyy3, self.izz3, self.ixx3, \
             self.iyz3, self.ixy3, self.ixz3 = beam_mass_distribution(
-                self.node_mid.position.x2, self.node_mid.position.x3, self.node_mid.position.x1,
-                self.node_last.position.x2, self.node_last.position.x3, self.node_last.position.x1,
+                self.node_mid.position.x2,
+                self.node_mid.cm_offset_mid[0], self.node_mid.cm_offset_mid[1],
+                self.node_last.position.x2,
+                self.node_last.cm_offset_last[0], self.node_last.cm_offset_last[1],
                 self.mass_mid, self.mass_last,
                 self.inertia_mid[1], self.inertia_mid[2], self.inertia_mid[0],
                 self.inertia_mid[5], self.inertia_mid[3], self.inertia_mid[4],
@@ -444,8 +452,10 @@ class Beam3():
             self.cmz2_1, self.cmx2_1, self.cmy2_1, \
             self.izz2_1, self.ixx2_1, self.iyy2_1, \
             self.ixz2_1, self.iyz2_1, self.ixy2_1 = beam_mass_distribution(
-                self.node_first.position.x3, self.node_first.position.x1, self.node_first.position.x2,
-                self.node_mid.position.x3, self.node_mid.position.x1, self.node_mid.position.x2,
+                self.node_first.position.x3,
+                self.node_first.cm_offset_first[0], self.node_first.cm_offset_first[1],
+                self.node_mid.position.x3,
+                self.node_mid.cm_offset_mid[0], self.node_mid.cm_offset_mid[1],
                 self.mass_first, self.mass_mid,
                 self.inertia_first[2], self.inertia_first[0], self.inertia_first[1],
                 self.inertia_first[4], self.inertia_first[5], self.inertia_first[3],
@@ -461,8 +471,10 @@ class Beam3():
             self.cmz3, self.cmx3, self.cmy3, \
             self.izz3, self.ixx3, self.iyy3, \
             self.ixz3, self.iyz3, self.ixy3 = beam_mass_distribution(
-                self.node_mid.position.x3, self.node_mid.position.x1, self.node_mid.position.x2,
-                self.node_last.position.x3, self.node_last.position.x1, self.node_last.position.x2,
+                self.node_mid.position.x3,
+                self.node_mid.cm_offset_mid[0], self.node_mid.cm_offset_mid[1],
+                self.node_last.position.x3,
+                self.node_last.cm_offset_last[0], self.node_last.cm_offset_last[1],
                 self.mass_mid, self.mass_last,
                 self.inertia_mid[2], self.inertia_mid[0], self.inertia_mid[1],
                 self.inertia_mid[4], self.inertia_mid[5], self.inertia_mid[3],
@@ -530,8 +542,10 @@ class Beam3():
                           stiffness1, stiffness2
                           ])
 
-def beam_mass_distribution(x1, y1, z1,
-                           x2, y2, z2,
+def beam_mass_distribution(x1,
+                           yg1, zg1,
+                           x2,
+                           yg2, zg2,
                            m1, m2,
                            ixx1, iyy1, izz1,
                            ixy1, ixz1, iyz1,
@@ -542,8 +556,8 @@ def beam_mass_distribution(x1, y1, z1,
     M = (m1 + m2) / 2.0 * Lb
 
     XgM = (Lb / 6.0) * ((2 * m2 + m1) * Lb + 3 * x1 * (m1 + m2))
-    YgM = (Lb / 6.0) * ((2 * m1 + m2) * y1 + (2 * m2 + m1) * y2)
-    ZgM = (Lb / 6.0) * ((2 * m1 + m2) * z1 + (2 * m2 + m1) * z2)
+    YgM = (Lb / 6.0) * ((2 * m1 + m2) * yg1 + (2 * m2 + m1) * yg2)
+    ZgM = (Lb / 6.0) * ((2 * m1 + m2) * zg1 + (2 * m2 + m1) * zg2)
 
     M1 = (3 * m1 + m2) / 8 * Lb
     M2 = M - M1
@@ -551,80 +565,80 @@ def beam_mass_distribution(x1, y1, z1,
     Ixx = (Lb / 12.0) \
         * (
             6 * (ixx1 + ixx2)
-            + m1 * (3 * y1**2 + 2 * y1 * y2 + y2**2 + 3 * z1**2 + 2 * z1 * z2 + z2**2)
-            + m2 * (y1**2 + 2 * y1 * y2 + 3 * y2**2 + z1**2 + 2 * z1 * z2 + 3 * z2**2)
+            + m1 * (3 * yg1**2 + 2 * yg1 * yg2 + yg2**2 + 3 * zg1**2 + 2 * zg1 * zg2 + zg2**2)
+            + m2 * (yg1**2 + 2 * yg1 * yg2 + 3 * yg2**2 + zg1**2 + 2 * zg1 * zg2 + 3 * zg2**2)
         )
     Iyy = (Lb / 12.0) \
         * (
             6 * (iyy1 + iyy2)
-            + m1 * (Lb**2 + 4 * Lb * x1 + 6 * x1**2 + 3 * z1**2 + 2 * z1 * z2 + z2**2)
-            + m2 * (3 * Lb**2 + 8 * Lb * x1 + 6 * x1**2 + z1**2 + 2 * z1 * z2 + 3 * z2**2)
+            + m1 * (Lb**2 + 4 * Lb * x1 + 6 * x1**2 + 3 * zg1**2 + 2 * zg1 * zg2 + zg2**2)
+            + m2 * (3 * Lb**2 + 8 * Lb * x1 + 6 * x1**2 + zg1**2 + 2 * zg1 * zg2 + 3 * zg2**2)
         )
     Izz = (Lb / 12.0) \
         * (
             6 * (izz1 + izz2)
-            + m1 * (Lb**2 + 4 * Lb * x1 + 6 * x1**2 + 3 * y1**2 + 2 * y1 * y2 + y2**2)
-            + m2 * (3 * Lb**2 + 8 * Lb * x1 + 6 * x1**2 + y1**2 + 2 * y1 * y2 + 3 * y2**2)
+            + m1 * (Lb**2 + 4 * Lb * x1 + 6 * x1**2 + 3 * yg1**2 + 2 * yg1 * yg2 + yg2**2)
+            + m2 * (3 * Lb**2 + 8 * Lb * x1 + 6 * x1**2 + yg1**2 + 2 * yg1 * yg2 + 3 * yg2**2)
         )
     Ixy = (Lb / 12.0) \
         * (
             6 * (ixy1 + ixy2)
-            + m1 * (Lb * (y1 + y2) + 2 * x1 * (2 * y1 + y2))
-            + m2 * (Lb * (y1 + 3 * y2) + 2 * x1 * (y1 + 2 * y2))
+            + m1 * (Lb * (yg1 + yg2) + 2 * x1 * (2 * yg1 + yg2))
+            + m2 * (Lb * (yg1 + 3 * yg2) + 2 * x1 * (yg1 + 2 * yg2))
         )
     Ixz = (Lb / 12.0) \
         * (
             6 * (ixz1 + ixz2)
-            + m1 * (Lb * (z1 + z2) + 2 * x1 * (2 * z1 + z2))
-            + m2 * (Lb * (z1 + 3 * z2) + 2 * x1 * (z1 + 2 * z2))
+            + m1 * (Lb * (zg1 + zg2) + 2 * x1 * (2 * zg1 + zg2))
+            + m2 * (Lb * (zg1 + 3 * zg2) + 2 * x1 * (zg1 + 2 * zg2))
         )
     Iyz = (Lb / 12.0) \
         * (
             6 * (iyz1 + iyz2)
-            + m1 * (y2 * (z1 + z2) + y1 * (3 * z1 + z2))
-            + m2 * (y1 * (z1 + z2) + y2 * (z1 + 3 * z2))
+            + m1 * (yg2 * (zg1 + zg2) + yg1 * (3 * zg1 + zg2))
+            + m2 * (yg1 * (zg1 + zg2) + yg2 * (zg1 + 3 * zg2))
     )
 
     Ixx1 = (Lb / 192) \
         * (
             24 * (3 * ixx1 + ixx2)
-            + m1 * (45 * y1**2 + 22 * y1 * y2 + 5 * y2**2 + 45 * z1**2 + 22 * z1 * z2 + 5 * z2**2)
-            + m2 * (11 * y1**2 + 10 * y1 * y2 + 3 * y2**2 + 11 * z1**2 + 10 * z1 * z2 + 3 * z2**2)
+            + m1 * (45 * yg1**2 + 22 * yg1 * yg2 + 5 * yg2**2 + 45 * zg1**2 + 22 * zg1 * zg2 + 5 * zg2**2)
+            + m2 * (11 * yg1**2 + 10 * yg1 * yg2 + 3 * yg2**2 + 11 * zg1**2 + 10 * zg1 * zg2 + 3 * zg2**2)
         )
 
     Iyy1 = (Lb / 192) \
         * (
             24 * (3 * iyy1 + iyy2)
-            + m1 * (5 * Lb**2 + 32 * Lb * x1 + 72 * x1**2 + 45 * z1**2 + 22 * z1 * z2 + 5 * z2**2)
-            + m2 * (3 * Lb**2 + 16 * Lb * x1 + 24 * x1**2 + 11 * z1**2 + 10 * z1 * z2 + 3 * z2**2)
+            + m1 * (5 * Lb**2 + 32 * Lb * x1 + 72 * x1**2 + 45 * zg1**2 + 22 * zg1 * zg2 + 5 * zg2**2)
+            + m2 * (3 * Lb**2 + 16 * Lb * x1 + 24 * x1**2 + 11 * zg1**2 + 10 * zg1 * zg2 + 3 * zg2**2)
         )
 
     Izz1 = (Lb / 192) \
         * (
             24 * (3 * izz1 + izz2)
-            + m1 * (5 * Lb**2 + 32 * Lb * x1 + 72 * x1**2 + 45 * y1**2 + 22 * y1 * y2 + 5 * y2**2)
-            + m2 * (3 * Lb**2 + 16 * Lb * x1 + 24 * x1**2 + 11 * y1**2 + 10 * y1 * y2 + 3 * y2**2)
+            + m1 * (5 * Lb**2 + 32 * Lb * x1 + 72 * x1**2 + 45 * yg1**2 + 22 * yg1 * yg2 + 5 * yg2**2)
+            + m2 * (3 * Lb**2 + 16 * Lb * x1 + 24 * x1**2 + 11 * yg1**2 + 10 * yg1 * yg2 + 3 * yg2**2)
         )
 
     Ixy1 = (Lb / 192) \
         * (
             24 * (3 * ixy1 + ixy2)
-            + m1 * (11 * Lb * y1 + 56 * x1 * y1 + 5 * Lb * y2 + 16 * x1 * y2)
-            + m2 * (5 * Lb * y1 + 16 * x1 * y1 + 3 * Lb * y2 + 8 * x1 * y2)
+            + m1 * (11 * Lb * yg1 + 56 * x1 * yg1 + 5 * Lb * yg2 + 16 * x1 * yg2)
+            + m2 * (5 * Lb * yg1 + 16 * x1 * yg1 + 3 * Lb * yg2 + 8 * x1 * yg2)
         )
 
     Ixz1 = (Lb / 192) \
         * (
             24 * (3 * ixz1 + ixz2)
-            + m1 * (11 * Lb * z1 + 56 * x1 * z1 + 5 * Lb * z2 + 16 * x1 * z2)
-            + m2 * (5 * Lb * z1 + 16 * x1 * z1 + 3 * Lb * z2 + 8 * x1 * z2)
+            + m1 * (11 * Lb * zg1 + 56 * x1 * zg1 + 5 * Lb * zg2 + 16 * x1 * zg2)
+            + m2 * (5 * Lb * zg1 + 16 * x1 * zg1 + 3 * Lb * zg2 + 8 * x1 * zg2)
         )
     
     Iyz1 = (Lb / 192) \
         * (
             24 * (3 * iyz1 + iyz2)
-            + m1 * (45 * y1 * z1 + 11 * y2 * z1 + 11 * y1 * z2 + 5 * y2 * z2)
-            + m2 * (11 * y1 * z1 + 5 * y2 * z1 + 5 * y1 * z2 + 3 * y2 * z2)
+            + m1 * (45 * yg1 * zg1 + 11 * yg2 * zg1 + 11 * yg1 * zg2 + 5 * yg2 * zg2)
+            + m2 * (11 * yg1 * zg1 + 5 * yg2 * zg1 + 5 * yg1 * zg2 + 3 * yg2 * zg2)
         )
 
     Xg = XgM / M
