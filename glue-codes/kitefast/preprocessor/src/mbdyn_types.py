@@ -470,42 +470,6 @@ class Beam3():
                 self.inertia_last[4], self.inertia_last[5], self.inertia_last[3]
             )
 
-        self.m2 = self.m2_1 + self.m2_2
-        self.cm_offx2 = (self.m2_1 * self.cm_offx2_1 + self.m2_2 * self.cm_offx2_2) / self.m2
-        self.cm_offy2 = (self.m2_1 * self.cm_offy2_1 + self.m2_2 * self.cm_offy2_2) / self.m2
-        self.cm_offz2 = (self.m2_1 * self.cm_offz2_1 + self.m2_2 * self.cm_offz2_2) / self.m2
-
-        # if self.primary_direction == "x1":
-        #     beam_length = self.node_last.position.x1 - self.node_first.position.x1
-        #     self.cm_offx2 = beam_length / 2
-        #     self.cm_offy2 = (self.m2_1 * self.cm_offy2_1 + self.m2_2 * self.cm_offy2_2) / self.m2
-        #     self.cm_offz2 = (self.m2_1 * self.cm_offz2_1 + self.m2_2 * self.cm_offz2_2) / self.m2
-        # elif self.primary_direction == "x2":
-        #     beam_length = self.node_last.position.x2 - self.node_first.position.x2
-        #     self.cm_offx2 = (self.m2_1 * self.cm_offx2_1 + self.m2_2 * self.cm_offx2_2) / self.m2
-        #     self.cm_offy2 = beam_length / 2
-        #     self.cm_offz2 = (self.m2_1 * self.cm_offz2_1 + self.m2_2 * self.cm_offz2_2) / self.m2
-        # elif self.primary_direction == "x3":
-        #     beam_length = self.node_last.position.x3 - self.node_first.position.x3
-        #     self.cm_offx2 = (self.m2_1 * self.cm_offx2_1 + self.m2_2 * self.cm_offx2_2) / self.m2
-        #     self.cm_offy2 = (self.m2_1 * self.cm_offz2_1 + self.m2_2 * self.cm_offz2_2) / self.m2
-        #     self.cm_offz2 = beam_length / 2
-
-        # self.ixx2_1 = self.ixx2_1 + self.m2_1 * beam_length**2
-        # self.ixx2_2 = self.ixx2_2 + 3 * self.m2_2 * beam_length**2
-        self.ixx2 = self.ixx2_1 + self.ixx2_2 + self.m2_1 * (self.cm_offy2_1**2 + self.cm_offz2_1**2) + self.m2_2 * (self.cm_offy2_2**2 + self.cm_offz2_2**2)
-        self.iyy2 = self.iyy2_1 + self.iyy2_2 + self.m2_1 * (self.cm_offx2_1**2 + self.cm_offz2_1**2) + self.m2_2 * (self.cm_offx2_2**2 + self.cm_offz2_2**2)
-        self.izz2 = self.izz2_1 + self.izz2_2 + self.m2_1 * (self.cm_offx2_1**2 + self.cm_offy2_1**2) + self.m2_2 * (self.cm_offx2_2**2 + self.cm_offy2_2**2)
-        # self.ixy2 = self.ixy2_1 + self.ixy2_2
-        # self.ixz2 = self.ixz2_1 + self.ixz2_2
-        # self.iyz2 = self.iyz2_1 + self.iyz2_2
-
-        # print("{:>8} {:>8} {:>8} {:>8} {:>8} {:>8} {:>8}".format("Mass", "Cm1", "Cm2", "Cm3", "Ixx1", "Ixx2", "Ixx3"))
-        # print("{:>8.4} {:>8.4} {:>8.4} {:>8.4} {:>8.4} {:>8.4} {:>8.4}".format(self.m1, self.cm_offx1, self.cm_offy1, self.cm_offz1, self.ixx1, self.iyy1, self.izz1))
-        # print("{:>8.4} {:>8.4} {:>8.4} {:>8.4} {:>8.4} {:>8.4} {:>8.4}".format(self.m2_1, self.cm_offx2_1, self.cm_offy2_1, self.cm_offz2_1, self.ixx2_1, self.iyy2_1, self.izz2_1))
-        # print("{:>8.4} {:>8.4} {:>8.4} {:>8.4} {:>8.4} {:>8.4} {:>8.4}".format(self.m2_2, self.cm_offx2_2, self.cm_offy2_2, self.cm_offz2_2, self.ixx2_2, self.iyy2_2, self.izz2_2))
-        # print("{:>8.4} {:>8.4} {:>8.4} {:>8.4} {:>8.4} {:>8.4} {:>8.4}".format(self.m3, self.cm_offx3, self.cm_offy3, self.cm_offz3, self.ixx3, self.iyy3, self.izz3))
-
         # add the lumped masses to the nodal masses
         self.m1 += self.point_mass_first
         self.m2 += self.point_mass_mid
