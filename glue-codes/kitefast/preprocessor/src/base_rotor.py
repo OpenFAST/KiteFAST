@@ -75,7 +75,8 @@ class BaseRotor():
             Body(
                 identifier=self.nodes[0].id,
                 node=self.nodes[0],
-                mass=0,
+                mass=0.0,
+                added_mass=0.0,
                 cm_offset=self.rotor_cm_offset
             ),
 
@@ -84,6 +85,7 @@ class BaseRotor():
                 identifier=self.nodes[1].id,
                 node=self.nodes[1],
                 mass=self.nacelle_mass,
+                added_mass=0.0,
                 cm_offset=self.nacelle_cm_offset,
                 Ixx=self.nacelle_inertia[0],
                 Iyy=self.nacelle_inertia[1],

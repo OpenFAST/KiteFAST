@@ -17,6 +17,7 @@
 from .iohandler import Output
 from .mbdyn_types import Vec3
 from .mbdyn_types import StructuralNode
+from .mbdyn_types import Body
 from .mbdyn_types import Beam3
 import numpy as np
 
@@ -130,7 +131,7 @@ class BaseComponent():
 
     def _preprocess(self):
         self.nodes, self.node_count = self._preprocess_nodes()
-        self.beams, self.beam_count = self._preprocess_beams()
+        self.bodies, self.body_count, self.beams, self.beam_count = self._preprocess_bodies_beams()
 
     def _postprocess(self):
         # sum the point masses to get total mass
@@ -175,7 +176,7 @@ class BaseComponent():
 
         return nodes, nodes.shape[0]
 
-    def _preprocess_beams(self):
+    def _preprocess_bodies_beams(self):
 
         # add mid points for the masses
         total_masses = [self.mass_distribution[0]]
@@ -217,9 +218,9 @@ class BaseComponent():
 
         beams = []
         beam_count = self.node_count // 2
-        for i in range(0, beam_count):
-            identifier = self.component_name + "_beam + " + str(10 * i)
-
+        bodies = []
+        body_count = beam_count * 4
+        for i in range(beam_count):
             # these are the physical nodes
             node1 = self.nodes[i * 2]
             node2 = self.nodes[i * 2 + 1]
@@ -243,20 +244,367 @@ class BaseComponent():
             stiff1 = self.stiffness_matrix[i]
             stiff2 = self.stiffness_matrix[i + 1]
 
-            # create the Beam3
-            this_beam = Beam3(identifier,
-                              self.primary_axis,
+            beam_length = np.sqrt(
+                np.power(node1.position.x1 - node3.position.x1, 2)
+                + np.power(node1.position.x2 - node3.position.x2, 2)
+                + np.power(node1.position.x3 - node3.position.x3, 2)
+            )
+
+            unit_vector = Vec3(
+                node3.position.x1 - node1.position.x1,
+                node3.position.x2 - node1.position.x2,
+                node3.position.x3 - node1.position.x3) / beam_length
+
+            # gauss point locations
+            gauss_first_displacement = (beam_length / 2.0) * (1 - 1 / np.sqrt(3))
+            gauss_last_displacement = (beam_length / 2.0) * (1 + 1 / np.sqrt(3))
+            gauss_first_point = (node1.position + gauss_first_displacement) * unit_vector
+            gauss_last_point = (node1.position + gauss_last_displacement) * unit_vector
+            
+            # guass point twist
+            gauss_first_twist = self.interpolator(
+                node1.position,
+                node3.position,
+                twist1,
+                twist2,
+                gauss_first_point
+            )
+            gauss_last_twist = self.interpolator(
+                node1.position,
+                node3.position,
+                twist1,
+                twist2,
+                gauss_last_point
+            )
+
+            # guass point stiffness
+            gauss_first_stiffness, gauss_last_stiffness = [], []
+            for j in range(21):
+                gauss_first_stiffness.append(
+                    self.interpolator(
+                        node1.position,
+                        node3.position,
+                        stiff1[j],
+                        stiff2[j],
+                        gauss_first_point
+                    )
+                )
+                gauss_last_stiffness.append(
+                    self.interpolator(
+                        node1.position,
+                        node3.position,
+                        stiff1[j],
+                        stiff2[j],
+                        gauss_last_point
+                    )
+                )
+
+            # lumped mass and inertia calculation
+            if self.primary_axis == "x1":
+                # global - local beam
+                # x (x1) = x (x1)
+                # y (x2) = y (x2)
+                # z (x3) = z (x3)
+                m1, cmx1, cmy1, cmz1, \
+                    ixx1, iyy1, izz1, ixy1, ixz1, iyz1, \
+                    m2_1, cmx2_1, cmy2_1, cmz2_1, \
+                    ixx2_1, iyy2_1, izz2_1, ixy2_1, ixz2_1, iyz2_1 = self.mass_inertia_distribution(
+                        node1.position.x1,
+                        cm_offset1[0], cm_offset1[1],
+                        node2.position.x1,
+                        cm_offset2[0], cm_offset2[1],
+                        mass1, mass2,
+                        inertia1[0], inertia1[1], inertia1[2],
+                        inertia1[3], inertia1[4], inertia1[5],
+                        inertia2[0], inertia2[1], inertia2[2],
+                        inertia2[3], inertia2[4], inertia2[5]
+                    )
+
+                m2_2, cmx2_2, cmy2_2, cmz2_2, \
+                    ixx2_2, iyy2_2, izz2_2, ixy2_2, ixz2_2, iyz2_2, \
+                    m3, cmx3, cmy3, cmz3, ixx3, iyy3, izz3, ixy3, ixz3, iyz3 = self.mass_inertia_distribution(
+                        node2.position.x1,
+                        cm_offset2[0], cm_offset2[1],
+                        node3.position.x1,
+                        cm_offset3[0], cm_offset3[1],
+                        mass2, mass3,
+                        inertia2[0], inertia2[1], inertia2[2],
+                        inertia2[3], inertia2[4], inertia2[5],
+                        inertia3[0], inertia3[1], inertia3[2],
+                        inertia3[3], inertia3[4], inertia3[5]
+                    )
+
+            elif self.primary_axis == "x2":
+                # permutate the indeces to pass the global coordinate into the beams reference frame
+                # global - local beam
+                # y (x2) = x (x1)
+                # z (x3) = y (x2)
+                # x (x1) = z (x3)
+                #
+                # in place of these => pass these
+                # x y z => y z x
+                # xy xz yz => yz xy xz
+                m1, cmy1, cmz1, cmx1, \
+                    iyy1, izz1, ixx1, iyz1, ixy1, ixz1, \
+                    m2_1, cmy2_1, cmz2_1, cmx2_1, \
+                    iyy2_1, izz2_1, ixx2_1, iyz2_1, ixy2_1, ixz2_1 = self.mass_inertia_distribution(
+                        node1.position.x2,
+                        cm_offset1[0], cm_offset1[1],
+                        node2.position.x2,
+                        cm_offset2[0], cm_offset2[1],
+                        mass1, mass2,
+                        inertia1[1], inertia1[2], inertia1[0],
+                        inertia1[5], inertia1[3], inertia1[4],
+                        inertia2[1], inertia2[2], inertia2[0],
+                        inertia2[5], inertia2[3], inertia2[4]
+                    )
+
+                m2_2, cmy2_2, cmz2_2, cmx2_2, \
+                    iyy2_2, izz2_2, ixx2_2, iyz2_2, ixy2_2, ixz2_2, \
+                    m3, cmy3, cmz3, cmx3, \
+                    iyy3, izz3, ixx3, iyz3, ixy3, ixz3 = self.mass_inertia_distribution(
+                        node2.position.x2,
+                        cm_offset2[0], cm_offset2[1],
+                        node3.position.x2,
+                        cm_offset3[0], cm_offset3[1],
+                        mass2, mass3,
+                        inertia2[1], inertia2[2], inertia2[0],
+                        inertia2[5], inertia2[3], inertia2[4],
+                        inertia3[1], inertia3[2], inertia3[0],
+                        inertia3[5], inertia3[3], inertia3[4]
+                    )
+
+            elif self.primary_axis == "x3":
+                # permutate the indeces to pass the global coordinate into the beams reference frame
+                # global - local beam
+                # z (x3) = x (x1)
+                # x (x1) = y (x2)
+                # y (x2) = z (x3)
+                #
+                # in place of these => pass these
+                # x y z => z x y
+                # xy xz yz => xz yz xy
+                m1, cmz1, cmx1, cmy1, \
+                    izz1, ixx1, iyy1, ixz1, iyz1, ixy1, \
+                    m2_1, cmz2_1, cmx2_1, cmy2_1, \
+                    izz2_1, ixx2_1, iyy2_1, ixz2_1, iyz2_1, ixy2_1 = self.mass_inertia_distribution(
+                        node1.position.x3,
+                        cm_offset1[0], cm_offset1[1],
+                        node2.position.x3,
+                        cm_offset2[0], cm_offset2[1],
+                        mass1, mass2,
+                        inertia1[2], inertia1[0], inertia1[1],
+                        inertia1[4], inertia1[5], inertia1[3],
+                        inertia2[2], inertia2[0], inertia2[1],
+                        inertia2[4], inertia2[5], inertia2[3]
+                    )
+
+                m2_2, cmz2_2, cmx2_2, cmy2_2, \
+                    izz2_2, ixx2_2, iyy2_2, ixz2_2, iyz2_2, ixy2_2, \
+                    m3, cmz3, cmx3, cmy3, \
+                    izz3, ixx3, iyy3, ixz3, iyz3, ixy3 = self.mass_inertia_distribution(
+                        node2.position.x3,
+                        cm_offset2[0], cm_offset2[1],
+                        node3.position.x3,
+                        cm_offset3[0], cm_offset3[1],
+                        mass2, mass3,
+                        inertia2[2], inertia2[0], inertia2[1],
+                        inertia2[4], inertia2[5], inertia2[3],
+                        inertia3[2], inertia3[0], inertia3[1],
+                        inertia3[4], inertia3[5], inertia3[3]
+                    )
+
+            # create the Bodies and Beam3
+            id_base = self.component_name + "_beam + "
+            index = 10 * i
+            body1 = Body(
+                id_base + str(index + 0),
+                node1,
+                m1,
+                addedmass1,
+                Vec3(cmx1, cmy1, cmz1),
+                ixx1, iyy1, izz1, ixy1, ixz1, iyz1
+            )
+            body2_1 = Body(
+                id_base + str(index + 1),
+                node2,
+                m2_1,
+                addedmass2,  # this is always 0
+                Vec3(cmx2_1, cmy2_1, cmz2_1),
+                ixx2_1, iyy2_1, izz2_1, ixy2_1, ixz2_1, iyz2_1
+            )
+            body2_2 = Body(
+                id_base + str(index + 2),
+                node2,
+                m2_2,
+                addedmass2,  # this is always 0
+                Vec3(cmx2_2, cmy2_2, cmz2_2),
+                ixx2_2, iyy2_2, izz2_2, ixy2_2, ixz2_2, iyz2_2
+            )
+            body3 = Body(
+                id_base + str(index + 3),
+                node3,
+                m3,
+                addedmass3,
+                Vec3(cmx3, cmy3, cmz3),
+                ixx3, iyy3, izz3, ixy3, ixz3, iyz3
+            )
+            bodies += [body1, body2_1, body2_2, body3]
+
+            this_beam = Beam3(id_base + str(index),
                               node1, node2, node3,
-                              mass1, mass2, mass3,
-                              addedmass1, addedmass2, addedmass3,
-                              inertia1, inertia2, inertia3,
-                              cm_offset1, cm_offset2, cm_offset3,
-                              twist1, twist2,
-                              stiff1, stiff2,
-                              self.interpolator)
+                              body1, body2_1, body2_2, body3,
+                              gauss_first_twist,
+                              gauss_last_twist,
+                              gauss_first_stiffness,
+                              gauss_last_stiffness)
             beams.append(this_beam)
 
-        return beams, beam_count
+        return bodies, body_count, beams, beam_count
+
+    def mass_inertia_distribution(self,
+                                  x1,
+                                  yg1, zg1,
+                                  x2,
+                                  yg2, zg2,
+                                  m1, m2,
+                                  ixx1, iyy1, izz1,
+                                  ixy1, ixz1, iyz1,
+                                  ixx2, iyy2, izz2,
+                                  ixy2, ixz2, iyz2):
+
+        Lb = x2 - x1
+        M = (m1 + m2) / 2.0 * Lb
+
+        XgM = (Lb / 6.0) * ((2 * m2 + m1) * Lb + 3 * x1 * (m1 + m2))
+        YgM = (Lb / 6.0) * ((2 * m1 + m2) * yg1 + (2 * m2 + m1) * yg2)
+        ZgM = (Lb / 6.0) * ((2 * m1 + m2) * zg1 + (2 * m2 + m1) * zg2)
+
+        M1 = (3 * m1 + m2) / 8 * Lb
+        M2 = M - M1
+
+        Ixx = (Lb / 12.0) \
+            * (
+                6 * (ixx1 + ixx2)
+                + m1 * (3 * yg1**2 + 2 * yg1 * yg2 + yg2**2 +
+                        3 * zg1**2 + 2 * zg1 * zg2 + zg2**2)
+                + m2 * (yg1**2 + 2 * yg1 * yg2 + 3 * yg2**2 +
+                        zg1**2 + 2 * zg1 * zg2 + 3 * zg2**2)
+        )
+        Iyy = (Lb / 12.0) \
+            * (
+                6 * (iyy1 + iyy2)
+                + m1 * (Lb**2 + 4 * Lb * x1 + 6 * x1**2 +
+                        3 * zg1**2 + 2 * zg1 * zg2 + zg2**2)
+                + m2 * (3 * Lb**2 + 8 * Lb * x1 + 6 * x1**2 +
+                        zg1**2 + 2 * zg1 * zg2 + 3 * zg2**2)
+        )
+        Izz = (Lb / 12.0) \
+            * (
+                6 * (izz1 + izz2)
+                + m1 * (Lb**2 + 4 * Lb * x1 + 6 * x1**2 +
+                        3 * yg1**2 + 2 * yg1 * yg2 + yg2**2)
+                + m2 * (3 * Lb**2 + 8 * Lb * x1 + 6 * x1**2 +
+                        yg1**2 + 2 * yg1 * yg2 + 3 * yg2**2)
+        )
+        Ixy = (Lb / 12.0) \
+            * (
+                6 * (ixy1 + ixy2)
+                + m1 * (Lb * (yg1 + yg2) + 2 * x1 * (2 * yg1 + yg2))
+                + m2 * (Lb * (yg1 + 3 * yg2) + 2 * x1 * (yg1 + 2 * yg2))
+        )
+        Ixz = (Lb / 12.0) \
+            * (
+                6 * (ixz1 + ixz2)
+                + m1 * (Lb * (zg1 + zg2) + 2 * x1 * (2 * zg1 + zg2))
+                + m2 * (Lb * (zg1 + 3 * zg2) + 2 * x1 * (zg1 + 2 * zg2))
+        )
+        Iyz = (Lb / 12.0) \
+            * (
+                6 * (iyz1 + iyz2)
+                + m1 * (yg2 * (zg1 + zg2) + yg1 * (3 * zg1 + zg2))
+                + m2 * (yg1 * (zg1 + zg2) + yg2 * (zg1 + 3 * zg2))
+        )
+
+        Ixx1 = (Lb / 192) \
+            * (
+                24 * (3 * ixx1 + ixx2)
+                + m1 * (45 * yg1**2 + 22 * yg1 * yg2 + 5 * yg2**2 +
+                        45 * zg1**2 + 22 * zg1 * zg2 + 5 * zg2**2)
+                + m2 * (11 * yg1**2 + 10 * yg1 * yg2 + 3 * yg2**2 +
+                        11 * zg1**2 + 10 * zg1 * zg2 + 3 * zg2**2)
+        )
+
+        Iyy1 = (Lb / 192) \
+            * (
+                24 * (3 * iyy1 + iyy2)
+                + m1 * (5 * Lb**2 + 32 * Lb * x1 + 72 * x1**2 +
+                        45 * zg1**2 + 22 * zg1 * zg2 + 5 * zg2**2)
+                + m2 * (3 * Lb**2 + 16 * Lb * x1 + 24 * x1**2 +
+                        11 * zg1**2 + 10 * zg1 * zg2 + 3 * zg2**2)
+        )
+
+        Izz1 = (Lb / 192) \
+            * (
+                24 * (3 * izz1 + izz2)
+                + m1 * (5 * Lb**2 + 32 * Lb * x1 + 72 * x1**2 +
+                        45 * yg1**2 + 22 * yg1 * yg2 + 5 * yg2**2)
+                + m2 * (3 * Lb**2 + 16 * Lb * x1 + 24 * x1**2 +
+                        11 * yg1**2 + 10 * yg1 * yg2 + 3 * yg2**2)
+        )
+
+        Ixy1 = (Lb / 192) \
+            * (
+                24 * (3 * ixy1 + ixy2)
+                + m1 * (11 * Lb * yg1 + 56 * x1 * yg1 +
+                        5 * Lb * yg2 + 16 * x1 * yg2)
+                + m2 * (5 * Lb * yg1 + 16 * x1 * yg1 + 3 * Lb * yg2 + 8 * x1 * yg2)
+        )
+
+        Ixz1 = (Lb / 192) \
+            * (
+                24 * (3 * ixz1 + ixz2)
+                + m1 * (11 * Lb * zg1 + 56 * x1 * zg1 +
+                        5 * Lb * zg2 + 16 * x1 * zg2)
+                + m2 * (5 * Lb * zg1 + 16 * x1 * zg1 + 3 * Lb * zg2 + 8 * x1 * zg2)
+        )
+
+        Iyz1 = (Lb / 192) \
+            * (
+                24 * (3 * iyz1 + iyz2)
+                + m1 * (45 * yg1 * zg1 + 11 * yg2 * zg1 +
+                        11 * yg1 * zg2 + 5 * yg2 * zg2)
+                + m2 * (11 * yg1 * zg1 + 5 * yg2 * zg1 +
+                        5 * yg1 * zg2 + 3 * yg2 * zg2)
+        )
+
+        Xg = XgM / M
+        Yg = YgM / M
+        Zg = ZgM / M
+        R = -1 * np.array([Xg, Yg, Zg])
+
+        Ixx1G = Ixx1 - M1 * (np.sum(R**2) - R[0] * R[0])
+        Iyy1G = Iyy1 - M1 * (np.sum(R**2) - R[1] * R[1])
+        Izz1G = Izz1 - M1 * (np.sum(R**2) - R[2] * R[2])
+        Ixy1G = Ixy1 - M1 * (-1 * R[0] * R[1])
+        Ixz1G = Ixz1 - M1 * (-1 * R[0] * R[2])
+        Iyz1G = Iyz1 - M1 * (-1 * R[1] * R[2])
+
+        Ixx2G = Ixx - Ixx1G - M * (np.sum(R**2) - R[0] * R[0])
+        Iyy2G = Iyy - Iyy1G - M * (np.sum(R**2) - R[1] * R[1])
+        Izz2G = Izz - Izz1G - M * (np.sum(R**2) - R[2] * R[2])
+        Ixy2G = Ixy - Ixy1G - M * (-1 * R[0] * R[1])
+        Ixz2G = Ixz - Ixz1G - M * (-1 * R[0] * R[2])
+        Iyz2G = Iyz - Iyz1G - M * (-1 * R[1] * R[2])
+
+        return M1, \
+            Xg, Yg, Zg, \
+            Ixx1G, Iyy1G, Izz1G, \
+            Ixy1G, Ixz1G, Iyz1G, \
+            M2, \
+            Xg, Yg, Zg, \
+            Ixx2G, Iyy2G, Izz2G, \
+            Ixy2G, Ixz2G, Iyz2G
 
     ### export routines ###
 
