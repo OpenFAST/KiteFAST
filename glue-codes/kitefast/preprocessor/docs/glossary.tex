@@ -12,9 +12,9 @@
 \newacronym{ua}{UA}{Unsteady-Aerodynamics module}
 \newacronym{be}{BE}{blade element}
 
-\newacronym{kitead}{KiteAD}{Kite-AeroDyn}
-\newacronym{kitevsm}{KiteVSM}{Kite-VSM}
-\newacronym{kitefast}{KiteFAST}{Kite-FAST}
+\newacronym{kitead}{KiteAD}{KiteAeroDyn}
+\newacronym{kitevsm}{KiteVSM}{KiteVSM}
+\newacronym{kitefast}{KiteFAST}{KiteFAST}
 \newacronym{kitefastmbd}{KiteFASTMBD}{\gls{mbdyn}'s user module to communicate with \gls{kitefast}}
 \newacronym{inflowwind}{InflowWind}{\gls{kitefast}'s inflow module}
 \newacronym{moordyn}{MoorDyn}{\gls{kitefast}'s tether module}
@@ -22,13 +22,13 @@
 
 \newacronym{mip}{MIP}{most important point, fuselage reference point}
 
-\newacronym{mbdyn}{MBDYN}{MBDYN}
+\newacronym{mbdyn}{MBDyn}{MBDyn}
 \newacronym{vsm}{VSM}{Vortex Step Method}
 \newacronym{lhs}{LHS}{left-hand-side}
 \newacronym{rhs}{RHS}{right-hand-side}
 \newacronym{mt}{MT}{momentum theory}
 \newacronym{2D}{2D}{two-dimensional}
-\newacronym{ppc}{PreProc}{Preprocessor}
+\newacronym{ppc}{PreProc}{KiteMBDyn Preprocessor}
 \newacronym{rk}{RK}{Runge-Kutta}
 \newacronym{us}{US}{Update\_States}
 \newacronym{uasub}{UAsub}{unsteady aerodynamics module for \gls{fast8}}
@@ -56,6 +56,8 @@
 \newglossaryentry{ap}{name={\ensuremath{a'}},description={tangential induction factor}, type=symbolslist}
 
 \newglossaryentry{b3}{name={\ensuremath{beam3}},description={\gls{mbdyn}'s 3-node element beam}, type=symbolslist}
+
+\newglossaryentry{cg}{name={\ensuremath{C_G}},description={center of mass}, type=symbolslist}
 
 \newglossaryentry{lb}{name={\ensuremath{L_b}},description={beam's length}, type=symbolslist}
 
@@ -96,23 +98,36 @@
 \newglossaryentry{ixx}{name={\ensuremath{ixx(x)}},description={beam's cross-sectional second mass moment of inertia about the centroidal x-axis as a function of span x}, type=symbolslist}
 \newglossaryentry{ixxi}{name={\ensuremath{ixx_i}},description={beam's cross-sectional second mass moment of inertia about the centroidal x-axis at $i-th$ node}, type=symbolslist}
 \newglossaryentry{ixx1}{name={\ensuremath{ixx_1}},description={beam's cross-sectional second mass moment of inertia about the centroidal x-axis at first node}, type=symbolslist}
+\newglossaryentry{ixx2}{name={\ensuremath{ixx_2}},description={beam's cross-sectional second mass moment of inertia about the centroidal x-axis at second node}, type=symbolslist}
 \newglossaryentry{ixx3}{name={\ensuremath{ixx_3}},description={beam's cross-sectional second mass moment of inertia about the centroidal x-axis at last node}, type=symbolslist}
 
 \newglossaryentry{iyy}{name={\ensuremath{iyy(x)}},description={beam's cross-sectional second mass moment of inertia about the centroidal y-axis as a function of span x}, type=symbolslist}
 \newglossaryentry{iyyi}{name={\ensuremath{iyy_i}},description={beam's cross-sectional second mass moment of inertia about the centroidal y-axis at $i-th$ node}, type=symbolslist}
 \newglossaryentry{iyy1}{name={\ensuremath{iyy_1}},description={beam's cross-sectional second mass moment of inertia about the centroidal y-axis at first node}, type=symbolslist}
-
+\newglossaryentry{iyy2}{name={\ensuremath{iyy_2}},description={beam's cross-sectional second mass moment of inertia about the centroidal y-axis at second node}, type=symbolslist}
 \newglossaryentry{izz}{name={\ensuremath{izz(x)}},description={beam's cross-sectional second mass moment of inertia about the centroidal z-axis as a function of span x}, type=symbolslist}
 \newglossaryentry{izzi}{name={\ensuremath{izz_i}},description={beam's cross-sectional second mass moment of inertia about the centroidal z-axis at $i-th$ node}, type=symbolslist}
 \newglossaryentry{izz1}{name={\ensuremath{izz_1}},description={beam's cross-sectional second mass moment of inertia about the centroidal z-axis at first node}, type=symbolslist}
-
+\newglossaryentry{izz2}{name={\ensuremath{izz_2}},description={beam's cross-sectional second mass moment of inertia about the centroidal z-axis at second node}, type=symbolslist}
 
 \newglossaryentry{ixy}{name={\ensuremath{ixy(x)}},description={beam's cross-sectional second skew mass moment of inertia about the centroidal x and y-axis as a function of span x}, type=symbolslist}
-\newglossaryentry{ixz}{name={\ensuremath{ixz(x)}},description={beam's cross-sectional second skew mass moment of inertia about the centroidal x and z-axis as a function of span x}, type=symbolslist}
-\newglossaryentry{iyz}{name={\ensuremath{iyz(x)}},description={beam's cross-sectional second skew mass moment of inertia about the centroidal z and y-axis as a function of span x}, type=symbolslist}
+\newglossaryentry{ixy1}{name={\ensuremath{ixy_1}},description={beam's cross-sectional second mass moment of inertia about the centroidal x- and y-axis at the first node}, type=symbolslist}
+\newglossaryentry{ixy2}{name={\ensuremath{ixy_2}},description={beam's cross-sectional second mass moment of inertia about the centroidal x- and y-axis at the second node}, type=symbolslist}
 
+\newglossaryentry{ixz}{name={\ensuremath{ixz(x)}},description={beam's cross-sectional second skew mass moment of inertia about the centroidal x and z-axis as a function of span x}, type=symbolslist}
+\newglossaryentry{ixz1}{name={\ensuremath{ixz_1}},description={beam's cross-sectional second mass moment of inertia about the centroidal x- and z-axis at the first node}, type=symbolslist}
+\newglossaryentry{ixz2}{name={\ensuremath{ixz_2}},description={beam's cross-sectional second mass moment of inertia about the centroidal x- and z-axis at the second node}, type=symbolslist}
+
+\newglossaryentry{iyz}{name={\ensuremath{iyz(x)}},description={beam's cross-sectional second skew mass moment of inertia about the centroidal z and y-axis as a function of span x}, type=symbolslist}
+\newglossaryentry{iyz1}{name={\ensuremath{iyz_1}},description={beam's cross-sectional second mass moment of inertia about the centroidal y- and z-axis at the first node}, type=symbolslist}
+\newglossaryentry{iyz2}{name={\ensuremath{iyz_2}},description={beam's cross-sectional second mass moment of inertia about the centroidal y- and z-axis at the second node}, type=symbolslist}
+
+\newglossaryentry{Iijo}{name={\ensuremath{I_{ij}^O}},description={beam's second mass moment of inertia with respect to point O about the \ensuremath{x_i}- \ensuremath{x_j}-axes}, type=symbolslist}
+\newglossaryentry{Iijg}{name={\ensuremath{I_{ij}^G}},description={beam's second mass moment of inertia with respect to center of mass (G) about the \ensuremath{x_i}- \ensuremath{x_j}-axes with or}, type=symbolslist}
 
 \newglossaryentry{Ixx}{name={\ensuremath{Ixx}},description={beam's second mass moment of inertia about the x-axis}, type=symbolslist}
+\newglossaryentry{Ixxo}{name={\ensuremath{I_{xx}^O}},description={beam's second mass moment of inertia with respect to point O about the x-axis}, type=symbolslist}
+\newglossaryentry{Ixxg}{name={\ensuremath{I_{xx}^G}},description={beam's second mass moment of inertia about the x-axis at the center of mass (G)}, type=symbolslist}
 \newglossaryentry{Ixxi}{name={\ensuremath{Ixx_i}},description={second mass moment of inertia of the beam's $i-th$ node's lumped mass about the x-axis}, type=symbolslist}
 \newglossaryentry{Ixx1}{name={\ensuremath{Ixx_1}},description={second mass moment of inertia of the beam's first node's lumped mass about the x-axis}, type=symbolslist}
 \newglossaryentry{Ixx2}{name={\ensuremath{Ixx_2}},description={second mass moment of inertia of the beam's second node's lumped mass about the x-axis}, type=symbolslist}
@@ -132,10 +147,17 @@
 \newglossaryentry{Ixz3}{name={\ensuremath{Ixz_3}},description={second skew mass moment of inertia of the beam's third node's lumped mass about the x- and z-axis}, type=symbolslist}
 
 \newglossaryentry{Iyy}{name={\ensuremath{Iyy}},description={beam's second mass moment of inertia about the y-axis}, type=symbolslist}
-\newglossaryentry{Iyyi}{name={\ensuremath{Ixx_i}},description={second mass moment of inertia of the beam's $i-th$ node's lumped mass about the y-axis}, type=symbolslist}
+\newglossaryentry{Iyyo}{name={\ensuremath{I_{yy}^O}},description={beam's second mass moment of inertia with respect to point O about the y-axis}, type=symbolslist}
+\newglossaryentry{Iyyi}{name={\ensuremath{Iyy_i}},description={second mass moment of inertia of the beam's $i-th$ node's lumped mass about the y-axis}, type=symbolslist}
 \newglossaryentry{Iyy1}{name={\ensuremath{Iyy_1}},description={second mass moment of inertia of the beam's first node's lumped mass about the y-axis}, type=symbolslist}
 \newglossaryentry{Iyy2}{name={\ensuremath{Iyy_2}},description={second mass moment of inertia of the beam's second node's lumped mass about the y-axis}, type=symbolslist}
 \newglossaryentry{Iyy3}{name={\ensuremath{Iyy_3}},description={second mass moment of inertia of the beam's third node's lumped mass about the y-axis}, type=symbolslist}
+
+\newglossaryentry{Iij1o}{name={\ensuremath{I_{ij1}^O}},description={second mass moment of inertia of the beam's first node's lumped mass with respect to point O and about the $x_i$ and $x_j$ axes}, type=symbolslist}
+\newglossaryentry{Iij1g}{name={\ensuremath{I_{ij1}^G}},description={second mass moment of inertia of the beam's first node's lumped mass with respect to center of mass (G) of beacm and about the $x_i$ and $x_j$ axes}, type=symbolslist}
+\newglossaryentry{Iij2o}{name={\ensuremath{I_{ij2}^O}},description={second mass moment of inertia of the beam's second node's lumped mass with respect to point O and about the $x_i$ and $x_j$ axes}, type=symbolslist}
+\newglossaryentry{Iij2g}{name={\ensuremath{I_{ij2}^G}},description={second mass moment of inertia of the beam's second node's lumped mass with respect to center of mass (G) of beacm and about the $x_i$ and $x_j$ axes}, type=symbolslist}
+
 
 \newglossaryentry{Iyz}{name={\ensuremath{Iyz}},description={beam's second skew mass moment of inertia about the z and y-axis}, type=symbolslist}
 \newglossaryentry{Iyzi}{name={\ensuremath{Iyz_i}},description={second skew mass moment of inertia of the beam's $i-th$ node's lumped mass about the y- and z-axis}, type=symbolslist}
@@ -144,10 +166,21 @@
 \newglossaryentry{Iyz3}{name={\ensuremath{Iyz_3}},description={second skew mass moment of inertia of the beam's third node's lumped mass about the x- and y-axis}, type=symbolslist}
 
 \newglossaryentry{Izz}{name={\ensuremath{Izz}},description={beam's second mass moment of inertia about the z-axis}, type=symbolslist}
+\newglossaryentry{Izzo}{name={\ensuremath{I_{zz}^O}},description={beam's second mass moment of inertia with respect to point O about the z-axis}, type=symbolslist}
 \newglossaryentry{Izzi}{name={\ensuremath{Izz_i}},description={second mass moment of inertia of the beam's $i-th$ node's lumped mass about the z-axis}, type=symbolslist}
 \newglossaryentry{Izz1}{name={\ensuremath{Izz_1}},description={second mass moment of inertia of the beam's first node's lumped mass about the z-axis}, type=symbolslist}
 \newglossaryentry{Izz2}{name={\ensuremath{Izz_2}},description={second mass moment of inertia of the beam's second node's lumped mass about the z-axis}, type=symbolslist}
 \newglossaryentry{Izz3}{name={\ensuremath{Izz_3}},description={second mass moment of inertia of the beam's third node's lumped mass about the z-axis}, type=symbolslist}
+\newglossaryentry{Izz1g}{name={\ensuremath{I_{zz}^G}},description={second mass moment of inertia of the beam's first node's lumped mass with respect to center of mass of beacm and about the z-axis}, type=symbolslist}
+
+
+\newglossaryentry{rvec}{name={\ensuremath{\protect\vec{R}}},description={distance vector from center of mass (G) to point O}, type=symbolslist}
+\newglossaryentry{rvecmod}{name={\ensuremath{R}},description={magnitude of the distance vector from center of mass (G) to point O}, type=symbolslist}
+\newglossaryentry{rveci}{name={\ensuremath{R_i}},description={component along $x_i$ of the distance vector from center of mass (G) to point O}, type=symbolslist}
+\newglossaryentry{rvecj}{name={\ensuremath{R_j}},description={component along $x_j$ of the distance vector from center of mass (G) to point O}, type=symbolslist}
+\newglossaryentry{rvecx}{name={\ensuremath{R_x}},description={component along $x$ of the distance vector from center of mass (G) to point O}, type=symbolslist}
+\newglossaryentry{rvecy}{name={\ensuremath{R_y}},description={component along $y$ of the distance vector from center of mass (G) to point O}, type=symbolslist}
+\newglossaryentry{rvecz}{name={\ensuremath{R_z}},description={component along $z$ of the distance vector from center of mass (G) to point O}, type=symbolslist}
 
 \newglossaryentry{Xg}{name={\ensuremath{X_G}},description={x-coordinate of the center of mass of the beam element }, type=symbolslist}
 \newglossaryentry{Xgi}{name={\ensuremath{X_{Gi}}},description={x-coordinate of the center of mass of the lumped mass at the $i-th$ node  }, type=symbolslist}
@@ -175,16 +208,16 @@
 \newglossaryentry{x3}{name={\ensuremath{x_3}},description={x-coordinate of the beam's third node}, type=symbolslist}
 
 \newglossaryentry{yg}{name={\ensuremath{y_G(x)}},description={y-coordinate of the beam's cross-section center of mass along the beam's span}, type=symbolslist}
-\newglossaryentry{yi}{name={\ensuremath{y_i}},description={x-coordinate of the beam's $i-th$ node}, type=symbolslist}
-\newglossaryentry{y1}{name={\ensuremath{y_1}},description={y-coordinate of the beam's first node}, type=symbolslist}
-\newglossaryentry{y2}{name={\ensuremath{y_2}},description={y-coordinate of the beam's second node}, type=symbolslist}
-\newglossaryentry{y3}{name={\ensuremath{y_3}},description={y-coordinate of the beam's third node}, type=symbolslist}
+\newglossaryentry{yi}{name={\ensuremath{y_i}},description={y-coordinate of the beam's $i-th$ node}, type=symbolslist}
+\newglossaryentry{y1}{name={\ensuremath{y_{G1}}},description={y-coordinate of the beam's cross-sectional CG at first node}, type=symbolslist}
+\newglossaryentry{y2}{name={\ensuremath{y_{G2}}},description={y-coordinate of the beam's cross-sectional CG at second node}, type=symbolslist}
+\newglossaryentry{y3}{name={\ensuremath{y_{G3}}},description={y-coordinate of the beam's cross-sectional CG at third node}, type=symbolslist}
 
 \newglossaryentry{zg}{name={\ensuremath{z_G(x)}},description={z-coordinate of the beam's cross-section center of mass along the beam's span}, type=symbolslist}
-\newglossaryentry{zi}{name={\ensuremath{z_i}},description={x-coordinate of the beam's $i-th$ node}, type=symbolslist}
-\newglossaryentry{z1}{name={\ensuremath{z_1}},description={z-coordinate of the beam's first node}, type=symbolslist}
-\newglossaryentry{z2}{name={\ensuremath{z_2}},description={z-coordinate of the beam's second node}, type=symbolslist}
-\newglossaryentry{z3}{name={\ensuremath{z_3}},description={z-coordinate of the beam's third node}, type=symbolslist}
+\newglossaryentry{zi}{name={\ensuremath{z_i}},description={z-coordinate of the beam's $i-th$ node}, type=symbolslist}
+\newglossaryentry{z1}{name={\ensuremath{z_{G1}}},description={z-coordinate of the beam's first node}, type=symbolslist}
+\newglossaryentry{z2}{name={\ensuremath{z_{G2}}},description={z-coordinate of the beam's second node}, type=symbolslist}
+\newglossaryentry{z3}{name={\ensuremath{z_{G3}}},description={z-coordinate of the beam's third node}, type=symbolslist}
 
 
 

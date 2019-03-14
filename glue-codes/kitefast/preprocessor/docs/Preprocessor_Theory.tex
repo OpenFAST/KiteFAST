@@ -101,7 +101,7 @@ The theory is largely based on the assumptions made in \gls{mbdyn} for its struc
   SOMETHING ABOUT THEORY AND VERIFICATION HERE. The results are encouraging, and future improvements to the code are recommended in this manual. 
 %_______________________________________ %
 \chapter*{Acknowledgments}
-This work was supported by Makani Google X  under Contract No. with the National Renewable Energy Laboratory. 
+This work was supported Google Inc./Makani under CRADA CRD-17-00659 with the National Renewable Energy Laboratory. 
 %_______________________________________ %
 
 \glsresetall
@@ -114,7 +114,7 @@ This work was supported by Makani Google X  under Contract No. with the National
 \section*{\Large{List of Acronyms and Symbols}}\label{sec:symbols}
 %\addcontentsline{toc}{section}{\nameref{sec:symbols}}%
 \printglossary[type=\acronymtype,style=long]
-\printglossary[type=symbols,style=long, title=Symbols]
+\printglossary[type=symbolslist,style=long, title=Symbols]
 \printglossary[type=greek,style=long, title=Greek Symbols]
 \let\firstchar\lowercase %Reset to lowercase this command
 
@@ -129,27 +129,27 @@ This work was supported by Makani Google X  under Contract No. with the National
 %____________________________________________________________ %
 \section{Overview}\label{sec:overview}
 	
-	The dynamics of semi-rigid kites can be simulated by combining  models for aerodynamics and structures. \gls{nrel} created a new software for the aeroelastic simulation of kites that makes use of \gls{mbdyn} as the core structural-dynamics solver and a series of modules that account for aerodynamics, tether dynamics, and control system. The software is called \gls{kitefast}. Multiple input files are necessary for the various parts of the software. To create \gls{mbdyn}'s input file, \gls{nrel} created a special \gls{ppc}. 
+	The dynamics of semi-rigid kites can be simulated by combining  models for aerodynamics and structures. The \gls{nrel} created a new software for the aeroelastic simulation of kites that makes use of \gls{mbdyn} as the core structural-dynamics solver and a series of modules that account for aerodynamics, ambient wind inflow, tether dynamics, and the control system. The software is called \gls{kitefast}. Multiple input files are necessary for the various parts of the software. To create \gls{mbdyn}'s input file, \gls{nrel} created a special \gls{ppc}. 
 	
 	This manual describes the main aspects of the theory developed and implemented in the \gls{ppc}. A detailed commentary of the input file needed for the \gls{ppc} is also given.
 	
-	The approximate way to distribute masses from cross-sectional properties at the first and third node of each element in a beam element is shown below. 
+	The approximate way to distribute masses from cross-sectional properties at the nodes of each element in a beam element is provided. 
 	
 %__________________________________________________________________ %
 
 \section{The 3-node Beam Elements and the Preprocessor}\label{sec:3node_beam}
-The beam elements used in \gls{kitefast} are \gls{b3} or 3-node beam elements as described in \cite{masarati2017}. The preprocessor, starting from the end nodes (1 and 3) provided in the input file, will determine the middle node (node 2) location, and two intermediate (Gaussian) points. \gls{mbdyn} calculates internal forces and moments at the Gaussian points, which are located at $\gls{xihat}= \pm 1/\sqrt{3}$, where \gls{xihat} is the \glsentrydesc{xihat}. 
+The beam elements used in \gls{kitefast} are \gls{b3} or 3-node beam elements as described in \cite{masarati2017}. The preprocessor will use the end nodes (1 and 3) provided in the input file to determine the middle node (node 2) location, and two intermediate (Gaussian) points. \gls{mbdyn} calculates internal forces and moments at the Gaussian points, which are located at $\gls{xihat}= \pm 1/\sqrt{3}$, where \gls{xihat} is the \glsentrydesc{xihat}. 
 
 The stiffness matrices provided at the end nodes \emph{in the kite reference frame} are then transferred to the Gaussian point coordinates, based on a linear interpolation and the abscissa coordinate of the nodes and the Gaussian points.
 
 The user is advised to guarantee sufficient resolution through the end node locations to capture any steep gradients along the various structural elements.
 
-The beams are assumed straight, with reference (major) axis parallel to any one of the kite reference frame axes (x,y, or z). Each component node is therefore located along a constant pair of y,z or x,z or x,y coordinates. At each node, the user can define a twist angle about the beam reference axis that defines the orientation of the cross-section (\eg the airfoil pitch). 
+The beams are assumed straight, with reference (major) axis parallel to any one of the kite reference frame axes (x,y, or z, depending on the mechanical component of the kite (wing, stabilizer, etc.). Each node within a component is therefore located along a constant pair of y,z or x,z or x,y coordinates. At each node, the user can define a twist angle about the beam reference axis that defines the orientation of the cross-section (\eg the airfoil twist). 
 
 \section{The Joints and the Preprocessor}\label{sec:joints}
 Contiguous beam elements (for example along the starboard wing of the kite) are automatically joined at the common end-nodes. The subcomponents (wings, fuselage, pylons, stabilizers), however, need to be connected among each other unless they can share a physical structural node. For example, in the case of fuselage and either port or starboard wing, the connection can be realized via a `total joint' \citep{masarati2017}, which links the degrees of freedom of any two nodes belonging to the two components that must be connected.
 
-In the case of a rotor and a pylon, the connection takes the form of a `revolute hinge' \citep{masarati2017}, which allows for a relative rotation along the z-axis of a reference frame common to the two nodes to be connected.
+In the case of a rotor and a pylon, the connection takes the form of a `revolute hinge' \citep{masarati2017}, which allows for a relative rotation along the z-axis of a reference frame common to the two nodes to be connected. Note that in our case, the relative rotation is about the kite x-axis.
  
 The \gls{ppc} sets up all the necessary connections based on the definitions of the various subcomponents,  the 'attached component' syntax, and the component keypoint definition (see also Section~\ref{sec:inputfile}). 
 
@@ -317,12 +317,154 @@ By working out some algebra, the equations can be rewritten to give the unknowns
 \end{align}
 %
 
+%______________________________________________________________%
+\section{Problems and Approximate Alternatives}\label{sec:method2}
+With the above approach, there is a risk to encounter issues and the lumped inertia could result as negative.
+Another simpler approach is to calculate the \gls{cg} of the beam element (or sub-element) and assign end node masses there via offsets in the \gls{mbdyn} body definition.
 
+Considering the following 3-node beam:
+%
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=0.8\linewidth]{PICS/beam3}
+	\caption{Diagram showing one 2-node subelement and how the lumped masses at the nodes are calculated from the \gls{mx} distribution and the \gls{m1}, \gls{m2} values, and how they are thought concentrated at the center of mass of the beam element.}
+	\label{fig:beam3}
+\end{figure}
+%
+
+The total mass \gls{Mass} and the center of mass coordinates (\gls{Xg}, \gls{Yg}, \gls{Zg}) can be found from Eq.~\eqref{eq:masseq2}:
+%
+\begin{align}\label{eq:masseq2}
+\gls{Mass}  = \int_{\gls{x1}}^{\gls{x2}} {\gls{mx} }dx = \dfrac{\gls{m1}+\gls{m2}}{2} \gls{lb}\\
+%
+\gls{Xg}  \gls{Mass}  = \int_{\gls{x1}}^{\gls{x2}}  {\gls{mx} x} dx = \dfrac{\gls{lb}}{6} \left[ \left(2 \gls{m2} +\gls{m1}\right) \gls{lb} +3\gls{x1}\left(\gls{m1}+\gls{m2}\right) \right]\\
+%
+\gls{Yg}  \gls{Mass}  = \int_{\gls{x1}}^{\gls{x2}}  {\gls{mx} \gls{yg}} dx = \dfrac{\gls{lb}}{6} \left[ \left(2 \gls{m1} +\gls{m2}\right) \gls{y1} +\left(2\gls{m2}+\gls{m1}\right) \gls{y2} \right]\\
+%
+\gls{Zg}  \gls{Mass}  = \int_{\gls{x1}}^{\gls{x2}}  {\gls{mx} \gls{zg}} dx = \dfrac{\gls{lb}}{6} \left[ \left(2 \gls{m1} +\gls{m2}\right) \gls{z1} +\left(2\gls{m2}+\gls{m1}\right) \gls{z2} \right]
+\end{align}
+%
+The individual masses \gls{M1} and \gls{M2} to be assigned to the nodes but with the previously calculated center of mass coordinates are then calculated as:
+%
+\begin{align}\label{eq:nodemass}
+\gls{M1}  = \int_{\gls{x1}}^{\gls{x1}+\frac{\gls{lb}}{2}} {\gls{mx} }dx = \dfrac{3\gls{m1}+\gls{m2}}{8} \gls{lb}\\
+%
+\gls{M2}  =\gls{Mass}  -\gls{M1}  
+\end{align}
+%
+The total inertias \gls{Ixx}, \gls{Iyy}, \gls{Izz}, \gls{Ixy}, \gls{Ixz}, and \gls{Iyz},  can be calculated as in Eq.~\eqref{eq:InertiaEq}:
+%
+\begin{equation}\label{eq:InertiaEq}
+	\begin{aligned}
+	\gls{Ixx}  &= \int_{\gls{x1}}^{\gls{x2}} {\left[\gls{ixx} + \gls{mx} \left(\gls{yg}^2+\gls{zg}^2 \right) \right]}dx =   \\
+&	\dfrac{L}{12} \left[6 (\gls{ixx1} +  \gls{ixx2}) + 
+	\gls{m1} \left(3 \gls{y1}^2 + 2 \gls{y1} \gls{y2} +   \gls{y2}^2 + 3 \gls{z1}^2 + 2 \gls{z1} \gls{z2} +   \gls{z2}^2 \right) + 
+	\gls{m2} \left(  \gls{y1}^2 + 2 \gls{y1} \gls{y2} + 3 \gls{y2}^2 +   \gls{z1}^2 + 2 \gls{z1} \gls{z2} + 3 \gls{z2}^2 \right)  \right] \\
+	%
+	\gls{Iyy}  &= \int_{\gls{x1}}^{\gls{x2}} {\left[\gls{iyy} + \gls{mx} \left(x^2+\gls{zg}^2 \right) \right]}dx =  \\
+&	\dfrac{\gls{lb}}{12} \left[ 6 (\gls{iyy1} +  \gls{iyy2}) + \gls{m1}\left( \gls{lb}^2 + 4 \gls{lb} \gls{x1} + 6 \gls{x1}^2 + 3 \gls{z1}^2 + 2 \gls{z1} \gls{z2} + \gls{z2}^2 \right) +
+	\gls{m2}  \left( 3\gls{lb}^2  + 8 \gls{lb} \gls{x1} +6  \gls{x1}^2 +\gls{z1}^2 +2\gls{z1} \gls{z2} + 3\gls{z2}^2 \right) \right] \\
+	%
+	\gls{Izz}  &= \int_{\gls{x1}}^{\gls{x2}} {\left[\gls{izz} + \gls{mx} \left(x^2+\gls{yg}^2 \right) \right]}dx =   \\
+&	\dfrac{\gls{lb}}{12} \left[ 6 (\gls{izz1} +  \gls{izz2}) + \gls{m1}\left( \gls{lb}^2 + 4 \gls{lb} \gls{x1} + 6 \gls{x1}^2 + 3 \gls{y1}^2 + 2 \gls{y1} \gls{y2} + \gls{y2}^2 \right) +
+	\gls{m2}  \left( 3\gls{lb}^2  + 8 \gls{lb} \gls{x1} +6  \gls{x1}^2 +
+	\gls{y1}^2 +2\gls{y1} \gls{y2} + 3\gls{y2}^2 \right) \right]  \\
+	%
+\gls{Ixy}  &= \int_{\gls{x1}}^{\gls{x2}} {\left[\gls{ixy} + \gls{mx} \left(x * \gls{yg} \right) \right]}dx =   \\
+&	\dfrac{\gls{lb}}{12} \left[ 6 (\gls{ixy1} +  \gls{ixy2}) + \gls{m1} \left( \gls{lb} (\gls{y1} +\gls{y2}) + 2 \gls{x1} (2 \gls{y1}+ \gls{y2}) \right) + 
+    \gls{m2}  \left( \gls{lb} (\gls{y1}  + 3 \gls{y2}) +2 \gls{x1} (\gls{y1}+2\gls{y2} ) \right) \right]  \\
+%
+\gls{Ixz}  &= \int_{\gls{x1}}^{\gls{x2}} {\left[\gls{ixz} + \gls{mx} \left(x * \gls{zg} \right) \right]}dx =   \\
+&	\dfrac{\gls{lb}}{12} \left[ 6 (\gls{ixz1} +  \gls{ixz2}) + \gls{m1} \left( \gls{lb} (\gls{z1} +\gls{z2}) + 2 \gls{x1} (2 \gls{z1}+ \gls{z2}) \right) + 
+\gls{m2}  \left( \gls{lb} (\gls{z1}  + 3 \gls{z2}) +2 \gls{x1} (\gls{z1}+2\gls{z2} ) \right) \right]  \\
+%
+\gls{Iyz}  &= \int_{\gls{x1}}^{\gls{x2}} {\left[\gls{iyz} + \gls{mx} \left(\gls{yg} * \gls{zg} \right) \right]}dx =   \\
+&	\dfrac{\gls{lb}}{12} \left[ 6 (\gls{iyz1} +  \gls{iyz2}) + \gls{m1} \left( \gls{y2} (\gls{z1} +\gls{z2}) +  \gls{y1} (3 \gls{z1}+ \gls{z2}) \right) + 
+\gls{m2}  \left( \gls{y1} (\gls{z1}  + \gls{z2}) + \gls{y2} (\gls{z1}+3\gls{z2} ) \right) \right]  
+   	\end{aligned}
+\end{equation}
+%
+
+The individual inertias (\gls{Ixx1}--\gls{Iyz1}) from the first node  contribution are then calculated as:
+%
+\begin{equation}
+\begin{aligned}\label{eq:nodeinertia}
+\gls{Ixx1}  &= \int_{\gls{x1}}^{\gls{x1}+\frac{\gls{lb}}{2}} {\left[\gls{ixx} + \gls{mx} \left(\gls{yg}^2+\gls{zg}^2 \right) \right]}dx =   \\
+& \dfrac{\gls{lb}}{192} \left[24 (3\gls{ixx1} + \gls{ixx2}) + 
+\gls{m1} \left(45 \gls{y1}^2 + 22 \gls{y1} \gls{y2} +  5 \gls{y2}^2 + 45 \gls{z1}^2 + 22 \gls{z1} \gls{z2} +  5 \gls{z2}^2 \right) + 
+\gls{m2} \left( 11 \gls{y1}^2 + 10 \gls{y1} \gls{y2} + 3 \gls{y2}^2 +  11 \gls{z1}^2 + 10 \gls{z1} \gls{z2} + 3 \gls{z2}^2 \right)  \right] \\
+%
+\gls{Iyy1} &= \int_{\gls{x1}}^{\gls{x1}+\frac{\gls{lb}}{2}} {\left[\gls{iyy} + \gls{mx} \left(x^2+\gls{zg}^2 \right) \right]}dx =   \\
+& \dfrac{\gls{lb}}{192} \left[ 24 (3 \gls{iyy1} +  \gls{iyy2}) + 
+\gls{m1} \left( 5 \gls{lb}^2  + 32  \gls{lb} \gls{x1} + 72 \gls{x1}^2 +45 \gls{z1}^2 + 22 \gls{z1} \gls{z2}  + 5 \gls{z2}^2 \right) + 
+\gls{m2} \left( 3 \gls{lb}^2  + 16 \gls{lb} \gls{x1} + 24 \gls{x1}^2 + 11 \gls{z1}^2 + 10 \gls{z1}\gls{z2} + 3\gls{z2}^2 \right) \right] \\
+% HERE BUT CHECK collect with m1 and m2 as for Ixx
+\gls{Izz1} &= \int_{\gls{x1}}^{\gls{x1}+\frac{\gls{lb}}{2}} {\left[\gls{izz} + \gls{mx} \left(x^2+\gls{yg}^2 \right) \right]}dx =   \\
+& \dfrac{\gls{lb}}{192} \left[ 24 (3 \gls{izz1} +  \gls{izz2}) + 
+\gls{m1} \left( 5 \gls{lb}^2  + 32  \gls{lb} \gls{x1} + 72 \gls{x1}^2 +45 \gls{y1}^2 + 22 \gls{y1} \gls{y2}  + 5 \gls{y2}^2 \right) + 
+\gls{m2} \left( 3 \gls{lb}^2  + 16 \gls{lb} \gls{x1} + 24 \gls{x1}^2 + 11 \gls{y1}^2 + 10 \gls{y1}\gls{y2} + 3\gls{y2}^2 \right) \right] \\
+%1
+\gls{Ixy1}  &= \int_{\gls{x1}}^{\gls{x1}+\frac{\gls{lb}}{2}} {\left[\gls{ixy} + \gls{mx} \left(x*\gls{yg} \right) \right]}dx =   \\
+& \dfrac{lb}{192} \left[24 (3\gls{ixy1} + \gls{ixy2}) + 
+\gls{m1} \left(11 \gls{lb} \gls{y1} + 56 \gls{x1} \gls{y1} +  5 \gls{lb} \gls{y2} + 16 \gls{x1}\gls{y2}  \right) + 
+\gls{m2} \left( 5 \gls{lb}\gls{y1} + 16 \gls{x1} \gls{y1} + 3\gls{lb} \gls{y2} +  8 \gls{x1} \gls{y2} \right)  \right] \\
+%
+\gls{Ixz1}  &= \int_{\gls{x1}}^{\gls{x1}+\frac{\gls{lb}}{2}} {\left[\gls{ixz} + \gls{mx} \left(x*\gls{zg} \right) \right]}dx =   \\
+& \dfrac{lb}{192} \left[24 (3\gls{ixz1} + \gls{ixz2}) + 
+\gls{m1} \left(11 \gls{lb} \gls{z1} + 56 \gls{x1} \gls{z1} +  5 \gls{lb} \gls{z2} + 16 \gls{x1}\gls{z2}  \right) + 
+\gls{m2} \left( 5 \gls{lb}\gls{z1} + 16 \gls{x1} \gls{z1} + 3\gls{lb} \gls{z2} +  8 \gls{x1} \gls{z2} \right)  \right] \\
+%
+\gls{Iyz1}  &= \int_{\gls{x1}}^{\gls{x1}+\frac{\gls{lb}}{2}} {\left[\gls{iyz} + \gls{mx} \left(\gls{yg}*\gls{zg} \right) \right]}dx =   \\
+& \dfrac{lb}{192} \left[24 (3\gls{iyz1} + \gls{iyz2}) + 
+\gls{m1} \left(45 \gls{y1} \gls{z1} + 11 \gls{y2} \gls{z1} +  11\gls{y1} \gls{z2} + 5 \gls{y2}\gls{z2}  \right) + 
+\gls{m2} \left( 11 \gls{y1}\gls{z1} + 5 \gls{y2} \gls{z1} + 5\gls{y1} \gls{z2} +  3 \gls{y2} \gls{z2} \right)  \right] 
+%
+\end{aligned}
+\end{equation}
+%
+
+All of these moments are with respect to the origin O, so we need to use Huygens-Steiner's theorem:
+%
+\begin{align}\label{eq:huygen}
+\gls{Iijo} =\gls{Iijg}+\gls{Mass} \left( \gls{rvecmod}^2 \gls{deltaij} -\gls{rveci}\gls{rvecj} \right)
+\end{align}
+%
+where \gls{rvec} is given as in Eqs.~\eqref{eq:rvec}:
+\begin{align}\label{eq:rvec}
+\gls{rvec} =-\begin{bmatrix}
+					\gls{Xg} \\
+                    \gls{Yg} \\
+                    \gls{Zg}
+                \end{bmatrix}
+\end{align}
+ 
+ 
+Therefore the nodal inertias to be assigned to the nodes (\gls{Iij1g},\gls{Iij2g}) are calculated as in Eq.~\eqref{eq:nodeinertia2}:
+%
+\begin{equation}
+\begin{aligned}\label{eq:nodeinertia2}
+\gls{Iij1g}  &= \gls{Iij1o} - \gls{M1}   \left( \gls{rvecmod}^2 \gls{deltaij} -\gls{rveci}\gls{rvecj} \right) \\
+%
+\gls{Iij2g} &=\gls{Iijo} - \gls{Iij1g} - \gls{Mass} \left( \gls{rvecmod}^2 \gls{deltaij} -\gls{rveci}\gls{rvecj} \right) 
+\end{aligned}
+\end{equation}
+%
+where the \gls{Iijo}'s \gls{Iij1o}'s are those given in Eq.~\eqref{eq:InertiaEq} and \eqref{eq:nodeinertia}, respectively.
+
+Finally, the procedure to lump masses at the correct locations in the 3-node beam element (\gls{n1}--\gls{n3}) is as follows:
+\begin{enumerate}
+	\item Calculate \gls{Mass},\gls{cg}, and moments of inertia of the semi-element (nodes \gls{n1}--\gls{n2}); 
+	\item Calculate  \gls{Mass} and moments of inertia to associate with node \gls{n1}; 
+\item	Calculate  \gls{Mass} and moments of inertia to associate with node \gls{n2}; 
+\item	Place those masses at the \gls{cg} of the semielement. For this use \gls{mbdyn}'s \emph{relative\_center\_of\_mass, Vec3} in the body definition;
+\item	Repeat for the second semielement (nodes \gls{n2}--\gls{n3});
+\item	There will be 2 bodies that will refer to \gls{n2}; alternatively and likely better use \emph{condense,2, and then the definition of \gls{M2} and \gls{Iij2g} from \gls{n1}--\gls{n2} element and then the definition of \gls{M1} and \gls{Iij1g} from \gls{n2}--\gls{n3} element.} 
+\end{enumerate}
 %__________________________________________________________________ %
 
 \section{Input File}\label{sec:inputfile}
 
-In this section we describe the main keywords and necessary input values for the preprocessor input file. The input file would normally have extension 'yaml' implying that the \gls{yaml} format is used. 
+In this section, we describe the main keywords and necessary input values for the preprocessor input file. The input file would normally have extension 'yml' implying that the \gls{yaml} format is used. The SI unit system is expected in all dimensional quantities (\SI{}{\m}, \SI{}{\s}, \SI{}{\kg}, \SI{}{\N}, \SI{}{\degree} )
 
 The \emph{title} is used to provide a description of the content the input file refers to.
 Then a few parameters are set that are directly passed to \gls{mbdyn}:
@@ -338,7 +480,7 @@ Then a few parameters are set that are directly passed to \gls{mbdyn}:
 	%
 		\item \emph{time}: here, time step and initial and final time of the simulation are set
 		\begin{itemize}
-			\item \emph{initial}: set initial time of the simulation in seconds
+			\item \emph{initial}: set initial time of the simulation in seconds (should be set =0)
 			\item \emph{timestep}: set simulation time step in seconds
 			\item \emph{final}: set final time of the simulation in seconds
 		\end{itemize}
@@ -359,9 +501,9 @@ Then a few parameters are set that are directly passed to \gls{mbdyn}:
 	%
 		\item \emph{rigid\_model}: if set to \emph{True}, rigid joints among all the nodes will be created (this feature is not yet enabled);
 %
-		\item \emph{debug}: if set to \emph{True}, statements will be printed out to standard output from  \gls{kitefast} and \gls{kitefastmbd};
+		\item \emph{debug}: if set to \emph{True}, some debug statements will be printed out to standard output from  \gls{kitefast} and \gls{kitefastmbd};
 %
-		\item \emph{ground\_weather\_station}: set the coordinates of the weather station; this point is passed to \gls{kitefast} to interface with the controller;
+		\item \emph{ground\_weather\_station}: set the coordinates (\SI{}{\m}) of the weather station; this point is passed to \gls{kitefast} to interface with the controller;
 			\begin{itemize}
 				\item \emph{location}: weather station x, y, z in global coordinate system 
 			\end{itemize}
@@ -379,11 +521,11 @@ Then a few parameters are set that are directly passed to \gls{mbdyn}:
 %		
 	\end{itemize} %simulation control
 %
-	\item \emph{keypoints}: these are x, y, and z values for the subcomponent keypoints, \ie the reference points for fuselage, wings, stabilizers etc.. These are in \SI{}{\m} and in the kite reference frame; the $(0.,0.,0.)$ point (denoted by \gls{mip}) is the kite coordinate system origin. The \emph{keypoints} are the respective origins of the reference frames associated with each subcomponent and parallel to the ktie reference frame \cite{jonkman2018}.
+	\item \emph{keypoints}: these are x, y, and z values for the subcomponent keypoints, \ie the reference points for fuselage, wings, stabilizers etc.. These are in \SI{}{\m} and in the kite reference frame; the $(0.,0.,0.)$ point (denoted by \gls{mip}) is the kite coordinate system origin. The \emph{keypoints} are the respective origins of the reference frames associated with each subcomponent and parallel to the kite reference frame \cite{jonkman2018}.
 	%
 	\item \emph{fuselage}: here, the coordinates of the beam element end nodes (minimum of two), and the stiffness matrix and mass distribution for the fuselage are set.
 	\begin{itemize}
-		\item \emph{element\_end\_nodes}: this card includes: x, y, z coordinates of the beam element end-nodes in a reference frame parallel to the kite's main frame and with origin at the fuselage keypoint; the twist angle in \SI{}{\degree} of the cross-section about the component reference axis (either x, y, or z in the kite reference frame); the \emph{attached component}, \ie strings identifying any other component that connects to that node; any concentrated (lumped) mass at that node.
+		\item \emph{element\_end\_nodes}: this card includes: x, y, z coordinates of the beam element end-nodes in a reference frame parallel to the kite's main frame and with origin at the fuselage keypoint ; the twist angle in \SI{}{\degree} of the cross-section about the x-axis in the kite reference frame; the \emph{attached component}, \ie strings identifying any other component that connects to that node; any concentrated (lumped) mass (in \SI{}{\kg}) at that node.
 		\item {stiffness\_matrix}: here, the 21 unique elements of a symmetric stiffness matrix at the coordinates of the previously specified end-nodes and in the kite reference frame. Note that the \gls{ppc} will linearly interpolate these values at the actual Gaussian points of each 3-node beam based on their linear distance along the reference axis (see Section~\ref{sec:3node_beam}).  Units are \SI{}{\N\per\m}, \SI{}{\N\m\per\m}, \SI{}{\N\m\per\radian}, \SI{}{\N\per\radian}.
 		\item {mass\_distribution}: provide cross-sectional mass per unit length (\SI{}{\kg\per\m}) and coordinates (\SI{}{\m}) of the center of mass in a plane normal to the reference axis of the component; also specify components of the cross-sectional inertia tensor (\SI{}{\kg\m}). The \gls{ppc} implements the theory described in Section~\ref{sec:massdist} to assign lumped body masses at the beam nodes.
 		
@@ -435,7 +577,7 @@ The stabilizers are treated in a similar fashion:
 	 \end{itemize}
 	\end{itemize}
 
-The pylons are also treated in a similar manner:
+The pylons are also treated in a similar manner (note that the numbering of the pylons increases going outboard):
 	\item \emph{pylon}: here, the coordinates of the element nodes, the stiffness matrix, mass distribution, lumped masses at the nodes, and connections to other components for the starboard and port pylons are set; 
 		\item \emph{starboard}:
 		\begin{itemize}
@@ -460,7 +602,7 @@ The pylons are also treated in a similar manner:
 				\item {stiffness\_matrix}: same as for the vertical stabilizer.
 				\item {mass\_distribution}: same as for the vertical stabilizer.
 			\end{itemize}
-			\item \emph{2}:	This is the inner pylon on the port wing.
+			\item \emph{2}:	This is the outer pylon on the port wing.
 			\begin{itemize}
 				\item \emph{element\_end\_nodes}: same as for the vertical stabilizer.
 				\item {stiffness\_matrix}: same as for the vertical stabilizer.
@@ -468,7 +610,7 @@ The pylons are also treated in a similar manner:
 			\end{itemize}
 		\end{itemize}
 
-Finally, the rotors are specified:
+Finally, the rotors are specified (note that the numbering of the rotors increases going outboard, odd numbers are upper rotors, even numbers are bottom rotors):
 	\item \emph{rotor\_assembly}: here, the mass properties of the rotor and nacelle (mass, inertia tensor and center of mass location), and the initial RPM of the rotor are specified; 
 	\item \emph{starboard}:
 \begin{itemize}
