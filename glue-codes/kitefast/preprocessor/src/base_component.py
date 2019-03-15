@@ -340,6 +340,10 @@ class BaseComponent():
                         inertia3[0], inertia3[1], inertia3[2],
                         inertia3[3], inertia3[4], inertia3[5]
                     )
+                cmx1 -= node1.position.x1
+                cmx2_1 -= node2.position.x1
+                cmx2_2 -= node2.position.x1
+                cmx3 -= node3.position.x1
 
             elif self.primary_axis == "x2":
                 # permutate the indeces to pass the global coordinate into the beams reference frame
@@ -380,6 +384,10 @@ class BaseComponent():
                         inertia3[1], inertia3[2], inertia3[0],
                         inertia3[5], inertia3[3], inertia3[4]
                     )
+                cmy1 -= node1.position.x2
+                cmy2_1 -= node2.position.x2
+                cmy2_2 -= node2.position.x2
+                cmy3 -= node3.position.x2
 
             elif self.primary_axis == "x3":
                 # permutate the indeces to pass the global coordinate into the beams reference frame
@@ -420,6 +428,10 @@ class BaseComponent():
                         inertia3[2], inertia3[0], inertia3[1],
                         inertia3[4], inertia3[5], inertia3[3]
                     )
+                cmz1 -= node1.position.x3
+                cmz2_1 -= node2.position.x3
+                cmz2_2 -= node2.position.x3
+                cmz3 -= node3.position.x3
 
             # create the Bodies and Beam3
             id_base = self.component_name + "_beam + "
@@ -639,6 +651,7 @@ class BaseComponent():
         output.write_line("# Beam elements for the {}".format(self.component_name))        
         output.write_empty_line()
         output.write_line("set: integer {}_beam = {};".format(self.component_name, self.mbdyn_ref_index))
+        output.write_line("set: integer {}_body = {};".format(self.component_name, self.mbdyn_ref_index))
         output.write_empty_line()
         output.write_line("# *** beam elements ***")
         for beam in self.beams:
