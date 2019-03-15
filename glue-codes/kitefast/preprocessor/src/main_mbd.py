@@ -130,7 +130,6 @@ class MainMBD():
         output.write_empty_line()
         output.write_line("begin: control data;")
         output.write_line("    print: all;")
-        # output.write_line("    default output: none, structural nodes, joints;")
         output.write_line("    default orientation: orientation vector;")
         output.write_empty_line()
         output.write_line("    include: \"KiteMain.set\";")

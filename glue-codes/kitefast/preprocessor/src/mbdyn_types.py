@@ -18,6 +18,12 @@ import numpy as np
 
 
 class Vec3():
+    """
+    Vec3 is a three-component vector with overloaded mathematical operators.
+    All operations support element-wise or scalar math. For example,
+        Vec3(1, 2, 3) + Vec3(4, 5, 6) = Vec3(5, 7, 9)
+        Vec3(1, 2, 3) + 3 = Vec3(4, 5, 6)
+    """
     def __init__(self, x1, x2, x3):
         self.x1 = float(x1)
         self.x2 = float(x2)
@@ -162,7 +168,6 @@ class TotalJoint():
             "            rotation orientation, reference, other node, eye,",
             "        position constraint,",
             "            active, active, active,",
-            # "            component, {},".format(str(self.offset)),
             "            null,",
             "        orientation constraint,",
             "            active, active, active,",
@@ -297,7 +302,7 @@ class Beam3():
                                    "_44", "_45", "_46",
                                           "_55", "_56",
                                                  "_66"]
-        refid = "set: curr_beam = {};".format(self.id)
+        refid = "set: current_beam = {};".format(self.id)
         twist1 = "set: twist1 = {};".format(self.gauss_first_twist)
         twist2 = "set: twist2 = {};".format(self.gauss_last_twist)
         node1 = "set: beam_node1 = {};".format(self.node_first.id)

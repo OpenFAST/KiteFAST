@@ -123,8 +123,3 @@ Thus, the number of rows in this table must match the number of rows in the ``el
 table. These mass and inertia quantities are defined at the node in the node's coordinate system.
 The given nodal mass distribution will be integrated and distributed as lumped masses
 by the preprocessor.
-
-Unit Tests
-~~~~~~~~~~
-Unit tests are included in the ``tests`` directory. Each test file is a standalone
-script and should be run directly; for example, ``python test_integrations.py``.

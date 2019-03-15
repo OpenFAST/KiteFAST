@@ -104,7 +104,7 @@ class MainSet():
             output.write_line("set: integer {}_node_count = {};".format(component.component_name, component.node_count))
         output.write_empty_line()
         output.write_line("# Initialize variables for reuse later")
-        output.write_line("set: integer curr_beam = 0;")
+        output.write_line("set: integer current_beam = 0;")
         output.write_line("set: real twist1 = 0.0;")
         output.write_line("set: real twist2 = 0.0;")
         output.write_line("set: integer beam_node1 = 0;")

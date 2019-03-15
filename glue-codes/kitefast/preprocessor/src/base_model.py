@@ -39,7 +39,11 @@ class BaseModel():
                 print("ERROR expected component not given: {}".format(path))
                 sys.exit(7)
 
-    def print_component_info(self):
+    def print_model_info(self):
+        """
+        Calculates the total mass and center of mass of the model and exports 
+        this information into a file.
+        """
         # put all of the component elements into a 1d array
         flat_list = []
         for element in self.components:

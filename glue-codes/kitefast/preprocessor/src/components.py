@@ -19,15 +19,15 @@ from .base_rotor import BaseRotor
 
 
 class Fuselage(BaseComponent):
-
     def __init__(self, component_name, model_dict, mbdyn_ref_index):
         self.primary_axis = "x1"
-        super().__init__(component_name, model_dict,
-                         self._interpolator, mbdyn_ref_index,
-                         self.primary_axis)
-
-    def _principal_axis_sort(self, vec3):
-        return vec3.x1
+        super().__init__(
+            component_name,
+            model_dict,
+            self._interpolator,
+            mbdyn_ref_index,
+            self.primary_axis
+        )
 
     def _interpolator(self, pos0, pos1, val0, val1, location_vec3):
         return (val0 * (pos1.x1 - location_vec3.x1) + val1 * (location_vec3.x1 - pos0.x1)) / (pos1.x1 - pos0.x1)
@@ -36,12 +36,13 @@ class Fuselage(BaseComponent):
 class Wing(BaseComponent):
     def __init__(self, component_name, model_dict, mbdyn_ref_index):
         self.primary_axis = "x2"
-        super().__init__(component_name, model_dict,
-                         self._interpolator, mbdyn_ref_index,
-                         self.primary_axis)
-
-    def _principal_axis_sort(self, vec3):
-        return vec3.x2
+        super().__init__(
+            component_name,
+            model_dict,
+            self._interpolator,
+            mbdyn_ref_index,
+            self.primary_axis
+        )
 
     def _interpolator(self, pos0, pos1, val0, val1, location_vec3):
         return (val0 * (pos1.x2 - location_vec3.x2) + val1 * (location_vec3.x2 - pos0.x2)) / (pos1.x2 - pos0.x2)
@@ -50,12 +51,13 @@ class Wing(BaseComponent):
 class HorizontalStabilizer(BaseComponent):
     def __init__(self, component_name, model_dict, mbdyn_ref_index):
         self.primary_axis = "x2"
-        super().__init__(component_name, model_dict,
-                         self._interpolator, mbdyn_ref_index,
-                         self.primary_axis)
-
-    def _principal_axis_sort(self, vec3):
-        return vec3.x2
+        super().__init__(
+            component_name,
+            model_dict,
+            self._interpolator,
+            mbdyn_ref_index,
+            self.primary_axis
+        )
 
     def _interpolator(self, pos0, pos1, val0, val1, location_vec3):
         return (val0 * (pos1.x2 - location_vec3.x2) + val1 * (location_vec3.x2 - pos0.x2)) / (pos1.x2 - pos0.x2)
@@ -64,12 +66,13 @@ class HorizontalStabilizer(BaseComponent):
 class VerticalStabilizer(BaseComponent):
     def __init__(self, component_name, model_dict, mbdyn_ref_index):
         self.primary_axis = "x3"
-        super().__init__(component_name, model_dict,
-                         self._interpolator, mbdyn_ref_index,
-                         self.primary_axis)
-
-    def _principal_axis_sort(self, vec3):
-        return vec3.x3
+        super().__init__(
+            component_name,
+            model_dict,
+            self._interpolator,
+            mbdyn_ref_index,
+            self.primary_axis
+        )
 
     def _interpolator(self, pos0, pos1, val0, val1, location_vec3):
         return (val0 * (pos1.x3 - location_vec3.x3) + val1 * (location_vec3.x3 - pos0.x3)) / (pos1.x3 - pos0.x3)
@@ -78,12 +81,13 @@ class VerticalStabilizer(BaseComponent):
 class Pylon(BaseComponent):
     def __init__(self, component_name, model_dict, mbdyn_ref_index):
         self.primary_axis = "x3"
-        super().__init__(component_name, model_dict,
-                         self._interpolator, mbdyn_ref_index,
-                         self.primary_axis)
-
-    def _principal_axis_sort(self, vec3):
-        return vec3.x3
+        super().__init__(
+            component_name,
+            model_dict,
+            self._interpolator,
+            mbdyn_ref_index,
+            self.primary_axis
+        )
 
     def _interpolator(self, pos0, pos1, val0, val1, location_vec3):
         return (val0 * (pos1.x3 - location_vec3.x3) + val1 * (location_vec3.x3 - pos0.x3)) / (pos1.x3 - pos0.x3)

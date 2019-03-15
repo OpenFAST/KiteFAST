@@ -19,6 +19,9 @@ from .mbdyn_types import Vec3
 
 
 class Output():
+    """
+    Output is a helper class for generating output files.
+    """
     def __init__(self, filename):
         self.filename = filename
         self.file = open(self.filename, "w")
@@ -35,6 +38,10 @@ class Output():
 
 
 class Input():
+    """
+    Input handles reading and parsing the yaml input file.
+    It unpacks all of the dictionaries and casts the data to the necessary types.
+    """
     def __init__(self, input_name):
         self.input_dict = yaml.load(open(input_name, "r"))
         self.simulation_dict = self._parse_simulation_dict(self.input_dict)

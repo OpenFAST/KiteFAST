@@ -63,4 +63,4 @@ model.export(output_directory)
 
 # Print component information if requested
 if args.show_component_info:
-    model.print_component_info()
+    model.print_model_info()

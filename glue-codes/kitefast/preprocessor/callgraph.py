@@ -89,4 +89,4 @@ with PyCallGraph(config=config, output=graphviz):
 
 # Print component information if requested
 if args.show_component_info:
-    model.print_component_info()
+    model.print_model_info()

@@ -134,6 +134,16 @@ class BaseComponent():
         self.bodies, self.body_count, self.beams, self.beam_count = self._preprocess_bodies_beams()
 
     def _postprocess(self):
+        """
+        Calculates the mass and center of mass.
+
+        component_mass: the total mass of this physical component only
+        added_mass: the total mass of any additional point masses
+        total_mass: the sum of component and added masses
+
+        The component's mip is subtracted from the center of mass
+        so the resulting CG is relative to the component.
+        """
         # sum the point masses to get total mass
         self.component_mass = sum([body.mass for body in self.bodies])
         self.added_mass = sum([body.added_mass for body in self.bodies])
@@ -162,6 +172,13 @@ class BaseComponent():
         self.center_of_gravity = cg - self.mip
 
     def _preprocess_nodes(self):
+        """
+        Builds the StructuralNodes for this component.
+        The central nodes are added here by linearly interpolating the position.
+        output:
+            nodes: [StructuralNode]
+            node_count: len(nodes)
+        """
         # add the midpoint nodes for the elements
         total_coords = [self.coordinate_list[0]]
         for i in range(1, len(self.coordinate_list)):
@@ -184,7 +201,12 @@ class BaseComponent():
         return nodes, nodes.shape[0]
 
     def _preprocess_bodies_beams(self):
+        """
+        Builds the Body and Beam3 for this component.
 
+        The central node properties are computed here by linearly interpolating
+        all properties.
+        """
         # add mid points for the masses
         total_masses = [self.mass_distribution[0]]
         for i in range(1, len(self.mass_distribution)):
@@ -491,6 +513,52 @@ class BaseComponent():
                                   ixy1, ixz1, iyz1,
                                   ixx2, iyy2, izz2,
                                   ixy2, ixz2, iyz2):
+        """
+        See the preprocessor documentation; in particular, section 0.5.
+        inputs:
+            x1: Float - location in the primary axis direction of the first node
+            yg1: Float - center of mass offset in a secondary axis direction for the first node
+            zg1: Float - center of mass offset in a secondary axis direction for the first node
+            x2: Float - location in the primary axis direction of the second node
+            yg2: Float - center of mass offset in a secondary axis direction for the second node
+            zg2: Float - center of mass offset in a secondary axis direction for the second node
+            m1: Float - mass per unit length of the first node
+            m2: Float - mass per unit length of the second node
+            ixx1: Float - inertia per unit length of the first node
+            iyy1: Float - inertia per unit length of the first node
+            izz1: Float - inertia per unit length of the first node
+            ixy1: Float - inertia per unit length of the first node
+            ixz1: Float - inertia per unit length of the first node
+            iyz1: Float - inertia per unit length of the first node
+            ixx2: Float - inertia per unit length of the second node
+            iyy2: Float - inertia per unit length of the second node
+            izz2: Float - inertia per unit length of the second node
+            ixy2: Float - inertia per unit length of the second node
+            ixz2: Float - inertia per unit length of the second node
+            iyz2: Float - inertia per unit length of the second node
+
+        outputs:
+            M1: Float - lumped mass of the first node
+            Xg: Float - center of mass in the primary axis direction of the first node
+            Yg: Float - center of mass in the secondary axis direction of the first node
+            Zg: Float - center of mass in the secondary axis direction of the first node
+            Ixx1G: Float - lumped inertia of the first node
+            Iyy1G: Float - lumped inertia of the first node
+            Izz1G: Float - lumped inertia of the first node
+            Ixy1G: Float - lumped inertia of the first node
+            Ixz1G: Float - lumped inertia of the first node
+            Iyz1G: Float - lumped inertia of the first node
+            M2: Float - lumped mass of the second node
+            Xg: Float - center of mass in the primary axis direction of the second node
+            Yg: Float - center of mass in the secondary axis direction of the second node
+            Zg: Float - center of mass in the secondary axis direction of the second node
+            Ixx2G: Float - lumped inertia of the second node
+            Iyy2G: Float - lumped inertia of the second node
+            Izz2G: Float - lumped inertia of the second node
+            Ixy2G: Float - lumped inertia of the second node
+            Ixz2G: Float - lumped inertia of the second node
+            Iyz2G: Float - lumped inertia of the second node
+        """
 
         Lb = x2 - x1
         M = (m1 + m2) / 2.0 * Lb
@@ -675,7 +743,7 @@ class BaseComponent():
         output.write_line("# Generic beam element properties for the beams")
         output.write_empty_line()
         output.write_line("# *** elastic properties ***")
-        output.write_line("beam3:  curr_beam,")
+        output.write_line("beam3:  current_beam,")
         output.write_line("    beam_node1, reference, node, null,")
         output.write_line("    beam_node2, reference, node, null,")
         output.write_line("    beam_node3, reference, node, null,")
