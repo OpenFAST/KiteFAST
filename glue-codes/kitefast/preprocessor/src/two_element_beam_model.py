@@ -99,6 +99,7 @@ class MainSet():
         output.write_line("# *** Fuselage ***")
         output.write_line("set: integer fuselage_root_node = mip_node;")
         output.write_line("set: integer {}_node_count = {};".format(self.fuselage.component_name, self.fuselage.node_count))
+        output.write_line("set: integer {}_body_count = {};".format(self.fuselage.component_name, self.fuselage.body_count))
         output.write_line("set: integer {}_beam_count = {};".format(self.fuselage.component_name, self.fuselage.beam_count))
         output.write_empty_line()
         output.write_line("# Initialize variables for reuse later")
@@ -261,13 +262,19 @@ class MainMBD():
             output.write_line("      + {}_node_count".format(component.component_name))
         output.write_line("    ;")
         output.write_empty_line()
+        output.write_line("    set: integer body_count =")
+        for component in self.component_list:
+            output.write_line(
+                "      + {}_body_count".format(component.component_name))
+        output.write_line("    ;")
+        output.write_empty_line()
         output.write_line("    set: integer beam_count =")
         for component in self.component_list:
             output.write_line("      + {}_beam_count".format(component.component_name))
         output.write_line("    ;")
         output.write_empty_line()
         output.write_line("    rigid bodies:")
-        output.write_line("      + 3 * beam_count")
+        output.write_line("      + body_count")
         output.write_line("    ;")
         output.write_line("    beams: beam_count;")
         output.write_line("    gravity;")
@@ -286,6 +293,8 @@ class MainMBD():
         output.write_empty_line()
         for component in self.component_list:
             output.write_line("    include: \"{}.structural\";".format(component.component_name))
+        for component in self.component_list:
+            output.write_line("    include: \"{}.body\";".format(component.component_name))
         output.write_empty_line()
         output.write_line("    inertia: 1, body, all;")
         output.write_empty_line()
