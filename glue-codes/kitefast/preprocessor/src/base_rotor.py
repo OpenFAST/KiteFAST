@@ -95,9 +95,9 @@ class BaseRotor():
 
     def _postprocess(self):
         # NOTE: this will not match mbdyn because the rotor mass is not included in the mbdyn model
-
-        self.total_mass = self.rotor_mass + self.nacelle_mass
+        self.component_mass = self.rotor_mass + self.nacelle_mass
         self.added_mass = 0
+        self.total_mass = self.component_mass + self.added_mass
 
         # calculate the total center of mass
         cg = Vec3(

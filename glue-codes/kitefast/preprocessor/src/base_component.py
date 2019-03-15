@@ -153,12 +153,12 @@ class BaseComponent():
             body2_1 = self.bodies[body_index + 1]
             body2_2 = self.bodies[body_index + 2]
             body3 = self.bodies[body_index + 3]
-            cg = Vec3(
-                body1.total_mass * beam.node_first.position.x1 + (body2_1.total_mass + body2_2.total_mass) * beam.node_mid.position.x1 + body3.total_mass * beam.node_last.position.x1,
-                body1.total_mass * beam.node_first.position.x2 + (body2_1.total_mass + body2_2.total_mass) * beam.node_mid.position.x2 + body3.total_mass * beam.node_last.position.x2,
-                body1.total_mass * beam.node_first.position.x3 + (body2_1.total_mass + body2_2.total_mass) * beam.node_mid.position.x3 + body3.total_mass * beam.node_last.position.x3
+            cg += Vec3(
+                body1.mass * beam.node_first.position.x1 + (body2_1.mass + body2_2.mass) * beam.node_mid.position.x1 + body3.mass * beam.node_last.position.x1,
+                body1.mass * beam.node_first.position.x2 + (body2_1.mass + body2_2.mass) * beam.node_mid.position.x2 + body3.mass * beam.node_last.position.x2,
+                body1.mass * beam.node_first.position.x3 + (body2_1.mass + body2_2.mass) * beam.node_mid.position.x3 + body3.mass * beam.node_last.position.x3
             )
-        cg /+ self.total_mass
+        cg /= self.component_mass
         self.center_of_gravity = cg - self.mip
 
     def _preprocess_nodes(self):

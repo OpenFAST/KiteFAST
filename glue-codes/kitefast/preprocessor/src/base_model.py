@@ -71,9 +71,10 @@ class BaseModel():
         info_file.write_empty_line()
 
         # write the component mass info
-        info_file.write_line("{:>32} | {:>10} | {:<16}".format("component", "total mass", "center of gravity (relative to component)"))
+        info_file.write_line("{:>32} | {:>10} | {:<16}".format("component", "mass", "center of gravity (relative to component)"))
         for element in flat_list:
-            info_file.write_line("{:>32} | {:>10.3f} | <{}>".format(element.component_name, element.total_mass, element.center_of_gravity))
+            info_file.write_line("{:>32} | {:>10.3f} | <{}>".format(
+                element.component_name, element.component_mass, element.center_of_gravity))
         info_file.write_empty_line()
 
         # write the component point masses excluding rotors
