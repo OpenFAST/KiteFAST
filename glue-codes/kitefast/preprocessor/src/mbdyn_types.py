@@ -254,6 +254,7 @@ class Body():
         self.Ixy = Ixy
         self.Ixz = Ixz
         self.Iyz = Iyz
+        self.total_mass = self.mass + self.added_mass
 
     def __str__(self):
         refid    = "body: {}, {},".format(self.id, self.node.id)

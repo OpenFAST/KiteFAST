@@ -75,7 +75,7 @@ class BaseRotor():
             Body(
                 identifier=self.nodes[0].id,
                 node=self.nodes[0],
-                mass=0.0,
+                mass=0.0,  # self.rotor_mass ... this is always 0 because the mass is handled in kitefast
                 added_mass=0.0,
                 cm_offset=self.rotor_cm_offset
             ),
@@ -97,12 +97,16 @@ class BaseRotor():
         # NOTE: this will not match mbdyn because the rotor mass is not included in the mbdyn model
 
         self.total_mass = self.rotor_mass + self.nacelle_mass
+        self.added_mass = 0
 
         # calculate the total center of mass
-        cg_x = (self.rotor_mass * self.nodes[0].position.x1 + self.nacelle_mass * self.nodes[1].position.x1) / self.total_mass
-        cg_y = (self.rotor_mass * self.nodes[0].position.x2 + self.nacelle_mass * self.nodes[1].position.x2) / self.total_mass
-        cg_z = (self.rotor_mass * self.nodes[0].position.x3 + self.nacelle_mass * self.nodes[1].position.x3) / self.total_mass
-        self.center_of_mass = Vec3(cg_x, cg_y, cg_z) - self.mip
+        cg = Vec3(
+            self.rotor_mass * self.nodes[0].position.x1 + self.nacelle_mass * self.nodes[1].position.x1,
+            self.rotor_mass * self.nodes[0].position.x2 + self.nacelle_mass * self.nodes[1].position.x2,
+            self.rotor_mass * self.nodes[0].position.x3 + self.nacelle_mass * self.nodes[1].position.x3
+        )
+        cg /= self.total_mass
+        self.center_of_gravity = cg - self.mip
 
     ### export routines ###
 

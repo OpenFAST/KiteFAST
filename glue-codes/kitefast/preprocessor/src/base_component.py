@@ -135,7 +135,9 @@ class BaseComponent():
 
     def _postprocess(self):
         # sum the point masses to get total mass
-        self.total_mass = sum([beam.m1 + beam.m2 + beam.m3 for beam in self.beams])
+        self.component_mass = sum([body.mass for body in self.bodies])
+        self.added_mass = sum([body.added_mass for body in self.bodies])
+        self.total_mass = self.component_mass + self.added_mass
 
         # place the point masses on the nodes and give the added nodes 0 point mass
         self.nodal_point_masses = [self.point_mass[0]]
@@ -144,15 +146,20 @@ class BaseComponent():
             self.nodal_point_masses.append(self.point_mass[i])
 
         # calculate the total center of mass
-        cg_x, cg_y, cg_z = 0, 0, 0
+        cg = Vec3(0.0, 0.0, 0.0)
         for i, beam in enumerate(self.beams):
-            cg_x += beam.m1 * beam.node_first.position.x1 + beam.m2 * beam.node_mid.position.x1 + beam.m3 * beam.node_last.position.x1
-            cg_y += beam.m1 * beam.node_first.position.x2 + beam.m2 * beam.node_mid.position.x2 + beam.m3 * beam.node_last.position.x2
-            cg_z += beam.m1 * beam.node_first.position.x3 + beam.m2 * beam.node_mid.position.x3 + beam.m3 * beam.node_last.position.x3
-        cg_x /= self.total_mass
-        cg_y /= self.total_mass
-        cg_z /= self.total_mass
-        self.center_of_mass = Vec3(cg_x, cg_y, cg_z) - self.mip
+            body_index = i * 4
+            body1 = self.bodies[body_index]
+            body2_1 = self.bodies[body_index + 1]
+            body2_2 = self.bodies[body_index + 2]
+            body3 = self.bodies[body_index + 3]
+            cg = Vec3(
+                body1.total_mass * beam.node_first.position.x1 + (body2_1.total_mass + body2_2.total_mass) * beam.node_mid.position.x1 + body3.total_mass * beam.node_last.position.x1,
+                body1.total_mass * beam.node_first.position.x2 + (body2_1.total_mass + body2_2.total_mass) * beam.node_mid.position.x2 + body3.total_mass * beam.node_last.position.x2,
+                body1.total_mass * beam.node_first.position.x3 + (body2_1.total_mass + body2_2.total_mass) * beam.node_mid.position.x3 + body3.total_mass * beam.node_last.position.x3
+            )
+        cg /+ self.total_mass
+        self.center_of_gravity = cg - self.mip
 
     def _preprocess_nodes(self):
         # add the midpoint nodes for the elements

@@ -16,6 +16,7 @@
 
 import sys
 from .iohandler import Output
+from .mbdyn_types import Vec3
 
 class BaseModel():
     def __init__(self):
@@ -49,30 +50,30 @@ class BaseModel():
 
         # calculate the total mass and cg
         total_mass = 0
-        cm_x, cm_y, cm_z = 0, 0, 0
+        cg = Vec3(0.0, 0.0, 0.0)
         for element in flat_list:
             total_mass += element.total_mass
-            cm_x += element.total_mass * (element.center_of_mass.x1 + element.mip.x1)
-            cm_y += element.total_mass * (element.center_of_mass.x2 + element.mip.x2)
-            cm_z += element.total_mass * (element.center_of_mass.x3 + element.mip.x3)
-        cm_x /= total_mass
-        cm_y /= total_mass
-        cm_z /= total_mass
+            cg += Vec3(
+                element.total_mass * (element.center_of_gravity.x1 + element.mip.x1),
+                element.total_mass * (element.center_of_gravity.x2 + element.mip.x2),
+                element.total_mass * (element.center_of_gravity.x3 + element.mip.x3)
+            )
+        cg /= total_mass
 
         # export the model info
         info_file = Output("KiteMain.preprocessor")
         info_file.write_empty_line()
         info_file.write_line("MBDyn preprocessor model information")
         info_file.write_empty_line()
-        info_file.write_line("{:>32} | {:>10} | {:<16}".format("model", "total mass", "center of mass (relative to model mip)"))
-        center_of_mass_string = "{:8.3f},{:8.3f},{:8.3f}".format(cm_x, cm_y, cm_z)
-        info_file.write_line("{:>32} | {:>10.3f} | <{}>".format(self.title, total_mass, center_of_mass_string))
+        info_file.write_line("{:>32} | {:>10} | {:<16}".format("model", "total mass", "center of gravity (relative to model mip)"))
+        center_of_gravity_string = "{}".format(cg)
+        info_file.write_line("{:>32} | {:>10.3f} | <{}>".format(self.title, total_mass, center_of_gravity_string))
         info_file.write_empty_line()
 
         # write the component mass info
-        info_file.write_line("{:>32} | {:>10} | {:<16}".format("component", "total mass", "center of mass (relative to component)"))
+        info_file.write_line("{:>32} | {:>10} | {:<16}".format("component", "total mass", "center of gravity (relative to component)"))
         for element in flat_list:
-            info_file.write_line("{:>32} | {:>10.3f} | <{}>".format(element.component_name, element.total_mass, element.center_of_mass))
+            info_file.write_line("{:>32} | {:>10.3f} | <{}>".format(element.component_name, element.total_mass, element.center_of_gravity))
         info_file.write_empty_line()
 
         # write the component point masses excluding rotors
