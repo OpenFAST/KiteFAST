@@ -57,4 +57,5 @@ vs-build/
 *.elements
 *.mbd
 *.set
+*.preprocessor
 glue-codes/kitefast/test_cases/*/controller_save_data.csv
