@@ -43,7 +43,7 @@ class Input():
     It unpacks all of the dictionaries and casts the data to the necessary types.
     """
     def __init__(self, input_name):
-        self.input_dict = yaml.load(open(input_name, "r"))
+        self.input_dict = yaml.load(open(input_name, "r"), Loader=yaml.FullLoader)
         self.simulation_dict = self._parse_simulation_dict(self.input_dict)
         self.model_dict = self._parse_model_dict(self.input_dict)
 
