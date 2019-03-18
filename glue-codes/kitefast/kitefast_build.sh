@@ -1,4 +1,4 @@
-# Build script for all KiteFAST related components on Ubuntu 14.04
+# Build script for all KiteFAST related components on Debian Strech (9)
 
 # exit on error
 set -e
