@@ -1,4 +1,4 @@
-# Build script for all KiteFAST related components on Ubuntu 14.04
+# Build script for all KiteFAST related components on Debian Stretch (9)
 
 ### configuration
 
@@ -46,16 +46,15 @@ function uninstall_package {
 
 # install these general software development tools
 uninstall_if_found "git"
+uninstall_if_found "cmake"
 uninstall_if_found "build-essential"
 uninstall_if_found "software-properties-common"
-uninstall_if_found "gfortran" # this does not come on 14.04 by default
-uninstall_if_found "gfortran-4.8"
-uninstall_if_found "libgfortran-4.8-dev"
-uninstall_if_found "libgfortran3"
-uninstall_if_found "cmake"
-uninstall_if_found "libblas-dev" # blas math library
+uninstall_if_found "gfortran-6"
+uninstall_if_found "libblas-dev"   # blas math library
 uninstall_if_found "liblapack-dev" # lapack math library
-uninstall_if_found "libltdl-dev" # libltdl headers, used in mbdyn for linking
+uninstall_if_found "libltdl-dev"   # libltdl headers, used in mbdyn for linking
+uninstall_if_found "libgsl-dev"    # used in the STI controller
+uninstall_if_found "python3-pip"   # used in the STI controller
 
 # remove lingering packages
 sudo apt-get autoremove -y
@@ -63,7 +62,7 @@ sudo apt-get autoremove -y
 # remove KiteFAST build directory
 rm -rf $openfast_directory/build
 
-# remove the mbdyn external module from  mbdyn
+# remove the mbdyn external module from mbdyn
 sudo rm -rf $mbdyn_directory/modules/module-kitefastmbd
 
 # clean the mbdyn build
@@ -72,6 +71,3 @@ sudo make clean
 
 # remove the mbdyn installation
 sudo rm -rf /usr/local/mbdyn
-
-# add the mbdyn installation directory to your .bashrc
-#echo 'PATH="/usr/local/mbdyn/bin:$PATH"' >> ~/.bashrc
