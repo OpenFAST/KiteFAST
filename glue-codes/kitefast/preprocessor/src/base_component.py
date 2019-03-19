@@ -577,7 +577,7 @@ class BaseComponent():
                         3 * zg1**2 + 2 * zg1 * zg2 + zg2**2)
                 + m2 * (yg1**2 + 2 * yg1 * yg2 + 3 * yg2**2 +
                         zg1**2 + 2 * zg1 * zg2 + 3 * zg2**2)
-        )
+            )
         Iyy = (Lb / 12.0) \
             * (
                 6 * (iyy1 + iyy2)
@@ -585,7 +585,7 @@ class BaseComponent():
                         3 * zg1**2 + 2 * zg1 * zg2 + zg2**2)
                 + m2 * (3 * Lb**2 + 8 * Lb * x1 + 6 * x1**2 +
                         zg1**2 + 2 * zg1 * zg2 + 3 * zg2**2)
-        )
+            )
         Izz = (Lb / 12.0) \
             * (
                 6 * (izz1 + izz2)
@@ -593,89 +593,124 @@ class BaseComponent():
                         3 * yg1**2 + 2 * yg1 * yg2 + yg2**2)
                 + m2 * (3 * Lb**2 + 8 * Lb * x1 + 6 * x1**2 +
                         yg1**2 + 2 * yg1 * yg2 + 3 * yg2**2)
-        )
+            )
         Ixy = (Lb / 12.0) \
             * (
                 6 * (ixy1 + ixy2)
                 + m1 * (Lb * (yg1 + yg2) + 2 * x1 * (2 * yg1 + yg2))
                 + m2 * (Lb * (yg1 + 3 * yg2) + 2 * x1 * (yg1 + 2 * yg2))
-        )
+            )
         Ixz = (Lb / 12.0) \
             * (
                 6 * (ixz1 + ixz2)
                 + m1 * (Lb * (zg1 + zg2) + 2 * x1 * (2 * zg1 + zg2))
                 + m2 * (Lb * (zg1 + 3 * zg2) + 2 * x1 * (zg1 + 2 * zg2))
-        )
+            )
         Iyz = (Lb / 12.0) \
             * (
                 6 * (iyz1 + iyz2)
                 + m1 * (yg2 * (zg1 + zg2) + yg1 * (3 * zg1 + zg2))
                 + m2 * (yg1 * (zg1 + zg2) + yg2 * (zg1 + 3 * zg2))
-        )
+            )
 
-        Ixx1 = (Lb / 192) \
+        Ixx1 = (Lb / 192.0) \
             * (
                 24 * (3 * ixx1 + ixx2)
                 + m1 * (45 * yg1**2 + 22 * yg1 * yg2 + 5 * yg2**2 +
                         45 * zg1**2 + 22 * zg1 * zg2 + 5 * zg2**2)
                 + m2 * (11 * yg1**2 + 10 * yg1 * yg2 + 3 * yg2**2 +
                         11 * zg1**2 + 10 * zg1 * zg2 + 3 * zg2**2)
-        )
-
-        Iyy1 = (Lb / 192) \
+            )
+        Iyy1 = (Lb / 192.0) \
             * (
                 24 * (3 * iyy1 + iyy2)
                 + m1 * (5 * Lb**2 + 32 * Lb * x1 + 72 * x1**2 +
                         45 * zg1**2 + 22 * zg1 * zg2 + 5 * zg2**2)
                 + m2 * (3 * Lb**2 + 16 * Lb * x1 + 24 * x1**2 +
                         11 * zg1**2 + 10 * zg1 * zg2 + 3 * zg2**2)
-        )
-
-        Izz1 = (Lb / 192) \
+            )
+        Izz1 = (Lb / 192.0) \
             * (
                 24 * (3 * izz1 + izz2)
                 + m1 * (5 * Lb**2 + 32 * Lb * x1 + 72 * x1**2 +
                         45 * yg1**2 + 22 * yg1 * yg2 + 5 * yg2**2)
                 + m2 * (3 * Lb**2 + 16 * Lb * x1 + 24 * x1**2 +
                         11 * yg1**2 + 10 * yg1 * yg2 + 3 * yg2**2)
-        )
-
-        Ixy1 = (Lb / 192) \
+            )
+        Ixy1 = (Lb / 192.0) \
             * (
                 24 * (3 * ixy1 + ixy2)
                 + m1 * (11 * Lb * yg1 + 56 * x1 * yg1 +
                         5 * Lb * yg2 + 16 * x1 * yg2)
                 + m2 * (5 * Lb * yg1 + 16 * x1 * yg1 + 3 * Lb * yg2 + 8 * x1 * yg2)
-        )
-
-        Ixz1 = (Lb / 192) \
+            )
+        Ixz1 = (Lb / 192.0) \
             * (
                 24 * (3 * ixz1 + ixz2)
                 + m1 * (11 * Lb * zg1 + 56 * x1 * zg1 +
                         5 * Lb * zg2 + 16 * x1 * zg2)
                 + m2 * (5 * Lb * zg1 + 16 * x1 * zg1 + 3 * Lb * zg2 + 8 * x1 * zg2)
-        )
-
-        Iyz1 = (Lb / 192) \
+            )
+        Iyz1 = (Lb / 192.0) \
             * (
                 24 * (3 * iyz1 + iyz2)
                 + m1 * (45 * yg1 * zg1 + 11 * yg2 * zg1 +
                         11 * yg1 * zg2 + 5 * yg2 * zg2)
                 + m2 * (11 * yg1 * zg1 + 5 * yg2 * zg1 +
                         5 * yg1 * zg2 + 3 * yg2 * zg2)
-        )
+            )
 
         Xg = XgM / M
         Yg = YgM / M
         Zg = ZgM / M
-        R = -1 * np.array([Xg, Yg, Zg])
 
-        Ixx1G = Ixx1 - M1 * (np.sum(R**2) - R[0] * R[0])
-        Iyy1G = Iyy1 - M1 * (np.sum(R**2) - R[1] * R[1])
-        Izz1G = Izz1 - M1 * (np.sum(R**2) - R[2] * R[2])
-        Ixy1G = Ixy1 - M1 * (-1 * R[0] * R[1])
-        Ixz1G = Ixz1 - M1 * (-1 * R[0] * R[2])
-        Iyz1G = Iyz1 - M1 * (-1 * R[1] * R[2])
+        Xg_star = x1 + (Lb / 3.0) * (2 * m1 + m2) / (3 * m1 + m2)
+        Yg_star = ((7 * m1 + 2 * m2) * yg1 + (2 * m1 + m2) * yg2)  / (9 * m1 + 3 * m2)
+        Zg_star = ((7 * m1 + 2 * m2) * zg1 + (2 * m1 + m2) * zg2)  / (9 * m1 + 3 * m2)
+
+        R = -1 * np.array([Xg, Yg, Zg])
+        R_star = -1 * np.array([Xg_star, Yg_star, Zg_star])
+        R_prime = np.array(
+            [
+                Xg - Xg_star,
+                Yg - Yg_star,
+                Zg - Zg_star
+            ]
+        )
+
+        Ixx1G = Ixx1 + M1 \
+            * (
+                np.sum(R_prime**2) - np.sum(R_star**2) \
+                + R_star[0] * R_star[0] 
+                - R_prime[0] * R_prime[0]
+            )
+        Iyy1G = Iyy1 + M1 \
+            * (
+                np.sum(R_prime**2) - np.sum(R_star**2)
+                + R_star[1] * R_star[1]
+                - R_prime[1] * R_prime[1]
+            )
+        Izz1G = Izz1 + M1 \
+            * (
+                np.sum(R_prime**2) - np.sum(R_star**2)
+                + R_star[2] * R_star[2]
+                - R_prime[2] * R_prime[2]
+            )
+        Ixy1G = Ixy1 + M1 \
+            * (
+                R_star[0] * R_star[1]
+                - R_prime[0] * R_prime[1]
+            )
+        Ixz1G = Ixz1 + M1 \
+            * (
+                R_star[0] * R_star[2]
+                - R_prime[0] * R_prime[2]
+            )
+        Iyz1G = Iyz1 + M1 \
+            * (
+                R_star[1] * R_star[2]
+                - R_prime[1] * R_prime[2]
+            )
 
         Ixx2G = Ixx - Ixx1G - M * (np.sum(R**2) - R[0] * R[0])
         Iyy2G = Iyy - Iyy1G - M * (np.sum(R**2) - R[1] * R[1])
