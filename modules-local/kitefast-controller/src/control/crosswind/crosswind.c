@@ -172,7 +172,9 @@ void CrosswindStep(const FlightStatus *flight_status,
                    const StateEstimate *state_est,
                    const CrosswindParams *params, CrosswindState *state,
                    ControlOutput *control_output) {
-  printf("    crosswindstep \n");
+#ifdef DEBUG //DEBUG preproc found in kfc.h
+  // printf("    crosswindstep \n");
+#endif
   CrosswindFlags flags;
   GetFlags(state_est, flight_status->flight_mode, state->power.path_type, &flags);
 
@@ -301,7 +303,9 @@ void CrosswindStep(const FlightStatus *flight_status,
 	// beta_cmd	 = -0.0256;	   // added by JMiller - STI
 	// dCL_cmd 	 = -0.0025;	   // added by JMiller - STI
 	// tether_roll_cmd = 0.0; // added by JMiller - STI
-printf("    debug marker - pre crosswind_inner \n");
+#ifdef DEBUG //DEBUG preproc found in kfc.h
+  // printf("    debug marker - pre crosswind_inner \n");
+#endif
   CrosswindInnerStep(
       tether_roll_cmd, tether_roll, alpha_cmd,
       state_est->apparent_wind.sph_f.alpha, dCL_cmd, beta_cmd,
@@ -311,7 +315,9 @@ printf("    debug marker - pre crosswind_inner \n");
       &state->experimental_crosswind.current_config, &params->inner,
       &state->inner, lateral_gains, &deltas, &thrust_moment);
 
-printf("    debug marker - post crosswind_inner \n");
+#ifdef DEBUG //DEBUG preproc found in kfc.h
+    //		printf("   controller_step\n");
+#endif
 
   // Convert control variables to actuator commands.
   CrosswindOutputStep(params->loop_dir, loop_angle, flaring, &thrust_moment,

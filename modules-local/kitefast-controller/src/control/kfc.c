@@ -75,7 +75,9 @@ void controller_init(double Requested_dT, int numFlaps, int numPylons, double ge
 	// 1.0.0 - First working draft of Controller - all minor steps are working
 	// 1.1.0 - Motor Model added - hooks to kitefast still not connected - but controller is producing 
 	const char controllerVerNumber[] = "1.1.0"; // major.minor.[maintenance]
+#ifdef DEBUG									//DEBUG preproc found in kfc.h
 	printf("   controller_version: %s \n", controllerVerNumber);
+#endif
 
 	// Init Data structures and variables
 	const double flaps_z1[kNumFlaps] = {}; // Last flap command from previous mode - Can link up to previous 'delta' - Added Jmiller - STI
@@ -156,9 +158,11 @@ void controller_step(double t, double dcm_g2b_c[], double pqr_c[], double *acc_n
 	// double ext_torques[] = AeroTorque; //coming in as Aerotorque
 	//Convert the inputs from controller_step and assins the values that correspond to the inputs of CSim
 
+#ifdef DEBUG //DEBUG preproc found in kfc.h
 	printf(" debug - t = %f\n",t);
-	
     printf(" debug - ACTUALLY STEPPING \n");
+#endif
+
 	AssignInputs(dcm_g2b_c, pqr_c, acc_norm_c,
 				 Xg_c, Vg_c, Vb_c, Ag_c,
 				 Ab_c, rho_c, apparent_wind_c,
