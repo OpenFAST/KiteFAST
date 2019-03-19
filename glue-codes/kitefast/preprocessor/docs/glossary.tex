@@ -155,6 +155,8 @@
 
 \newglossaryentry{Iij1o}{name={\ensuremath{I_{ij1}^O}},description={second mass moment of inertia of the beam's first node's lumped mass with respect to point O and about the $x_i$ and $x_j$ axes}, type=symbolslist}
 \newglossaryentry{Iij1g}{name={\ensuremath{I_{ij1}^G}},description={second mass moment of inertia of the beam's first node's lumped mass with respect to center of mass (G) of beacm and about the $x_i$ and $x_j$ axes}, type=symbolslist}
+\newglossaryentry{Iij1g*}{name={\ensuremath{I_{ij1}^{G^*}}},description={second mass moment of inertia of the beam's first node's lumped mass with respect to \gls{G*} and about the $x_i$ and $x_j$ axes}, type=symbolslist}
+
 \newglossaryentry{Iij2o}{name={\ensuremath{I_{ij2}^O}},description={second mass moment of inertia of the beam's second node's lumped mass with respect to point O and about the $x_i$ and $x_j$ axes}, type=symbolslist}
 \newglossaryentry{Iij2g}{name={\ensuremath{I_{ij2}^G}},description={second mass moment of inertia of the beam's second node's lumped mass with respect to center of mass (G) of beacm and about the $x_i$ and $x_j$ axes}, type=symbolslist}
 
@@ -173,28 +175,46 @@
 \newglossaryentry{Izz3}{name={\ensuremath{Izz_3}},description={second mass moment of inertia of the beam's third node's lumped mass about the z-axis}, type=symbolslist}
 \newglossaryentry{Izz1g}{name={\ensuremath{I_{zz}^G}},description={second mass moment of inertia of the beam's first node's lumped mass with respect to center of mass of beacm and about the z-axis}, type=symbolslist}
 
+\newglossaryentry{G}{name={\ensuremath{G}},description={beam semi-element center of mass}, type=symbolslist}
+\newglossaryentry{G*}{name={\ensuremath{G^*}},description={center of mass of first half of beam semi-element}, type=symbolslist}
+\newglossaryentry{O}{name={\ensuremath{O}},description={reference frame origin}, type=symbolslist}
 
-\newglossaryentry{rvec}{name={\ensuremath{\protect\vec{R}}},description={distance vector from center of mass (G) to point O}, type=symbolslist}
-\newglossaryentry{rvecmod}{name={\ensuremath{R}},description={magnitude of the distance vector from center of mass (G) to point O}, type=symbolslist}
-\newglossaryentry{rveci}{name={\ensuremath{R_i}},description={component along $x_i$ of the distance vector from center of mass (G) to point O}, type=symbolslist}
-\newglossaryentry{rvecj}{name={\ensuremath{R_j}},description={component along $x_j$ of the distance vector from center of mass (G) to point O}, type=symbolslist}
+\newglossaryentry{rvec}{name={\ensuremath{\protect\vec{R}}},description={distance vector from \gls{G} to \gls{O}}, type=symbolslist}
+\newglossaryentry{rvec*}{name={\ensuremath{\protect\vec{R}^*}},description={distance vector from \gls{G*} to \gls{O}}, type=symbolslist}
+\newglossaryentry{rvec'}{name={\ensuremath{\protect\vec{R}'}},description={distance vector from \gls{G*} to \gls{G}}, type=symbolslist}
+
+\newglossaryentry{rvecmod}{name={\ensuremath{R}},description={magnitude of \gls{rvec}}, type=symbolslist}
+\newglossaryentry{rvec*mod}{name={\ensuremath{R^*}},description={magnitude of \gls{rvec*}}, type=symbolslist}
+\newglossaryentry{rvec'mod}{name={\ensuremath{R'}},description={magnitude of \gls{rvec'}}, type=symbolslist}
+
+\newglossaryentry{rveci}{name={\ensuremath{R_i}},description={component along $x_i$ of \gls{rvec}}, type=symbolslist}
+\newglossaryentry{rvecj}{name={\ensuremath{R_j}},description={component along $x_j$ of \gls{rvec}}, type=symbolslist}
+\newglossaryentry{rvec*i}{name={\ensuremath{R^*_i}},description={component along $x_i$ of \gls{rvec*}}, type=symbolslist}
+\newglossaryentry{rvec*j}{name={\ensuremath{R^*_j}},description={component along $x_j$ of \gls{rvec*}}, type=symbolslist}
+\newglossaryentry{rvec'i}{name={\ensuremath{R'_i}},description={component along $x_i$ of \gls{rvec'}}, type=symbolslist}
+\newglossaryentry{rvec'j}{name={\ensuremath{R'_j}},description={component along $x_j$ of \gls{rvec'}}, type=symbolslist}
+
 \newglossaryentry{rvecx}{name={\ensuremath{R_x}},description={component along $x$ of the distance vector from center of mass (G) to point O}, type=symbolslist}
 \newglossaryentry{rvecy}{name={\ensuremath{R_y}},description={component along $y$ of the distance vector from center of mass (G) to point O}, type=symbolslist}
 \newglossaryentry{rvecz}{name={\ensuremath{R_z}},description={component along $z$ of the distance vector from center of mass (G) to point O}, type=symbolslist}
 
-\newglossaryentry{Xg}{name={\ensuremath{X_G}},description={x-coordinate of the center of mass of the beam element }, type=symbolslist}
+\newglossaryentry{Xg}{name={\ensuremath{X_G}},description={x-coordinate of the center of mass of the beam semi-element}, type=symbolslist}
+\newglossaryentry{Xg*}{name={\ensuremath{X_G^*}},description={x-coordinate of the center of mass of half of the beam semi-element}, type=symbolslist}
+
 \newglossaryentry{Xgi}{name={\ensuremath{X_{Gi}}},description={x-coordinate of the center of mass of the lumped mass at the $i-th$ node  }, type=symbolslist}
 \newglossaryentry{Xg1}{name={\ensuremath{X_{G1}}},description={x-coordinate of the center of mass of the lumped mass at node 1 (=\SI{0}{\m}) }, type=symbolslist}
 \newglossaryentry{Xg2}{name={\ensuremath{X_{G2}}},description={x-coordinate of the center of mass of the lumped mass at node 2 (=\SI{0}{\m}) }, type=symbolslist}
 \newglossaryentry{Xg3}{name={\ensuremath{X_{G3}}},description={x-coordinate of the center of mass of the lumped mass at node 3 (=\SI{0}{\m}) }, type=symbolslist}
 
-\newglossaryentry{Yg}{name={\ensuremath{Y_G}},description={y-coordinate of the center of mass of the beam element }, type=symbolslist}
+\newglossaryentry{Yg}{name={\ensuremath{Y_G}},description={y-coordinate of the center of mass of the beam semi-element}, type=symbolslist}
+\newglossaryentry{Yg*}{name={\ensuremath{Y_G^*}},description={y-coordinate of the center of mass of half of the beam semi-element}, type=symbolslist}
 \newglossaryentry{Ygi}{name={\ensuremath{Y_{Gi}}},description={y-coordinate of the center of mass of the lumped mass at the $i-th$ node  }, type=symbolslist}
 \newglossaryentry{Yg1}{name={\ensuremath{Y_{G1}}},description={y-coordinate of the center of mass of the lumped mass at node 1 (=\SI{0}{\m}) }, type=symbolslist}
 \newglossaryentry{Yg2}{name={\ensuremath{Y_{G2}}},description={y-coordinate of the center of mass of the lumped mass at node 2 (=\SI{0}{\m}) }, type=symbolslist}
 \newglossaryentry{Yg3}{name={\ensuremath{Y_{G3}}},description={y-coordinate of the center of mass of the lumped mass at node 3 (=\SI{0}{\m}) }, type=symbolslist}
 
-\newglossaryentry{Zg}{name={\ensuremath{Z_G}},description={z-coordinate of the center of mass of the beam element }, type=symbolslist}
+\newglossaryentry{Zg}{name={\ensuremath{Z_G}},description={z-coordinate of the center of mass of the beam semi-element}, type=symbolslist}
+\newglossaryentry{Zg*}{name={\ensuremath{Z_G^*}},description={z-coordinate of the center of mass of half of the beam semi-element}, type=symbolslist}
 \newglossaryentry{Zgi}{name={\ensuremath{Z_{Gi}}},description={z-coordinate of the center of mass of the lumped mass at the $i-th$ node  }, type=symbolslist}
 \newglossaryentry{Zg1}{name={\ensuremath{Z_{G1}}},description={z-coordinate of the center of mass of the lumped mass at node 1 (=\SI{0}{\m}) }, type=symbolslist}
 \newglossaryentry{Zg2}{name={\ensuremath{Z_{G2}}},description={z-coordinate of the center of mass of the lumped mass at node 2 (=\SI{0}{\m}) }, type=symbolslist}

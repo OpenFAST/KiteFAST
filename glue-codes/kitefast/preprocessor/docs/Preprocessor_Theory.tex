@@ -322,9 +322,9 @@ By working out some algebra, the equations can be rewritten to give the unknowns
 With the above approach, there is a risk to encounter issues and the lumped inertia could result as negative.
 Another simpler approach is to calculate the \gls{cg} of the beam element (or sub-element) and assign end node masses there via offsets in the \gls{mbdyn} body definition.
 
-Considering the following 3-node beam:
+Considering one-half of the 3-node beam as in Fig.~\ref{fig:beam3}, \ie one semielement:
 %
-\begin{figure}[h]
+\begin{figure}[!h]
 	\centering
 	\includegraphics[width=0.8\linewidth]{PICS/beam3}
 	\caption{Diagram showing one 2-node subelement and how the lumped masses at the nodes are calculated from the \gls{mx} distribution and the \gls{m1}, \gls{m2} values, and how they are thought concentrated at the center of mass of the beam element.}
@@ -423,27 +423,55 @@ The individual inertias (\gls{Ixx1}--\gls{Iyz1}) from the first node  contributi
 \end{equation}
 %
 
-All of these moments are with respect to the origin O, so we need to use Huygens-Steiner's theorem:
+All of these moments are with respect to the origin \gls{O}, so we need to use Huygens-Steiner's theorem to get them at the center of mass location \gls{G}. Thus, for the lumped inertia at node 1, one can write the following equalities:
 %
 \begin{align}\label{eq:huygen}
-\gls{Iijo} =\gls{Iijg}+\gls{Mass} \left( \gls{rvecmod}^2 \gls{deltaij} -\gls{rveci}\gls{rvecj} \right)
+\gls{Iij1o} =\gls{Iij1g*} + \gls{M1} \left( {\gls{rvec*mod}}^2 \gls{deltaij} -\gls{rvec*i}\gls{rvec*j} \right)\\
+\gls{Iij1g} =\gls{Iij1g*} + \gls{M1} \left( {\gls{rvec'mod}}^2 \gls{deltaij} -\gls{rvec'i}\gls{rvec'j} \right)
 \end{align}
 %
-where \gls{rvec} is given as in Eqs.~\eqref{eq:rvec}:
+where \gls{G*} is the \glsentrydesc{G*}, \gls{rvec}, \gls{rvec*}, and \gls{rvec'} are the \glsentrydesc{rvec}, \glsentrydesc{rvec*}, and \glsentrydesc{rvec'}, respectively, that are defined as shown in Eqs.~\eqref{eq:rvec}-\eqref{eq:rvec'}:
 \begin{align}\label{eq:rvec}
 \gls{rvec} =-\begin{bmatrix}
 					\gls{Xg} \\
                     \gls{Yg} \\
                     \gls{Zg}
-                \end{bmatrix}
+                \end{bmatrix} \\
+                \label{eq:rvec*}
+\gls{rvec*} =-\begin{bmatrix} 
+				   \gls{Xg*} \\
+				   \gls{Yg*} \\
+				   \gls{Zg*}
+				\end{bmatrix} \\
+				\label{eq:rvec'}
+\gls{rvec'} = \begin{bmatrix}
+				\gls{Xg}-\gls{Xg*} \\
+				\gls{Yg}-\gls{Yg*} \\
+				\gls{Zg}-\gls{Zg*}
+			  \end{bmatrix} 
 \end{align}
- 
- 
-Therefore the nodal inertias to be assigned to the nodes (\gls{Iij1g},\gls{Iij2g}) are calculated as in Eq.~\eqref{eq:nodeinertia2}:
+%
+\gls{Xg*} -- \gls{Zg*} are found via Eq.s~\eqref{eq:XG*}-\eqref{eq:ZG*}:
+%
+\begin{align}\label{eq:XG*}
+\gls{Xg*} = \dfrac{1}{\gls{M1}} \int_{\gls{x1}}^{\gls{x1}+\frac{\gls{lb}}{2}}  {\gls{mx} x} dx = \gls{x1} + \dfrac{\gls{lb}}{3} \dfrac{2 \gls{m1} +\gls{m2}}{ 3\gls{m1}+\gls{m2}}\\
+%
+\label{eq:YG*}
+\gls{Yg*}  = \dfrac{1}{\gls{M1}}  \int_{\gls{x1}}^{\gls{x1}+\frac{\gls{lb}}{2}} {\gls{mx} \gls{yg}} dx = \dfrac{(7 \gls{m1} + 2 \gls{m2}) \gls{y1} + (2 \gls{m1} + \gls{m2})\gls{y2}} {9 \gls{m1} + 3 \gls{m2}} \\
+%
+\label{eq:ZG*}
+\gls{Zg*}  = \dfrac{1}{\gls{M1}} \int_{\gls{x1}}^{\gls{x1}+\frac{\gls{lb}}{2}}  {\gls{mx} \gls{zg}} dx =\dfrac{ (7 \gls{m1} + 2 \gls{m2}) \gls{z1} + (2 \gls{m1} + \gls{m2}) \gls{z2}} {9 \gls{m1} + 3 \gls{m2}} 
+\end{align}
+% 
+
+Recognizing the following equality expressed in Eq.~\eqref{eq:totinertia} and carrying out algebras, the inertias (\gls{Iij1g},\gls{Iij2g}) to be assigned to nodes 1 and 2 can be expressed as in Eq.~\eqref{eq:nodeinertia2}. 
+\begin{equation}\label{eq:totinertia}
+	\gls{Iijg}  = \gls{Iij1g} + \gls{Iij2g}
+\end{equation}
 %
 \begin{equation}
 \begin{aligned}\label{eq:nodeinertia2}
-\gls{Iij1g}  &= \gls{Iij1o} - \gls{M1}   \left( \gls{rvecmod}^2 \gls{deltaij} -\gls{rveci}\gls{rvecj} \right) \\
+\gls{Iij1g} &=\gls{Iij1o}  + \gls{M1} \left[ ({\gls{rvec'mod}}^2-{\gls{rvec*mod}}^2) \gls{deltaij}   + \gls{rvec*i}\gls{rvec*j} -\gls{rvec'i}\gls{rvec'j} \right]\\
 %
 \gls{Iij2g} &=\gls{Iijo} - \gls{Iij1g} - \gls{Mass} \left( \gls{rvecmod}^2 \gls{deltaij} -\gls{rveci}\gls{rvecj} \right) 
 \end{aligned}
