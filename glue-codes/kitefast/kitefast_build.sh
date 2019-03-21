@@ -116,8 +116,13 @@ if [ ! -d $mbdyn_directory ]; then
   exit 1
 fi
 
-# # copy the external module from openfast to mbdyn
-cp -r $openfast_directory/glue-codes/kitefast/module-kitefastmbd $mbdyn_directory/modules/.
+# put the module files in the appropriate place
+if [ ! -d $mbdyn_directory/modules/module-kitefastmbd ]; then
+  mkdir $mbdyn_directory/modules/module-kitefastmbd
+fi
+create_link $openfast_directory/glue-codes/kitefast/module-kitefastmbd/Makefile.inc $mbdyn_directory/modules/module-kitefastmbd/.
+create_link $openfast_directory/glue-codes/kitefast/module-kitefastmbd/module-kitefastmbd.cc $mbdyn_directory/modules/module-kitefastmbd/.
+create_link $openfast_directory/glue-codes/kitefast/module-kitefastmbd/module-kitefastmbd.h $mbdyn_directory/modules/module-kitefastmbd/.
 
 # # link kitefast lib and its module file to the module-kitefastmbd directory
 create_link $openfast_directory/build/modules-local/kitefast-library/libkitefastlib.a $mbdyn_directory/modules/module-kitefastmbd/libkitefastlib.a

@@ -7,7 +7,7 @@ set -e
 
 source_code_parent_directory="/home/parallels/Desktop"
 mbdyn_directory=$source_code_parent_directory"/mbdyn-1.7.3"
-openfast_directory=$source_code_parent_directory"/makani_openfast"
+openfast_directory=$source_code_parent_directory"/sandbox"
 
 #####
 
@@ -78,8 +78,7 @@ cmake ..
 make -j 2 kitefastlib kitefastcontroller_controller
 
 # rebuild the mbdyn user module
-cd $mbdyn_directory
-cd modules                       # move to the module directory
+cd $mbdyn_directory/modules
 make clean && sudo make install  # build the user defined element
 cd ..                            # move back to mbdyn
 sudo make install                # install everything
