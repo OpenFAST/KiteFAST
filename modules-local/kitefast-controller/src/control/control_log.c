@@ -19,12 +19,16 @@ void ControlLogInit(char* controllerVerNumber){
     fprintf(fp, "rotors[0], rotors[1], rotors[2], rotors[3], rotors[4], rotors[5], rotors[6], rotors[7]");  
     fprintf(fp, "\n");
 	fclose(fp);
+#ifdef DEBUG
     printf("   Control Logging Initiated: File saved as - controller_save_data.txt \n");
+#endif
 }
 
 void ControlLogEntry(ControlLog* control_log){
     //assemble data for save file
+#ifdef DEBUG
     printf("   Control Logging : Saving Step data\n");
+#endif
     char assembledStr[1024];
     char tempStr[80];
     // dcm 
@@ -100,7 +104,9 @@ void ControlLogEntry(ControlLog* control_log){
         control_log->stateEstLog.wind_g.vector.z);
     strcat( assembledStr, tempStr);   
     // kFlaps[]
+#ifdef DEBUG
     printf("   Control Logging : saving flaps\n");
+#endif
     sprintf(tempStr, "%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,",
         control_log->controlOutputLog.flaps[kFlapA1],    
         control_log->controlOutputLog.flaps[kFlapA2],
@@ -111,7 +117,9 @@ void ControlLogEntry(ControlLog* control_log){
         control_log->controlOutputLog.flaps[kFlapEle],
         control_log->controlOutputLog.flaps[kFlapRud]);
     strcat( assembledStr, tempStr);
+#ifdef DEBUG
     printf("   Control Logging : saving rotors\n");
+#endif
     // rotors 
     sprintf(tempStr, "%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,",
         control_log->controlOutputLog.rotors[kMotor1],    
@@ -128,6 +136,7 @@ void ControlLogEntry(ControlLog* control_log){
 	fp = fopen("controller_save_data.csv", "a+");
 	fprintf(fp, "%s \n", assembledStr);
 	fclose(fp);
-
+#ifdef DEBUG
     printf("   Control Step Saved: File saved as - controller_save_data.csv \n");
+#endif
 }
