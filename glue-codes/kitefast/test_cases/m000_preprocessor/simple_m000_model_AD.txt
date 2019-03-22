@@ -2,9 +2,9 @@
 simple_m000_model driver input file w/RotorMod = 1
 --- SIMULATION CONTROL ---
 False     Echo      ! Echo input data to <RootName>.ech? (flag)
-1.0       DTAero    ! Time interval for aerodynamic calculations (s)
-1         LiftMod   ! Lifting-line calculation model (-) (switch) {1:geometric AoA, 2:vortex method}
-1         RotorMod  ! Rotor calculation model (-) (switch) {0:none, 1:actuator disk}
+0.01       DTAero    ! Time interval for aerodynamic calculations (s)
+2         LiftMod   ! Lifting-line calculation model (-) (switch) {1:geometric AoA, 2:vortex method}
+0         RotorMod  ! Rotor calculation model (-) (switch) {0:none, 1:actuator disk}
 True      UseCm     ! Include aerodynamic pitching moment in calculations? (flag)
 --- ENVIRONMENTAL CONDITIONS ---
 1.225     AirDens   ! Air density (kg/m^3) [>0.0]

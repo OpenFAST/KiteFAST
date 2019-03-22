@@ -21,6 +21,12 @@ simulation_controls:
         moordyn_input: "path/to/file"
         controller_input: "path/to/file"
 
+    print_kitefast_summary_file:
+        false
+
+    kitefast_output_file_root_name:
+        "KiteFast"
+
     time:
         timestep:
             1e-3
@@ -343,58 +349,26 @@ rotor_assembly:
                         1.000    0.0      0.0      0.0      10.0     0.0      0.0      0.0     0.0      0.0
 
 output:
-    # these are optional keywords which turn on output for all nodes in the
-    # component outputs from mbdyn module (nodal quantities).
-    fuselage:
-        true
+    fuselage_nodes:
+        - 0
 
-    wing/starboard:
-        false
+    wing_starboard_nodes:
+        - 0
 
-    wing/port:
-        false
+    wing_port_outputs:
+        - 0
 
-    stabilizer/vertical:
-        false
+    vertical_stabilizer_outputs:
+        - 0
 
-    stabilizer/horizontal/starboard:
-        false
+    horizontal_stabilizer_starboard_outputs:
+        - 0
 
-    stabilizer/horizontal/port:
-        false
+    horizontal_stabilizer_port_outputs:
+        - 0
 
-    pylon/starboard/1:
-        false
+    pylon_outputs:
+        - 0
 
-    pylon/starboard/2:
-        false
+    output_channels:
 
-    pylon/port/1:
-        false
-
-    pylon/port/2:
-        false
-
-    rotor_assembly/upper/starboard/1:
-        false
-
-    rotor_assembly/lower/starboard/1:
-        false
-
-    rotor_assembly/upper/starboard/2:
-        false
-
-    rotor_assembly/lower/starboard/2:
-        false
-
-    rotor_assembly/upper/port/1:
-        false
-
-    rotor_assembly/lower/port/1:
-        false
-
-    rotor_assembly/upper/port/2:
-        false
-
-    rotor_assembly/lower/port/2:
-        false
