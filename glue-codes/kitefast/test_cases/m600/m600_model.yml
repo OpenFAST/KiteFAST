@@ -112,9 +112,9 @@ fuselage:
     element_end_nodes:
         # x        y        z        twist    attached component   point mass
         # m        m        m        deg                           kg
-        - -0.027   0.000    0.170    0.0      wing                 17.850       # fore
-        - -1.553   0.000    0.162    0.0      none                 0.0
-        - -6.917   0.000    0.039    0.0      stabilizer/vertical  0.0          # aft
+        - -0.027   0.000    0.000    0.0      wing                 17.850       # fore
+        - -1.553   0.000    0.000    0.0      none                 0.0
+        - -6.917   0.000    0.000    0.0      stabilizer/vertical  0.0          # aft
 
     stiffness_matrix:
         # EA                                                                                                                                   GJ                         EIcc             EInn
@@ -126,9 +126,9 @@ fuselage:
     mass_distribution:
         # mass/l   Cmy      Cmz      Ixx      Iyy      Izz      Ixy      Ixz      Iyz
         # kg/m     m        m        kg*m     kg*m     kg*m     kg*m     kg*m     kg*m
-        - 20.390   0.0      0.0    0.83     0.35     0.75     0.0      0.0      0.0
-        - 20.390   0.0      0.0    0.83     0.35     0.75     0.0      0.0      0.0
-        - 5.339    0.0      0.0    0.069    0.053    0.045    0.0      0.0      0.0
+        - 20.390   0.0      0.170    0.83     0.35     0.75     0.0      0.0      0.0
+        - 20.390   0.0      0.162    0.83     0.35     0.75     0.0      0.0      0.0
+        - 5.339    0.0      0.039    0.069    0.053    0.045    0.0      0.0      0.0
 
 wing:
     number_of_flaps_per_wing:
@@ -142,7 +142,7 @@ wing:
             - 0.000    1.060    0.000    0.0      pylon/starboard/1    11.780   # pylon 3
             - 0.000    3.486    0.000    0.0      pylon/starboard/2    11.780   # pylon 4
             - 0.000    6.432    0.000    0.0      none                 12.280   # taper break
-            - 0.000    12.831   0.384    0.0      none                 0.0      # tip
+            - 0.000    12.831   0.000    0.0      none                 0.0      # tip
 
         stiffness_matrix:
             #                                                       EA                                                                             EIcc                       GJ               EInn
@@ -160,7 +160,7 @@ wing:
             - 15.650   0.0      0.0      0.450    1.376    1.300    0.0      0.0      0.0
             - 15.473   0.0      0.0      0.450    1.376    1.300    0.0      0.0      0.0
             - 18.844   0.0      0.0      0.450    1.376    1.300    0.0      0.0      0.0
-            - 2.903    0.0      0.0      0.018    0.057    0.054    0.0      0.0      0.0
+            - 2.903    0.0      0.384    0.018    0.057    0.054    0.0      0.0      0.0
 
     port:
         element_end_nodes:
@@ -170,7 +170,7 @@ wing:
             - 0.000   -1.060    0.000    0.0      pylon/port/1         11.780   # pylon 2
             - 0.000   -3.486    0.000    0.0      pylon/port/2         11.780   # pylon 1
             - 0.000   -6.432    0.000    0.0      none                 12.280   # taper break
-            - 0.000   -12.831   0.384    0.0      none                 0.0      # tip
+            - 0.000   -12.831   0.000    0.0      none                 0.0      # tip
 
         stiffness_matrix:
             #                                                       EA                                                                             EIcc                       GJ               EInn
@@ -188,16 +188,16 @@ wing:
             - 15.650   0.0      0.0      0.450    1.376    1.300    0.0      0.0      0.0
             - 15.473   0.0      0.0      0.450    1.376    1.300    0.0      0.0      0.0
             - 18.844   0.0      0.0      0.450    1.376    1.300    0.0      0.0      0.0
-            - 2.903    0.0      0.0      0.018    0.057    0.054    0.0      0.0      0.0
+            - 2.903    0.0      0.384    0.018    0.057    0.054    0.0      0.0      0.0
 
 stabilizer:
     vertical:
         element_end_nodes:
             # x        y        z        twist    attached component    point mass
             # m        m        m        deg                            kg
-            - -0.123   0.000    -2.850   0.0      none                  0.0      # top
-            -  0.000   0.000     0.000   0.0      fuselage              13.52    # fuselage
-            - -0.044   0.000     0.712   0.0      stabilizer/horizontal 5.810    # bottom
+            - 0.000    0.000   -2.850   0.0      none                  0.0      # top
+            - 0.000    0.000    0.000   0.0      fuselage              13.52    # fuselage
+            - 0.000    0.000    0.712   0.0      stabilizer/horizontal 5.810    # bottom
 
         stiffness_matrix:
             #                                                                                                   EA                                 EIcc                       EInn             GJ
@@ -209,9 +209,9 @@ stabilizer:
         mass_distribution:
             # mass/l   Cmx      Cmy      Ixx      Iyy      Izz      Ixy      Ixz      Iyz
             # kg/m     m        m        kg*m     kg*m     kg*m     kg*m     kg*m     kg*m
-            - 2.112    0.0      0.0      0.049    0.097    0.109    0.0      0.0      0.0
-            - 7.829    0.0      0.0      0.180    0.361    0.403    0.0      0.0      0.0
-            - 3.167    0.0      0.0      0.041    0.122    0.129    0.0      0.0      0.0
+            - 2.112    -0.123   0.0      0.049    0.097    0.109    0.0      0.0      0.0
+            - 7.829     0.000   0.0      0.180    0.361    0.403    0.0      0.0      0.0
+            - 3.167    -0.044   0.0      0.041    0.122    0.129    0.0      0.0      0.0
 
     horizontal:
         starboard:
@@ -219,8 +219,8 @@ stabilizer:
                 # x        y        z        twist    attached component   point mass
                 # m        m        m        deg                           kg
                 -  0.000   0.000    0.000    0.0      stabilizer/vertical  5.22   # center
-                - -0.171   1.000    0.000    0.0      none                 0      #
-                - -0.417   2.447    0.000    0.0      none                 0      # tip
+                - -0.000   1.000    0.000    0.0      none                 0      #
+                - -0.000   2.447    0.000    0.0      none                 0      # tip
 
             stiffness_matrix:
                 #                                                       EA                                                                             EIcc                       GJ               EInn
@@ -232,17 +232,17 @@ stabilizer:
             mass_distribution:
                 # mass/l   Cmx      Cmz      Ixx      Iyy      Izz      Ixy      Ixz      Iyz
                 # kg/m     m        m        kg*m     kg*m     kg*m     kg*m     kg*m     kg*m
-                - 2.407    0.0      0.0      0.017    0.023    0.016    0.0      0.0      0.0
-                - 3.843    0.0      0.0      0.027    0.222    0.220    0.0      0.0      0.0
-                - 2.200    0.0      0.0      0.010    0.022    0.020    0.0      0.0      0.0
+                - 2.407     0.000   0.0      0.017    0.023    0.016    0.0      0.0      0.0
+                - 3.843    -0.171   0.0      0.027    0.222    0.220    0.0      0.0      0.0
+                - 2.200    -0.417   0.0      0.010    0.022    0.020    0.0      0.0      0.0
 
         port:
             element_end_nodes:
                 # x        y        z        twist    attached component   point mass
                 # m        m        m        deg                           kg
-                -  0.000   0.000    0.000    0.0      stabilizer/vertical  5.22   # center
-                - -0.171  -1.000    0.000    0.0      none                 0      #
-                - -0.417  -2.447    0.000    0.0      none                 0      # tip
+                - 0.000     0.000   0.000    0.0      stabilizer/vertical  5.22   # center
+                - 0.000    -1.000   0.000    0.0      none                 0      #
+                - 0.000    -2.447   0.000    0.0      none                 0      # tip
 
             stiffness_matrix:
                 #                                                       EA                                                                             EIcc                       GJ               EInn
@@ -254,9 +254,9 @@ stabilizer:
             mass_distribution:
                 # mass/l   Cmx      Cmz      Ixx      Iyy      Izz      Ixy      Ixz      Iyz
                 # kg/m     m        m        kg*m     kg*m     kg*m     kg*m     kg*m     kg*m
-                - 2.407    0.0      0.0      0.017    0.023    0.016    0.0      0.0      0.0
-                - 3.843    0.0      0.0      0.027    0.222    0.220    0.0      0.0      0.0
-                - 2.200    0.0      0.0      0.010    0.022    0.020    0.0      0.0      0.0
+                - 2.407     0.000   0.0      0.017    0.023    0.016    0.0      0.0      0.0
+                - 3.843    -0.171   0.0      0.027    0.222    0.220    0.0      0.0      0.0
+                - 2.200    -0.417   0.0      0.010    0.022    0.020    0.0      0.0      0.0
 
 pylon:
     starboard:
@@ -264,9 +264,9 @@ pylon:
             element_end_nodes:
                 # x        y        z        twist    attached component                point mass
                 # m        m        m        deg                                        kg
-                - 0.729    0.000   -1.470    0.0      rotor_assembly/starboard/1/upper  0.000      # top
-                - 0.302    0.000   -0.120    0.0      wing/starboard                    0.000      # wing
-                - 0.510    0.000    1.832    0.0      rotor_assembly/starboard/1/lower  0.000      # bottom
+                - 0.000    0.000   -1.470    0.0      rotor_assembly/starboard/1/upper  0.000      # top
+                - 0.000    0.000   -0.120    0.0      wing/starboard                    0.000      # wing
+                - 0.000    0.000    1.832    0.0      rotor_assembly/starboard/1/lower  0.000      # bottom
 
             stiffness_matrix:
                 #                                                                                                   EA                                 EIcc                       EInn             GJ
@@ -278,17 +278,17 @@ pylon:
             mass_distribution:
                 # mass/l   Cmx      Cmy      Ixx      Iyy      Izz      Ixy      Ixz      Iyz
                 # kg/m     m        m        kg*m     kg*m     kg*m     kg*m     kg*m     kg*m
-                - 15.446   0.0      0.0      0.110    1.564    1.568    0.0      0.0      0.0
-                - 15.034   0.0      0.0      0.074    0.524    0.529    0.0      0.0      0.0
-                - 15.316   0.0      0.0      0.162    1.938    1.945    0.0      0.0      0.0
+                - 15.446   0.729    0.0      0.110    1.564    1.568    0.0      0.0      0.0
+                - 15.034   0.302    0.0      0.074    0.524    0.529    0.0      0.0      0.0
+                - 15.316   0.510    0.0      0.162    1.938    1.945    0.0      0.0      0.0
 
         2: # starboard outer
             element_end_nodes:
                 # x        y        z        twist    attached component                point mass
                 # m        m        m        deg                                        kg
-                - 0.729    0.000   -1.470    0.0      rotor_assembly/starboard/2/upper  0.000      # top
-                - 0.302    0.000   -0.120    0.0      wing/starboard                    0.000      # wing
-                - 0.510    0.000    1.832    0.0      rotor_assembly/starboard/2/lower  0.000      # bottom
+                - 0.000    0.000   -1.470    0.0      rotor_assembly/starboard/2/upper  0.000      # top
+                - 0.000    0.000   -0.120    0.0      wing/starboard                    0.000      # wing
+                - 0.000    0.000    1.832    0.0      rotor_assembly/starboard/2/lower  0.000      # bottom
 
             stiffness_matrix:
                 #                                                                                                   EA                                 EIcc                       EInn             GJ
@@ -300,18 +300,18 @@ pylon:
             mass_distribution:
                 # mass/l   Cmx      Cmy      Ixx      Iyy      Izz      Ixy      Ixz      Iyz
                 # kg/m     m        m        kg*m     kg*m     kg*m     kg*m     kg*m     kg*m
-                - 15.446   0.0      0.0      0.110    1.564    1.568    0.0      0.0      0.0
-                - 15.034   0.0      0.0      0.074    0.524    0.529    0.0      0.0      0.0
-                - 15.316   0.0      0.0      0.162    1.938    1.945    0.0      0.0      0.0
+                - 15.446   0.729    0.0      0.110    1.564    1.568    0.0      0.0      0.0
+                - 15.034   0.302    0.0      0.074    0.524    0.529    0.0      0.0      0.0
+                - 15.316   0.510    0.0      0.162    1.938    1.945    0.0      0.0      0.0
 
     port:
         1: # port inner
             element_end_nodes:
                 # x        y        z        twist    attached component                point mass
                 # m        m        m        deg                                        kg
-                - 0.729    0.000   -1.470    0.0      rotor_assembly/port/1/upper       0.000      # top
-                - 0.302    0.000   -0.120    0.0      wing/port                         0.000      # wing
-                - 0.510    0.000    1.832    0.0      rotor_assembly/port/1/lower       0.000      # bottom
+                - 0.000    0.000   -1.470    0.0      rotor_assembly/port/1/upper       0.000      # top
+                - 0.000    0.000   -0.120    0.0      wing/port                         0.000      # wing
+                - 0.000    0.000    1.832    0.0      rotor_assembly/port/1/lower       0.000      # bottom
 
             stiffness_matrix:
                 #                                                                                                   EA                                 EIcc                       EInn             GJ
@@ -323,17 +323,17 @@ pylon:
             mass_distribution:
                 # mass/l   Cmx      Cmy      Ixx      Iyy      Izz      Ixy      Ixz      Iyz
                 # kg/m     m        m        kg*m     kg*m     kg*m     kg*m     kg*m     kg*m
-                - 15.446   0.0      0.0      0.110    1.564    1.568    0.0      0.0      0.0
-                - 15.034   0.0      0.0      0.074    0.524    0.529    0.0      0.0      0.0
-                - 15.316   0.0      0.0      0.162    1.938    1.945    0.0      0.0      0.0
+                - 15.446   0.729    0.0      0.110    1.564    1.568    0.0      0.0      0.0
+                - 15.034   0.302    0.0      0.074    0.524    0.529    0.0      0.0      0.0
+                - 15.316   0.510    0.0      0.162    1.938    1.945    0.0      0.0      0.0
 
         2: # port outer
             element_end_nodes:
                 # x        y        z        twist    attached component                point mass
                 # m        m        m        deg                                        kg
-                - 0.729    0.000   -1.470    0.0      rotor_assembly/port/2/upper       0.000      # top
-                - 0.302    0.000   -0.120    0.0      wing/port                         0.000      # wing
-                - 0.510    0.000    1.832    0.0      rotor_assembly/port/2/lower       0.000      # bottom
+                - 0.000    0.000   -1.470    0.0      rotor_assembly/port/2/upper       0.000      # top
+                - 0.000    0.000   -0.120    0.0      wing/port                         0.000      # wing
+                - 0.000    0.000    1.832    0.0      rotor_assembly/port/2/lower       0.000      # bottom
 
             stiffness_matrix:
                 #                                                                                                   EA                                 EIcc                       EInn             GJ
@@ -345,9 +345,9 @@ pylon:
             mass_distribution:
                 # mass/l   Cmx      Cmy      Ixx      Iyy      Izz      Ixy      Ixz      Iyz
                 # kg/m     m        m        kg*m     kg*m     kg*m     kg*m     kg*m     kg*m
-                - 15.446   0.0      0.0      0.110    1.564    1.568    0.0      0.0      0.0
-                - 15.034   0.0      0.0      0.074    0.524    0.529    0.0      0.0      0.0
-                - 15.316   0.0      0.0      0.162    1.938    1.945    0.0      0.0      0.0
+                - 15.446   0.729    0.0      0.110    1.564    1.568    0.0      0.0      0.0
+                - 15.034   0.302    0.0      0.074    0.524    0.529    0.0      0.0      0.0
+                - 15.316   0.510    0.0      0.162    1.938    1.945    0.0      0.0      0.0
 
 rotor_assembly:
     starboard:
