@@ -3268,7 +3268,7 @@ subroutine KFAST_AssRes(t_c, isInitialTime_c, WindPt_c, FusO_c, FusODCM_c, FusOv
    !test = EqualRealNos( fracStep , 0.0_SiKi )
    
    if ( OtherSt%NewTime .and. (isInitialTime < 1) .and. (mod(n2,OtherSt%KFC_nCycles) == 0) ) then
-      print *, "Stepping KFC at t = ", t
+      ! print *, "Stepping KFC at t = ", t
          ! NOTE: The controller is stepping from t - m%KFC%dt to t (GetXCur in MBDyn)
          !       therefore, all inputs to KFC needs to be at time, t - m%KFC%dt.
       if ( p%useKAD ) then
@@ -3445,7 +3445,7 @@ subroutine KFAST_AssRes(t_c, isInitialTime_c, WindPt_c, FusO_c, FusODCM_c, FusOv
    ! end if
 	  
       if ( OtherSt%NewTime .and. (mod(n2,OtherSt%KAD_nCycles) == 0) ) then
-         print *, "Stepping KAD at t = ", t
+         ! print *, "Stepping KAD at t = ", t
          ! call WrScr("Updating KAD Outputs")
             ! Outputs from Controller for KAD (note: we always at least have a dummy controller to generate the necessary data)
          m%KAD%u(1)%Ctrl_SFlp = m%KFC%y%SFlp

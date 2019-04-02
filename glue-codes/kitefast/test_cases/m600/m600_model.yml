@@ -47,7 +47,7 @@ simulation_controls:
             200
 
         coefficient:
-            1e-3
+            1e-4
 
     linear_solver:
         naive
@@ -464,15 +464,18 @@ rotor_assembly:
 
 output:
     fuselage_nodes:
-        - 2
-        - 3
+        # - 2
+        # - 3
+        - 0
 
     wing_starboard_nodes:
-        - 2
-        - 3
+        # - 2
+        # - 3
+        - 0
 
     wing_port_outputs:
-        - 3
+        # - 3
+        - 0
 
     vertical_stabilizer_outputs:
         # 0th node means no nodes are requested
@@ -485,8 +488,9 @@ output:
         - 0
 
     pylon_outputs:
-        - 1
-        - 2
+        # - 1
+        # - 2
+        - 0
 
     output_channels:
         - "Fus1TDx"
