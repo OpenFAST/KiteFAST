@@ -352,7 +352,7 @@ The individual masses \gls{M1} and \gls{M2} to be assigned to the nodes but with
 \gls{M2}  =\gls{Mass}  -\gls{M1}  
 \end{align}
 %
-The total inertias \gls{Ixx}, \gls{Iyy}, \gls{Izz}, \gls{Ixy}, \gls{Ixz}, and \gls{Iyz},  can be calculated as in Eq.~\eqref{eq:InertiaEq}:
+The total inertias \gls{Ixx}, \gls{Iyy}, \gls{Izz}, \gls{Ixy}, \gls{Ixz}, and \gls{Iyz},  can be calculated as in Eq.~\eqref{eq:InertiaEq}, noting that the off-diagonal terms are defined with a positive sign, \ie not as in the usual inertial tensor convention:
 %
 \begin{equation}\label{eq:InertiaEq}
 	\begin{aligned}
@@ -426,8 +426,8 @@ The individual inertias (\gls{Ixx1}--\gls{Iyz1}) from the first node  contributi
 All of these moments are with respect to the origin \gls{O}, so we need to use Huygens-Steiner's theorem to get them at the center of mass location \gls{G}. Thus, for the lumped inertia at node 1, one can write the following equalities:
 %
 \begin{align}\label{eq:huygen}
-\gls{Iij1o} =\gls{Iij1g*} + \gls{M1} \left( {\gls{rvec*mod}}^2 \gls{deltaij} -\gls{rvec*i}\gls{rvec*j} \right)\\
-\gls{Iij1g} =\gls{Iij1g*} + \gls{M1} \left( {\gls{rvec'mod}}^2 \gls{deltaij} -\gls{rvec'i}\gls{rvec'j} \right)
+\gls{Iij1o} =\gls{Iij1g*} + \gls{M1} \left( {\gls{rvec*mod}}^2 \gls{deltaij} + (1-2\gls{deltaij}) \gls{rvec*i}\gls{rvec*j} \right)\\
+\gls{Iij1g} =\gls{Iij1g*} + \gls{M1} \left( {\gls{rvec'mod}}^2 \gls{deltaij} + (1-2\gls{deltaij}) \gls{rvec'i}\gls{rvec'j} \right)
 \end{align}
 %
 where \gls{G*} is the \glsentrydesc{G*}, \gls{rvec}, \gls{rvec*}, and \gls{rvec'} are the \glsentrydesc{rvec}, \glsentrydesc{rvec*}, and \glsentrydesc{rvec'}, respectively, that are defined as shown in Eqs.~\eqref{eq:rvec}-\eqref{eq:rvec'}:
@@ -464,6 +464,8 @@ where \gls{G*} is the \glsentrydesc{G*}, \gls{rvec}, \gls{rvec*}, and \gls{rvec'
 \end{align}
 % 
 
+In Eq.~\eqref{eq:huygen}, the \glsentrydesc{deltaij} expressions make sure the resulting off-diagonal terms are still defined with a positive sign.
+
 Recognizing the following equality expressed in Eq.~\eqref{eq:totinertia} and carrying out algebras, the inertias (\gls{Iij1g},\gls{Iij2g}) to be assigned to nodes 1 and 2 can be expressed as in Eq.~\eqref{eq:nodeinertia2}. 
 \begin{equation}\label{eq:totinertia}
 	\gls{Iijg}  = \gls{Iij1g} + \gls{Iij2g}
@@ -471,9 +473,9 @@ Recognizing the following equality expressed in Eq.~\eqref{eq:totinertia} and ca
 %
 \begin{equation}
 \begin{aligned}\label{eq:nodeinertia2}
-\gls{Iij1g} &=\gls{Iij1o}  + \gls{M1} \left[ ({\gls{rvec'mod}}^2-{\gls{rvec*mod}}^2) \gls{deltaij}   + \gls{rvec*i}\gls{rvec*j} -\gls{rvec'i}\gls{rvec'j} \right]\\
+\gls{Iij1g} &=\gls{Iij1o}  + \gls{M1} \left[ ({\gls{rvec'mod}}^2-{\gls{rvec*mod}}^2) \gls{deltaij} +(1-2\gls{deltaij}) \left(\gls{rvec'i}\gls{rvec'j} - \gls{rvec*i}\gls{rvec*j} \right) \right]\\
 %
-\gls{Iij2g} &=\gls{Iijo} - \gls{Iij1g} - \gls{Mass} \left( \gls{rvecmod}^2 \gls{deltaij} -\gls{rveci}\gls{rvecj} \right) 
+\gls{Iij2g} &=\gls{Iijo} - \gls{Iij1g} - \gls{Mass} \left[ \gls{rvecmod}^2 \gls{deltaij} +\gls{rveci}\gls{rvecj}(1-2\gls{deltaij}) \right]
 \end{aligned}
 \end{equation}
 %
