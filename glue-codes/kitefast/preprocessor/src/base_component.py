@@ -680,44 +680,38 @@ class BaseComponent():
 
         Ixx1G = Ixx1 + M1 \
             * (
-                np.sum(R_prime**2) - np.sum(R_star**2) \
-                + R_star[0] * R_star[0] 
-                - R_prime[0] * R_prime[0]
+                np.sum(R_prime**2) - np.sum(R_star**2)
+                - (R_prime[0] * R_prime[0] - R_star[0] * R_star[0])
             )
         Iyy1G = Iyy1 + M1 \
             * (
                 np.sum(R_prime**2) - np.sum(R_star**2)
-                + R_star[1] * R_star[1]
-                - R_prime[1] * R_prime[1]
+                - (R_prime[1] * R_prime[1] - R_star[1] * R_star[1])
             )
         Izz1G = Izz1 + M1 \
             * (
                 np.sum(R_prime**2) - np.sum(R_star**2)
-                + R_star[2] * R_star[2]
-                - R_prime[2] * R_prime[2]
+                - (R_prime[2] * R_prime[2] - R_star[2] * R_star[2])
             )
         Ixy1G = Ixy1 + M1 \
             * (
-                R_star[0] * R_star[1]
-                - R_prime[0] * R_prime[1]
+                R_prime[0] * R_prime[1] - R_star[0] * R_star[1]
             )
         Ixz1G = Ixz1 + M1 \
             * (
-                R_star[0] * R_star[2]
-                - R_prime[0] * R_prime[2]
+                R_prime[0] * R_prime[2] - R_star[0] * R_star[2]
             )
         Iyz1G = Iyz1 + M1 \
             * (
-                R_star[1] * R_star[2]
-                - R_prime[1] * R_prime[2]
+                R_prime[1] * R_prime[2] - R_star[1] * R_star[2]
             )
 
         Ixx2G = Ixx - Ixx1G - M * (np.sum(R**2) - R[0] * R[0])
         Iyy2G = Iyy - Iyy1G - M * (np.sum(R**2) - R[1] * R[1])
         Izz2G = Izz - Izz1G - M * (np.sum(R**2) - R[2] * R[2])
-        Ixy2G = Ixy - Ixy1G - M * (-1 * R[0] * R[1])
-        Ixz2G = Ixz - Ixz1G - M * (-1 * R[0] * R[2])
-        Iyz2G = Iyz - Iyz1G - M * (-1 * R[1] * R[2])
+        Ixy2G = Ixy - Ixy1G - M * (R[0] * R[1])
+        Ixz2G = Ixz - Ixz1G - M * (R[0] * R[2])
+        Iyz2G = Iyz - Iyz1G - M * (R[1] * R[2])
 
         return M1, \
             Xg, Yg, Zg, \
