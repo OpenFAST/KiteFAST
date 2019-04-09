@@ -1,0 +1,39 @@
+# Structural nodes for the fuselage
+
+# *** nodes ***
+structural: fuselage_root_node + 0, dynamic,
+    reference, mip_rf,  -6.917,   0.000,   0.000,
+    reference, mip_rf,eye,
+    reference, mip_rf,   0.000,   0.000,   0.000,
+    reference, mip_rf,   0.000,   0.000,   0.000;
+
+structural: fuselage_root_node + 1, dynamic,
+    reference, mip_rf,  -4.235,   0.000,   0.000,
+    reference, mip_rf,eye,
+    reference, mip_rf,   0.000,   0.000,   0.000,
+    reference, mip_rf,   0.000,   0.000,   0.000;
+
+structural: fuselage_root_node + 2, dynamic,
+    reference, mip_rf,  -1.553,   0.000,   0.000,
+    reference, mip_rf,eye,
+    reference, mip_rf,   0.000,   0.000,   0.000,
+    reference, mip_rf,   0.000,   0.000,   0.000;
+
+structural: fuselage_root_node + 3, dynamic,
+    reference, mip_rf,  -0.790,   0.000,   0.000,
+    reference, mip_rf,eye,
+    reference, mip_rf,   0.000,   0.000,   0.000,
+    reference, mip_rf,   0.000,   0.000,   0.000;
+
+structural: fuselage_root_node + 4, dynamic,
+    reference, mip_rf,  -0.027,   0.000,   0.000,
+    reference, mip_rf,eye,
+    reference, mip_rf,   0.000,   0.000,   0.000,
+    reference, mip_rf,   0.000,   0.000,   0.000;
+
+structural: 888, dynamic,
+    reference, mip_rf,  0.0,   0.000,  0.0,
+    reference, mip_rf,eye,
+    reference, mip_rf,   0.000,   0.000,   0.000,
+    reference, mip_rf,   0.000,   0.000,   0.000;
+

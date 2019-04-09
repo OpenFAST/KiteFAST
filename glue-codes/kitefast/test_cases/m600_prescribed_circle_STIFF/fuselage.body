@@ -1,0 +1,58 @@
+# Bodies for the fuselage
+
+body: fuselage_beam + 0, fuselage_root_node + 0,
+        9.68,
+    reference, node,    1.526,   0.000,   0.074,
+    sym,    0.224,      0.0,    0.174,
+                       7.69,      0.0,
+                                 7.75;
+
+body: fuselage_beam + 1, fuselage_root_node + 1,
+        14.7,
+    reference, node,   -1.156,   0.000,   0.074,
+    sym,    0.478,      0.0,    0.143,
+                       6.45,      0.0,
+                                 6.64;
+
+body: fuselage_beam + 2, fuselage_root_node + 1,
+        19.8,
+    reference, node,    1.442,   0.000,   0.134,
+    sym,    0.738,      0.0,    0.318,
+                       14.2,      0.0,
+                                 14.5;
+
+body: fuselage_beam + 3, fuselage_root_node + 2,
+        24.8,
+    reference, node,   -1.240,   0.000,   0.134,
+    sym,    0.992,      0.0,    0.285,
+                       12.8,      0.0,
+                                 13.3;
+
+body: fuselage_beam + 10, fuselage_root_node + 2,
+        7.78,
+    reference, node,    0.381,   0.000,   0.164,
+    sym,    0.317,      0.0,  0.00198,
+                      0.511,      0.0,
+                                0.664;
+
+body: fuselage_beam + 11, fuselage_root_node + 3,
+        7.78,
+    reference, node,   -0.382,   0.000,   0.164,
+    sym,    0.317,      0.0,  0.00198,
+                      0.511,      0.0,
+                                0.664;
+
+body: fuselage_beam + 12, fuselage_root_node + 3,
+        7.78,
+    reference, node,    0.382,   0.000,   0.168,
+    sym,    0.317,      0.0,  0.00198,
+                      0.511,      0.0,
+                                0.664;
+
+body: fuselage_beam + 13, fuselage_root_node + 4,
+        25.6,
+    reference, node,   -0.381,   0.000,   0.168,
+    sym,    0.317,      0.0,  0.00198,
+                      0.511,      0.0,
+                                0.664;
+

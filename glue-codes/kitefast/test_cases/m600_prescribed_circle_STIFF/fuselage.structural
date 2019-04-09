@@ -1,0 +1,110 @@
+# Beam elements for the fuselage
+
+set: integer fuselage_beam = 1000;
+set: integer fuselage_body = 1000;
+
+# *** beam elements ***
+set: current_beam = fuselage_beam + 0;
+set: twist1 = 0.0;
+set: twist2 = 0.0;
+set: beam_node1 = fuselage_root_node + 0;
+set: beam_node2 = fuselage_root_node + 1;
+set: beam_node3 = fuselage_root_node + 2;
+set: k1_11 = 409686432.3672903;
+set: k1_12 = 0.0;
+set: k1_13 = 0.0;
+set: k1_14 = 0.0;
+set: k1_15 = 0.0;
+set: k1_16 = 0.0;
+set: k1_22 = 1000000000.0;
+set: k1_23 = 0.0;
+set: k1_24 = 0.0;
+set: k1_25 = 0.0;
+set: k1_26 = 0.0;
+set: k1_33 = 1000000000.0;
+set: k1_34 = 0.0;
+set: k1_35 = 0.0;
+set: k1_36 = 0.0;
+set: k1_44 = 1141806.6100135029;
+set: k1_45 = 0.0;
+set: k1_46 = 0.0;
+set: k1_55 = 5356494.389246441;
+set: k1_56 = 0.0;
+set: k1_66 = 6085069.347175698;
+
+set: k2_11 = 571113567.6327096;
+set: k2_12 = 0.0;
+set: k2_13 = 0.0;
+set: k2_14 = 0.0;
+set: k2_15 = 0.0;
+set: k2_16 = 0.0;
+set: k2_22 = 1000000000.0;
+set: k2_23 = 0.0;
+set: k2_24 = 0.0;
+set: k2_25 = 0.0;
+set: k2_26 = 0.0;
+set: k2_33 = 1000000000.0;
+set: k2_34 = 0.0;
+set: k2_35 = 0.0;
+set: k2_36 = 0.0;
+set: k2_44 = 2600193.3899864974;
+set: k2_45 = 0.0;
+set: k2_46 = 0.0;
+set: k2_55 = 11193505.610753559;
+set: k2_56 = 0.0;
+set: k2_66 = 13174930.652824303;
+
+include: "fuselage.beam";
+
+set: current_beam = fuselage_beam + 10;
+set: twist1 = 0.0;
+set: twist2 = 0.0;
+set: beam_node1 = fuselage_root_node + 2;
+set: beam_node2 = fuselage_root_node + 3;
+set: beam_node3 = fuselage_root_node + 4;
+set: k1_11 = 630200000.0;
+set: k1_12 = 0.0;
+set: k1_13 = 0.0;
+set: k1_14 = 0.0;
+set: k1_15 = 0.0;
+set: k1_16 = 0.0;
+set: k1_22 = 1000000000.0;
+set: k1_23 = 0.0;
+set: k1_24 = 0.0;
+set: k1_25 = 0.0;
+set: k1_26 = 0.0;
+set: k1_33 = 1000000000.0;
+set: k1_34 = 0.0;
+set: k1_35 = 0.0;
+set: k1_36 = 0.0;
+set: k1_44 = 3134000.0;
+set: k1_45 = 0.0;
+set: k1_46 = 0.0;
+set: k1_55 = 13330000.0;
+set: k1_56 = 0.0;
+set: k1_66 = 15770000.0;
+
+set: k2_11 = 630200000.0;
+set: k2_12 = 0.0;
+set: k2_13 = 0.0;
+set: k2_14 = 0.0;
+set: k2_15 = 0.0;
+set: k2_16 = 0.0;
+set: k2_22 = 1000000000.0;
+set: k2_23 = 0.0;
+set: k2_24 = 0.0;
+set: k2_25 = 0.0;
+set: k2_26 = 0.0;
+set: k2_33 = 1000000000.0;
+set: k2_34 = 0.0;
+set: k2_35 = 0.0;
+set: k2_36 = 0.0;
+set: k2_44 = 3134000.0;
+set: k2_45 = 0.0;
+set: k2_46 = 0.0;
+set: k2_55 = 13330000.0;
+set: k2_56 = 0.0;
+set: k2_66 = 15770000.0;
+
+include: "fuselage.beam";
+

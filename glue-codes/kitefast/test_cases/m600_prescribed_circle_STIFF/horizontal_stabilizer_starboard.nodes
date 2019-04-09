@@ -1,0 +1,33 @@
+# Structural nodes for the horizontal_stabilizer_starboard
+
+# *** nodes ***
+structural: horizontal_stabilizer_starboard_root_node + 0, dynamic,
+    reference, mip_rf,  -6.555,   0.000,   0.817,
+    reference, mip_rf,eye,
+    reference, mip_rf,   0.000,   0.000,   0.000,
+    reference, mip_rf,   0.000,   0.000,   0.000;
+
+structural: horizontal_stabilizer_starboard_root_node + 1, dynamic,
+    reference, mip_rf,  -6.555,   0.500,   0.817,
+    reference, mip_rf,eye,
+    reference, mip_rf,   0.000,   0.000,   0.000,
+    reference, mip_rf,   0.000,   0.000,   0.000;
+
+structural: horizontal_stabilizer_starboard_root_node + 2, dynamic,
+    reference, mip_rf,  -6.555,   1.000,   0.817,
+    reference, mip_rf,eye,
+    reference, mip_rf,   0.000,   0.000,   0.000,
+    reference, mip_rf,   0.000,   0.000,   0.000;
+
+structural: horizontal_stabilizer_starboard_root_node + 3, dynamic,
+    reference, mip_rf,  -6.555,   1.724,   0.817,
+    reference, mip_rf,eye,
+    reference, mip_rf,   0.000,   0.000,   0.000,
+    reference, mip_rf,   0.000,   0.000,   0.000;
+
+structural: horizontal_stabilizer_starboard_root_node + 4, dynamic,
+    reference, mip_rf,  -6.555,   2.447,   0.817,
+    reference, mip_rf,eye,
+    reference, mip_rf,   0.000,   0.000,   0.000,
+    reference, mip_rf,   0.000,   0.000,   0.000;
+

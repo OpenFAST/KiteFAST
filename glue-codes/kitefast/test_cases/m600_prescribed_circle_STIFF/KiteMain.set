@@ -1,0 +1,140 @@
+# This file sets the reference id's and counters
+
+# *** Reference ***
+
+set: integer mip_rf = 10;
+set: integer mip_node = 10; # most important point id, reference for all
+reference: mip_rf,
+        reference, global, 126.6397968083,-379.6509364873, 172.8096981676,
+                reference, global, 1, 0.86101738, 0.1191939, -0.49441064,
+                           3, -0.4510669, 0.62803003, -0.63412691,
+        reference, global,   54.49566619,   5.0564282,   -28.4868811,
+        reference, global,   1.984969e-02,   -3.768248e-03,   2.413641e-03;
+
+# *** Fuselage ***
+set: integer fuselage_root_node = mip_node;
+set: integer fuselage_node_count = 5;
+set: integer fuselage_body_count = 8;
+set: integer fuselage_beam_count = 2;
+
+# *** Wing ***
+set: integer wing_starboard_root_node = 2000;
+set: integer wing_starboard_node_count = 9;
+set: integer wing_starboard_body_count = 16;
+set: integer wing_starboard_beam_count = 4;
+
+set: integer wing_port_root_node = 3000;
+set: integer wing_port_node_count = 9;
+set: integer wing_port_body_count = 16;
+set: integer wing_port_beam_count = 4;
+
+# *** Horizontal Stabilizer ***
+set: integer horizontal_stabilizer_starboard_root_node = 4000;
+set: integer horizontal_stabilizer_starboard_node_count = 5;
+set: integer horizontal_stabilizer_starboard_body_count = 8;
+set: integer horizontal_stabilizer_starboard_beam_count = 2;
+
+set: integer horizontal_stabilizer_port_root_node = 5000;
+set: integer horizontal_stabilizer_port_node_count = 5;
+set: integer horizontal_stabilizer_port_body_count = 8;
+set: integer horizontal_stabilizer_port_beam_count = 2;
+
+# *** Vertical Stabilizer ***
+set: integer vertical_stabilizer_root_node = 6000;
+set: integer vertical_stabilizer_node_count = 5;
+set: integer vertical_stabilizer_body_count = 8;
+set: integer vertical_stabilizer_beam_count = 2;
+
+# *** Pylons ***
+set: integer pylon_starboard_1_root_node = 10000;
+set: integer pylon_starboard_1_node_count = 5;
+set: integer pylon_starboard_1_body_count = 8;
+set: integer pylon_starboard_1_beam_count = 2;
+set: integer pylon_starboard_2_root_node = 10100;
+set: integer pylon_starboard_2_node_count = 5;
+set: integer pylon_starboard_2_body_count = 8;
+set: integer pylon_starboard_2_beam_count = 2;
+set: integer pylon_port_1_root_node = 11000;
+set: integer pylon_port_1_node_count = 5;
+set: integer pylon_port_1_body_count = 8;
+set: integer pylon_port_1_beam_count = 2;
+set: integer pylon_port_2_root_node = 11100;
+set: integer pylon_port_2_node_count = 5;
+set: integer pylon_port_2_body_count = 8;
+set: integer pylon_port_2_beam_count = 2;
+
+# *** Rotors ***
+set: integer rotor_assembly_starboard_1_upper_reference_frame = 20000;
+set: integer rotor_assembly_starboard_1_upper_root_node = 20000;
+set: integer rotor_assembly_starboard_1_upper_node_count = 2;
+set: integer rotor_assembly_starboard_1_lower_reference_frame = 20010;
+set: integer rotor_assembly_starboard_1_lower_root_node = 20010;
+set: integer rotor_assembly_starboard_1_lower_node_count = 2;
+set: integer rotor_assembly_starboard_2_upper_reference_frame = 20100;
+set: integer rotor_assembly_starboard_2_upper_root_node = 20100;
+set: integer rotor_assembly_starboard_2_upper_node_count = 2;
+set: integer rotor_assembly_starboard_2_lower_reference_frame = 20110;
+set: integer rotor_assembly_starboard_2_lower_root_node = 20110;
+set: integer rotor_assembly_starboard_2_lower_node_count = 2;
+set: integer rotor_assembly_port_1_upper_reference_frame = 30000;
+set: integer rotor_assembly_port_1_upper_root_node = 30000;
+set: integer rotor_assembly_port_1_upper_node_count = 2;
+set: integer rotor_assembly_port_1_lower_reference_frame = 30010;
+set: integer rotor_assembly_port_1_lower_root_node = 30010;
+set: integer rotor_assembly_port_1_lower_node_count = 2;
+set: integer rotor_assembly_port_2_upper_reference_frame = 30100;
+set: integer rotor_assembly_port_2_upper_root_node = 30100;
+set: integer rotor_assembly_port_2_upper_node_count = 2;
+set: integer rotor_assembly_port_2_lower_reference_frame = 30110;
+set: integer rotor_assembly_port_2_lower_root_node = 30110;
+set: integer rotor_assembly_port_2_lower_node_count = 2;
+
+# Initialize variables for reuse later
+set: integer current_beam = 0;
+set: real twist1 = 0.0;
+set: real twist2 = 0.0;
+set: integer beam_node1 = 0;
+set: integer beam_node2 = 0;
+set: integer beam_node3 = 0;
+set: real k1_11 = 0.0;
+set: real k1_12 = 0.0;
+set: real k1_13 = 0.0;
+set: real k1_14 = 0.0;
+set: real k1_15 = 0.0;
+set: real k1_16 = 0.0;
+set: real k1_22 = 0.0;
+set: real k1_23 = 0.0;
+set: real k1_24 = 0.0;
+set: real k1_25 = 0.0;
+set: real k1_26 = 0.0;
+set: real k1_33 = 0.0;
+set: real k1_34 = 0.0;
+set: real k1_35 = 0.0;
+set: real k1_36 = 0.0;
+set: real k1_44 = 0.0;
+set: real k1_45 = 0.0;
+set: real k1_46 = 0.0;
+set: real k1_55 = 0.0;
+set: real k1_56 = 0.0;
+set: real k1_66 = 0.0;
+set: real k2_11 = 0.0;
+set: real k2_12 = 0.0;
+set: real k2_13 = 0.0;
+set: real k2_14 = 0.0;
+set: real k2_15 = 0.0;
+set: real k2_16 = 0.0;
+set: real k2_22 = 0.0;
+set: real k2_23 = 0.0;
+set: real k2_24 = 0.0;
+set: real k2_25 = 0.0;
+set: real k2_26 = 0.0;
+set: real k2_33 = 0.0;
+set: real k2_34 = 0.0;
+set: real k2_35 = 0.0;
+set: real k2_36 = 0.0;
+set: real k2_44 = 0.0;
+set: real k2_45 = 0.0;
+set: real k2_46 = 0.0;
+set: real k2_55 = 0.0;
+set: real k2_56 = 0.0;
+set: real k2_66 = 0.0;
