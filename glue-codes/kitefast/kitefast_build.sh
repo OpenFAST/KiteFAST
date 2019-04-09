@@ -138,7 +138,12 @@ create_link $openfast_directory/build/modules-local/kitefast-controller/libkitef
 # # configure and build mbdyn
 export LDFLAGS=-rdynamic
 cd $mbdyn_directory
-./configure --enable-runtime-loading --with-module="kitefastmbd" # --enable-debug
+
+# modify the line below as needed
+# for debug, add --enable-debug
+# for eigen analysis, add --enable-netcdf --with-lapack --enable-eig
+./configure --enable-runtime-loading --with-module="kitefastmbd"
+
 sudo make                      # build mbdyn
 cd modules                     # move to the module directory
 sudo make                      # build the user defined element

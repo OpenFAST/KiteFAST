@@ -382,9 +382,9 @@ class BaseComponent():
                     m2_1, cmy2_1, cmz2_1, cmx2_1, \
                     iyy2_1, izz2_1, ixx2_1, iyz2_1, ixy2_1, ixz2_1 = self.mass_inertia_distribution(
                         node1.position.x2,
-                        cm_offset1[0], cm_offset1[1],
+                        cm_offset1[1], cm_offset1[0],
                         node2.position.x2,
-                        cm_offset2[0], cm_offset2[1],
+                        cm_offset2[1], cm_offset2[0],
                         mass1, mass2,
                         inertia1[1], inertia1[2], inertia1[0],
                         inertia1[5], inertia1[3], inertia1[4],
@@ -397,9 +397,9 @@ class BaseComponent():
                     m3, cmy3, cmz3, cmx3, \
                     iyy3, izz3, ixx3, iyz3, ixy3, ixz3 = self.mass_inertia_distribution(
                         node2.position.x2,
-                        cm_offset2[0], cm_offset2[1],
+                        cm_offset2[1], cm_offset2[0],
                         node3.position.x2,
-                        cm_offset3[0], cm_offset3[1],
+                        cm_offset3[1], cm_offset3[0],
                         mass2, mass3,
                         inertia2[1], inertia2[2], inertia2[0],
                         inertia2[5], inertia2[3], inertia2[4],
@@ -680,44 +680,38 @@ class BaseComponent():
 
         Ixx1G = Ixx1 + M1 \
             * (
-                np.sum(R_prime**2) - np.sum(R_star**2) \
-                + R_star[0] * R_star[0] 
-                - R_prime[0] * R_prime[0]
+                np.sum(R_prime**2) - np.sum(R_star**2)
+                - (R_prime[0] * R_prime[0] - R_star[0] * R_star[0])
             )
         Iyy1G = Iyy1 + M1 \
             * (
                 np.sum(R_prime**2) - np.sum(R_star**2)
-                + R_star[1] * R_star[1]
-                - R_prime[1] * R_prime[1]
+                - (R_prime[1] * R_prime[1] - R_star[1] * R_star[1])
             )
         Izz1G = Izz1 + M1 \
             * (
                 np.sum(R_prime**2) - np.sum(R_star**2)
-                + R_star[2] * R_star[2]
-                - R_prime[2] * R_prime[2]
+                - (R_prime[2] * R_prime[2] - R_star[2] * R_star[2])
             )
         Ixy1G = Ixy1 + M1 \
             * (
-                R_star[0] * R_star[1]
-                - R_prime[0] * R_prime[1]
+                R_prime[0] * R_prime[1] - R_star[0] * R_star[1]
             )
         Ixz1G = Ixz1 + M1 \
             * (
-                R_star[0] * R_star[2]
-                - R_prime[0] * R_prime[2]
+                R_prime[0] * R_prime[2] - R_star[0] * R_star[2]
             )
         Iyz1G = Iyz1 + M1 \
             * (
-                R_star[1] * R_star[2]
-                - R_prime[1] * R_prime[2]
+                R_prime[1] * R_prime[2] - R_star[1] * R_star[2]
             )
 
         Ixx2G = Ixx - Ixx1G - M * (np.sum(R**2) - R[0] * R[0])
         Iyy2G = Iyy - Iyy1G - M * (np.sum(R**2) - R[1] * R[1])
         Izz2G = Izz - Izz1G - M * (np.sum(R**2) - R[2] * R[2])
-        Ixy2G = Ixy - Ixy1G - M * (-1 * R[0] * R[1])
-        Ixz2G = Ixz - Ixz1G - M * (-1 * R[0] * R[2])
-        Iyz2G = Iyz - Iyz1G - M * (-1 * R[1] * R[2])
+        Ixy2G = Ixy - Ixy1G - M * (R[0] * R[1])
+        Ixz2G = Ixz - Ixz1G - M * (R[0] * R[2])
+        Iyz2G = Iyz - Iyz1G - M * (R[1] * R[2])
 
         return M1, \
             Xg, Yg, Zg, \

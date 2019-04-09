@@ -283,15 +283,15 @@ module KiteFastController
          call DLL_KFC_Init_Subroutine ( dt_c, p%numFlaps*2+2, p%numPylons, rtrIrot, genTorq, rtrSpd, rtrAcc, rtrBladePitch, ctrlSettings, errStat, errMsg_c ) 
       
          call c_to_fortran_string(errMsg_c, errMsg)
-         print *, " KFC_Init errStat - ", errStat, " errMsg - ", trim(errMsg)
+         ! print *, " KFC_Init errStat - ", errStat, " errMsg - ", trim(errMsg)
          ! TODO: Check errors
-         print *, " debug marker - pre errStat >= Abort"
+         ! print *, " debug marker - pre errStat >= Abort"
          if (errStat >= AbortErrLev ) return
          
-         print *, " debug marker - post errStat >= Abort"
-         print *, " debug - genTorq     : ", genTorq
-         print *, " debug - rtrSpd      : ", rtrSpd
-         print *, " debug - ctrlSettings: ", ctrlSettings
+         ! print *, " debug marker - post errStat >= Abort"
+         ! print *, " debug - genTorq     : ", genTorq
+         ! print *, " debug - rtrSpd      : ", rtrSpd
+         ! print *, " debug - ctrlSettings: ", ctrlSettings
          
          ! obtain initial outputs from the DLL and set them
          call MapKFCOutputs( p%numFlaps, p%numPylons, genTorq, rtrSpd, rtrAcc, rtrBladePitch, ctrlSettings, y)
@@ -390,21 +390,21 @@ module KiteFastController
             end do
          end do
 
-            print *, " ========================================"
-            print *, " KFC_Step - Inputs at time = ", t
-            print *, " debug - SPyAeroTorque: ", u%SPyAeroTorque
-            print *, " debug - PPyAeroTorque: ", u%PPyAeroTorque
-            print *, " debug - AeroTorq     : ", AeroTorq
-            print *, " debug - pqr          : ", u%pqr
-            print *, " debug - acc_norm     : ", u%acc_norm
-            print *, " debug - Xg           : ", u%Xg
-            print *, " debug - Vg           : ", u%Vg
-            print *, " debug - Vb           : ", u%Vb
-            print *, " debug - Ag           : ", u%Ag
-            print *, " debug - Ab           : ", u%Ab
-            print *, " debug - apparent_wind: ", u%apparent_wind
-            print *, " debug - tether_forceb: ", u%tether_forceb
-            print *, " debug - wind_g       : ", u%wind_g
+            ! print *, " ========================================"
+            ! print *, " KFC_Step - Inputs at time = ", t
+            ! print *, " debug - SPyAeroTorque: ", u%SPyAeroTorque
+            ! print *, " debug - PPyAeroTorque: ", u%PPyAeroTorque
+            ! print *, " debug - AeroTorq     : ", AeroTorq
+            ! print *, " debug - pqr          : ", u%pqr
+            ! print *, " debug - acc_norm     : ", u%acc_norm
+            ! print *, " debug - Xg           : ", u%Xg
+            ! print *, " debug - Vg           : ", u%Vg
+            ! print *, " debug - Vb           : ", u%Vb
+            ! print *, " debug - Ag           : ", u%Ag
+            ! print *, " debug - Ab           : ", u%Ab
+            ! print *, " debug - apparent_wind: ", u%apparent_wind
+            ! print *, " debug - tether_forceb: ", u%tether_forceb
+            ! print *, " debug - wind_g       : ", u%wind_g
 
             ! Call the DLL (first associate the address from the procedure in the DLL with the subroutine):
          call C_F_PROCPOINTER( p%DLL_Trgt%ProcAddr(2), DLL_KFC_Step_Subroutine) 
@@ -412,11 +412,11 @@ module KiteFastController
          call c_to_fortran_string(errMsg_c, errMsg)
 
           ! print *, " KFC_Step errStat - ", errStat, " errMsg - ", trim(errMsg)
-            print *, " KFC_Step - Outputs "
-            print *, " debug - genTorq     : ", genTorq
-            print *, " debug - rtrSpd      : ", rtrSpd
-            print *, " debug - ctrlSettings: ", ctrlSettings
-            print *, " ========================================"
+            ! print *, " KFC_Step - Outputs "
+            ! print *, " debug - genTorq     : ", genTorq
+            ! print *, " debug - rtrSpd      : ", rtrSpd
+            ! print *, " debug - ctrlSettings: ", ctrlSettings
+            ! print *, " ========================================"
 
          ! obtain initial outputs from the DLL and set them
          call MapKFCOutputs( p%numFlaps, p%numPylons, genTorq, rtrSpd, rtrAcc, rtrBladePitch, ctrlSettings, y)
