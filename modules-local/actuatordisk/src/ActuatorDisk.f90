@@ -37,10 +37,10 @@ private
    contains
    
 function CoefInterp(RtSpd, pitch, Vrel, skew, p, errStat, errMsg)
-   real(ReKi),                 intent(in   )  :: RtSpd
-   real(ReKi),                 intent(in   )  :: pitch
-   real(ReKi),                 intent(in   )  :: Vrel
-   real(ReKi),                 intent(in   )  :: skew
+   real(ReKi),                 intent(inout)  :: RtSpd
+   real(ReKi),                 intent(inout)  :: pitch
+   real(ReKi),                 intent(inout)  :: Vrel
+   real(ReKi),                 intent(inout)  :: skew
    type(ActDsk_ParameterType), intent(in   )  :: p
    integer(IntKi),             intent(  out)  :: errStat     !< Error status of the operation
    character(*),               intent(  out)  :: errMsg      !< Error message if errStat /= ErrID_None
@@ -59,27 +59,65 @@ function CoefInterp(RtSpd, pitch, Vrel, skew, p, errStat, errMsg)
    
    ! Make sure the input RtSpd, Skew, Vrel, and Pitch angle are within our data tables.  Do not allow extrapolation.
    
-   if ( ( RtSpd < p%RtSpds(1) ) .or. ( RtSpd > p%RtSpds(p%numRtSpd) ) )  then
-      call SetErrStat(ErrID_Fatal, 'The input RtSpd of '//trim(num2lstr(RtSpd))//' (rad/s) is outside the values found in the RtSpd tables for this rotor',errStat, errMsg, routineName)
+   ! if ( ( RtSpd < p%RtSpds(1) ) .or. ( RtSpd > p%RtSpds(p%numRtSpd) ) )  then
+      ! call SetErrStat(ErrID_Fatal, 'The input RtSpd of '//trim(num2lstr(RtSpd))//' (rad/s) is outside the values found in the RtSpd tables for this rotor',errStat, errMsg, routineName)
+      ! return
+   ! end if
+   
+   ! if ( ( pitch < p%Pitches(1) ) .or. ( pitch > p%Pitches(p%numPitch) ) ) then
+      ! call SetErrStat(ErrID_Fatal, 'The input pitch angle of '//trim(num2lstr(pitch*R2D))//' degrees is outside the values found in the pitch tables for this rotor',errStat, errMsg, routineName)
+      ! return
+   ! end if
+
+   ! if ( ( skew < p%Skews(1) ) .or. ( skew > p%Skews(p%numSkew) ) ) then
+      ! call SetErrStat(ErrID_Fatal, 'The input skew angle of '//trim(num2lstr(skew*R2D))//' degrees is outside the values found in the skew tables for this rotor',errStat, errMsg, routineName)
+      ! return
+   ! end if
+   
+   ! if ( ( Vrel < p%Vrels(1) ) .or. ( Vrel > p%Vrels(p%numVrel) ) ) then
+      ! call SetErrStat(ErrID_Fatal, 'The input Vrel of '//trim(num2lstr(Vrel))//' (m/s) is outside the values found in the Vrel tables for this rotor',errStat, errMsg, routineName)
+      ! return
+   ! end if
+   
+   if ( RtSpd < p%RtSpds(1) ) then
+      RtSpd = p%RtSpds(1)
+      call SetErrStat(ErrID_Warn, 'The input RtSpd of '//trim(num2lstr(RtSpd))//' (rad/s) is outside the values found in the RtSpd tables for this rotor.  Setting to minimum table entry.',errStat, errMsg, routineName)
+      return
+   else if ( RtSpd > p%RtSpds(p%numRtSpd) ) then
+      RtSpd = p%RtSpds(p%numRtSpd)
+      call SetErrStat(ErrID_Warn, 'The input RtSpd of '//trim(num2lstr(RtSpd))//' (rad/s) is outside the values found in the RtSpd tables for this rotor.  Setting to maximum table entry.',errStat, errMsg, routineName)
       return
    end if
    
-   if ( ( pitch < p%Pitches(1) ) .or. ( pitch > p%Pitches(p%numPitch) ) ) then
-      call SetErrStat(ErrID_Fatal, 'The input pitch angle of '//trim(num2lstr(pitch*R2D))//' degrees is outside the values found in the pitch tables for this rotor',errStat, errMsg, routineName)
+   if ( pitch < p%Pitches(1) ) then
+      pitch = p%Pitches(1)
+      call SetErrStat(ErrID_Warn, 'The input pitch angle of '//trim(num2lstr(pitch*R2D))//' degrees is outside the values found in the pitch tables for this rotor. Setting to minimum table entry.',errStat, errMsg, routineName)
+      return
+   else if ( pitch > p%Pitches(p%numPitch) ) then
+      pitch = p%Pitches(p%numPitch)
+      call SetErrStat(ErrID_Warn, 'The input pitch angle of '//trim(num2lstr(pitch*R2D))//' degrees is outside the values found in the pitch tables for this rotor. Setting to maximum table entry.',errStat, errMsg, routineName)
       return
    end if
 
-   if ( ( skew < p%Skews(1) ) .or. ( skew > p%Skews(p%numSkew) ) ) then
-      call SetErrStat(ErrID_Fatal, 'The input skew angle of '//trim(num2lstr(skew*R2D))//' degrees is outside the values found in the skew tables for this rotor',errStat, errMsg, routineName)
+   if ( skew < p%Skews(1) ) then
+      skew = p%Skews(1)
+      call SetErrStat(ErrID_Warn, 'The input skew angle of '//trim(num2lstr(skew*R2D))//' degrees is outside the values found in the skew tables for this rotor. Setting to minimum table entry.',errStat, errMsg, routineName)
+      return
+   else if ( skew > p%Skews(p%numSkew) ) then
+      skew = p%Skews(p%numSkew)
+	  call SetErrStat(ErrID_Warn, 'The input skew angle of '//trim(num2lstr(skew*R2D))//' degrees is outside the values found in the skew tables for this rotor. Setting to maximum table entry.',errStat, errMsg, routineName)
       return
    end if
    
-   if ( ( Vrel < p%Vrels(1) ) .or. ( Vrel > p%Vrels(p%numVrel) ) ) then
-      call SetErrStat(ErrID_Fatal, 'The input Vrel of '//trim(num2lstr(Vrel))//' (m/s) is outside the values found in the Vrel tables for this rotor',errStat, errMsg, routineName)
+   if ( Vrel < p%Vrels(1) ) then
+      Vrel = p%Vrels(1)
+	  call SetErrStat(ErrID_Warn, 'The input Vrel of '//trim(num2lstr(Vrel))//' (m/s) is outside the values found in the Vrel tables for this rotor. Setting to minimum table entry.',errStat, errMsg, routineName)
+      return
+   else if ( Vrel > p%Vrels(p%numVrel) ) then
+      Vrel = p%Vrels(p%numVrel)
+	  call SetErrStat(ErrID_Warn, 'The input Vrel of '//trim(num2lstr(Vrel))//' (m/s) is outside the values found in the Vrel tables for this rotor. Setting to minimum table entry.',errStat, errMsg, routineName)
       return
    end if
-   
-   
    
    
    iRtSpd_Lo  = 1
@@ -641,11 +679,10 @@ subroutine ActDsk_CalcOutput( u, p, m, y, errStat, errMsg )
    real(ReKi)                                       :: coefs(7)
    character(*), parameter                          :: routineName = 'ActDsk_CalcOutput'
    real(ReKi)                                       :: factorF, factorM
-   
+   real(ReKi)                                       :: RtSpd, pitch, DiskAve_Vrel, skew
    errStat   = ErrID_None           ! no error has occurred
    errMsg    = ""
    
-   m%DiskAve_Vx_Rel = abs(u%DiskAve_Vrel*cos(u%skew))
    
    if ( EqualRealNos(m%DiskAve_Vx_Rel, 0.0_ReKi) ) then
       m%TSR = 0.0_ReKi
@@ -654,10 +691,14 @@ subroutine ActDsk_CalcOutput( u, p, m, y, errStat, errMsg )
    end if
 
    if (p%RotorMod == 1) then
+      RtSpd = u%RtSpd
+	  pitch = u%pitch
+	  DiskAve_Vrel = u%DiskAve_Vrel
+	  skew = u%skew
          ! Use quadlinear interpolation to determine the disk coefficients associated with this operating condition
-      coefs = CoefInterp(u%RtSpd, u%pitch, u%DiskAve_Vrel, u%skew, p, errStat2, errMsg2)
+      coefs = CoefInterp(RtSpd, pitch, DiskAve_Vrel, skew, p, errStat2, errMsg2)
          call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName ) 
-      
+      m%DiskAve_Vx_Rel = abs(DiskAve_Vrel*cos(skew))
       velsqrd  = m%DiskAve_Vx_Rel*m%DiskAve_Vx_Rel
       factorF  = p%halfRhoA*velsqrd 
       factorM  = factorF*p%R

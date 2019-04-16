@@ -278,6 +278,7 @@ class MainMBD():
         output.write_line("    ;")
         output.write_line("    beams: beam_count;")
         output.write_line("    gravity;")
+        output.write_line("    joints: 1;")
         output.write_line("end: control data;")
         output.write_empty_line()
         output.write_empty_line()
@@ -290,6 +291,7 @@ class MainMBD():
         output.write_line("begin: elements;")
         output.write_empty_line()
         output.write_line("    gravity: uniform,   0.000,   0.000,   1.000, const, {};".format(self.gravity.x3))
+        output.write_line("    joint: 0, clamp, 10, position, node, orientation, node;")
         output.write_empty_line()
         for component in self.component_list:
             output.write_line("    include: \"{}.structural\";".format(component.component_name))

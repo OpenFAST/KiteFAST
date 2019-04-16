@@ -1,0 +1,674 @@
+# KiteWing.mbd
+
+
+#module load: "libmodule-kitefastmbd";
+
+
+begin: data;
+    problem: initial value;
+end: data;
+
+
+begin: initial value;
+    initial time: 0.0;
+    final time: 0.5;
+    time step: 1e-3;
+    tolerance: 1e-3;
+    max iterations: 60;
+    derivatives tolerance: 10e0;
+    derivatives max iterations: 200;
+    derivatives coefficient: 1e-4;
+    linear solver: naive, colamd, mt, 1, pivot factor, 1e-8;
+
+    eigenanalysis:
+			1e-3,
+			output matrices,
+			output eigenvectors,
+			output geometry,
+			use lapack;
+end: initial value;
+
+
+begin: control data;
+    print: all;
+    default orientation: orientation vector;
+
+    include: "KiteMain.set";
+
+    structural nodes:
+      + 1  # MIP node
+      + fuselage_node_count
+      + wing_starboard_node_count
+      + wing_port_node_count
+      + vertical_stabilizer_node_count
+      + horizontal_stabilizer_starboard_node_count
+      + horizontal_stabilizer_port_node_count
+      + pylon_starboard_1_node_count
+      + pylon_starboard_2_node_count
+      + pylon_port_1_node_count
+      + pylon_port_2_node_count
+      + 8  # 1 for each rotor
+      + 8  # 1 for each nacelle
+    ;
+
+    set: integer body_count =
+      + fuselage_body_count
+      + wing_starboard_body_count
+      + wing_port_body_count
+      + vertical_stabilizer_body_count
+      + horizontal_stabilizer_starboard_body_count
+      + horizontal_stabilizer_port_body_count
+      + pylon_starboard_1_body_count
+      + pylon_starboard_2_body_count
+      + pylon_port_1_body_count
+      + pylon_port_2_body_count
+    ;
+
+    set: integer beam_count =
+      + fuselage_beam_count
+      + wing_starboard_beam_count
+      + wing_port_beam_count
+      + vertical_stabilizer_beam_count
+      + horizontal_stabilizer_starboard_beam_count
+      + horizontal_stabilizer_port_beam_count
+      + pylon_starboard_1_beam_count
+      + pylon_starboard_2_beam_count
+      + pylon_port_1_beam_count
+      + pylon_port_2_beam_count
+    ;
+
+    rigid bodies:
+      + body_count
+      + 8  # 1 for each rotor
+      + 8  # 1 for each nacelle
+    ;
+    beams: beam_count;
+    joints: 25;
+    gravity;
+    loadable elements: 0;
+    output results: netcdf;
+end: control data;
+
+
+begin: nodes;
+    include: "fuselage.nodes";
+    include: "wing_starboard.nodes";
+    include: "wing_port.nodes";
+    include: "vertical_stabilizer.nodes";
+    include: "horizontal_stabilizer_starboard.nodes";
+    include: "horizontal_stabilizer_port.nodes";
+    include: "pylon_starboard_1.nodes";
+    include: "pylon_starboard_2.nodes";
+    include: "pylon_port_1.nodes";
+    include: "pylon_port_2.nodes";
+    include: "rotor_assembly_starboard_1_upper.nodes";
+    include: "rotor_assembly_starboard_1_lower.nodes";
+    include: "rotor_assembly_starboard_2_upper.nodes";
+    include: "rotor_assembly_starboard_2_lower.nodes";
+    include: "rotor_assembly_port_1_upper.nodes";
+    include: "rotor_assembly_port_1_lower.nodes";
+    include: "rotor_assembly_port_2_upper.nodes";
+    include: "rotor_assembly_port_2_lower.nodes";
+    structural: 1, dummy,
+        fuselage_root_node + 0, offset,    6.917,  -0.000,  -0.000, eye;
+end: nodes;
+
+
+begin: elements;
+
+    gravity: uniform,   0.000,   0.000,   1.000, const, -9.81;
+
+    joint: 1, total joint,
+        fuselage_root_node + 4,
+        wing_starboard_root_node + 0,
+            position, reference, other node, null,
+            rotation orientation, reference, other node, eye,
+        position constraint,
+            active, active, active,
+            null,
+        orientation constraint,
+            active, active, active,
+            null;
+        
+    joint: 2, total joint,
+        fuselage_root_node + 4,
+        wing_port_root_node + 8,
+            position, reference, other node, null,
+            rotation orientation, reference, other node, eye,
+        position constraint,
+            active, active, active,
+            null,
+        orientation constraint,
+            active, active, active,
+            null;
+        
+    joint: 3, total joint,
+        fuselage_root_node + 0,
+        vertical_stabilizer_root_node + 2,
+            position, reference, other node, null,
+            rotation orientation, reference, other node, eye,
+        position constraint,
+            active, active, active,
+            null,
+        orientation constraint,
+            active, active, active,
+            null;
+        
+    joint: 4, total joint,
+        vertical_stabilizer_root_node + 4,
+        horizontal_stabilizer_starboard_root_node + 0,
+            position, reference, other node, null,
+            rotation orientation, reference, other node, eye,
+        position constraint,
+            active, active, active,
+            null,
+        orientation constraint,
+            active, active, active,
+            null;
+        
+    joint: 5, total joint,
+        vertical_stabilizer_root_node + 4,
+        horizontal_stabilizer_port_root_node + 4,
+            position, reference, other node, null,
+            rotation orientation, reference, other node, eye,
+        position constraint,
+            active, active, active,
+            null,
+        orientation constraint,
+            active, active, active,
+            null;
+        
+    joint: 6, total joint,
+        wing_starboard_root_node + 2,
+        pylon_starboard_1_root_node + 2,
+            position, reference, other node, null,
+            rotation orientation, reference, other node, eye,
+        position constraint,
+            active, active, active,
+            null,
+        orientation constraint,
+            active, active, active,
+            null;
+        
+    joint: 7, total joint,
+        wing_starboard_root_node + 4,
+        pylon_starboard_2_root_node + 2,
+            position, reference, other node, null,
+            rotation orientation, reference, other node, eye,
+        position constraint,
+            active, active, active,
+            null,
+        orientation constraint,
+            active, active, active,
+            null;
+        
+    joint: 8, total joint,
+        wing_port_root_node + 6,
+        pylon_port_1_root_node + 2,
+            position, reference, other node, null,
+            rotation orientation, reference, other node, eye,
+        position constraint,
+            active, active, active,
+            null,
+        orientation constraint,
+            active, active, active,
+            null;
+        
+    joint: 9, total joint,
+        wing_port_root_node + 4,
+        pylon_port_2_root_node + 2,
+            position, reference, other node, null,
+            rotation orientation, reference, other node, eye,
+        position constraint,
+            active, active, active,
+            null,
+        orientation constraint,
+            active, active, active,
+            null;
+        
+    joint: 10, total joint,
+        pylon_starboard_1_root_node + 0,
+        rotor_assembly_starboard_1_upper_root_node + 0,
+            position, reference, other node, null,
+            rotation orientation, reference, other node, eye,
+        position constraint,
+            active, active, active,
+            null,
+        orientation constraint,
+            active, active, active,
+            null;
+        
+    joint: 11, total joint,
+        pylon_starboard_1_root_node + 0,
+        rotor_assembly_starboard_1_upper_root_node + 1,
+            position, reference, other node, null,
+            rotation orientation, reference, other node, eye,
+        position constraint,
+            active, active, active,
+            null,
+        orientation constraint,
+            active, active, active,
+            null;
+        
+    joint: 12, total joint,
+        pylon_starboard_1_root_node + 4,
+        rotor_assembly_starboard_1_lower_root_node + 0,
+            position, reference, other node, null,
+            rotation orientation, reference, other node, eye,
+        position constraint,
+            active, active, active,
+            null,
+        orientation constraint,
+            active, active, active,
+            null;
+        
+    joint: 13, total joint,
+        pylon_starboard_1_root_node + 4,
+        rotor_assembly_starboard_1_lower_root_node + 1,
+            position, reference, other node, null,
+            rotation orientation, reference, other node, eye,
+        position constraint,
+            active, active, active,
+            null,
+        orientation constraint,
+            active, active, active,
+            null;
+        
+    joint: 14, total joint,
+        pylon_starboard_2_root_node + 0,
+        rotor_assembly_starboard_2_upper_root_node + 0,
+            position, reference, other node, null,
+            rotation orientation, reference, other node, eye,
+        position constraint,
+            active, active, active,
+            null,
+        orientation constraint,
+            active, active, active,
+            null;
+        
+    joint: 15, total joint,
+        pylon_starboard_2_root_node + 0,
+        rotor_assembly_starboard_2_upper_root_node + 1,
+            position, reference, other node, null,
+            rotation orientation, reference, other node, eye,
+        position constraint,
+            active, active, active,
+            null,
+        orientation constraint,
+            active, active, active,
+            null;
+        
+    joint: 16, total joint,
+        pylon_starboard_2_root_node + 4,
+        rotor_assembly_starboard_2_lower_root_node + 0,
+            position, reference, other node, null,
+            rotation orientation, reference, other node, eye,
+        position constraint,
+            active, active, active,
+            null,
+        orientation constraint,
+            active, active, active,
+            null;
+        
+    joint: 17, total joint,
+        pylon_starboard_2_root_node + 4,
+        rotor_assembly_starboard_2_lower_root_node + 1,
+            position, reference, other node, null,
+            rotation orientation, reference, other node, eye,
+        position constraint,
+            active, active, active,
+            null,
+        orientation constraint,
+            active, active, active,
+            null;
+        
+    joint: 18, total joint,
+        pylon_port_1_root_node + 0,
+        rotor_assembly_port_1_upper_root_node + 0,
+            position, reference, other node, null,
+            rotation orientation, reference, other node, eye,
+        position constraint,
+            active, active, active,
+            null,
+        orientation constraint,
+            active, active, active,
+            null;
+        
+    joint: 19, total joint,
+        pylon_port_1_root_node + 0,
+        rotor_assembly_port_1_upper_root_node + 1,
+            position, reference, other node, null,
+            rotation orientation, reference, other node, eye,
+        position constraint,
+            active, active, active,
+            null,
+        orientation constraint,
+            active, active, active,
+            null;
+        
+    joint: 20, total joint,
+        pylon_port_1_root_node + 4,
+        rotor_assembly_port_1_lower_root_node + 0,
+            position, reference, other node, null,
+            rotation orientation, reference, other node, eye,
+        position constraint,
+            active, active, active,
+            null,
+        orientation constraint,
+            active, active, active,
+            null;
+        
+    joint: 21, total joint,
+        pylon_port_1_root_node + 4,
+        rotor_assembly_port_1_lower_root_node + 1,
+            position, reference, other node, null,
+            rotation orientation, reference, other node, eye,
+        position constraint,
+            active, active, active,
+            null,
+        orientation constraint,
+            active, active, active,
+            null;
+        
+    joint: 22, total joint,
+        pylon_port_2_root_node + 0,
+        rotor_assembly_port_2_upper_root_node + 0,
+            position, reference, other node, null,
+            rotation orientation, reference, other node, eye,
+        position constraint,
+            active, active, active,
+            null,
+        orientation constraint,
+            active, active, active,
+            null;
+        
+    joint: 23, total joint,
+        pylon_port_2_root_node + 0,
+        rotor_assembly_port_2_upper_root_node + 1,
+            position, reference, other node, null,
+            rotation orientation, reference, other node, eye,
+        position constraint,
+            active, active, active,
+            null,
+        orientation constraint,
+            active, active, active,
+            null;
+        
+    joint: 24, total joint,
+        pylon_port_2_root_node + 4,
+        rotor_assembly_port_2_lower_root_node + 0,
+            position, reference, other node, null,
+            rotation orientation, reference, other node, eye,
+        position constraint,
+            active, active, active,
+            null,
+        orientation constraint,
+            active, active, active,
+            null;
+        
+    joint: 25, total joint,
+        pylon_port_2_root_node + 4,
+        rotor_assembly_port_2_lower_root_node + 1,
+            position, reference, other node, null,
+            rotation orientation, reference, other node, eye,
+        position constraint,
+            active, active, active,
+            null,
+        orientation constraint,
+            active, active, active,
+            null;
+        
+    include: "fuselage.structural";
+    include: "wing_starboard.structural";
+    include: "wing_port.structural";
+    include: "vertical_stabilizer.structural";
+    include: "horizontal_stabilizer_starboard.structural";
+    include: "horizontal_stabilizer_port.structural";
+    include: "pylon_starboard_1.structural";
+    include: "pylon_starboard_2.structural";
+    include: "pylon_port_1.structural";
+    include: "pylon_port_2.structural";
+    include: "fuselage.body";
+    include: "wing_starboard.body";
+    include: "wing_port.body";
+    include: "vertical_stabilizer.body";
+    include: "horizontal_stabilizer_starboard.body";
+    include: "horizontal_stabilizer_port.body";
+    include: "pylon_starboard_1.body";
+    include: "pylon_starboard_2.body";
+    include: "pylon_port_1.body";
+    include: "pylon_port_2.body";
+    include: "rotor_assembly_starboard_1_upper.elements";
+    include: "rotor_assembly_starboard_1_lower.elements";
+    include: "rotor_assembly_starboard_2_upper.elements";
+    include: "rotor_assembly_starboard_2_lower.elements";
+    include: "rotor_assembly_port_1_upper.elements";
+    include: "rotor_assembly_port_1_lower.elements";
+    include: "rotor_assembly_port_2_upper.elements";
+    include: "rotor_assembly_port_2_lower.elements";
+
+    inertia: 1, body, all;
+
+#   user defined: 1, ModuleKiteFAST,
+#        fast_submodule_flags,
+#            1,
+#            0,
+#            0,
+#            0,
+#        fast_submodule_input_files,
+#            "simple_m600_model.inp",
+#            "kiteInflowWind.dat",
+#            "m600-MoorDyn.dat",
+#            "../../../../build/modules-local/kitefast-controller/libkitefastcontroller_controller.so",
+#        output_file_root,
+#            "KiteFast",
+#        print_kitefast_summary_file,
+#            0,
+#        time_step,
+#            1e-3,
+#        gravity,
+#            9.81,
+#        ground_weather_station_location,
+#              -0.202,  -1.627,  19.860,
+#        number_of_flaps_per_wing,
+#            3,
+#        number_of_pylons_per_wing,
+#            2,
+#        number_of_kite_components,
+#            10,
+#        keypoints,
+#          430.000,   0.000, 100.000,
+#            0.000,   0.050,   0.000,
+#            0.000,  -0.050,   0.000,
+#           -6.891,   0.000,   0.000,
+#           -6.555,   0.000,   0.817,
+#           -6.555,   0.000,   0.817,
+#            0.857,   1.060,   0.000,
+#            0.857,   3.486,   0.000,
+#            0.857,  -1.367,   0.000,
+#            0.857,  -3.793,   0.000,
+#        mip_node,
+#            1,
+#        fuselage,
+#            fuselage_node_count,
+#            fuselage_root_node + 0,
+#            fuselage_root_node + 1,
+#            fuselage_root_node + 2,
+#            fuselage_root_node + 3,
+#            fuselage_root_node + 4,
+#            fuselage_beam_count,
+#            fuselage_beam + 0,
+#            fuselage_beam + 10,
+#        wing_starboard,
+#            wing_starboard_node_count,
+#            wing_starboard_root_node + 0,
+#            wing_starboard_root_node + 1,
+#            wing_starboard_root_node + 2,
+#            wing_starboard_root_node + 3,
+#            wing_starboard_root_node + 4,
+#            wing_starboard_root_node + 5,
+#            wing_starboard_root_node + 6,
+#            wing_starboard_root_node + 7,
+#            wing_starboard_root_node + 8,
+#            wing_starboard_beam_count,
+#            wing_starboard_beam + 0,
+#            wing_starboard_beam + 10,
+#            wing_starboard_beam + 20,
+#            wing_starboard_beam + 30,
+#        wing_port,
+#            wing_port_node_count,
+#            wing_port_root_node + 0,
+#            wing_port_root_node + 1,
+#            wing_port_root_node + 2,
+#            wing_port_root_node + 3,
+#            wing_port_root_node + 4,
+#            wing_port_root_node + 5,
+#            wing_port_root_node + 6,
+#            wing_port_root_node + 7,
+#            wing_port_root_node + 8,
+#            wing_port_beam_count,
+#            wing_port_beam + 0,
+#            wing_port_beam + 10,
+#            wing_port_beam + 20,
+#            wing_port_beam + 30,
+#        vertical_stabilizer,
+#            vertical_stabilizer_node_count,
+#            vertical_stabilizer_root_node + 0,
+#            vertical_stabilizer_root_node + 1,
+#            vertical_stabilizer_root_node + 2,
+#            vertical_stabilizer_root_node + 3,
+#            vertical_stabilizer_root_node + 4,
+#            vertical_stabilizer_beam_count,
+#            vertical_stabilizer_beam + 0,
+#            vertical_stabilizer_beam + 10,
+#        horizontal_stabilizer_starboard,
+#            horizontal_stabilizer_starboard_node_count,
+#            horizontal_stabilizer_starboard_root_node + 0,
+#            horizontal_stabilizer_starboard_root_node + 1,
+#            horizontal_stabilizer_starboard_root_node + 2,
+#            horizontal_stabilizer_starboard_root_node + 3,
+#            horizontal_stabilizer_starboard_root_node + 4,
+#            horizontal_stabilizer_starboard_beam_count,
+#            horizontal_stabilizer_starboard_beam + 0,
+#            horizontal_stabilizer_starboard_beam + 10,
+#        horizontal_stabilizer_port,
+#            horizontal_stabilizer_port_node_count,
+#            horizontal_stabilizer_port_root_node + 0,
+#            horizontal_stabilizer_port_root_node + 1,
+#            horizontal_stabilizer_port_root_node + 2,
+#            horizontal_stabilizer_port_root_node + 3,
+#            horizontal_stabilizer_port_root_node + 4,
+#            horizontal_stabilizer_port_beam_count,
+#            horizontal_stabilizer_port_beam + 0,
+#            horizontal_stabilizer_port_beam + 10,
+#        pylon_starboard_1,
+#            pylon_starboard_1_node_count,
+#            pylon_starboard_1_root_node + 0,
+#            pylon_starboard_1_root_node + 1,
+#            pylon_starboard_1_root_node + 2,
+#            pylon_starboard_1_root_node + 3,
+#            pylon_starboard_1_root_node + 4,
+#            pylon_starboard_1_beam_count,
+#            pylon_starboard_1_beam + 0,
+#            pylon_starboard_1_beam + 10,
+#        pylon_starboard_2,
+#            pylon_starboard_2_node_count,
+#            pylon_starboard_2_root_node + 0,
+#            pylon_starboard_2_root_node + 1,
+#            pylon_starboard_2_root_node + 2,
+#            pylon_starboard_2_root_node + 3,
+#            pylon_starboard_2_root_node + 4,
+#            pylon_starboard_2_beam_count,
+#            pylon_starboard_2_beam + 0,
+#            pylon_starboard_2_beam + 10,
+#        pylon_port_1,
+#            pylon_port_1_node_count,
+#            pylon_port_1_root_node + 0,
+#            pylon_port_1_root_node + 1,
+#            pylon_port_1_root_node + 2,
+#            pylon_port_1_root_node + 3,
+#            pylon_port_1_root_node + 4,
+#            pylon_port_1_beam_count,
+#            pylon_port_1_beam + 0,
+#            pylon_port_1_beam + 10,
+#        pylon_port_2,
+#            pylon_port_2_node_count,
+#            pylon_port_2_root_node + 0,
+#            pylon_port_2_root_node + 1,
+#            pylon_port_2_root_node + 2,
+#            pylon_port_2_root_node + 3,
+#            pylon_port_2_root_node + 4,
+#            pylon_port_2_beam_count,
+#            pylon_port_2_beam + 0,
+#            pylon_port_2_beam + 10,
+#        starboard_rotors,
+#            4,
+#            rotor_assembly_starboard_1_upper_root_node + 0,
+#            rotor_assembly_starboard_1_lower_root_node + 0,
+#            rotor_assembly_starboard_2_upper_root_node + 0,
+#            rotor_assembly_starboard_2_lower_root_node + 0,
+#        port_rotors,
+#            4,
+#            rotor_assembly_port_1_upper_root_node + 0,
+#            rotor_assembly_port_1_lower_root_node + 0,
+#            rotor_assembly_port_2_upper_root_node + 0,
+#            rotor_assembly_port_2_lower_root_node + 0,
+#        starboard_rotor_properties,
+#            7.7,
+#            1.61,
+#            0.805,
+#               0.000,   0.000,   0.000,
+#            7.7,
+#            1.61,
+#            0.805,
+#               0.000,   0.000,   0.000,
+#            7.7,
+#            1.61,
+#            0.805,
+#               0.000,   0.000,   0.000,
+#            7.7,
+#            1.61,
+#            0.805,
+#               0.000,   0.000,   0.000,
+#        port_rotor_properties,
+#            7.7,
+#            1.61,
+#            0.805,
+#               0.000,   0.000,   0.000,
+#            7.7,
+#            1.61,
+#            0.805,
+#               0.000,   0.000,   0.000,
+#            7.7,
+#            1.61,
+#            0.805,
+#               0.000,   0.000,   0.000,
+#            7.7,
+#            1.61,
+#            0.805,
+#               0.000,   0.000,   0.000,
+#        fuselage_outputs,
+#            0,
+#        wing_starboard_outputs,
+#            0,
+#        wing_port_outputs,
+#            0,
+#        vertical_stabilizer_outputs,
+#            0,
+#        horizontal_stabilizer_starboard_outputs,
+#            0,
+#        horizontal_stabilizer_port_outputs,
+#            0,
+#        pylon_outputs,
+#            0,
+#        output_channels,
+#            7,
+#            Fus1TDx,
+#            Fus1TDy,
+#            Fus1TDz,
+#            SWn1TDx,
+#            SWn1TDy,
+#            SWn1TDz,
+#            PP12FRc;
+end: elements;
+

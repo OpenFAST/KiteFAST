@@ -15,7 +15,7 @@ begin: initial value;
       time step: 1e-3;
       tolerance: 1e-3;
       max iterations: 800;
-      derivatives tolerance: 1;
+      derivatives tolerance: 0.5;
       derivatives max iterations: 600;
       derivatives coefficient: 1e-5;
       #method: ms, .6, .6;
@@ -82,6 +82,7 @@ begin: control data;
     gravity;
     loadable elements: 1;
     file drivers: 1;
+    #skip initial joint assembly;
 end: control data;
 
 
@@ -105,7 +106,7 @@ begin: nodes;
     include: "rotor_assembly_port_2_upper.nodes";
     include: "rotor_assembly_port_2_lower.nodes";
     structural: 1, dummy,
-        fuselage_root_node + 0, offset,    6.917,  -0.000,  -0.039, eye;
+        fuselage_root_node + 0, offset,    6.917,  -0.000,  -0.000, eye;
 end: nodes;
 
 begin: drivers;
@@ -119,7 +120,7 @@ end: drivers;
 
 begin: elements;
 
-     joint: 10 +100, total pin joint,
+    joint: 10 +100, total pin joint,
          888,
 	       #position, reference, global, 0,0, 0,
 	       #position orientation, reference, node, eye,
@@ -441,8 +442,8 @@ begin: elements;
             active, active, active,
             null;
 
-	joint: 8888, total joint,
-        wing_port_root_node + 8,
+    joint: 8888, total joint,
+        fuselage_root_node + 4,
         888,
             position, reference, other node, null,
             rotation orientation, reference, other node, eye,
@@ -683,16 +684,11 @@ begin: elements;
             0.805,
                0.000,   0.000,   0.000,
         fuselage_outputs,
-            2,
-            2,
-            3,
+            0,
         wing_starboard_outputs,
-            2,
-            2,
-            3,
+            0,
         wing_port_outputs,
-            1,
-            3,
+            0,
         vertical_stabilizer_outputs,
             0,
         horizontal_stabilizer_starboard_outputs,
@@ -700,9 +696,7 @@ begin: elements;
         horizontal_stabilizer_port_outputs,
             0,
         pylon_outputs,
-            2,
-            1,
-            2,
+            0,
         output_channels,
             3,
             KiteRoll,
