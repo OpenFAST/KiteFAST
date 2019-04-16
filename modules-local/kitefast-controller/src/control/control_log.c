@@ -12,7 +12,7 @@ void ControlLogInit(char* controllerVerNumber){
 	fp = fopen("controller_save_data.csv", "w+");
 	fprintf(fp, "Controller Output Text File \nFile Created on: %s",timeStr);
 	fprintf(fp, "controller version: %s \n", controllerVerNumber);
-    fprintf(fp, "dcm0_0, dcm0_1, dcm0_2, dcm1_0, dcm1_1, dcm1_2, dcm2_0, dcm2_1, dcm2_2, ");
+    fprintf(fp, "time, dcm0_0, dcm0_1, dcm0_2, dcm1_0, dcm1_1, dcm1_2, dcm2_0, dcm2_1, dcm2_2, ");
     fprintf(fp, "acc_norm_f, pqr_f.x, pqr_f.y, pqr_f.z, Xg.x, Xg.y, Xg.z, Vg.x, Vg.y, Vg.z, Vb.x, Vb.y, Vb.z, Ag.x, Ag.y, Ag.z, ");
     fprintf(fp, "Ab_f.x, Ab_f.y, Ab_f.z, rho, sph_f.v, sph_f.alpha, sph_f.beta, tether_force_b.vector_f.x, tether_force_b.vector_f.y, tether_force_b.vector_f.z, ");
     fprintf(fp, "wind_g.vector.x, wind_g.vector.y, wind_g.vector.z, flaps[0], flaps[1], flaps[2], flaps[3], flaps[4], flaps[5], flaps[6], flaps[7], ");
@@ -31,7 +31,13 @@ void ControlLogEntry(ControlLog* control_log){
 #endif
     char assembledStr[1024];
     char tempStr[80];
-    // dcm 
+    // time
+#ifdef DEBUG
+    printf("   debug - t from control log = %f\n", control_log->time);
+#endif
+ sprintf(tempStr, "%0.4f,", control_log->time);
+    strcat(assembledStr,tempStr);
+    // dcm
     sprintf(tempStr, "%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,",
         control_log->stateEstLog.dcm_g2b.d[0][0],
         control_log->stateEstLog.dcm_g2b.d[1][0],

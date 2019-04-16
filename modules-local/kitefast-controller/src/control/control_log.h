@@ -6,11 +6,11 @@
 #include "control/estimator/estimator_types.h"
 
 typedef struct {
-
+    double time;
     ControlOutput controlOutputLog;
     StateEstimate stateEstLog;
     MotorState motor_state;
-    
+
 } ControlLog;
 
 void ControlLogInit(char* controllerVerNumber);
