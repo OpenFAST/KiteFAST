@@ -36,8 +36,7 @@ class BaseModel():
     def _verify_component_list(self, model_dict):
         for path in self.required_components:
             if self._deep_get(model_dict, path) is None:
-                print("ERROR expected component not given: {}".format(path))
-                sys.exit(7)
+                raise ModelException(path, "expected component not given")
 
     def print_model_info(self):
         """
