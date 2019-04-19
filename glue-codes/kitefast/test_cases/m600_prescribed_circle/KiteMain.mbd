@@ -504,6 +504,8 @@ begin: elements;
             1e-3,
         gravity,
             9.81,
+		  kiteaerodyn_interpolation_order,
+		      0,
         ground_weather_station_location,
               -0.202,  -1.627,  19.860,
         number_of_flaps_per_wing,
