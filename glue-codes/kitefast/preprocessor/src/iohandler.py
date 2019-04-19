@@ -60,38 +60,33 @@ class Input():
         constants = input_dict["constants"]
         simulation_controls = input_dict["simulation_controls"]
         initial_conditions = simulation_controls["initial_conditions"]
-        initial_position = self._string_to_vec3(initial_conditions["location"])
-        initial_orientation = self._string_to_vec3(initial_conditions["orientation"])
-        initial_translational_velocity = self._string_to_vec3(initial_conditions["velocity"]["translational"])
-        initial_rotational_velocity = self._string_to_vec3(initial_conditions["velocity"]["rotational"])
-        return {
+        
+        simulation_dict = {
             "title": input_dict["title"],
             "constants": {
                 "gravity": self._string_to_vec3(constants["gravity"])
             },
-            "fast_submodules": simulation_controls["fast_submodules"],
-            "fast_submodule_input_files": simulation_controls["fast_submodule_input_files"],
-            "print_kitefast_summary_file": simulation_controls["print_kitefast_summary_file"],
-            "kitefast_output_file_root_name": simulation_controls["kitefast_output_file_root_name"],
-            "time": simulation_controls["time"],
-            "tolerance": simulation_controls["tolerance"],
-            "max_iterations": simulation_controls["max_iterations"],
-            "derivatives": simulation_controls["derivatives"],
-            "linear_solver": simulation_controls["linear_solver"],
-            "rigid_model": simulation_controls["rigid_model"],
-            "debug": simulation_controls["debug"],
-            "ground_weather_station": {
-                "location": self._string_to_vec3(simulation_controls["ground_weather_station"]["location"])
-            },
-            "simulation_controls": input_dict["simulation_controls"],
-            "initial_conditions": {
-                "position": initial_position,
-                "orientation": initial_orientation,
-                "translational_velocity": initial_translational_velocity,
-                "rotational_velocity": initial_rotational_velocity
-            },
             "output": input_dict["output"]
         }
+        simulation_dict.update(simulation_controls)
+
+        # handle any special cases here
+        simulation_dict["ground_weather_station"]["location"] = self._string_to_vec3(
+            simulation_controls["ground_weather_station"]["location"])
+
+        simulation_dict["initial_conditions"]["location"] = self._string_to_vec3(
+            simulation_dict["initial_conditions"]["location"])
+
+        simulation_dict["initial_conditions"]["orientation"] = self._string_to_vec3(
+            simulation_dict["initial_conditions"]["orientation"])
+
+        simulation_dict["initial_conditions"]["velocity"]["translational"] = self._string_to_vec3(
+            simulation_dict["initial_conditions"]["velocity"]["translational"])
+
+        simulation_dict["initial_conditions"]["velocity"]["rotational"] = self._string_to_vec3(
+            simulation_dict["initial_conditions"]["velocity"]["rotational"])
+
+        return simulation_dict 
 
     def _parse_model_dict(self, input_dict):
         # convert the keypoints input into Vec3 values

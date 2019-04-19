@@ -42,10 +42,10 @@ class KiteModel(BaseModel):
         self.mip_reference_frame = ReferenceFrame(
             name="mip_rf",
             reference="global",
-            absolute_position=initial_conditions["position"],
+            absolute_position=initial_conditions["location"],
             absolute_orientation_matrix=OrientationMatrix(initial_conditions["orientation"]),
-            absolute_velocity=initial_conditions["translational_velocity"],
-            absolute_angular_velocity=initial_conditions["rotational_velocity"],
+            absolute_velocity=initial_conditions["velocity"]["translational"],
+            absolute_angular_velocity=initial_conditions["velocity"]["rotational"],
         )
 
         # unpack and derive model constants

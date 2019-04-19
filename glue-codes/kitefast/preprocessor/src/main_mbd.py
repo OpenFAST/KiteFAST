@@ -33,7 +33,7 @@ class MainMBD():
                  number_of_pylons_per_wing,
                  number_of_kite_components):
 
-        self.initial_position = simulation_controls["initial_conditions"]["position"]
+        self.initial_position = simulation_controls["initial_conditions"]["location"]
         constants = simulation_controls["constants"]
         self.gravity = constants["gravity"]
         self.fast_submodules = simulation_controls["fast_submodules"]

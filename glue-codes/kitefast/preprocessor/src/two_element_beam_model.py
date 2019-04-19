@@ -33,10 +33,10 @@ class TwoElementBeamModel(BaseModel):
         self.mip_reference_frame = ReferenceFrame(
             name="mip_rf",
             reference="global",
-            absolute_position=initial_conditions["position"],
+            absolute_position=initial_conditions["location"],
             absolute_orientation_matrix=OrientationMatrix(initial_conditions["orientation"]),
-            absolute_velocity=initial_conditions["translational_velocity"],
-            absolute_angular_velocity=initial_conditions["rotational_velocity"],
+            absolute_velocity=initial_conditions["velocity"]["translational"],
+            absolute_angular_velocity=initial_conditions["velocity"]["rotational"]
         )
 
         # verify required components exist
@@ -192,7 +192,7 @@ class MainMBD():
 
     def __init__(self, simulation_controls, keypoints, fuselage):
 
-        self.initial_position = simulation_controls["initial_conditions"]["position"]
+        self.initial_position = simulation_controls["initial_conditions"]["location"]
         constants = simulation_controls["constants"]
         self.gravity = constants["gravity"]
         self.fast_submodules = simulation_controls["fast_submodules"]
