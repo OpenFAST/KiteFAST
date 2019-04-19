@@ -40,6 +40,7 @@ class MainMBD():
         self.fast_submodule_input_files = simulation_controls["fast_submodule_input_files"]
         self.print_kitefast_summary_file = simulation_controls["print_kitefast_summary_file"]
         self.kitefast_output_file_root_name = simulation_controls["kitefast_output_file_root_name"]
+        self.kiteaerodyn_interpolation_order = simulation_controls["kiteaerodyn_interpolation_order"]
         time = simulation_controls["time"]
         self.timestep = time["timestep"]
         self.final_time = time["final"]
@@ -210,6 +211,8 @@ class MainMBD():
         output.write_line("            {},".format(self.timestep))
         output.write_line("        gravity,")
         output.write_line("            {},".format(-1 * self.gravity.x3))
+        output.write_line("        kiteaerodyn_interpolation_order,")
+        output.write_line("            {},".format(self.kiteaerodyn_interpolation_order))
         output.write_line("        ground_weather_station_location,")
         output.write_line("            {},".format(self.ground_weather_station_location))
         output.write_line("        number_of_flaps_per_wing,")
