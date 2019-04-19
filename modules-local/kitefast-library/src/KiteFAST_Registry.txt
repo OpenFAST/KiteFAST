@@ -9,12 +9,12 @@
 #
 # Use ^ as a shortcut for the value in the same column from the previous line.
 # ...... Include files (definitions from NWTC Library and module components) ............................................................................
-include	Registry_NWTC_Library.txt
-usefrom	KiteAeroDyn_Registry.txt
-usefrom	InflowWind.txt
-usefrom	MoorDyn_Registry.txt
-usefrom	KiteFastController_Registry.txt
-usefrom	ActuatorDisk_Registry.txt
+include Registry_NWTC_Library.txt
+usefrom KiteAeroDyn_Registry.txt
+usefrom InflowWind.txt
+usefrom MoorDyn_Registry.txt
+usefrom KiteFastController_Registry.txt
+usefrom ActuatorDisk_Registry.txt
 usefrom  VSM_Registry.txt
 #
 #
@@ -22,36 +22,42 @@ usefrom  VSM_Registry.txt
 # Define inputs that the initialization routine may need here:
 #   e.g.,  the name of the input file,  the file root name,etc.
 #
-typedef    KiteFAST/KFAST    KAD_Data          KAD_ParameterType  p  - - - "Parameter data for KiteAeroDyn module" -
-typedef    ^                   ^               KAD_InputType      u  {2} - - "Input data for KiteAeroDyn module" -
-typedef    ^                   ^               KAD_MiscVarType    m  - - - "Misc vars for KiteAeroDyn module" -
-typedef    ^                   ^               KAD_ContinuousStateType x  - - - "Continuous states for KiteAeroDyn module" -
-typedef    ^                   ^               KAD_DiscreteStateType   xd  - - - "Discrete states for KiteAeroDyn module" -
-typedef    ^                   ^               KAD_ConstraintStateType z  - - - "Constraint states for KiteAeroDyn module" -
-typedef    ^                   ^               KAD_ConstraintStateType z_copy  - - - "Constraint states copy for KiteAeroDyn module" -
+typedef    KiteFAST/KFAST    KAD_Data          KAD_ParameterType       p        - - - "Parameter data for KiteAeroDyn module" -
+typedef    KiteFAST/KFAST      ^               KAD_ContinuousStateType x        - - - "Continuous states for KiteAeroDyn module" -
+typedef    ^                   ^               KAD_DiscreteStateType   xd       - - - "Discrete states for KiteAeroDyn module" -
+typedef    ^                   ^               KAD_MiscVarType         m        - - - "Misc vars for KiteAeroDyn module" -
+typedef    ^                   ^               KAD_InputType           u        - - - "Interpolated input data for KiteAeroDyn module" -
+typedef    ^                   ^               KAD_OutputType          y        - - - "Interpolated output data for KiteAeroDyn module" -   
+typedef    KiteFAST/KFAST    KAD_States        KAD_ConstraintStateType z        - - - "Constraint states for KiteAeroDyn module" -
+#typedef    ^                   ^               KAD_ConstraintStateType z_copy   - - - "Constraint states for KiteAeroDyn module" - 
 typedef    ^                   ^               KAD_OtherStateType      OtherSt  - - - "Other states for KiteAeroDyn module" -
-typedef    ^                   ^               KAD_OutputType     y  - - - "Output data for KiteAeroDyn module" -   
+typedef    ^                   ^               KAD_InputType           u      {:} - - "Input data for KiteAeroDyn module" -
+typedef    ^                   ^               KAD_OutputType          y      {:}  - - "Output data for KiteAeroDyn module" -   
+typedef    ^                   ^               DbKi                    t_in   {:} - - "Timesteps used in the u arrays"  
+#typedef    ^                   ^               DbKi                    t_out  {:} - - "Timesteps used in the y arrays"  
 typedef    KiteFAST/KFAST    IfW_Data          InflowWind_ParameterType       p  - - - "Parameter data for InflowWind module" -
 typedef    ^                   ^               InflowWind_InputType           u  - - - "Input data for InflowWind module" -
 typedef    ^                   ^               InflowWind_MiscVarType         m  - - - "Misc vars for InflowWind module" -
 typedef    ^                   ^               InflowWind_ContinuousStateType x  - - - "Continuous states for InflowWind module" -
 typedef    ^                   ^               InflowWind_DiscreteStateType   xd  - - - "Discrete states for InflowWind module" -
 typedef    ^                   ^               InflowWind_ConstraintStateType z  - - - "Constraint states for InflowWind module" -
-typedef    ^                   ^               InflowWind_OtherStateType      OtherSt  - - - "Other states for InflowWind module" -
 typedef    ^                   ^               InflowWind_OutputType          y  - - - "Output data for InflowWind module" -    
+typedef    ^                   ^               InflowWind_InputType           u_KFC  - - - "Input data for KiteFAST controller module" -
+typedef    ^                   ^               InflowWind_OutputType          y_KFC  - - - "Output data for KiteFAST controller module" -
+typedef    KiteFAST/KFAST    IfW_States        InflowWind_OtherStateType      OtherSt  - - - "Other states for InflowWind module" -
 typedef    KiteFAST/KFAST    MD_Data           MD_ParameterType        p  - - - "Parameter data for MoorDyn module" -
 typedef    ^                   ^               MD_InputType            u  {2} - - "Input data for MoorDyn module" -
 typedef    ^                   ^               MD_MiscVarType          m  - - - "Misc vars for MoorDyn module" -
-typedef    ^                   ^               MD_ContinuousStateType  x  - - - "Continuous states for MoorDyn module" -
-typedef    ^                   ^               MD_ContinuousStateType  x_copy  - - - "Continuous states copy for MoorDyn module" -
 typedef    ^                   ^               MD_DiscreteStateType    xd - - - "Discrete states for MoorDyn module" -
 typedef    ^                   ^               MD_ConstraintStateType  z  - - - "Constraint states for MoorDyn module" -
-typedef    ^                   ^               MD_OtherStateType       OtherSt  - - - "Other states for MoorDyn module" -
 typedef    ^                   ^               MD_OutputType           y  - - - "Output data for MoorDyn module" -   
-typedef    KiteFAST/KFAST   KFC_Data           KFC_ParameterType   p  - - - "Parameter data for KiteFAST controller module" -
-typedef    ^                   ^               KFC_InputType       u  - - - "Input data for KiteFAST controller module" -
-typedef    ^                   ^               KFC_OutputType      y  - - - "Output data for KiteFAST controller module" -
-typedef    ^                   ^               DbKi               dt  - - - "Time interval for KFC calculations" s
+typedef    KiteFAST/KFAST    MD_States         MD_ContinuousStateType  x  - - - "Continuous states for MoorDyn module" -
+typedef    ^                   ^               MD_ContinuousStateType  x_copy  - - - "Continuous states copy for MoorDyn module" -
+typedef    ^                   ^               MD_OtherStateType       OtherSt  - - - "Other states for MoorDyn module" -
+typedef    KiteFAST/KFAST   KFC_Data           KFC_ParameterType       p  - - - "Parameter data for KiteFAST controller module" -
+typedef    ^                   ^               KFC_InputType           u  - - - "Input data for KiteFAST controller module" -
+typedef    ^                   ^               KFC_OutputType          y  - - - "Output data for KiteFAST controller module" -
+typedef    ^                   ^               DbKi                    dt - - - "Time interval for KFC calculations" s
  
 # ..... Misc/Optimization variables.................................................................................................
 # Define any data that are used only for efficiency purposes (these variables are not associated with time):
@@ -182,17 +188,23 @@ typedef   ^    MiscVarType    ReKi             WriteOutput   {:}      - - "" -
 #
 typedef   ^  ParameterType  IntKi            numFlaps    -  -  -  "Number of flaps per wing" -
 typedef   ^  ^              IntKi            numPylons   -  -  -  "Number of pylons per wing" -
+typedef   ^  ^              IntKi            KAD_InterpOrder -  -  -  "KiteAeroDyn Interpolation order.  (0=hold, 1=linear, 2=2nd order)" -
 typedef   ^  ^              Logical          useKAD      -  -  -  "Using KiteAeroDyn module?" -
 typedef   ^  ^              Logical          useIfW      -  -  -  "Using InflowWind module?" -
 typedef   ^  ^              Logical          useMD       -  -  -  "Using MoorDyn module?" -
 typedef   ^  ^              Logical          useKFC      -  -  -  "Using KiteFAST Controller module?" -
 typedef   ^  ^              DbKi             dt          -  -  -  "Time interval for calculations" s
-typedef	 ^	 ^              ReKi             AirDens     -  -  -  "Air density" kg/m^3
-typedef	 ^	 ^              ReKi             Gravity     -  -  -  "Gravitational constant" m/s^2
+typedef   ^  ^              DbKi             KAD_dt      -  -  -  "Time interval for KAD calculations" s
+typedef   ^  ^              DbKi             KAD_filtConst - - -  "KAD input Filter time constant, based on 10Hz cut-off freq." -
+typedef   ^  ^              DbKi             KFC_dt      -  -  -  "Time interval for KFC calculations" s
+typedef   ^  ^              IntKi            KFC_nCycles -  -  -  "Number of MBDyn steps until KFC step" -
+typedef   ^  ^              IntKi            KAD_nCycles -  -  -  "Number of MBDyn steps until KFC step" -              
+typedef   ^  ^              ReKi             AirDens     -  -  -  "Air density" kg/m^3
+typedef   ^  ^              ReKi             Gravity     -  -  -  "Gravitational constant" m/s^2
 typedef   ^  ^              IntKi            numFusNds   -  -  -  "Number of fuselage structural nodes" -
 typedef   ^  ^              IntKi            numSwnNds   -  -  -  "Number of starboard wing structural nodes" -
 typedef   ^  ^              IntKi            numPWnNds   -  -  -  "Number of port wing structural nodes" -
-typedef   ^  ^              IntKi            numVSNds   -  -  -  "Number of vertical stabilizer structural nodes" -
+typedef   ^  ^              IntKi            numVSNds    -  -  -  "Number of vertical stabilizer structural nodes" -
 typedef   ^  ^              IntKi            numSHSNds   -  -  -  "Number of starboard horizontal stabilizer structural nodes" -
 typedef   ^  ^              IntKi            numPHSNds   -  -  -  "Number of port horizontal stabilizer structural nodes" -
 typedef   ^  ^              IntKi            numSPyNds  {:} -  -  "Number of starboard pylon structural nodes" -
@@ -207,12 +219,12 @@ typedef   ^  ^              ReKi             SPyRtrItrans {:}{:}    - - "" kg-m^
 typedef   ^  ^              ReKi             PPyRtrItrans {:}{:}    - - "" kg-m^2
 typedef   ^  ^              ReKi             SPyRtrXcm    {:}{:}    - - "" m
 typedef   ^  ^              ReKi             PPyRtrXcm    {:}{:}    - - "" m
-typedef	 ^	 ^	             CHARACTER(1024)	outFileRoot -	-	-	"Rootname of the KiteFAST output file(s)"	-
-typedef	 ^	 ^	             IntKi	         numOuts	   -	 0	   -	  "Total number of outputs requested (across all modules)"	-
-typedef	 ^	 ^	             IntKi	         numKFASTOuts  -	 0	   -	  "Number of KFAST-specific outputs requested"	-
-typedef	 ^	 ^	             IntKi	         numKADOuts	   -	 0	   -	  "Number of KAD outputs requested"	-
-typedef	 ^	 ^	             IntKi	         numMDOuts	   -	 0	   -	  "Number of MD outputs requested"	-
-typedef	 ^	 ^	             IntKi	         numIfWOuts	   -	 0	   -	  "Number of IfW outputs requested"	-
+typedef   ^  ^              CHARACTER(1024)  outFileRoot -  -   -   "Rootname of the KiteFAST output file(s)"   -
+typedef   ^  ^              IntKi            numOuts       -     0     -      "Total number of outputs requested (across all modules)"  -
+typedef   ^  ^              IntKi            numKFASTOuts  -     0     -      "Number of KFAST-specific outputs requested"  -
+typedef   ^  ^              IntKi            numKADOuts    -     0     -      "Number of KAD outputs requested" -
+typedef   ^  ^              IntKi            numMDOuts     -     0     -      "Number of MD outputs requested"  -
+typedef   ^  ^              IntKi            numIfWOuts    -     0     -      "Number of IfW outputs requested" -
 typedef   ^  ^              IntKi            NFusOuts        -  0 - "" - 
 typedef   ^  ^              IntKi            FusOutNds     {9}  - - "" - 
 typedef   ^  ^              IntKi            NSWnOuts        -  0 - "" - 
@@ -227,17 +239,21 @@ typedef   ^  ^              IntKi            NPHSOuts        -  0 - "" -
 typedef   ^  ^              IntKi            PHSOutNds     {9}  - - "" - 
 typedef   ^  ^              IntKi            NPylOuts        -  0 - "" - 
 typedef   ^  ^              IntKi            PylOutNds     {9}  - - "" - 
-typedef	 ^	 ^	             OutParmType	        OutParam	  {:}	-	-	"Names and units (and other characteristics) of all requested output parameters"	-
-typedef	 ^	 ^              LOGICAL	         TabDelim	   -	 -	   -	  "Flag to cause tab-delimited text output (delimited by space otherwise)"	-
-typedef	 ^	 ^	             CHARACTER(20)	   OutFmt	   -	-	-	"Output format for tabular data"	-
-typedef	 ^	 ^	             CHARACTER(20)	   OutSFmt	   -	-	-	"Output format for channel labels and units"	-
-typedef	 ^	 ^	             CHARACTER(1)	   Delim	      -	-	-	"Column delimiter for output text files"	-
-typedef   ^  ^              IntKi            UnOutFile   -	-	-	"File unit for the KAD-generated output file"	-
+typedef   ^  ^              OutParmType      OutParam     {:}   -   -   "Names and units (and other characteristics) of all requested output parameters"    -
+typedef   ^  ^              LOGICAL          TabDelim      -     -     -      "Flag to cause tab-delimited text output (delimited by space otherwise)"  -
+typedef   ^  ^              CHARACTER(20)    OutFmt        -    -   -   "Output format for tabular data"    -
+typedef   ^  ^              CHARACTER(20)    OutSFmt       -    -   -   "Output format for channel labels and units"    -
+typedef   ^  ^              CHARACTER(1)     Delim         -    -   -   "Column delimiter for output text files"    -
+typedef   ^  ^              IntKi            UnOutFile     -    -   -   "File unit for the KAD-generated output file"   -
 
 # ..... Other States ................................................................................................................
-typedef   ^  OtherStateType logical          NewTime             -     -   -  "" -
-typedef   ^  ^              ReKi             IfW_ground         {3}    -   -  "Previous timestep inflow at ground station" m/s
-typedef   ^  ^              ReKi             IfW_FusO           {3}    -   -  "Previous timestep inflow at fuselage reference point" m/s
+typedef   ^  OtherStateType logical          KAD_NewTime         -     -   -  "flag indicating when to advanced time, and hence need to call the KAD's Step routines" -
+typedef   ^  OtherStateType logical          KFC_NewTime         -     -   -  "flag indicating when to advanced time, and hence need to call the KFC's Step routines" -
+typedef   ^  OtherStateType KAD_States       KAD                 -     -   -  "KiteAeroDyn framework states and historical inputs/outputs" -
+typedef   ^  OtherStateType IfW_States       IfW                 -     -   -  "InflowWind framework states" -
+typedef   ^  OtherStateType MD_States        MD                  -     -   -  "MoorDyn framework states" -
+#typedef   ^  OtherStateType KFC_States       KFC                 -     -   -  "KiteFAST Controller framework states and historical inputs/outputs" -
+typedef   ^  ^              ReKi             windPt             {3}    -   -  "Previous timestep location of ground station" m
 typedef   ^  ^              ReKi             totalFairLeadLoads {3}    -   -  "Previous timestep total fairlead loads from the tether module in global coordinates" N
 typedef   ^  ^              DbKi             SPyRtrDCMs         {:}{:}{:}{:} - - "Previous timestep starboard rotor/nacelle DCM" -
 typedef   ^  ^              DbKi             PPyRtrDCMs         {:}{:}{:}{:} - - "Previous timestep port rotor/nacelle DCM" -
@@ -249,5 +265,3 @@ typedef   ^  ^              ReKi             FusODCM            {3}{3} -   -  "f
 typedef   ^  ^              ReKi             FusOomegas         {3}    -   -  "fuselage reference point rotational velocities in global coordinates at time t-p%dt" m/s
 typedef   ^  ^              ReKi             FusOacc            {3}    -   -  "fuselage reference point accelerations in global coordinates at time t-p%dt" m/s^2
 typedef   ^  ^              MD_InputType     MD_u                -     -   -  "The previous timesteps MoorDyn inputs" -
-typedef   ^  ^              IntKi            KFC_nCycles         -     -   -  "Number of MBDyn cycles until KFC step" -
-typedef   ^  ^              IntKi            KAD_nCycles         -     -   -  "Number of MBDyn cycles until KFC step" -              
