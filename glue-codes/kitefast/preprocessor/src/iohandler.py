@@ -137,10 +137,10 @@ class Input():
                 # element end nodes
                 this_node = self._string_to_list(input_component["element_end_nodes"][i])
 
-                nodes.append(Vec3(this_node[0], this_node[1], this_node[2]))
-                twist.append(float(this_node[3]))
-                attached_component.append(this_node[4])
-                point_mass.append(float(this_node[5]))
+                nodes.append(float(this_node[0]))
+                twist.append(float(this_node[1]))
+                attached_component.append(this_node[2])
+                point_mass.append(float(this_node[3]))
 
                 # stiffness matrix
                 this_stiff = self._string_to_list(input_component["stiffness_matrix"][i])

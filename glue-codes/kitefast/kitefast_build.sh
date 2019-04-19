@@ -73,6 +73,8 @@ install_if_not_found "liblapack-dev/stable" # lapack math library
 install_if_not_found "libltdl-dev/stable"   # libltdl headers, used in mbdyn for linking
 install_if_not_found "libgsl-dev/stable"    # used in the STI controller
 install_if_not_found "python3-pip"    # used in the STI controller
+# optional: needed for eigen analysis and netcdf output
+# install_if_not_found libnetcdf-c++4
 
 # remove lingering packages
 sudo apt-get autoremove
