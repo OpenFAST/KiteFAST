@@ -10,16 +10,18 @@ end: data;
 
 
 begin: initial value;
-      initial time: 0.;
-      final time: 60.0;
-      time step: 0.1e-2;
-      tolerance: 1e-3;
-      max iterations: 800;
-      derivatives tolerance: 0.5;
-      derivatives max iterations: 600;
-      derivatives coefficient: 1e-5;
-      #method: ms, .6, .6;
-      linear solver: naive, colamd, mt, 1, pivot factor, 1e-8;  
+    initial time: 0.0;
+    final time: 60.0;
+    time step: 1e-3;
+    tolerance: 1e-3;
+    max iterations: 10, at most;
+    derivatives tolerance: 10e0;
+    derivatives max iterations: 200;
+    derivatives coefficient: 1e-4;
+    linear solver: naive, colamd, mt, 1, pivot factor, 1e-8;
+    #method: ms, 0.6;
+    #nonlinear solver: line search, divergence check, no, max iterations, 200, abort at lambda min, no;
+
 end: initial value;
 
 
@@ -82,7 +84,6 @@ begin: control data;
     gravity;
     loadable elements: 1;
     file drivers: 1;
-    #skip initial joint assembly;
 end: control data;
 
 
@@ -117,6 +118,7 @@ begin: drivers;
 		0.02, #time step
         "position.csv";
 end: drivers;
+
 
 begin: elements;
 
@@ -441,9 +443,9 @@ begin: elements;
         orientation constraint,
             active, active, active,
             null;
-
+ 
     joint: 8888, total joint,
-        wing_port_root_node + 8,
+        fuselage_root_node + 4,
         888,
             position, reference, other node, null,
             rotation orientation, reference, other node, eye,
@@ -454,7 +456,7 @@ begin: elements;
             active, active, active,
             null;
 
-#MAKE PORT WING RIGID
+    #MAKE PORT WING RIGID
 
 joint: 1111, total joint,
         wing_port_root_node + 0,
@@ -594,8 +596,6 @@ joint: 1122, total joint,
         orientation constraint,
             active, active, active,
             null;
-
-      
         
     include: "fuselage.structural";
     include: "wing_starboard.structural";
@@ -644,11 +644,11 @@ joint: 1122, total joint,
         print_kitefast_summary_file,
             0,
         time_step,
-            0.1e-2,
+            1e-3,
         gravity,
             9.81,
-		kiteaerodyn_interpolation_order,
-		    0,
+        kiteaerodyn_interpolation_order,
+            0,
         ground_weather_station_location,
               -0.202,  -1.627,  19.860,
         number_of_flaps_per_wing,
@@ -843,7 +843,7 @@ joint: 1122, total joint,
         pylon_outputs,
             0,
         output_channels,
-            3,
+             3,
             KiteRoll,
             KitePitch,
             KiteYaw;
