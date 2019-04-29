@@ -2502,7 +2502,7 @@ subroutine KFAST_Init(dt_c, numFlaps, numPylons, numComp, numCompNds, modFlags, 
 
    dt = dt_c
 
-   
+   OtherSt%doStartupInterp = .true.
    
    ! If a module's input file/dll file is empty, then turn off that module
    
@@ -3698,7 +3698,7 @@ subroutine KFAST_AssRes(t_c, isInitialTime_c, WindPt_c, FusO_c, FusODCM_c, FusOv
             OtherSt%KAD%u(1)%V_PPyRtr  = 0.0_ReKi  
          end if
 
-         if ( isInitialTime > 0 ) then 
+         if ( (isInitialTime > 0) .or. (OtherSt%doStartupInterp) ) then 
             if (p%KAD_InterpOrder == 2) then ! 2nd order
                call KAD_CopyInput(OtherSt%KAD%u(1),OtherSt%KAD%u(3), MESH_NEWCOPY, errStat2, errMsg2)
                    call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
@@ -3715,7 +3715,7 @@ subroutine KFAST_AssRes(t_c, isInitialTime_c, WindPt_c, FusO_c, FusODCM_c, FusOv
                return
             end if
          end if
-         if (p%KAD_InterpOrder > 0) then ! 1st or 2nd order
+         if ( (p%KAD_InterpOrder > 0) .and. (.not. OtherSt%doStartupInterp) ) then ! 1st or 2nd order
                ! Extrapolate the inputs to t + KAD_dt
             call KAD_Input_ExtrapInterp(OtherSt%KAD%u, OtherSt%KAD%t_in, m%KAD%u, t+p%KAD_dt, errStat2, errMsg2 )
                call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
@@ -3729,19 +3729,30 @@ subroutine KFAST_AssRes(t_c, isInitialTime_c, WindPt_c, FusO_c, FusODCM_c, FusOv
                call TransferErrors(errStat, errMsg, errStat_c, errMsg_c)
                return
             end if
-         else  ! 0th order hold       
+         else  ! 0th order hold, or startup sequence         
             if (isInitialTime == 0 ) then
+! TODO: Adjust this logic for startup sequence and InterpOrder > 0
+! Switch InterpOrder=0 to use t_in array so that we can use the standard UpdateStates syntax instead of a special version using utimes for InterpOrder=0
                !call KAD_CopyInput(OtherSt%KAD%u(2), m%KAD%u, MESH_NEWCOPY, errStat2, errMsg2)
-               call KAD_CopyInput(OtherSt%KAD%u(1),OtherSt%KAD%u(2), MESH_NEWCOPY, errStat2, errMsg2)
+               
+               if (p%KAD_InterpOrder==0) then
+                  call KAD_CopyInput(OtherSt%KAD%u(1),OtherSt%KAD%u(2), MESH_NEWCOPY, errStat2, errMsg2)
+                     call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
+                  OtherSt%KAD%t_in(2) = t-p%KAD_dt
+                  OtherSt%KAD%t_in(1) = t              
+               end if
+               
+               call KAD_UpdateStates( t, n2, OtherSt%KAD%u, OtherSt%KAD%t_in, m%KAD%p, m%KAD%x, m%KAD%xd, OtherSt%KAD%z, OtherSt%KAD%OtherSt, m%KAD%m, errStat2, errMsg2 )
                   call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
-               call KAD_UpdateStates( utimes(1), n, OtherSt%KAD%u, utimes, m%KAD%p, m%KAD%x, m%KAD%xd, OtherSt%KAD%z, OtherSt%KAD%OtherSt, m%KAD%m, errStat2, errMsg2 )
-                  call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
+!               call KAD_UpdateStates( utimes(1), n, OtherSt%KAD%u, utimes, m%KAD%p, m%KAD%x, m%KAD%xd, OtherSt%KAD%z, OtherSt%KAD%OtherSt, m%KAD%m, errStat2, errMsg2 )
+!                  call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
                if (errStat >= AbortErrLev ) then
                  call TransferErrors(errStat, errMsg, errStat_c, errMsg_c)
                  return
                end if
                !call KAD_CopyInput(m%KAD%u,OtherSt%KAD%u(2), MESH_NEWCOPY, errStat2, errMsg2)
             end if
+            
             call KAD_CalcOutput( t, OtherSt%KAD%u(1), m%KAD%p, m%KAD%x, m%KAD%xd, OtherSt%KAD%z, OtherSt%KAD%OtherSt, m%KAD%y, m%KAD%m, errStat2, errMsg2 )
                call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
             if (errStat >= AbortErrLev ) then
@@ -3786,7 +3797,7 @@ subroutine KFAST_AssRes(t_c, isInitialTime_c, WindPt_c, FusO_c, FusODCM_c, FusOv
          
       end if ! if ( OtherSt%KAD_NewTime
       
-      if (p%KAD_InterpOrder > 0) then ! 1st or 2nd order
+      if ( (p%KAD_InterpOrder > 0) .and. (.not. OtherSt%doStartupInterp) ) then ! 1st or 2nd order
          call KAD_Output_ExtrapInterp(OtherSt%KAD%y, OtherSt%KAD%t_in, m%KAD%y, t, errStat2, errMsg2 )
             call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
             if (errStat >= AbortErrLev ) then
@@ -3877,6 +3888,12 @@ subroutine KFAST_AfterPredict(t_c, errStat_c, errMsg_c) BIND (C, NAME='KFAST_Aft
    ! Note: t has already advanced in time from last AssRes() call
    n = nint((t-p%dt) / p%dt) + 1
    
+   ! Check if it is time to toggle startup flag for KAD interporder
+   if ( OtherSt%doStartupInterp .and. t > 2.0_DbKi ) then
+      OtherSt%doStartupInterp = .false.
+      print *, "Resetting startup flag to FALSE"
+   end if
+
    ! Check if next timestep is going to be an integer multiple of the module DT values
 
    if ( (mod(n,p%KFC_nCycles) == 0) ) then

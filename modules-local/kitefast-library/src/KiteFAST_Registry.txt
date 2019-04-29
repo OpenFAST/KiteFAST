@@ -249,6 +249,7 @@ typedef   ^  ^              IntKi            UnOutFile     -    -   -   "File un
 # ..... Other States ................................................................................................................
 typedef   ^  OtherStateType logical          KAD_NewTime         -     -   -  "flag indicating when to advanced time, and hence need to call the KAD's Step routines" -
 typedef   ^  OtherStateType logical          KFC_NewTime         -     -   -  "flag indicating when to advanced time, and hence need to call the KFC's Step routines" -
+typedef   ^  OtherStateType logical          doStartupInterp     -     -   -  "flag indicating whether the simulation is in startup and KAD_InterpOrder will be overridden to a setting of 0" -
 typedef   ^  OtherStateType KAD_States       KAD                 -     -   -  "KiteAeroDyn framework states and historical inputs/outputs" -
 typedef   ^  OtherStateType IfW_States       IfW                 -     -   -  "InflowWind framework states" -
 typedef   ^  OtherStateType MD_States        MD                  -     -   -  "MoorDyn framework states" -
