@@ -59,8 +59,6 @@ class Input():
     def _parse_simulation_dict(self, input_dict):
         constants = input_dict["constants"]
         simulation_controls = input_dict["simulation_controls"]
-        initial_conditions = simulation_controls["initial_conditions"]
-        
         simulation_dict = {
             "title": input_dict["title"],
             "constants": {

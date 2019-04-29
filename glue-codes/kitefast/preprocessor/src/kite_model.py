@@ -38,7 +38,15 @@ class KiteModel(BaseModel):
 
         # constants
         self.title = simulation_dict["title"]
+
+        # store these so they can be exported later
+        self.simulation_dict = simulation_dict
+        self.model_dict = model_dict
+
+        # parse the initial conditions
         initial_conditions = simulation_dict["initial_conditions"]
+
+        # build the primary reference frame
         self.mip_reference_frame = ReferenceFrame(
             name="mip_rf",
             reference="global",
