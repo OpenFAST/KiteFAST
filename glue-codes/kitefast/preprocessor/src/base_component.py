@@ -76,8 +76,16 @@ class BaseComponent():
         # unpack the component dictionary
         self.mip = model_dict["keypoint"]
 
-        self.coordinate_list = [
-            node + self.mip for node in model_dict["element_end_nodes"]]
+        self.coordinate_list = []
+        for n in model_dict["element_end_nodes"]:
+            if self.primary_axis == "x1":
+                node = Vec3(n, 0.0, 0.0)
+            elif self.primary_axis == "x2":
+                node = Vec3(0.0, n, 0.0)
+            elif self.primary_axis == "x3":
+                node = Vec3(0.0, 0.0, n)
+            node += self.mip
+            self.coordinate_list.append(node)
 
         self.twist = model_dict["twist"]
         self.component = model_dict["component"]

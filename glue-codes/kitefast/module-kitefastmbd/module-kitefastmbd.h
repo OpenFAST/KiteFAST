@@ -82,6 +82,7 @@ extern int KFAST_Init(
   const char output_file_root[],         // outFileRoot
   int *print_summary_file,               // printSum
   double *gravity,                       // gravity
+  int *KAD_interpolation_order,          // KiteAeroDyn interpolation order
   double mip_dcm[],                      // FusODCM
   int *n_rotor_points,                   // numRtrPts
   double rotor_points[],                 // rtrPts

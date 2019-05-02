@@ -21,7 +21,7 @@ EXTERNAL_ROUTINE void KFAST_Init(
    const char outFileRoot[],    // Full path and basename of the KiteFAST output file.
    int*       printSum,         // Print the Summary file?  1 = Yes, 0 = No.
    double*    gravity,          // Scalar gravity constant.  (m/s^2)
-   //double     windPt[],         // Initial position of the ground station where the fixed wind measurement is taken, expressed in global coordinates. (m)
+   int*       KAD_InterpOrder,  // KiteAeroDyn Interpolation order.  0=hold, 1=linear, 2=2nd order.
    double     FusODCM[],        // Initial DCM matrix to transform the location of the Kite Fuselage reference point from global to kite coordinates.
    int*       numRtrPts,        // Total number of rotor points (both wings).
    double     rtrPts[],         // Initial location of each rotor's reference point [RRP] in global coordinates. (m)
@@ -58,15 +58,10 @@ EXTERNAL_ROUTINE void KFAST_AssRes(
    double *t,                   // simulation time for the current timestep (s)
    int*   isInitialTime,        // Is this the initial time of the simulation (1st timestep) 1=Yes, should we update the states? 0=yes, 1=no
    double WindPt[],             // Position of the ground station where the fixed wind measurement is taken, expressed in global coordinates. (m)
-   //double FusO_prev[],          // Previous timestep position of the Fuselage reference point, expressed in global coordinates. (m) 
    double FusO[],               // Current  timestep position of the Fuselage reference point, expressed in global coordinates. (m) 
-   //double FusODCM_prev[],       // Previous timestep DCM matrix to transform the location of the Fuselage reference point from global to kite coordinates.
    double FusODCM[],            // Current  timestep DCM matrix to transform the location of the Fuselage reference point from global to kite coordinates.
-   //double FusOv_prev[],         // Previous timestep velocity of the Fuselage reference point, expressed in global coordinates. (m/s) 
    double FusOv[],              // Current timestep velocity of the Fuselage reference point, expressed in global coordinates. (m/s) 
-   //double FusOomegas_prev[],    // Previous timestep rotational velocity of the Fuselage reference point, expressed in global coordinates. (rad/s) 
    double FusOomegas[],         // Current timestep rotational velocity of the Fuselage reference point, expressed in global coordinates. (rad/s) 
-   //double FusOacc_prev[],       // Previous timestep translational acceleration of the Fuselage reference point, expressed in global coordinates. (m/s^2) 
    double FusOacc[],            // Current timestep translational acceleration of the Fuselage reference point, expressed in global coordinates. (m/s^2) 
    double FusOalphas[],         // Current timestep rotational acceleration of the Fuselage reference point, expressed in global coordinates. (rad/s^2) 
    int*   numNodePts,           // Total umber of MBDyn structural nodes. This must match what was sent during KFAST_Init, but is useful here for sizing Fortran arrays.

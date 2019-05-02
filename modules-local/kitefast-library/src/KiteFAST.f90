@@ -1674,7 +1674,7 @@ subroutine CreateMeshMappings(m, p, KAD, MD, errStat, errMsg)
 
    type(KFAST_MiscVarType),     intent(inout) :: m
    type(KFAST_ParameterType), intent(in   ) :: p
-   type(KAD_Data),           intent(in   ) :: KAD
+   type(KAD_States),           intent(in   ) :: KAD
    type(MD_Data),            intent(in   ) :: MD
    integer(IntKi),           intent(  out)  :: errStat           !< Error status of the operation
    character(*),             intent(  out)  :: errMsg            !< Error message if errStat /= ErrID_None
@@ -1764,22 +1764,22 @@ subroutine CreateMeshMappings(m, p, KAD, MD, errStat, errMsg)
    
          ! Mappings between KiteAeroDyn loads point meshes and MBDyn loads point meshes 
 
-      call MeshMapCreate( KAD%y%FusLoads, m%mbdFusLoads, m%Fus_P_P, errStat2, errMsg2 )
+      call MeshMapCreate( m%KAD%y%FusLoads, m%mbdFusLoads, m%Fus_P_P, errStat2, errMsg2 )
          call SetErrStat( errStat2, errMsg2, errStat, errMsg, ' CreateMeshMappings: m%Fus_P_P' )     
             if (ErrStat>=AbortErrLev) return
-      call MeshMapCreate( KAD%y%SWnLoads, m%mbdSWnLoads, m%SWn_P_P, errStat2, errMsg2 )
+      call MeshMapCreate( m%KAD%y%SWnLoads, m%mbdSWnLoads, m%SWn_P_P, errStat2, errMsg2 )
          call SetErrStat( errStat2, errMsg2, errStat, errMsg, ' CreateMeshMappings: m%SWn_P_P' )     
             if (ErrStat>=AbortErrLev) return
-      call MeshMapCreate( KAD%y%PWnLoads, m%mbdPWnLoads, m%PWn_P_P, errStat2, errMsg2 )
+      call MeshMapCreate( m%KAD%y%PWnLoads, m%mbdPWnLoads, m%PWn_P_P, errStat2, errMsg2 )
          call SetErrStat( errStat2, errMsg2, errStat, errMsg, ' CreateMeshMappings: m%PWn_P_P' )     
             if (ErrStat>=AbortErrLev) return
-      call MeshMapCreate( KAD%y%VSLoads, m%mbdVSLoads, m%VS_P_P, errStat2, errMsg2 )
+      call MeshMapCreate( m%KAD%y%VSLoads, m%mbdVSLoads, m%VS_P_P, errStat2, errMsg2 )
          call SetErrStat( errStat2, errMsg2, errStat, errMsg, ' CreateMeshMappings: m%VS_P_P' )     
             if (ErrStat>=AbortErrLev) return
-      call MeshMapCreate( KAD%y%SHSLoads, m%mbdSHSLoads, m%SHS_P_P, errStat2, errMsg2 )
+      call MeshMapCreate( m%KAD%y%SHSLoads, m%mbdSHSLoads, m%SHS_P_P, errStat2, errMsg2 )
          call SetErrStat( errStat2, errMsg2, errStat, errMsg, ' CreateMeshMappings: m%SHS_P_P' )     
             if (ErrStat>=AbortErrLev) return
-      call MeshMapCreate( KAD%y%PHSLoads, m%mbdPHSLoads, m%PHS_P_P, errStat2, errMsg2 )
+      call MeshMapCreate( m%KAD%y%PHSLoads, m%mbdPHSLoads, m%PHS_P_P, errStat2, errMsg2 )
          call SetErrStat( errStat2, errMsg2, errStat, errMsg, ' CreateMeshMappings: m%PHS_P_P' )     
             if (ErrStat>=AbortErrLev) return
 
@@ -1789,11 +1789,11 @@ subroutine CreateMeshMappings(m, p, KAD, MD, errStat, errMsg)
          if (errStat2 /= 0) call SetErrStat( ErrID_Fatal, 'Could not allocate memory for m%PPy_P_P', errStat, errMsg, RoutineName )     
    
       do i = 1 , p%NumPylons           
-         call MeshMapCreate( KAD%y%SPyLoads(i), m%mbdSPyLoads(i), m%SPy_P_P(i), errStat2, errMsg2 )
+         call MeshMapCreate( m%KAD%y%SPyLoads(i), m%mbdSPyLoads(i), m%SPy_P_P(i), errStat2, errMsg2 )
             call SetErrStat( errStat2, errMsg2, errStat, errMsg, ' CreateMeshMappings: m%SPy_P_P('//trim(num2lstr(i))//')' ) 
                if (ErrStat>=AbortErrLev) return
             
-         call MeshMapCreate( KAD%y%PPyLoads(i), m%mbdPPyLoads(i), m%PPy_P_P(i), errStat2, errMsg2 )
+         call MeshMapCreate( m%KAD%y%PPyLoads(i), m%mbdPPyLoads(i), m%PPy_P_P(i), errStat2, errMsg2 )
             call SetErrStat( errStat2, errMsg2, errStat, errMsg, ' CreateMeshMappings: m%PPy_P_P('//trim(num2lstr(i))//')' ) 
                if (ErrStat>=AbortErrLev) return
       end do
@@ -1819,7 +1819,7 @@ subroutine TransferMBDynInputs2MBDMeshes( p, m, errStat, errMsg )
    character(*),              intent(  out) :: errMsg                     ! Error message if errStat /= ErrID_None
 
    integer(IntKi)   :: i,j
-   character(*), parameter    :: routineName = 'TransferMBDynInputs2KADMeshes'
+   character(*), parameter    :: routineName = 'TransferMBDynInputs2MBDMeshes'
    
    errStat = ErrID_None
    errMsg  = ''
@@ -1891,7 +1891,8 @@ subroutine TransferMBDynInputs2MBDMeshes( p, m, errStat, errMsg )
    
 end subroutine TransferMBDynInputs2MBDMeshes
 
-subroutine TransferMBDynInputs2KADMeshes( FusO, p, m, errStat, errMsg )
+subroutine TransferMBDynInputs2KADMeshes( isInitialTime, FusO, p, m, errStat, errMsg )
+   integer(IntKi),            intent(in   ) :: isInitialTime
    real(ReKi),                intent(in   ) :: FusO(3)
    type(KFAST_ParameterType), intent(in   ) :: p
    type(KFAST_MiscVarType),   intent(inout) :: m
@@ -1907,27 +1908,27 @@ subroutine TransferMBDynInputs2KADMeshes( FusO, p, m, errStat, errMsg )
    errStat = ErrID_None
    errMsg  = ''
    
-  
+   ! NOTE: KAD%u(1) index is for the current timestep!
    
-   m%KAD%u(1)%FusOMotions%TranslationDisp(:,1) =  FusO 
+   m%KAD%u%FusOMotions%TranslationDisp(:,1) =  FusO 
    
-      ! Map the motions over to the corresponding KAD input meshes
-   call Transfer_Line2_to_Line2(m%mbdFusMotions, m%KAD%u(1)%FusMotions, m%Fus_L2_L2, errStat2, errMsg2)
+      ! Map the motions over to the corresponding KAD input meshes.  
+   call Transfer_Line2_to_Line2(m%mbdFusMotions, m%KAD%u%FusMotions, m%Fus_L2_L2, errStat2, errMsg2)
       call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
-   call Transfer_Line2_to_Line2(m%mbdSWnMotions, m%KAD%u(1)%SWnMotions, m%SWn_L2_L2, errStat2, errMsg2)
+   call Transfer_Line2_to_Line2(m%mbdSWnMotions, m%KAD%u%SWnMotions, m%SWn_L2_L2, errStat2, errMsg2)
       call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
-   call Transfer_Line2_to_Line2(m%mbdPWnMotions, m%KAD%u(1)%PWnMotions, m%PWn_L2_L2, errStat2, errMsg2)
+   call Transfer_Line2_to_Line2(m%mbdPWnMotions, m%KAD%u%PWnMotions, m%PWn_L2_L2, errStat2, errMsg2)
       call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
-   call Transfer_Line2_to_Line2(m%mbdVSMotions , m%KAD%u(1)%VSMotions , m%VS_L2_L2,  errStat2, errMsg2)
+   call Transfer_Line2_to_Line2(m%mbdVSMotions , m%KAD%u%VSMotions , m%VS_L2_L2,  errStat2, errMsg2)
       call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
-   call Transfer_Line2_to_Line2(m%mbdSHSMotions, m%KAD%u(1)%SHSMotions, m%SHS_L2_L2, errStat2, errMsg2)
+   call Transfer_Line2_to_Line2(m%mbdSHSMotions, m%KAD%u%SHSMotions, m%SHS_L2_L2, errStat2, errMsg2)
       call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
-   call Transfer_Line2_to_Line2(m%mbdPHSMotions, m%KAD%u(1)%PHSMotions, m%PHS_L2_L2, errStat2, errMsg2)
+   call Transfer_Line2_to_Line2(m%mbdPHSMotions, m%KAD%u%PHSMotions, m%PHS_L2_L2, errStat2, errMsg2)
       call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
    do i = 1, p%numPylons
-      call Transfer_Line2_to_Line2(m%mbdSPyMotions(i), m%KAD%u(1)%SPyMotions(i), m%SPy_L2_L2(i), errStat2, errMsg2 )
+      call Transfer_Line2_to_Line2(m%mbdSPyMotions(i), m%KAD%u%SPyMotions(i), m%SPy_L2_L2(i), errStat2, errMsg2 )
          call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )    
-      call Transfer_Line2_to_Line2(m%mbdPPyMotions(i), m%KAD%u(1)%PPyMotions(i), m%PPy_L2_L2(i), errStat2, errMsg2 )
+      call Transfer_Line2_to_Line2(m%mbdPPyMotions(i), m%KAD%u%PPyMotions(i), m%PPy_L2_L2(i), errStat2, errMsg2 )
          call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )                
    end do
    
@@ -1935,21 +1936,57 @@ subroutine TransferMBDynInputs2KADMeshes( FusO, p, m, errStat, errMsg )
    do j = 1, p%numPylons
       do i=1,2 ! two per pylon
          c = i+(j-1)*p%numPylons
-         m%KAD%u(1)%SPyRtrMotions(c)%TranslationDisp(:,1) =  m%SPyRtrO(:,i,j) - m%KAD%u(1)%SPyRtrMotions(c)%Position(:,1)
-         m%KAD%u(1)%SPyRtrMotions(c)%Orientation(:,:,1)   =  m%SPyRtrDCMs(:,:,i,j)
-         m%KAD%u(1)%SPyRtrMotions(c)%TranslationVel(:,1)  =  m%SPyRtrVels(:,i,j)
+         m%KAD%u%SPyRtrMotions(c)%TranslationDisp(:,1) =  m%SPyRtrO(:,i,j) - m%KAD%u%SPyRtrMotions(c)%Position(:,1)
+         m%KAD%u%SPyRtrMotions(c)%Orientation(:,:,1)   =  m%SPyRtrDCMs(:,:,i,j)
+         m%KAD%u%SPyRtrMotions(c)%TranslationVel(:,1)  =  m%SPyRtrVels(:,i,j)
       end do
    end do
    
    do j = 1, p%numPylons
       do i=1,2 ! two per pylon
          c = i+(j-1)*p%numPylons
-         m%KAD%u(1)%PPyRtrMotions(c)%TranslationDisp(:,1) = m%PPyRtrO(:,i,j) - m%KAD%u(1)%PPyRtrMotions(c)%Position(:,1)
-         m%KAD%u(1)%PPyRtrMotions(c)%Orientation(:,:,1)   = m%PPyRtrDCMs(:,:,i,j)
-         m%KAD%u(1)%PPyRtrMotions(c)%TranslationVel(:,1)  = m%PPyRtrVels(:,i,j)
+         m%KAD%u%PPyRtrMotions(c)%TranslationDisp(:,1) = m%PPyRtrO(:,i,j) - m%KAD%u%PPyRtrMotions(c)%Position(:,1)
+         m%KAD%u%PPyRtrMotions(c)%Orientation(:,:,1)   = m%PPyRtrDCMs(:,:,i,j)
+         m%KAD%u%PPyRtrMotions(c)%TranslationVel(:,1)  = m%PPyRtrVels(:,i,j)
       end do
    end do
-     
+   
+   !if ( isInitialTime > 0 ) then
+      call KAD_CopyInput(m%KAD%u, OtherSt%KAD%u(1), MESH_NEWCOPY, errStat2, errMsg2)
+            call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )  
+   ! else
+     ! ! Now filter the inputs:   
+     ! ! call MeshExtrapInterp1(u1, u2, tin, u_out, tin_out, ErrStat, ErrMsg )
+      ! call MeshExtrapInterp1( m%KAD%u%FusOMotions, OtherSt%KAD%u(2)%FusOMotions, (/0.0_DbKi, 1.0_DbKi/), OtherSt%KAD%u(1)%FusOMotions, p%KAD_filtConst, errStat2, errMsg2 )
+         ! call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
+      ! call MeshExtrapInterp1( m%KAD%u%FusMotions, OtherSt%KAD%u(2)%FusMotions, (/0.0_DbKi, 1.0_DbKi/), OtherSt%KAD%u(1)%FusMotions, p%KAD_filtConst, errStat2, errMsg2 )
+         ! call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
+      ! call MeshExtrapInterp1( m%KAD%u%SWnMotions, OtherSt%KAD%u(2)%SWnMotions, (/0.0_DbKi, 1.0_DbKi/), OtherSt%KAD%u(1)%SWnMotions, p%KAD_filtConst, errStat2, errMsg2 )
+         ! call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
+      ! call MeshExtrapInterp1( m%KAD%u%PWnMotions, OtherSt%KAD%u(2)%PWnMotions, (/0.0_DbKi, 1.0_DbKi/), OtherSt%KAD%u(1)%PWnMotions, p%KAD_filtConst, errStat2, errMsg2 )
+         ! call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
+      ! call MeshExtrapInterp1( m%KAD%u%VSMotions , OtherSt%KAD%u(2)%VSMotions , (/0.0_DbKi, 1.0_DbKi/), OtherSt%KAD%u(1)%VSMotions , p%KAD_filtConst, errStat2, errMsg2 )
+         ! call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
+      ! call MeshExtrapInterp1( m%KAD%u%SHSMotions, OtherSt%KAD%u(2)%SHSMotions, (/0.0_DbKi, 1.0_DbKi/), OtherSt%KAD%u(1)%SHSMotions, p%KAD_filtConst, errStat2, errMsg2 )
+         ! call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
+      ! call MeshExtrapInterp1( m%KAD%u%PHSMotions, OtherSt%KAD%u(2)%PHSMotions, (/0.0_DbKi, 1.0_DbKi/), OtherSt%KAD%u(1)%PHSMotions, p%KAD_filtConst, errStat2, errMsg2 )
+         ! call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
+      
+      ! do j = 1, p%numPylons
+         ! call MeshExtrapInterp1( m%KAD%u%SPyMotions(j), OtherSt%KAD%u(2)%SPyMotions(j), (/0.0_DbKi, 1.0_DbKi/), OtherSt%KAD%u(1)%SPyMotions(j), p%KAD_filtConst, errStat2, errMsg2 )
+            ! call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
+         ! call MeshExtrapInterp1( m%KAD%u%PPyMotions(j), OtherSt%KAD%u(2)%PPyMotions(j), (/0.0_DbKi, 1.0_DbKi/), OtherSt%KAD%u(1)%PPyMotions(j), p%KAD_filtConst, errStat2, errMsg2 )
+            ! call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
+         ! do i=1,2 ! two per pylon
+            ! c = i+(j-1)*p%numPylons
+            ! call MeshExtrapInterp1( m%KAD%u%SPyRtrMotions(c), OtherSt%KAD%u(2)%SPyRtrMotions(c), (/0.0_DbKi, 1.0_DbKi/), OtherSt%KAD%u(1)%SPyRtrMotions(c), p%KAD_filtConst, errStat2, errMsg2 )
+               ! call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
+            ! call MeshExtrapInterp1( m%KAD%u%PPyRtrMotions(c), OtherSt%KAD%u(2)%PPyRtrMotions(c), (/0.0_DbKi, 1.0_DbKi/), OtherSt%KAD%u(1)%PPyRtrMotions(c), p%KAD_filtConst, errStat2, errMsg2 )
+               ! call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
+         ! end do
+      ! end do
+   ! end if
+   
 end subroutine TransferMBDynInputs2KADMeshes
 
 
@@ -2308,39 +2345,39 @@ subroutine TransferMBDynToIfW( WindPt_c, FusO, p, m, errStat, errMsg )
    
    v=3
    
-   do i = 1,m%KAD%u(1)%FusMotions%NNodes
-      m%IfW%u%PositionXYZ(:,v) = m%KAD%u(1)%FusMotions%Position(:,i) + m%KAD%u(1)%FusMotions%TranslationDisp(:,i)
+   do i = 1,OtherSt%KAD%u(1)%FusMotions%NNodes
+      m%IfW%u%PositionXYZ(:,v) = OtherSt%KAD%u(1)%FusMotions%Position(:,i) + OtherSt%KAD%u(1)%FusMotions%TranslationDisp(:,i)
       v = v + 1
    end do
-   do i = 1,m%KAD%u(1)%SWnMotions%NNodes
-      m%IfW%u%PositionXYZ(:,v) = m%KAD%u(1)%SWnMotions%Position(:,i) + m%KAD%u(1)%SWnMotions%TranslationDisp(:,i)
+   do i = 1,OtherSt%KAD%u(1)%SWnMotions%NNodes
+      m%IfW%u%PositionXYZ(:,v) = OtherSt%KAD%u(1)%SWnMotions%Position(:,i) + OtherSt%KAD%u(1)%SWnMotions%TranslationDisp(:,i)
       v = v + 1
    end do
-   do i = 1,m%KAD%u(1)%PWnMotions%NNodes
-      m%IfW%u%PositionXYZ(:,v) = m%KAD%u(1)%PWnMotions%Position(:,i) + m%KAD%u(1)%PWnMotions%TranslationDisp(:,i)
+   do i = 1,OtherSt%KAD%u(1)%PWnMotions%NNodes
+      m%IfW%u%PositionXYZ(:,v) = OtherSt%KAD%u(1)%PWnMotions%Position(:,i) + OtherSt%KAD%u(1)%PWnMotions%TranslationDisp(:,i)
       v = v + 1
    end do
-   do i = 1,m%KAD%u(1)%VSMotions%NNodes
-      m%IfW%u%PositionXYZ(:,v) = m%KAD%u(1)%VSMotions%Position(:,i) + m%KAD%u(1)%VSMotions%TranslationDisp(:,i)
+   do i = 1,OtherSt%KAD%u(1)%VSMotions%NNodes
+      m%IfW%u%PositionXYZ(:,v) = OtherSt%KAD%u(1)%VSMotions%Position(:,i) + OtherSt%KAD%u(1)%VSMotions%TranslationDisp(:,i)
       v = v + 1
    end do
-   do i = 1,m%KAD%u(1)%SHSMotions%NNodes
-      m%IfW%u%PositionXYZ(:,v) = m%KAD%u(1)%SHSMotions%Position(:,i) + m%KAD%u(1)%SHSMotions%TranslationDisp(:,i)
+   do i = 1,OtherSt%KAD%u(1)%SHSMotions%NNodes
+      m%IfW%u%PositionXYZ(:,v) = OtherSt%KAD%u(1)%SHSMotions%Position(:,i) + OtherSt%KAD%u(1)%SHSMotions%TranslationDisp(:,i)
       v = v + 1
    end do
-   do i = 1,m%KAD%u(1)%PHSMotions%NNodes
-      m%IfW%u%PositionXYZ(:,v) = m%KAD%u(1)%PHSMotions%Position(:,i) + m%KAD%u(1)%PHSMotions%TranslationDisp(:,i)
+   do i = 1,OtherSt%KAD%u(1)%PHSMotions%NNodes
+      m%IfW%u%PositionXYZ(:,v) = OtherSt%KAD%u(1)%PHSMotions%Position(:,i) + OtherSt%KAD%u(1)%PHSMotions%TranslationDisp(:,i)
       v = v + 1
    end do
    do j = 1, p%numPylons
-      do i = 1, m%KAD%u(1)%SPyMotions(j)%NNodes
-         m%IfW%u%PositionXYZ(:,v)   = m%KAD%u(1)%SPyMotions(j)%Position(:,i) + m%KAD%u(1)%SPyMotions(j)%TranslationDisp(:,i)
+      do i = 1, OtherSt%KAD%u(1)%SPyMotions(j)%NNodes
+         m%IfW%u%PositionXYZ(:,v)   = OtherSt%KAD%u(1)%SPyMotions(j)%Position(:,i) + OtherSt%KAD%u(1)%SPyMotions(j)%TranslationDisp(:,i)
          v = v + 1
       end do
    end do
    do j = 1, p%numPylons
-      do i = 1, m%KAD%u(1)%PPyMotions(j)%NNodes
-         m%IfW%u%PositionXYZ(:,v)   = m%KAD%u(1)%PPyMotions(j)%Position(:,i) + m%KAD%u(1)%PPyMotions(j)%TranslationDisp(:,i)
+      do i = 1, OtherSt%KAD%u(1)%PPyMotions(j)%NNodes
+         m%IfW%u%PositionXYZ(:,v)   = OtherSt%KAD%u(1)%PPyMotions(j)%Position(:,i) + OtherSt%KAD%u(1)%PPyMotions(j)%TranslationDisp(:,i)
          v = v + 1
       end do
    end do
@@ -2349,7 +2386,7 @@ subroutine TransferMBDynToIfW( WindPt_c, FusO, p, m, errStat, errMsg )
    do j = 1, p%numPylons
       do i=1,2 ! two per pylon
          c = i+(j-1)*p%numPylons
-         m%IfW%u%PositionXYZ(:,v) = m%KAD%u(1)%SPyRtrMotions(c)%Position(:,1) + m%KAD%u(1)%SPyRtrMotions(c)%TranslationDisp(:,1) 
+         m%IfW%u%PositionXYZ(:,v) = OtherSt%KAD%u(1)%SPyRtrMotions(c)%Position(:,1) + OtherSt%KAD%u(1)%SPyRtrMotions(c)%TranslationDisp(:,1) 
          v = v + 1
       end do
    end do
@@ -2357,7 +2394,7 @@ subroutine TransferMBDynToIfW( WindPt_c, FusO, p, m, errStat, errMsg )
    do j = 1, p%numPylons
       do i=1,2 ! two per pylon
          c = i+(j-1)*p%numPylons
-         m%IfW%u%PositionXYZ(:,v) = m%KAD%u(1)%PPyRtrMotions(c)%Position(:,1) + m%KAD%u(1)%PPyRtrMotions(c)%TranslationDisp(:,1) 
+         m%IfW%u%PositionXYZ(:,v) = OtherSt%KAD%u(1)%PPyRtrMotions(c)%Position(:,1) + OtherSt%KAD%u(1)%PPyRtrMotions(c)%TranslationDisp(:,1) 
          v = v + 1
       end do
    end do
@@ -2383,7 +2420,7 @@ end function cstrlen
 
 
 subroutine KFAST_Init(dt_c, numFlaps, numPylons, numComp, numCompNds, modFlags, KAD_FileName_c, IfW_FileName_c, MD_FileName_c, KFC_FileName_c, &
-                       outFileRoot_c, printSum, gravity, FusODCM_c, numRtrPts_c, rtrPts_c, rtrMass_c, rtrI_Rot_c, rtrI_trans_c, rtrXcm_c, refPts_c, &
+                       outFileRoot_c, printSum, gravity, KAD_InterpOrder, FusODCM_c, numRtrPts_c, rtrPts_c, rtrMass_c, rtrI_Rot_c, rtrI_trans_c, rtrXcm_c, refPts_c, &
                        numNodePts_c, nodePts_c, nodeDCMs_c, nFusOuts_c, FusOutNd_c, nSWnOuts_c, SWnOutNd_c, &
                        nPWnOuts_c, PWnOutNd_c, nVSOuts_c, VSOutNd_c, nSHSOuts_c, SHSOutNd_c, nPHSOuts_c, PHSOutNd_c, nPylOuts_c, PylOutNd_c, numOutChan_c, chanlist_c, chanlist_len_c, errStat_c, errMsg_c ) BIND (C, NAME='KFAST_Init')
    IMPLICIT NONE
@@ -2403,6 +2440,7 @@ subroutine KFAST_Init(dt_c, numFlaps, numPylons, numComp, numCompNds, modFlags, 
    character(kind=C_CHAR), intent(in   ) :: outFileRoot_c(IntfStrLen)      ! Full path and basename of the KiteFAST output file.
    integer(C_INT),         intent(in   ) :: printSum                       ! Print the Summary file?  1 = Yes, 0 = No.
    real(C_DOUBLE),         intent(in   ) :: gravity                        ! Scalar gravity constant.  (m/s^2)
+   integer(C_INT),         intent(in   ) :: KAD_InterpOrder                ! KiteAeroDyn outputs interpolation order. 0 = hold outputs between calls, 1 = linear interpolation, 2 = 2nd order interpolation.
    real(C_DOUBLE),         intent(in   ) :: FusODCM_c(9)                   ! Initial DCM matrix to transform the location of the Kite Fuselage reference point from global to kite coordinates.
    integer(C_INT),         intent(in   ) :: numRtrPts_c                    ! Total number of rotor points (both wings).
    real(C_DOUBLE),         intent(in   ) :: rtrPts_c(numRtrPts_c*3)                    ! Initial location of each rotor's reference point [RRP] in global coordinates. (m)
@@ -2464,7 +2502,7 @@ subroutine KFAST_Init(dt_c, numFlaps, numPylons, numComp, numCompNds, modFlags, 
 
    dt = dt_c
 
-   
+   OtherSt%doStartupInterp = .true.
    
    ! If a module's input file/dll file is empty, then turn off that module
    
@@ -2512,9 +2550,6 @@ subroutine KFAST_Init(dt_c, numFlaps, numPylons, numComp, numCompNds, modFlags, 
    p%numPylons   = numPylons
    
    ! Initialize miscVars and OtherStates
-   
-   OtherSt%IfW_FusO      = 0.0_ReKi 
-   OtherSt%IfW_ground    = 0.0_ReKi 
    
    call AllocAry( OtherSt%SPyRtrLoads, 3, 2, p%numPylons, 'OtherSt%SPyRtrLoads', errStat2,errMsg2 )
       call SetErrStat(errStat2,errMsg2,errStat,errMsg,routineName)
@@ -2596,12 +2631,13 @@ subroutine KFAST_Init(dt_c, numFlaps, numPylons, numComp, numCompNds, modFlags, 
       ! Set KiteAeroDyn initialization input data
 
    if (p%useKAD) then
-      
+      p%KAD_InterpOrder = KAD_InterpOrder
+     print *, "KiteAeroDyn outputs using InterpOrder = ", p%KAD_InterpOrder
       KAD_InitInp%FileName  = transfer(KAD_FileName_c(1:IntfStrLen-1),KAD_InitInp%FileName)
       call RemoveNullChar(KAD_InitInp%FileName)
       KAD_InitInp%NumFlaps  = numFlaps
       KAD_InitInp%NumPylons = numPylons
-      KAD_InitInp%outFileRoot = p%outFileRoot
+      KAD_InitInp%outFileRoot = p%outFileRoot      
       interval              = dt
    
          ! Determine Kite component reference point locations in the kite coordinate system
@@ -2628,8 +2664,6 @@ subroutine KFAST_Init(dt_c, numFlaps, numPylons, numComp, numCompNds, modFlags, 
       KAD_InitInp%VSOR  =  m%VSO 
       KAD_InitInp%SHSOR =  m%SHSO 
       KAD_InitInp%PHSOR =  m%PHSO 
-      
-
    
       do i = 1, numPylons
          KAD_InitInp%SPyOR(:,i) = m%SPyO(:,i)
@@ -2647,15 +2681,53 @@ subroutine KFAST_Init(dt_c, numFlaps, numPylons, numComp, numCompNds, modFlags, 
          KAD_InitInp%PPyRtrOR(:,2,i) = m%PPyRtrO(:,2,i)
       end do
       
-      call KAD_Init(KAD_InitInp, m%KAD%u(1), m%KAD%p, m%KAD%y, interval, m%KAD%x, m%KAD%xd, m%KAD%z, m%KAD%OtherSt, m%KAD%m, KAD_InitOut, errStat2, errMsg2 )
+      if (p%KAD_InterpOrder == 0) then
+         allocate( OtherSt%KAD%u( 2 ), OtherSt%KAD%t_in( 2 ), OtherSt%KAD%y( 1 ),stat = errStat2 )
+      else
+         allocate( OtherSt%KAD%u( p%KAD_InterpOrder+1 ), OtherSt%KAD%t_in( p%KAD_InterpOrder+1 ), OtherSt%KAD%y( p%KAD_InterpOrder+1 ),stat = errStat2 )
+      end if
+      if (ErrStat2 /= 0) then
+         call SetErrStat(ErrID_Fatal,"Error allocating ED%Input, ED%Output, and ED%InputTimes.",errStat,errMsg,RoutineName)
+         call Cleanup()
+         return
+      end if
+      
+      call KAD_Init(KAD_InitInp, OtherSt%KAD%u(1), m%KAD%p, OtherSt%KAD%y(1), interval, m%KAD%x, m%KAD%xd, OtherSt%KAD%z, OtherSt%KAD%OtherSt, m%KAD%m, KAD_InitOut, errStat2, errMsg2 )
          call SetErrStat(errStat2,errMsg2,errStat,errMsg,routineName)
         
-  
-      if ( .not. EqualRealNos(mod(real(interval, ReKi), real(dt,ReKi)), 0.0_ReKi) ) then
-        call SetErrStat(ErrID_Fatal,'KiteAeroDyn DT must be an integer multiple of MBDyn DT',errStat,errMsg,routineName) 
+         ! NOTE: For the KAD input/output/time arrays the 1 index is for the most recent time, and then increasing indices move backwards in time!
+      
+      call KAD_CopyInput(OtherSt%KAD%u(1),m%KAD%u, MESH_NEWCOPY, errStat2, errMsg2)
+         call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
+      call KAD_CopyOutput(OtherSt%KAD%y(1),m%KAD%y, MESH_NEWCOPY, errStat2, errMsg2)
+         call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
+      call KAD_CopyInput(OtherSt%KAD%u(1),OtherSt%KAD%u(2), MESH_NEWCOPY, errStat2, errMsg2)
+         call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName ) 
+         
+      if (p%KAD_InterpOrder > 0) then! 1st and 2nd order    
+         call KAD_CopyOutput(OtherSt%KAD%y(1),OtherSt%KAD%y(2), MESH_NEWCOPY, errStat2, errMsg2)
+            call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )       
       end if
-      OtherSt%KAD_nCycles = nint(interval / dt) 
-	  
+      if (p%KAD_InterpOrder == 2) then! 2nd order
+         call KAD_CopyInput(OtherSt%KAD%u(1),OtherSt%KAD%u(3), MESH_NEWCOPY, errStat2, errMsg2)
+            call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )  
+         call KAD_CopyOutput(OtherSt%KAD%y(1),OtherSt%KAD%y(3), MESH_NEWCOPY, errStat2, errMsg2)
+            call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )         
+      end if
+
+      
+      p%KAD_dt = interval
+      p%KAD_nCycles = nint(interval / dt) 
+      print *, "Number of MBDyn Cycles per KAD steps: ", p%KAD_nCycles
+      if ( .not. EqualRealNos(real(p%KAD_nCycles*dt - p%KAD_dt, ReKi), 0.0_ReKi) ) then
+         call SetErrStat(ErrID_Fatal,'KiteAeroDyn DT must be an integer multiple of MBDyn DT',errStat,errMsg,routineName) 
+      end if
+      OtherSt%KAD_NewTime = .true.  ! This flag is needed to tell us when we have advanced time, and hence need to call the KAD's Step routines
+
+         ! Set the cut off frequency for the KAD inputs low-pass filter
+         ! Currently set to 10 Hz
+      p%KAD_filtConst = exp(-2000.0_DbKi*PI_D*p%KAD_dt)
+      
       if (errStat >= AbortErrLev ) then
          call TransferErrors(errStat, errMsg, errStat_c, errMsg_c)
          return
@@ -2685,7 +2757,7 @@ subroutine KFAST_Init(dt_c, numFlaps, numPylons, numComp, numCompNds, modFlags, 
       IfW_InitInp%Use4Dext          = .false.
       interval                      = dt
       call InflowWind_Init( IfW_InitInp, m%IfW%u, m%IfW%p, m%IfW%x, m%IfW%xd, m%IfW%z,  &
-                            m%IfW%OtherSt, m%IfW%y, m%IfW%m, interval, IfW_InitOut, errStat2, errMsg2 )
+                            OtherSt%IfW%OtherSt, m%IfW%y, m%IfW%m, interval, IfW_InitOut, errStat2, errMsg2 )
          call SetErrStat(errStat2,errMsg2,errStat,errMsg,routineName)
          
        if ( .not. EqualRealNos(real(interval, ReKi), real(dt,ReKi)) ) then
@@ -2696,7 +2768,20 @@ subroutine KFAST_Init(dt_c, numFlaps, numPylons, numComp, numCompNds, modFlags, 
          call TransferErrors(errStat, errMsg, errStat_c, errMsg_c)
          return
       end if
- 
+      
+      call InflowWind_CopyOutput(m%IfW%y, m%IfW%y_KFC, MESH_NEWCOPY, errStat2, errMsg2)
+         call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
+         
+      deallocate(m%IfW%y_KFC%VelocityUVW)
+      
+      call AllocAry(m%IfW%u_KFC%PositionXYZ, 3, 2, 'm%IfW%u_KFC%PositionXYZ', errStat2,errMsg2)
+         call SetErrStat(errStat2,errMsg2,errStat,errMsg,routineName)
+      call AllocAry(m%IfW%y_KFC%VelocityUVW, 3, 2, 'm%IfW%y_KFC%VelocityUVW', errStat2,errMsg2)
+         call SetErrStat(errStat2,errMsg2,errStat,errMsg,routineName)
+      if (errStat >= AbortErrLev ) then
+         call TransferErrors(errStat, errMsg, errStat_c, errMsg_c)
+         return
+      end if   
    end if
    
 !----------------------------------------------------------------
@@ -2717,8 +2802,8 @@ subroutine KFAST_Init(dt_c, numFlaps, numPylons, numComp, numCompNds, modFlags, 
       MD_InitInp%WtrDepth  = 0.0_ReKi                   ! No water depth in this application
       interval             = dt
    
-      call MD_Init( MD_InitInp, m%MD%u(2), m%MD%p, m%MD%x, m%MD%xd, m%MD%z, &
-                     m%MD%OtherSt, m%MD%y, m%MD%m, interval, MD_InitOut, errStat2, errMsg2 )
+      call MD_Init( MD_InitInp, m%MD%u(2), m%MD%p, OtherSt%MD%x, m%MD%xd, m%MD%z, &
+                     OtherSt%MD%OtherSt, m%MD%y, m%MD%m, interval, MD_InitOut, errStat2, errMsg2 )
          call SetErrStat(errStat2,errMsg2,errStat,errMsg,routineName)
          
       if ( .not. EqualRealNos(interval,dt) ) then
@@ -2783,20 +2868,22 @@ subroutine KFAST_Init(dt_c, numFlaps, numPylons, numComp, numCompNds, modFlags, 
          call TransferErrors(errStat, errMsg, errStat_c, errMsg_c)
          return
       end if
-   m%KFC%dt = interval  
-  
-   if ( .not. EqualRealNos(mod(real(interval, ReKi), real(dt,ReKi)), 0.0_ReKi) ) then
-      call SetErrStat(ErrID_Fatal,'KiteFASTController DT must be an integer multiple of MBDyn DT',errStat,errMsg,routineName) 
+   p%KFC_dt = interval
+   p%KFC_nCycles = nint(interval / dt) 
+   print *, "Number of MBDyn Cycles per KFC steps: ", p%KFC_nCycles
+   
+   if ( .not. EqualRealNos(real(p%KFC_nCycles*dt - p%KFC_dt,ReKi), 0.0_ReKi) ) then
+      call SetErrStat(ErrID_Fatal,'KiteFastController DT must be an integer multiple of MBDyn DT',errStat,errMsg,routineName) 
    end if
-   
-   OtherSt%KFC_nCycles = nint(interval / dt) 
-   OtherSt%NewTime = .true.  ! This flag is needed to tell us when we have advanced time, and hence need to call the Controller's and KAD Step routines
-   
+
+   OtherSt%KFC_NewTime = .false.  ! This flag is needed to tell us when we have advanced time, and hence need to call the Controller's Step routines
+                                  ! Note: We do not step the controller during the initial call to AssRes()
+                                  
 ! -------------------------------------------------------------------------
 ! Initialize mesh-mapping data
 ! -------------------------------------------------------------------------
 
-   call CreateMeshMappings(m, p, m%KAD, m%MD, errStat2, errMsg2)
+   call CreateMeshMappings(m, p, OtherSt%KAD, m%MD, errStat2, errMsg2)
       call SetErrStat(errStat2,errMsg2,errStat,errMsg,routineName)
       if (errStat >= AbortErrLev ) then
          call TransferErrors(errStat, errMsg, errStat_c, errMsg_c)
@@ -3222,16 +3309,22 @@ subroutine KFAST_AssRes(t_c, isInitialTime_c, WindPt_c, FusO_c, FusODCM_c, FusOv
    integer(IntKi)           :: errStat, errStat2              ! error status values
    character(ErrMsgLen)     :: errMsg, errMsg2                ! error messages
    character(*), parameter  :: routineName = 'KFAST_AssRes'
-   logical                  :: test
+   logical                  :: test, doTransfersforKFC
    real(SiKi)               :: fracStep, t_s, dt_s
-
+   real(ReKi)               :: IfW_ground(3)
+   real(ReKi)               :: IfW_FusO(3)
+   integer(IntKi)           :: numFairLeads
+   
    errStat = ErrID_None
    errMsg  = ''
+   doTransfersforKFC   = .false.
    
    isInitialTime = isInitialTime_c
    t = t_c
    t_s = real(t,SiKi)
    
+     ! NOTE: For the KAD input/output/time arrays the 1 index is for the most recent time, and then increasing indices move backwards in time!
+     !       The utimes arrays below are for MD, and they are structure in the opposite way. 2 index is the most recent, 1 index is the previous time!
    if (isInitialTime > 0 ) then
       utimes(1) = t
    else
@@ -3239,8 +3332,9 @@ subroutine KFAST_AssRes(t_c, isInitialTime_c, WindPt_c, FusO_c, FusODCM_c, FusOv
    end if
       
    utimes(2) = t
-   n = utimes(1) / p%DT
-   n2= utimes(2) / p%DT
+   n = nint(utimes(1) / p%DT)
+   n2= nint(utimes(2) / p%DT)
+   
       ! Transfer fuselage (kite) principal point inputs
    m%FusO          = FusO_c
    m%FusODCM       = reshape(FusODCM_c,(/3,3/))          
@@ -3262,15 +3356,34 @@ subroutine KFAST_AssRes(t_c, isInitialTime_c, WindPt_c, FusO_c, FusODCM_c, FusOv
    ! -------------------------------------------------------------------------
    ! Controller
    ! -------------------------------------------------------------------------      
-   !fracStep = modulo( real(t,SiKi), real(m%KFC%dt,SiKi) )
-   !dt_s = real(m%KFC%dt,SiKi)
+   !fracStep = modulo( real(t,SiKi), real(p%KFC_dt,SiKi) )
+   !dt_s = real(p%KFC_dt,SiKi)
    !fracStep = t_s - floor(t_s/dt_s)* dt_s
    !test = EqualRealNos( fracStep , 0.0_SiKi )
    
-   if ( OtherSt%NewTime .and. (isInitialTime < 1) .and. (mod(n2,OtherSt%KFC_nCycles) == 0) ) then
-      ! print *, "Stepping KFC at t = ", t
-         ! NOTE: The controller is stepping from t - m%KFC%dt to t (GetXCur in MBDyn)
-         !       therefore, all inputs to KFC needs to be at time, t - m%KFC%dt.
+   if ( OtherSt%KFC_NewTime ) then
+      OtherSt%KFC_NewTime = .false.
+      !print *, "Stepping KFC at t = ", t
+         ! NOTE: The controller is stepping from t - p%KFC_dt to t (GetXCur in MBDyn)
+         !       therefore, all inputs to KFC needs to be at time, t - p%KFC_dt.
+      if ( p%useIfW ) then
+         m%IfW%u_KFC%PositionXYZ(:,1) = OtherSt%WindPt
+         m%IfW%u_KFC%PositionXYZ(:,2) = OtherSt%FusO
+         call InflowWind_CalcOutput(t-p%KFC_dt, m%IfW%u_KFC, m%IfW%p, m%IfW%x, m%IfW%xd, m%IfW%z, OtherSt%IfW%OtherSt, m%IfW%y_KFC, m%IfW%m, errStat2, errMsg2 )
+            call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
+            if (errStat >= AbortErrLev ) then
+               call TransferErrors(errStat, errMsg, errStat_c, errMsg_c)
+               return
+            end if
+            ! Need previous timestep's inflow at ground station
+         IfW_ground = m%IfW%y_KFC%VelocityUVW(:,1)     
+            ! Need previous timestep's inflow at FusO
+         IfW_FusO   = m%IfW%y_KFC%VelocityUVW(:,2)
+      else
+         IfW_ground = 0.0_ReKi
+         IfW_FusO   = 0.0_ReKi
+      end if
+      
       if ( p%useKAD ) then
          do j = 1,p%numPylons
             do i = 1,2
@@ -3301,21 +3414,41 @@ subroutine KFAST_AssRes(t_c, isInitialTime_c, WindPt_c, FusO_c, FusODCM_c, FusOv
       m%KFC%u%Ag            = matmul(p%DCM_Fast2Ctrl, OtherSt%FusOacc)
       m%KFC%u%Ab            = matmul(OtherSt%FusODCM, OtherSt%FusOacc)
       m%KFC%u%rho           = p%AirDens
-      m%KFC%u%apparent_wind = OtherSt%IfW_FusO - OtherSt%FusOv
-      m%KFC%u%wind_g        = matmul(p%DCM_Fast2Ctrl, OtherSt%IfW_ground)
+      
+      m%KFC%u%apparent_wind = IfW_FusO - OtherSt%FusOv
+      m%KFC%u%wind_g        = matmul(p%DCM_Fast2Ctrl, IfW_ground)
          
       m%KFC%u%apparent_wind = matmul(p%DCM_Fast2Ctrl, m%KFC%u%apparent_wind)
      
          
-      call KFC_Step(t-m%KFC%dt, m%KFC%u, m%KFC%p, m%KFC%y, errStat2, errMsg2 )
+      call KFC_Step(t-p%KFC_dt, m%KFC%u, m%KFC%p, m%KFC%y, errStat2, errMsg2 )
          call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
       if (errStat >= AbortErrLev ) then
          call TransferErrors(errStat, errMsg, errStat_c, errMsg_c)
          return
       end if
       
-      
-      
+         ! Store the current timestep's data into otherstates for use as inputs to KFC_Step for the next KFC_DT interval (and call to KFC_Step)
+      OtherSt%SPyRtrDCMs = m%SPyRtrDCMs
+      OtherSt%PPyRtrDCMs = m%PPyRtrDCMs
+      OtherSt%WindPt     = WindPt_c   
+      OtherSt%FusODCM    = m%FusODCM
+      OtherSt%FusO       = m%FusO
+      OtherSt%FusOv      = m%FusOv
+      OtherSt%FusOomegas = m%FusOomegas
+      OtherSt%FusOacc    = m%FusOaccs
+      doTransfersforKFC   = .true.  ! need to transfer the MD bridle forces and KAD rotor loads once they are computed (below) for the next call to KFC_Step()
+   else if (isInitialTime > 0) then
+         ! Store the current timestep's data into otherstates for use as inputs to KFC_Step for the next KFC_DT interval (and call to KFC_Step)
+      OtherSt%SPyRtrDCMs = m%SPyRtrDCMs
+      OtherSt%PPyRtrDCMs = m%PPyRtrDCMs
+      OtherSt%WindPt     = WindPt_c   
+      OtherSt%FusODCM    = m%FusODCM
+      OtherSt%FusO       = m%FusO
+      OtherSt%FusOv      = m%FusOv
+      OtherSt%FusOomegas = m%FusOomegas
+      OtherSt%FusOacc    = m%FusOaccs
+      doTransfersforKFC   = .true.  ! need to transfer the MD bridle forces and KAD rotor loads once they are computed (below) for the next call to KFC_Step()   
    end if
              
    ! -------------------------------------------------------------------------
@@ -3357,12 +3490,12 @@ subroutine KFAST_AssRes(t_c, isInitialTime_c, WindPt_c, FusO_c, FusODCM_c, FusOv
             return
          end if
 
-      call MD_CopyContState( m%MD%x, m%MD%x_copy, MESH_NEWCOPY, errStat2, errMsg2 )
+      call MD_CopyContState( OtherSt%MD%x, OtherSt%MD%x_copy, MESH_NEWCOPY, errStat2, errMsg2 )
             call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
 
       if ( isInitialTime < 1 ) then
          call MD_CopyInput( OtherSt%MD_u, m%MD%u(1), MESH_NEWCOPY, errStat2, errMsg2 )
-         call MD_UpdateStates( utimes(1), n, m%MD%u, utimes, m%MD%p, m%MD%x_copy, m%MD%xd, m%MD%z, m%MD%OtherSt, m%MD%m, errStat2, errMsg2 )
+         call MD_UpdateStates( utimes(1), n, m%MD%u, utimes, m%MD%p, OtherSt%MD%x_copy, m%MD%xd, m%MD%z, OtherSt%MD%OtherSt, m%MD%m, errStat2, errMsg2 )
             call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
                if (errStat >= AbortErrLev ) then
                   call TransferErrors(errStat, errMsg, errStat_c, errMsg_c)
@@ -3378,11 +3511,20 @@ subroutine KFAST_AssRes(t_c, isInitialTime_c, WindPt_c, FusO_c, FusODCM_c, FusOv
 !print *, "m%MD%u(2)%PtFairLeadDisplacement%TranslationDisp(1,2): "//trim(num2lstr(m%MD%u(2)%PtFairLeadDisplacement%TranslationDisp(1,2)))//", m%MD%u(2)%PtFairLeadDisplacement%TranslationDisp(2,2): "//trim(num2lstr(m%MD%u(2)%PtFairLeadDisplacement%TranslationDisp(2,2)))//", m%MD%u(2)%PtFairLeadDisplacement%TranslationDisp(3,2): "//trim(num2lstr(m%MD%u(2)%PtFairLeadDisplacement%TranslationDisp(3,2)))
 
 
-      call MD_CalcOutput( t, m%MD%u(2), m%MD%p, m%MD%x_copy, m%MD%xd, m%MD%z, m%MD%OtherSt, m%MD%y, m%MD%m, errStat2, errMsg2 )
+      call MD_CalcOutput( t, m%MD%u(2), m%MD%p, OtherSt%MD%x_copy, m%MD%xd, m%MD%z, OtherSt%MD%OtherSt, m%MD%y, m%MD%m, errStat2, errMsg2 )
          call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
       if (errStat >= AbortErrLev ) then
          call TransferErrors(errStat, errMsg, errStat_c, errMsg_c)
          return
+      end if
+      
+      if ( doTransfersforKFC ) then
+            ! need to transfer the bridle forces once they are computed (below) for the next call to KFC_Step() because we just stepped the controller.
+         numFairLeads = size(m%MD%y%PtFairLeadLoad%Force,2)
+         OtherSt%totalFairLeadLoads = 0.0_ReKi
+         do i = 1, numFairLeads
+            OtherSt%totalFairLeadLoads = OtherSt%totalFairLeadLoads + m%MD%y%PtFairLeadLoad%Force(:,i) 
+         end do
       end if
       
 !print *, "Finished MD_CalcOutput" 
@@ -3395,12 +3537,12 @@ subroutine KFAST_AssRes(t_c, isInitialTime_c, WindPt_c, FusO_c, FusODCM_c, FusOv
       
    end if
          
-   if ( p%useKAD ) then
-            ! Now transfer MBD motions mesh data to the corresponding KAD input meshes
-            ! NOTE: I need the KAD input meshes populated here because the TransferMBDynToIFW will reference those input meshes.
-      call TransferMBDynInputs2KADMeshes( m%FusO, p, m, errStat, errMsg )
+   ! if ( p%useKAD ) then
+            ! ! Now transfer MBD motions mesh data to the corresponding KAD input meshes
+            ! ! NOTE: I need the KAD input meshes populated here because the TransferMBDynToIFW will reference those input meshes.
+      ! call TransferMBDynInputs2KADMeshes( m%FusO, p, m, errStat, errMsg )
    
-   end if
+   ! end if
    
 
 ! -------------------------------------------------------------------------
@@ -3408,21 +3550,21 @@ subroutine KFAST_AssRes(t_c, isInitialTime_c, WindPt_c, FusO_c, FusODCM_c, FusOv
 ! -------------------------------------------------------------------------      
       ! The inputs to InflowWind are the positions where wind velocities [the outputs] are to be computed.  These inputs are set above by
       !  the TransferMBDynInputs() call.  The inputs are for t+dt timestep.
-   if ( p%useIfW ) then
-      call TransferMBDynToIfW( WindPt_c, m%FusO, p, m, errStat2, errMsg2 )
-         call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
-         if (errStat >= AbortErrLev ) then
-            call TransferErrors(errStat, errMsg, errStat_c, errMsg_c)
-            return
-         end if
+   ! if ( p%useIfW ) then
+      ! call TransferMBDynToIfW( WindPt_c, m%FusO, p, m, errStat2, errMsg2 )
+         ! call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
+         ! if (errStat >= AbortErrLev ) then
+            ! call TransferErrors(errStat, errMsg, errStat_c, errMsg_c)
+            ! return
+         ! end if
         
-      call InflowWind_CalcOutput(t, m%IfW%u, m%IfW%p, m%IfW%x, m%IfW%xd, m%IfW%z, m%IfW%OtherSt, m%IfW%y, m%IfW%m, errStat2, errMsg2 )
-         call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
-         if (errStat >= AbortErrLev ) then
-            call TransferErrors(errStat, errMsg, errStat_c, errMsg_c)
-            return
-         end if
-   end if
+      ! call InflowWind_CalcOutput(t, m%IfW%u, m%IfW%p, m%IfW%x, m%IfW%xd, m%IfW%z, OtherSt%IfW%OtherSt, m%IfW%y, m%IfW%m, errStat2, errMsg2 )
+         ! call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
+         ! if (errStat >= AbortErrLev ) then
+            ! call TransferErrors(errStat, errMsg, errStat_c, errMsg_c)
+            ! return
+         ! end if
+   ! end if
 
 
 
@@ -3433,128 +3575,237 @@ subroutine KFAST_AssRes(t_c, isInitialTime_c, WindPt_c, FusO_c, FusODCM_c, FusOv
 ! -------------------------------------------------------------------------      
    
    if ( p%useKAD ) then
-   !fracStep2 = mod( real(t,DbKi), real(m%KAD%dt,DbKi) )
-   !fracStep2 = t - (INT(t/m%KAD%dt) * m%KAD%dt)
-   !dt_s = real(m%KAD%dt,SiKi)
-   !fracStep = t_s - floor(t_s/dt_s)* dt_s
-   !test = EqualRealNos( fracStep , 0.0_SiKi )
-   ! if ( .not. test  ) then
-	  ! print *, "Holding KAD at t and fracStep = ", t, fracStep
-   ! else if ( test ) then
-      ! print *, "Stepping KAD at t = ", t
-   ! end if
-	  
-      if ( OtherSt%NewTime .and. (mod(n2,OtherSt%KAD_nCycles) == 0) ) then
-         ! print *, "Stepping KAD at t = ", t
-         ! call WrScr("Updating KAD Outputs")
-            ! Outputs from Controller for KAD (note: we always at least have a dummy controller to generate the necessary data)
-         m%KAD%u(1)%Ctrl_SFlp = m%KFC%y%SFlp
-         m%KAD%u(1)%Ctrl_PFlp = m%KFC%y%PFlp
-         m%KAD%u(1)%Ctrl_Rudr = m%KFC%y%Rudr
-         m%KAD%u(1)%Ctrl_SElv = m%KFC%y%SElv
-         m%KAD%u(1)%Ctrl_PElv = m%KFC%y%PElv
-         m%KAD%u(1)%Pitch_SPyRtr = m%KFC%y%SPyBldPitch   ! Controller only sets these to zero at this point.
-         m%KAD%u(1)%Pitch_PPyRtr = m%KFC%y%PPyBldPitch
-         m%KAD%u(1)%RtSpd_SPyRtr = m%KFC%y%SPyRtrSpd
-         m%KAD%u(1)%RtSpd_PPyRtr = m%KFC%y%PPyRtrSpd
-         
-         if ( p%useIfW ) then
+  
+      if ( OtherSt%KAD_NewTime ) then
+               
+         if (isInitialTime == 0) then
+            if (p%KAD_InterpOrder == 2) then ! 2nd Order
+               call KAD_CopyInput(OtherSt%KAD%u(2),OtherSt%KAD%u(3), MESH_NEWCOPY, errStat2, errMsg2)
+                call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )       
+            end if 
             
-               ! Transfer Inflow Wind outputs to the various KAD inflow inputs
-            c=3
-            do i = 1,size(m%KAD%u(1)%V_Fus,2)
-               m%KAD%u(1)%V_Fus(:,i)   = m%IfW%y%VelocityUVW(:,c)
-               c = c+1
-            end do
-            do i = 1,size(m%KAD%u(1)%V_SWn,2)
-               m%KAD%u(1)%V_SWn(:,i)   = m%IfW%y%VelocityUVW(:,c)
-               c = c+1
-            end do
-            do i = 1,size(m%KAD%u(1)%V_PWn,2)
-               m%KAD%u(1)%V_PWn(:,i)   = m%IfW%y%VelocityUVW(:,c)
-               c = c+1
-            end do
-            do i = 1,size(m%KAD%u(1)%V_VS,2)
-               m%KAD%u(1)%V_VS(:,i)   = m%IfW%y%VelocityUVW(:,c)
-               c = c+1
-            end do
-            do i = 1,size(m%KAD%u(1)%V_SHS,2)
-               m%KAD%u(1)%V_SHS(:,i)   = m%IfW%y%VelocityUVW(:,c)
-               c = c+1
-            end do
-            do i = 1,size(m%KAD%u(1)%V_PHS,2)
-               m%KAD%u(1)%V_PHS(:,i)   = m%IfW%y%VelocityUVW(:,c)
-               c = c+1
-            end do
-            do j = 1,p%numPylons
-               do i = 1,size(m%KAD%u(1)%V_SPy,2)
-                  m%KAD%u(1)%V_SPy(:,i,j)   = m%IfW%y%VelocityUVW(:,c)
-                  c = c+1
-               end do
-            end do
-            do j = 1,p%numPylons
-               do i = 1,size(m%KAD%u(1)%V_PPy,2)
-                  m%KAD%u(1)%V_PPy(:,i,j)   = m%IfW%y%VelocityUVW(:,c)
-                  c = c+1
-               end do
-            end do   
-            do i = 1,p%numPylons
-               m%KAD%u(1)%V_SPyRtr(:,1,i) = m%IfW%y%VelocityUVW(:,c)
-               c = c+1
-               m%KAD%u(1)%V_SPyRtr(:,2,i) = m%IfW%y%VelocityUVW(:,c)
-               c = c+1
-            end do
-            do i = 1,p%numPylons
-               m%KAD%u(1)%V_PPyRtr(:,1,i) = m%IfW%y%VelocityUVW(:,c)
-               c = c+1
-               m%KAD%u(1)%V_PPyRtr(:,2,i) = m%IfW%y%VelocityUVW(:,c)
-               c = c+1
-            end do
-         else
-            m%KAD%u(1)%V_Fus     = 0.0_ReKi
-            m%KAD%u(1)%V_SWn     = 0.0_ReKi
-            m%KAD%u(1)%V_PWn     = 0.0_ReKi
-            m%KAD%u(1)%V_VS      = 0.0_ReKi
-            m%KAD%u(1)%V_SHS     = 0.0_ReKi
-            m%KAD%u(1)%V_PHS     = 0.0_ReKi
-            m%KAD%u(1)%V_SPy     = 0.0_ReKi
-            m%KAD%u(1)%V_PPy     = 0.0_ReKi         
-            m%KAD%u(1)%V_SPyRtr  = 0.0_ReKi    
-            m%KAD%u(1)%V_PPyRtr  = 0.0_ReKi  
+            if (p%KAD_InterpOrder > 0) then ! 1st and 2nd Order
+               call KAD_CopyInput(OtherSt%KAD%u(1),OtherSt%KAD%u(2), MESH_NEWCOPY, errStat2, errMsg2)
+                  call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
+            end if
+            if (errStat >= AbortErrLev ) then
+               call TransferErrors(errStat, errMsg, errStat_c, errMsg_c)
+               return
+            end if
          end if
- 
-       
-
-! TODO: Should we clean up/destroy the old version of m%KAD%z_copy ?
-         call KAD_CopyConstrState( m%KAD%z, m%KAD%z_copy, MESH_NEWCOPY, errStat2, errMsg2 )
+         
+         !print *, "Stepping KAD at t = ", t
+         
+         call TransferMBDynInputs2KADMeshes( isInitialTime, m%FusO, p, m, errStat2, errMsg2 )
             call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
             if (errStat >= AbortErrLev ) then
                call TransferErrors(errStat, errMsg, errStat_c, errMsg_c)
                return
             end if
-            
-         if ( isInitialTime < 1 ) then
-               ! Copy the inputs
-               ! NOTE: KAD only has constraint/algebraic states, it only needs the inputs at t.  
-               !       We copied these inputs to t-dt only to ensure that both times are specified. 
-               !       (so that the interface follows the standard module template, but the inputs at t-dt are not used by KAD).
-            call KAD_CopyInput(m%KAD%u(1),m%KAD%u(2), MESH_NEWCOPY, errStat2, errMsg2)
+               ! The inputs to InflowWind are the positions where wind velocities [the outputs] are to be computed.  These inputs are set above by
+               !  the TransferMBDynInputs() call.  The inputs are for t+dt timestep.
+         if ( p%useIfW ) then
+            call TransferMBDynToIfW( WindPt_c, m%FusO, p, m, errStat2, errMsg2 )
                call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
-            call KAD_UpdateStates( utimes(1), n, m%KAD%u, utimes, m%KAD%p, m%KAD%x, m%KAD%xd, m%KAD%z_copy, m%KAD%OtherSt, m%KAD%m, errStat2, errMsg2 )
+               if (errStat >= AbortErrLev ) then
+                  call TransferErrors(errStat, errMsg, errStat_c, errMsg_c)
+                  return
+               end if
+              
+            call InflowWind_CalcOutput(t, m%IfW%u, m%IfW%p, m%IfW%x, m%IfW%xd, m%IfW%z, OtherSt%IfW%OtherSt, m%IfW%y, m%IfW%m, errStat2, errMsg2 )
                call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
                if (errStat >= AbortErrLev ) then
                   call TransferErrors(errStat, errMsg, errStat_c, errMsg_c)
                   return
                end if
          end if
-              
-         call KAD_CalcOutput( t, m%KAD%u(1), m%KAD%p, m%KAD%x, m%KAD%xd, m%KAD%z_copy, m%KAD%OtherSt, m%KAD%y, m%KAD%m, errStat2, errMsg2 )
+
+   
+         ! call WrScr("Updating KAD Outputs")
+            ! Outputs from Controller for KAD (note: we always at least have a dummy controller to generate the necessary data)
+         OtherSt%KAD%u(1)%Ctrl_SFlp = m%KFC%y%SFlp
+         OtherSt%KAD%u(1)%Ctrl_PFlp = m%KFC%y%PFlp
+         OtherSt%KAD%u(1)%Ctrl_Rudr = m%KFC%y%Rudr
+         OtherSt%KAD%u(1)%Ctrl_SElv = m%KFC%y%SElv
+         OtherSt%KAD%u(1)%Ctrl_PElv = m%KFC%y%PElv
+         OtherSt%KAD%u(1)%Pitch_SPyRtr = m%KFC%y%SPyBldPitch   ! Controller only sets these to zero at this point.
+         OtherSt%KAD%u(1)%Pitch_PPyRtr = m%KFC%y%PPyBldPitch
+         OtherSt%KAD%u(1)%RtSpd_SPyRtr = m%KFC%y%SPyRtrSpd
+         OtherSt%KAD%u(1)%RtSpd_PPyRtr = m%KFC%y%PPyRtrSpd
+         
+         if ( p%useIfW ) then
+            
+               ! Transfer Inflow Wind outputs to the various KAD inflow inputs
+            c=3
+            do i = 1,size(OtherSt%KAD%u(1)%V_Fus,2)
+               OtherSt%KAD%u(1)%V_Fus(:,i)   = m%IfW%y%VelocityUVW(:,c)
+               c = c+1
+            end do
+            do i = 1,size(OtherSt%KAD%u(1)%V_SWn,2)
+               OtherSt%KAD%u(1)%V_SWn(:,i)   = m%IfW%y%VelocityUVW(:,c)
+               c = c+1
+            end do
+            do i = 1,size(OtherSt%KAD%u(1)%V_PWn,2)
+               OtherSt%KAD%u(1)%V_PWn(:,i)   = m%IfW%y%VelocityUVW(:,c)
+               c = c+1
+            end do
+            do i = 1,size(OtherSt%KAD%u(1)%V_VS,2)
+               OtherSt%KAD%u(1)%V_VS(:,i)   = m%IfW%y%VelocityUVW(:,c)
+               c = c+1
+            end do
+            do i = 1,size(OtherSt%KAD%u(1)%V_SHS,2)
+               OtherSt%KAD%u(1)%V_SHS(:,i)   = m%IfW%y%VelocityUVW(:,c)
+               c = c+1
+            end do
+            do i = 1,size(OtherSt%KAD%u(1)%V_PHS,2)
+               OtherSt%KAD%u(1)%V_PHS(:,i)   = m%IfW%y%VelocityUVW(:,c)
+               c = c+1
+            end do
+            do j = 1,p%numPylons
+               do i = 1,size(OtherSt%KAD%u(1)%V_SPy,2)
+                  OtherSt%KAD%u(1)%V_SPy(:,i,j)   = m%IfW%y%VelocityUVW(:,c)
+                  c = c+1
+               end do
+            end do
+            do j = 1,p%numPylons
+               do i = 1,size(OtherSt%KAD%u(1)%V_PPy,2)
+                  OtherSt%KAD%u(1)%V_PPy(:,i,j)   = m%IfW%y%VelocityUVW(:,c)
+                  c = c+1
+               end do
+            end do   
+            do i = 1,p%numPylons
+               OtherSt%KAD%u(1)%V_SPyRtr(:,1,i) = m%IfW%y%VelocityUVW(:,c)
+               c = c+1
+               OtherSt%KAD%u(1)%V_SPyRtr(:,2,i) = m%IfW%y%VelocityUVW(:,c)
+               c = c+1
+            end do
+            do i = 1,p%numPylons
+               OtherSt%KAD%u(1)%V_PPyRtr(:,1,i) = m%IfW%y%VelocityUVW(:,c)
+               c = c+1
+               OtherSt%KAD%u(1)%V_PPyRtr(:,2,i) = m%IfW%y%VelocityUVW(:,c)
+               c = c+1
+            end do
+         else
+            OtherSt%KAD%u(1)%V_Fus     = 0.0_ReKi
+            OtherSt%KAD%u(1)%V_SWn     = 0.0_ReKi
+            OtherSt%KAD%u(1)%V_PWn     = 0.0_ReKi
+            OtherSt%KAD%u(1)%V_VS      = 0.0_ReKi
+            OtherSt%KAD%u(1)%V_SHS     = 0.0_ReKi
+            OtherSt%KAD%u(1)%V_PHS     = 0.0_ReKi
+            OtherSt%KAD%u(1)%V_SPy     = 0.0_ReKi
+            OtherSt%KAD%u(1)%V_PPy     = 0.0_ReKi         
+            OtherSt%KAD%u(1)%V_SPyRtr  = 0.0_ReKi    
+            OtherSt%KAD%u(1)%V_PPyRtr  = 0.0_ReKi  
+         end if
+
+         if ( (isInitialTime > 0) .or. (OtherSt%doStartupInterp) ) then 
+            if (p%KAD_InterpOrder == 2) then ! 2nd order
+               call KAD_CopyInput(OtherSt%KAD%u(1),OtherSt%KAD%u(3), MESH_NEWCOPY, errStat2, errMsg2)
+                   call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
+               OtherSt%KAD%t_in(3) = t-2.0_DbKi*p%KAD_dt
+            end if
+            if (p%KAD_InterpOrder > 0) then ! 1st and 2nd order
+               call KAD_CopyInput(OtherSt%KAD%u(1),OtherSt%KAD%u(2), MESH_NEWCOPY, errStat2, errMsg2)
+                  call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
+               OtherSt%KAD%t_in(2) = t-p%KAD_dt
+               OtherSt%KAD%t_in(1) = t              
+            end if
+            if (errStat >= AbortErrLev ) then
+               call TransferErrors(errStat, errMsg, errStat_c, errMsg_c)
+               return
+            end if
+         end if
+         if ( (p%KAD_InterpOrder > 0) .and. (.not. OtherSt%doStartupInterp) ) then ! 1st or 2nd order
+               ! Extrapolate the inputs to t + KAD_dt
+            call KAD_Input_ExtrapInterp(OtherSt%KAD%u, OtherSt%KAD%t_in, m%KAD%u, t+p%KAD_dt, errStat2, errMsg2 )
+               call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
+          
+              ! Update the KAD states, n2 corresponds to time, t
+            call KAD_UpdateStates( t, n2, OtherSt%KAD%u, OtherSt%KAD%t_in, m%KAD%p, m%KAD%x, m%KAD%xd, OtherSt%KAD%z, OtherSt%KAD%OtherSt, m%KAD%m, errStat2, errMsg2 )
+               call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
+            call KAD_CalcOutput( t+p%KAD_dt, m%KAD%u, m%KAD%p, m%KAD%x, m%KAD%xd, OtherSt%KAD%z, OtherSt%KAD%OtherSt, m%KAD%y, m%KAD%m, errStat2, errMsg2 )
+               call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
+            if (errStat >= AbortErrLev ) then
+               call TransferErrors(errStat, errMsg, errStat_c, errMsg_c)
+               return
+            end if
+         else  ! 0th order hold, or startup sequence         
+            if (isInitialTime == 0 ) then
+! TODO: Adjust this logic for startup sequence and InterpOrder > 0
+! Switch InterpOrder=0 to use t_in array so that we can use the standard UpdateStates syntax instead of a special version using utimes for InterpOrder=0
+               !call KAD_CopyInput(OtherSt%KAD%u(2), m%KAD%u, MESH_NEWCOPY, errStat2, errMsg2)
+               
+               if (p%KAD_InterpOrder==0) then
+                  call KAD_CopyInput(OtherSt%KAD%u(1),OtherSt%KAD%u(2), MESH_NEWCOPY, errStat2, errMsg2)
+                     call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
+                  OtherSt%KAD%t_in(2) = t-p%KAD_dt
+                  OtherSt%KAD%t_in(1) = t              
+               end if
+               
+               call KAD_UpdateStates( t, n2, OtherSt%KAD%u, OtherSt%KAD%t_in, m%KAD%p, m%KAD%x, m%KAD%xd, OtherSt%KAD%z, OtherSt%KAD%OtherSt, m%KAD%m, errStat2, errMsg2 )
+                  call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
+!               call KAD_UpdateStates( utimes(1), n, OtherSt%KAD%u, utimes, m%KAD%p, m%KAD%x, m%KAD%xd, OtherSt%KAD%z, OtherSt%KAD%OtherSt, m%KAD%m, errStat2, errMsg2 )
+!                  call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
+               if (errStat >= AbortErrLev ) then
+                 call TransferErrors(errStat, errMsg, errStat_c, errMsg_c)
+                 return
+               end if
+               !call KAD_CopyInput(m%KAD%u,OtherSt%KAD%u(2), MESH_NEWCOPY, errStat2, errMsg2)
+            end if
+            
+            call KAD_CalcOutput( t, OtherSt%KAD%u(1), m%KAD%p, m%KAD%x, m%KAD%xd, OtherSt%KAD%z, OtherSt%KAD%OtherSt, m%KAD%y, m%KAD%m, errStat2, errMsg2 )
+               call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
+            if (errStat >= AbortErrLev ) then
+               call TransferErrors(errStat, errMsg, errStat_c, errMsg_c)
+               return
+            end if
+         end if
+        
+         if ( isInitialTime ==  0 ) then
+            if ( p%KAD_InterpOrder == 2) then
+               call KAD_CopyOutput(OtherSt%KAD%y(2),OtherSt%KAD%y(3), MESH_NEWCOPY, errStat2, errMsg2)
+                  call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
+               OtherSt%KAD%t_in(3) = OtherSt%KAD%t_in(2)
+            end if
+            if (p%KAD_InterpOrder > 0) then
+               call KAD_CopyOutput(OtherSt%KAD%y(1),OtherSt%KAD%y(2), MESH_NEWCOPY, errStat2, errMsg2)
+                  call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
+               call KAD_CopyOutput(m%KAD%y, OtherSt%KAD%y(1), MESH_NEWCOPY, errStat2, errMsg2)
+                  call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
+               OtherSt%KAD%t_in(2) = OtherSt%KAD%t_in(1)
+               OtherSt%KAD%t_in(1) = t+p%KAD_dt
+            end if
+         else
+            if ( p%KAD_InterpOrder == 2) then
+               call KAD_CopyOutput(m%KAD%y, OtherSt%KAD%y(3), MESH_NEWCOPY, errStat2, errMsg2)
+                  call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
+            end if
+            if ( p%KAD_InterpOrder >0) then
+               call KAD_CopyOutput(m%KAD%y, OtherSt%KAD%y(2), MESH_NEWCOPY, errStat2, errMsg2)
+                  call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
+               call KAD_CopyOutput(m%KAD%y, OtherSt%KAD%y(1), MESH_NEWCOPY, errStat2, errMsg2)
+                  call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
+            end if
+         end if
+         
+         if (errStat >= AbortErrLev ) then
+            call TransferErrors(errStat, errMsg, errStat_c, errMsg_c)
+            return
+         end if
+         
+         OtherSt%KAD_NewTime = .false.
+         
+      end if ! if ( OtherSt%KAD_NewTime
+      
+      if ( (p%KAD_InterpOrder > 0) .and. (.not. OtherSt%doStartupInterp) ) then ! 1st or 2nd order
+         call KAD_Output_ExtrapInterp(OtherSt%KAD%y, OtherSt%KAD%t_in, m%KAD%y, t, errStat2, errMsg2 )
             call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
             if (errStat >= AbortErrLev ) then
                call TransferErrors(errStat, errMsg, errStat_c, errMsg_c)
                return
             end if
-      end if       ! if ( OtherSt%NewTime .and. EqualRealNos(real(mod(t, 0.01_DbKi),ReKi),0.0_ReKi) )
+      end if
+      
    end if          ! if ( p%useKAD )
    
       ! Compute the Rotor Reaction Loads
@@ -3566,6 +3817,11 @@ subroutine KFAST_AssRes(t_c, isInitialTime_c, WindPt_c, FusO_c, FusODCM_c, FusOv
          if ( p%useKAD ) then
             AeroMoment = m%KAD%y%SPyRtrLoads(c)%Moment(:,1)
             AeroForce  = m%KAD%y%SPyRtrLoads(c)%Force(:,1)
+            if ( doTransfersforKFC ) then
+                  ! These will be used for the next call to KFC_Step()
+               OtherSt%SPyRtrLoads(:,i,j) = m%KAD%y%SPyRtrLoads(c)%Moment(:,1)          
+               OtherSt%PPyRtrLoads(:,i,j) = m%KAD%y%PPyRtrLoads(c)%Moment(:,1)  
+            end if
          else
             AeroMoment = 0.0_ReKi
             AeroForce  = 0.0_ReKi
@@ -3575,7 +3831,7 @@ subroutine KFAST_AssRes(t_c, isInitialTime_c, WindPt_c, FusO_c, FusODCM_c, FusOv
                                m%KFC%y%SPyRtrSpd(i,j), m%KFC%y%SPyGenTorque(i,j), AeroForce, AeroMoment , &
                                p%Gravity, p%SPyRtrMass(i,j),   p%SPyRtrIrot(i,j),     p%SPyRtrItrans(i,j), p%SPyRtrXcm(i,j), &
                                m%SPyRtrFReact(:,i,j), m%SPyRtrMReact(:,i,j), errStat2, errMsg2 ) 
-   
+            call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
             ! Port Rotors
          if ( p%useKAD ) then
             AeroMoment = m%KAD%y%PPyRtrLoads(c)%Moment(:,1)
@@ -3588,14 +3844,13 @@ subroutine KFAST_AssRes(t_c, isInitialTime_c, WindPt_c, FusO_c, FusODCM_c, FusOv
          call KFAST_RotorCalcs(m%PPyRtrDCMs(:,:,i,j), m%PPyRtrOmegas(:,i,j), m%PPyRtrAccs(:,i,j), m%PPyRtrAlphas(:,i,j), &
                                m%KFC%y%PPyRtrSpd(i,j), m%KFC%y%PPyGenTorque(i,j), AeroForce, AeroMoment, &
                                p%Gravity, p%PPyRtrMass(i,j),   p%PPyRtrIrot(i,j),     p%PPyRtrItrans(i,j), p%PPyRtrXcm(i,j), &
-                               m%PPyRtrFReact(:,i,j), m%PPyRtrMReact(:,i,j), errStat2, errMsg2 ) 
+                               m%PPyRtrFReact(:,i,j), m%PPyRtrMReact(:,i,j), errStat2, errMsg2 )
+            call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )                             
       end do
    end do
    
    call TransferLoadsToMBDyn(p, m, nodeLoads_c, rtrLoads_c, errStat2, errMsg2 )
       call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
-      
-   OtherSt%NewTime = .false. ! only call the controller and KAD once per timestep
 
    call TransferErrors(errStat, errMsg, errStat_c, errMsg_c)
    return
@@ -3618,77 +3873,38 @@ subroutine KFAST_AfterPredict(t_c, errStat_c, errMsg_c) BIND (C, NAME='KFAST_Aft
    errStat = ErrID_None
    errMsg  = ''
 
-      ! Reset the NewTime flag to indicate that the next call to KFAST_AssRes() will be for a new timestep
-   OtherSt%NewTime = .true.
    
    t = t_c  
          
    if ( p%useMD ) then
          ! Copy the temporary states and place them into the actual versions
-      call MD_CopyContState   ( m%MD%x_copy, m%MD%x, MESH_NEWCOPY, errStat2, errMsg2 )
+      call MD_CopyContState( OtherSt%MD%x_copy, OtherSt%MD%x, MESH_NEWCOPY, errStat2, errMsg2 )
          call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
          ! Copy t+dt inputs to t for the next timestep
       call MD_CopyInput( m%MD%u(2), OtherSt%MD_u, MESH_NEWCOPY, errStat2, errMsg2 )
          call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
    end if
-     
-   if ( p%useKAD ) then
-         call KAD_CopyConstrState( m%KAD%z_copy, m%KAD%z, MESH_NEWCOPY, errStat2, errMsg2 )
+   
+   ! Note: t has already advanced in time from last AssRes() call
+   n = nint((t-p%dt) / p%dt) + 1
+   
+   ! Check if it is time to toggle startup flag for KAD interporder
+   if ( OtherSt%doStartupInterp .and. t > 2.0_DbKi ) then
+      OtherSt%doStartupInterp = .false.
+      print *, "Resetting startup flag to FALSE"
    end if
-   
-   !fracStep = modulo( real(t-p%dt,SiKi), real(m%KFC%dt,SiKi) )
-   !t_s = t - p%dt
-   n = t / p%dt
-   
-   if ( (mod(n,OtherSt%KFC_nCycles) == 0) ) then
-         ! NOTE: After Predict has actually incremented the timestep compared to the last AssRes() call.
-         ! We want to see if the most recent AssRes() time is an integer multiple of the Controller timestep.
-         ! If so, then we will update the controller inputs for use the next time the Controller Step is called.
-         ! 
-         ! NOTE: we always have at a minimum a dummy controller
-      
-      OtherSt%SPyRtrDCMs = m%SPyRtrDCMs
-      OtherSt%PPyRtrDCMs = m%PPyRtrDCMs
-         
-      OtherSt%FusODCM    = m%FusODCM
-      OtherSt%FusO       = m%FusO
-      OtherSt%FusOv      = m%FusOv
-      OtherSt%FusOomegas = m%FusOomegas
-      OtherSt%FusOacc    = m%FusOaccs
-      
-      
-      if ( p%useIfW ) then       
-            ! Need previous timestep's inflow at ground station for the next call to KFC calcoutput
-         OtherSt%IfW_ground = m%IfW%y%VelocityUVW(:,1)     
-            ! Need previous timestep's inflow at FusO for the next call to KFC calcoutput    
-         OtherSt%IfW_FusO   = m%IfW%y%VelocityUVW(:,2)
-      end if
-          
-         ! transfer t+dt MoorDyn bridle forces to t forces for use by the controller during the next timestep     
-      if ( p%useMD ) then           
-         numFairLeads = size(m%MD%y%PtFairLeadLoad%Force,2)
-         OtherSt%totalFairLeadLoads = 0.0_ReKi
-         do i = 1, numFairLeads
-            OtherSt%totalFairLeadLoads = OtherSt%totalFairLeadLoads + m%MD%y%PtFairLeadLoad%Force(:,i) 
-         end do
-      end if
-   
-      if ( p%useKAD ) then
-         do j = 1,p%numPylons
-            do i = 1,2
-               count = (j-1)*2 + i
-               OtherSt%SPyRtrLoads(:,i,j) = m%KAD%y%SPyRtrLoads(count)%Moment(:,1)          
-               OtherSt%PPyRtrLoads(:,i,j) = m%KAD%y%PPyRtrLoads(count)%Moment(:,1)  
-            end do
-         end do
-      end if
-      
+
+   ! Check if next timestep is going to be an integer multiple of the module DT values
+
+   if ( (mod(n,p%KFC_nCycles) == 0) ) then
+      OtherSt%KFC_NewTime = .true.
    end if
-              ! transfer Fortran variables to C:  
-   errStat_c = errStat
-   errMsg    = trim(errMsg)//C_NULL_CHAR
-   errMsg_c  = transfer( errMsg//C_NULL_CHAR, errMsg_c )
-   
+   if ( (mod(n,p%KAD_nCycles) == 0) ) then
+      OtherSt%KAD_NewTime = .true.
+   end if
+  
+   call TransferErrors(errStat, errMsg, errStat_c, errMsg_c)
+      
 end subroutine KFAST_AfterPredict
 
 subroutine KFAST_Output(t_c, numGaussPts_c, gaussPtLoads_c, errStat_c, errMsg_c) BIND (C, NAME='KFAST_Output')
@@ -3710,6 +3926,7 @@ subroutine KFAST_Output(t_c, numGaussPts_c, gaussPtLoads_c, errStat_c, errMsg_c)
 
    call TransferMBDynLoadInputs( numGaussPts_c, gaussPtLoads_c, p, m, errStat2, errMsg2 )
       call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
+      
    ! Compute the MBDyn-related outputs using the MBDyn load data and the most recently recieved motion data
    
    call KFAST_ProcessOutputs()
@@ -3720,10 +3937,8 @@ subroutine KFAST_Output(t_c, numGaussPts_c, gaussPtLoads_c, errStat_c, errMsg_c)
    call KFAST_WriteOutput( t, p, m%KAD%y, m%MD%y, m%IfW%y, errStat2, errMsg2 )
       call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
       
-                 ! transfer Fortran variables to C:  
-   errStat_c = errStat
-   errMsg    = trim(errMsg)//C_NULL_CHAR
-   errMsg_c  = transfer( errMsg//C_NULL_CHAR, errMsg_c )
+      ! transfer Fortran variables to C:  
+   call TransferErrors(errStat, errMsg, errStat_c, errMsg_c)
 
 end subroutine KFAST_Output
 
@@ -3744,42 +3959,47 @@ subroutine KFAST_End(errStat_c, errMsg_c) BIND (C, NAME='KFAST_End')
    
    ! Call the End subroutines for KiteAeroDyn, MoorDyn, InflowWind, and the Controller
    if ( p%useKAD ) then
-      call KAD_DestroyInput(m%KAD%u(2), errStat2 , errMsg2)
+      if ( p%KAD_InterpOrder == 2 ) then
+         call KAD_DestroyInput(OtherSt%KAD%u(3), errStat2 , errMsg2)
+            call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
+         call KAD_DestroyOutput(OtherSt%KAD%y(3), errStat2 , errMsg2)
+            call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
+      else if ( p%KAD_InterpOrder == 1 ) then
+         call KAD_DestroyOutput(OtherSt%KAD%y(2), errStat2 , errMsg2)
+            call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
+      end if
+      
+      call KAD_DestroyInput(OtherSt%KAD%u(2), errStat2 , errMsg2)
          call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
-      call KAD_End(m%KAD%u(1), m%KAD%p, m%KAD%x, m%KAD%xd, m%KAD%z, m%KAD%OtherSt, m%KAD%y, m%KAD%m, errStat2 , errMsg2)
+
+      call KAD_End(OtherSt%KAD%u(1), m%KAD%p, m%KAD%x, m%KAD%xd, OtherSt%KAD%z, OtherSt%KAD%OtherSt, OtherSt%KAD%y(1), m%KAD%m, errStat2 , errMsg2)
          call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
    end if
    
    if ( p%useMD ) then
       call MD_DestroyInput(m%MD%u(2), errStat2 , errMsg2)
          call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
-      call MD_End(m%MD%u(1), m%MD%p, m%MD%x, m%MD%xd, m%MD%z, m%MD%OtherSt, m%MD%y, m%MD%m, errStat2 , errMsg2)
+      call MD_End(m%MD%u(1), m%MD%p, OtherSt%MD%x, m%MD%xd, m%MD%z, OtherSt%MD%OtherSt, m%MD%y, m%MD%m, errStat2 , errMsg2)
          call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
    end if
    
    if ( p%useIfW ) then
 
-      call InflowWind_End(m%IfW%u, m%IfW%p, m%IfW%x, m%IfW%xd, m%IfW%z, m%IfW%OtherSt, m%IfW%y, m%IfW%m, errStat2 , errMsg2)
+      call InflowWind_End(m%IfW%u, m%IfW%p, m%IfW%x, m%IfW%xd, m%IfW%z, OtherSt%IfW%OtherSt, m%IfW%y, m%IfW%m, errStat2 , errMsg2)
          call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
    end if
    
    
    call KFC_End(m%KFC%p, errStat2, errMsg2)
       call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
-   
-   
-   
-   
       
 ! -------------------------------------------------------------------------
 ! Close the Output file
 ! -------------------------------------------------------------------------   
-      close(p%UnOutFile)
+   close(p%UnOutFile)
       
       ! transfer Fortran variables to C:  
-   errStat_c = errStat
-   errMsg    = trim(errMsg)//C_NULL_CHAR
-   errMsg_c  = transfer( errMsg//C_NULL_CHAR, errMsg_c )
+   call TransferErrors(errStat, errMsg, errStat_c, errMsg_c)
   
 end subroutine KFAST_End
    

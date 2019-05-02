@@ -103,6 +103,11 @@ ModuleKiteFAST::ModuleKiteFAST(unsigned uLabel, const DofOwner *pDO, DataManager
   ValidateInputKeyword(HP, "gravity");
   doublereal gravity = HP.GetReal();
 
+  // parse the KiteAeroDyn Outputs interpolation order.  0 = hold KAD outputs between KAD calls, 
+  //   1 = Linearly interpolate outputs, 2 = 2nd order interpolation of outputs
+  ValidateInputKeyword(HP, "kiteaerodyn_interpolation_order");
+  integer KAD_interpolation_order = HP.GetInt();
+  
   // parse the ground station location
   ValidateInputKeyword(HP, "ground_weather_station_location");
   ground_station_point[0] = HP.GetReal();
@@ -375,6 +380,7 @@ ModuleKiteFAST::ModuleKiteFAST(unsigned uLabel, const DofOwner *pDO, DataManager
              output_file_root,
              &print_summary_file,
              &gravity,
+			 &KAD_interpolation_order,
              mip_dcm,
              &n_rotor_points,
              rotor_points,

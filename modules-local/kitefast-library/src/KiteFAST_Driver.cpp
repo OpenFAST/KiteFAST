@@ -34,6 +34,7 @@ int main(int argc, char *argv[])
     char outFileRoot[INTERFACE_STRING_LENGTH];
     int  printSum = 1;
     double gravity = 9.81;
+	int  KAD_InterpOrder = 0;  // 0 = hold KAD outputs between KAD calls, 1 = Linearly interpolate outputs, 2 = 2nd order interpolation of outputs
     double *pWindPt;
     double *pFusODCM;
     double *pFusODCM_prev;
@@ -451,7 +452,7 @@ int main(int argc, char *argv[])
 */
 
     // This is called as part of the user module constructor
-    KFAST_Init(&dt, &numFlaps, &numPylons, &numComp, pNumCompNds, pModFlags, KAD_FileName, IfW_FileName, MD_FileName, KFC_FileName, outFileRoot, &printSum, &gravity,
+    KFAST_Init(&dt, &numFlaps, &numPylons, &numComp, pNumCompNds, pModFlags, KAD_FileName, IfW_FileName, MD_FileName, KFC_FileName, outFileRoot, &printSum, &gravity, &KAD_InterpOrder,
        pFusODCM, &numRtrPts, pRtrPts, pRtrMass, pRtrI_Rot, pRtrI_Trans, pRtrXcm, pRefPts, &numNodePts, pNodePts, pNodeDCMs,
        &nFusOuts, FusOutNd, &nSWnOuts, SWnOutNd, &nPWnOuts, PWnOutNd, &nVSOuts, VSOutNd, &nSHSOuts, SHSOutNd, &nPHSOuts, PHSOutNd, &nPylOuts, PylOutNd, &numOutChan, outChanList, pChanList_len, &errStat, errMsg);
 
