@@ -92,30 +92,29 @@ class OrientationMatrix():
         def _roll(angle):
             return np.array(
                 [
-                    [1,             0,                  0],
-                    [0, np.cos(angle), -1 * np.sin(angle)],
-                    [0, np.sin(angle),      np.cos(angle)]
+                    [1,                  0,                  0],
+                    [0,      np.cos(angle),      np.sin(angle)],
+                    [0, -1 * np.sin(angle),      np.cos(angle)]
                 ]
             )
         def _pitch(angle):
             return np.array(
                 [
-                    [np.cos(angle),  0, -1 * np.sin(angle)],
-                    [0,  1,                  0],
-                    [np.sin(angle),  0,      np.cos(angle)]
+                    [     np.cos(angle),  0,      np.sin(angle)],
+                    [                 0,  1,                  0],
+                    [-1 * np.sin(angle),  0,      np.cos(angle)]
                 ]
             )
         def _yaw(angle):
             return np.array(
                 [
-                    [np.cos(angle), -1 * np.sin(angle),  0],
-                    [np.sin(angle),      np.cos(angle),  0],
-                    [0,                  0,  1]
+                    [     np.cos(angle),      np.sin(angle),  0],
+                    [-1 * np.sin(angle),      np.cos(angle),  0],
+                    [                 0,                  0,  1]
                 ]
             )
+        return np.matmul(_roll(alpha), np.matmul(_pitch(beta), _yaw(gamma)))
 
-        return _roll(alpha) * _pitch(beta) * _yaw(gamma)
-        
     def __str__(self):
         string = ""
         if self.row1 is not None:
@@ -320,3 +319,9 @@ class Beam3():
                 stiffness1, stiffness2
             ]
         )
+
+def cos(angle):
+    return np.cos(angle)
+
+def sin(angle):
+    return np.sin(angle)
