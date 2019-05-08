@@ -102,6 +102,7 @@ class KiteModel(BaseModel):
 
         # simulation setup
         self.main_mbd = MainMBD(simulation_dict,
+                                self.fuselage.nodes[2 * self.fuselage.component.index("wing")].id,
                                 model_dict["keypoints"],
                                 self.joints,
                                 self.fuselage,
