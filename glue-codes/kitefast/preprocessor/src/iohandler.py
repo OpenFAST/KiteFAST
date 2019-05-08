@@ -126,9 +126,9 @@ class Input():
             if input_component is None:
                 return None
 
-            for i in range(len(input_component["element_end_nodes"])):
+            for i, end_node in enumerate(input_component["element_end_nodes"]):
                 # element end nodes
-                this_node = self._string_to_list(input_component["element_end_nodes"][i])
+                this_node = self._string_to_list(end_node)
 
                 nodes.append(float(this_node[0]))
                 twist.append(float(this_node[1]))
@@ -145,12 +145,15 @@ class Input():
                 cm_offset.append([float(m) for m in this_mass[1:3]])
                 inertias.append([float(m) for m in this_mass[3:9]])
 
+            stiffness_constant = input_component["proportional_stiffness_constant"]
+
             return {
                 "keypoint": model_dict["keypoints"]["/".join([str(p) for p in path])],
                 "element_end_nodes": nodes,
                 "twist": twist,
                 "component": attached_component,
                 "point_mass": point_mass,
+                "stiffness_constant": stiffness_constant,
                 "stiffness_matrix": stiffness_matrix,
                 "mass_distribution": mass_distribution,
                 "cm_offset": cm_offset,

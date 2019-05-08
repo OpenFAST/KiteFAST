@@ -90,6 +90,7 @@ class BaseComponent():
         self.twist = model_dict["twist"]
         self.component = model_dict["component"]
         self.point_mass = model_dict["point_mass"]
+        self.stiffness_constant = model_dict["stiffness_constant"]
         self.stiffness_matrix = model_dict["stiffness_matrix"]
         self.mass_distribution = model_dict["mass_distribution"]
         self.cm_offset = model_dict["cm_offset"]
@@ -793,7 +794,7 @@ class BaseComponent():
         output.write_line("                                    k1_55, k1_26,")
         output.write_line("                                           k1_66,")
         output.write_line("    const, 1.0,")
-        output.write_line("    proportional, 0.01,")
+        output.write_line("    proportional, {},".format(self.stiffness_constant))
         output.write_line("    ramp, 1.0, 0.0, 1.0, 0.0,")
         output.write_line("    reference, mip_rf, eye,")
         output.write_line("    linear time variant viscoelastic generic, sym,")
@@ -804,6 +805,6 @@ class BaseComponent():
         output.write_line("                                    k2_55, k2_26,")
         output.write_line("                                           k2_66,")
         output.write_line("    const, 1.0,")
-        output.write_line("    proportional, 0.01,")
+        output.write_line("    proportional, {},".format(self.stiffness_constant))
         output.write_line("    ramp, 1.0, 0.0, 1.0, 0.0;")
         output.end()
