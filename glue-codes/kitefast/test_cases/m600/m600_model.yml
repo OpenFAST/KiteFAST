@@ -118,7 +118,7 @@ fuselage:
     element_end_nodes:
         # x            twist    attached component   point mass
         # m            deg                           kg
-        - -0.027  0.0      wing                 17.850       # fore
+        - -0.000  0.0      wing                 17.850       # fore
         - -1.553  0.0      none                 0.0
         - -6.917  0.0      stabilizer/vertical  0.0          # aft
 
