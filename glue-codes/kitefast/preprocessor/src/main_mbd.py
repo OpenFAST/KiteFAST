@@ -21,6 +21,7 @@ class MainMBD():
 
     def __init__(self,
                  simulation_controls,
+                 mip_id,
                  keypoints,
                  joints,
                  fuselage,
@@ -56,6 +57,7 @@ class MainMBD():
         ground_weather_station = simulation_controls["ground_weather_station"]
         self.ground_weather_station_location = ground_weather_station["location"]
         output = simulation_controls["output"]
+        self.mip_id = mip_id
         self.fuselage_output_nodes = output["fuselage_nodes"]
         self.wing_starboard_nodes = output["wing_starboard_nodes"]
         self.wing_port_outputs = output["wing_port_outputs"]
@@ -136,7 +138,6 @@ class MainMBD():
         output.write_line("    include: \"KiteMain.set\";")
         output.write_empty_line()
         output.write_line("    structural nodes:")
-        output.write_line("      + 1  # MIP node")
         for component in self.component_list:
             output.write_line("      + {}_node_count".format(component.component_name))
         output.write_line("      + {}  # 1 for each rotor".format(str(len(self.starboard_rotors) + len(self.port_rotors))))
@@ -171,8 +172,6 @@ class MainMBD():
             output.write_line("    include: \"{}.nodes\";".format(component.component_name))
         for rotor in self.starboard_rotors + self.port_rotors:
             output.write_line("    include: \"{}.nodes\";".format(rotor.component_name))
-        output.write_line("    structural: 1, dummy,")
-        output.write_line("        fuselage_root_node + {}, offset, {}, eye;".format(self.mip_index, self.fuselage.nodes[self.mip_index].position * -1))
         output.write_line("end: nodes;")
         output.write_empty_line()
         output.write_empty_line()
@@ -233,7 +232,7 @@ class MainMBD():
         for i, _ in enumerate(self.port_pylons):
             output.write_line("         {},".format(self.keypoints["pylon/port/{}".format(str(i + 1))]))
         output.write_line("        mip_node,")
-        output.write_line("            1,")
+        output.write_line("            {},".format(self.mip_id))
         for component in self.component_list:
             output.write_line("        {},".format(component.component_name))
             output.write_line("            {}_node_count,".format(component.component_name))
