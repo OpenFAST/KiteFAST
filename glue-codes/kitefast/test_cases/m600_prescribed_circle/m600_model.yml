@@ -12,7 +12,7 @@ simulation_controls:
         kiteaerodyn: true
         inflowwind: false
         moordyn: false
-        controller: false
+        controller: true
 
     fast_submodule_input_files:
         kiteaerodyn_input: "simple_m600_model.inp"
@@ -37,7 +37,7 @@ simulation_controls:
             1e-3
 
         final:
-            0.5
+           60
 
     tolerance:
         1e-3
@@ -77,16 +77,16 @@ simulation_controls:
         location:
             # locates the kite coordinate system (MIP point) in the global frame
             # x     y       z
-            430.0   0.0     100.0
+            126.63  -379.65 172.80
 
-        orientation:
+       orientation:
             # roll  pitch   yaw
             0.0     180.0   0.0
 
         velocity:
             translational:
                 # x     y       z
-                -50.0   0.0     0.0
+                54.49   5.05    -28.48
 
             rotational:
                 # roll  pitch   yaw
