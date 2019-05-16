@@ -12,7 +12,7 @@
 void AssignInputs(double dcm_g2b_c[], double pqr_c[], double *acc_norm_c,
 	double Xg_c[], double Vg_c[], double Vb_c[], double Ag_c[],
 	double Ab_c[], double *rho_c, double apparent_wind_c[],
-	double tether_force_c[], double wind_g_c[],	int *errStat, char *errMsg,
+	double tether_force_c[], double wind_g_c[], int *errStat, char *errMsg,
 	StateEstimate *state_est, MotorState *motor_state){
 
 	#if DEBUG
@@ -30,7 +30,7 @@ void AssignInputs(double dcm_g2b_c[], double pqr_c[], double *acc_norm_c,
 		printf("  tether_force_c = [%0.4f, %0.4f, %0.4f] \n",tether_force_c[0],tether_force_c[1],tether_force_c[2]);
 		printf("  wind_g_c = [%0.4f, %0.4f, %0.4f] \n",wind_g_c[0],wind_g_c[1],wind_g_c[2]);
 	#endif
-	
+
 	// DCM to convert translational variables from Kitefast Inertial frame to CSim inertial Frame:
 	// rotation about z axis = 180deg, rotationa  about y axis = 0 deg, rotation about x axis = 180 deg (321 dcm)
 	const Mat3 dcm_kfast2csim_ground = {{{-1,0,0},{0,1,0},{0,0,-1}}};
@@ -51,15 +51,15 @@ void AssignInputs(double dcm_g2b_c[], double pqr_c[], double *acc_norm_c,
 
 	// Xg - convert and copy value into state_est->Xg
 	Vec3 Xg_tmp = { Xg_c[0] , Xg_c[1] , Xg_c[2] };
-	Vec3 Xg_tmp_csim;
-	Mat3Vec3Mult(&dcm_kfast2csim_ground, &Xg_tmp, &Xg_tmp_csim);
-	memcpy(&state_est->Xg, &Xg_tmp_csim, sizeof(state_est->Xg));
+	//Vec3 Xg_tmp_csim;
+	//Mat3Vec3Mult(&dcm_kfast2csim_ground, &Xg_tmp, &Xg_tmp_csim);
+	memcpy(&state_est->Xg, &Xg_tmp, sizeof(state_est->Xg));
 
 	// Vg - convert and copy value into state_est->Vg
 	Vec3 Vg_tmp = { Vg_c[0] , Vg_c[1] , Vg_c[2] };
-	Vec3 Vg_tmp_csim;
-	Mat3Vec3Mult(&dcm_kfast2csim_ground, &Vg_tmp, &Vg_tmp_csim);
-	memcpy(&state_est->Vg, &Vg_tmp_csim, sizeof(state_est->Vg));
+	//Vec3 Vg_tmp_csim;
+	//Mat3Vec3Mult(&dcm_kfast2csim_ground, &Vg_tmp, &Vg_tmp_csim);
+	memcpy(&state_est->Vg, &Vg_tmp, sizeof(state_est->Vg));
 
 	Vec3 Vb_tmp_trans;
 	Mat3Vec3Mult(&dcm_g2b_tmp, &Vg_tmp, &Vb_tmp_trans);
@@ -72,9 +72,9 @@ void AssignInputs(double dcm_g2b_c[], double pqr_c[], double *acc_norm_c,
 
 	// Ag - convert and copy value into state_est->Ag
 	Vec3 Ag_tmp = { Ag_c[0] , Ag_c[1] , Ag_c[2] };
-	Vec3 Ag_tmp_csim;
-	Mat3Vec3Mult(&dcm_kfast2csim_ground, &Ag_tmp, &Ag_tmp_csim);
-	memcpy(&state_est->Ag, &Ag_tmp_csim, sizeof(state_est->Ag));
+	//Vec3 Ag_tmp_csim;
+	//Mat3Vec3Mult(&dcm_kfast2csim_ground, &Ag_tmp, &Ag_tmp_csim);
+	memcpy(&state_est->Ag, &Ag_tmp, sizeof(state_est->Ag));
 
 	// Ab_f - convert and copy value into state_est->Ab_f
 	Vec3 Ab_tmp = { Ab_c[0] , Ab_c[1] , Ab_c[2] };
@@ -92,8 +92,8 @@ void AssignInputs(double dcm_g2b_c[], double pqr_c[], double *acc_norm_c,
     	}
 	*/
 	Vec3 V_wind_b;
-	const Vec3 V_wind_g = {apparent_wind_c[0],apparent_wind_c[1],apparent_wind_c[2]};
-	Mat3Vec3Mult(&dcm_g2b_tmp, &V_wind_g, &V_wind_b);
+	const Vec3 V_wind_tmp = {apparent_wind_c[0],apparent_wind_c[1],apparent_wind_c[2]};
+	Mat3Vec3Mult(&dcm_g2b_tmp, &V_wind_tmp, &V_wind_b);
 	state_est->apparent_wind.sph_f.v = Sqrt(Square(V_wind_b.x)+Square(V_wind_b.y)+Square(V_wind_b.z));
 	state_est->apparent_wind.sph_f.alpha = atan(V_wind_b.z/V_wind_b.x);
 	state_est->apparent_wind.sph_f.beta = asin(V_wind_b.y/state_est->apparent_wind.sph_f.v);
@@ -112,12 +112,12 @@ void AssignInputs(double dcm_g2b_c[], double pqr_c[], double *acc_norm_c,
 	state_est->tether_force_b.sph.tension = sqrt(pow(tether_force_c[0],2) + pow(tether_force_c[1],2) + pow(tether_force_c[2],2));
 	//wind_g_c
 
-	Vec3 wind_g_c_kfast = {wind_g_c[0],wind_g_c[1],wind_g_c[2]};
-	Vec3 wind_g_c_csim;
-	Mat3Vec3Mult(&dcm_kfast2csim_ground, &wind_g_c_kfast, &wind_g_c_csim);
-	state_est->wind_g.vector.x = wind_g_c_csim.x;
-	state_est->wind_g.vector.y = wind_g_c_csim.y;
-	state_est->wind_g.vector.z = wind_g_c_csim.z;
+	Vec3 wind_g_csim = {wind_g_c[0],wind_g_c[1],wind_g_c[2]};
+	//Vec3 wind_g_c_csim;
+	//Mat3Vec3Mult(&dcm_kfast2csim_ground, &wind_g_c_kfast, &wind_g_c_csim);
+	state_est->wind_g.vector.x = wind_g_csim.x;
+	state_est->wind_g.vector.y = wind_g_csim.y;
+	state_est->wind_g.vector.z = wind_g_csim.z;
 	state_est->wind_g.dir_f = VecGToAzimuth(&state_est->wind_g.vector);
 	// // Motor_c
 	// for (int i = 0; i<kNumMotors; i++){
