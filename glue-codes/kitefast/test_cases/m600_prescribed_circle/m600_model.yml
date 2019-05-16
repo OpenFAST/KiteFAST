@@ -79,7 +79,7 @@ simulation_controls:
             # x     y       z
             126.63  -379.65 172.80
 
-       orientation:
+        orientation:
             # roll  pitch   yaw
             0.0     180.0   0.0
 
