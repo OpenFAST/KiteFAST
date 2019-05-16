@@ -102,7 +102,7 @@ class MainMBD():
 
         output = Output("{}/KiteMain.mbd".format(output_directory))
 
-        output.write_line("# KiteWing.mbd")
+        output.write_line("# KiteMain.mbd")
         output.write_empty_line()
         output.write_empty_line()
         output.write_line("module load: \"libmodule-kitefastmbd\";")

@@ -15,7 +15,6 @@
 #
 
 import yaml
-from .mbdyn_types import Vec3
 
 
 class Output():
