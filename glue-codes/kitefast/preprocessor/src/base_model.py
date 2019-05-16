@@ -25,6 +25,9 @@ class BaseModel():
         self.required_components = []
         self.components = []
 
+    def _list_to_vec3(self, list):
+        return Vec3(list[0], list[1], list[2])
+
     def _deep_get(self, _dict, keys, default=None):
         for key in keys:
             if isinstance(_dict, dict):
@@ -37,6 +40,14 @@ class BaseModel():
         for path in self.required_components:
             if self._deep_get(model_dict, path) is None:
                 raise ModelException(path, "expected component not given")
+
+    def _preprocess_simulation_dict(self, simulation_dict):
+        simulation_dict["ground_weather_station"]["location"] = self._list_to_vec3(simulation_dict["ground_weather_station"]["location"])
+        simulation_dict["initial_conditions"]["location"] = self._list_to_vec3(simulation_dict["initial_conditions"]["location"])
+        simulation_dict["initial_conditions"]["orientation"] = self._list_to_vec3(simulation_dict["initial_conditions"]["orientation"])
+        simulation_dict["initial_conditions"]["velocity"]["translational"] = self._list_to_vec3(simulation_dict["initial_conditions"]["velocity"]["translational"])
+        simulation_dict["initial_conditions"]["velocity"]["rotational"] = self._list_to_vec3(simulation_dict["initial_conditions"]["velocity"]["rotational"])
+        return simulation_dict
 
     def print_model_info(self):
         """
