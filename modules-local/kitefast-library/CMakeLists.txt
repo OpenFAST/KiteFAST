@@ -32,6 +32,8 @@ target_link_libraries(kitefast_prelib
 set(LIB_SOURCES
   src/KiteFAST.f90
   src/KiteFAST_IO.f90
+  src/KiteFAST_Subs.f90
+  src/KiteFAST_GlobalData.f90
   )
 add_library(kitefastlib ${LIB_SOURCES})
 
