@@ -302,13 +302,15 @@ module KiteFastController
          y%PPyGenTorque = 0.0_ReKi
             ! TODO: Determine what would be a realistic dummy set of speed and the correct signs for each rotor
          y%SPyRtrSpd(1,1) = -100.0  ! starboard top rotor, inner pylons 
-         y%SPyRtrSpd(2,1) = 100.0  ! starboard bottom rotor, inner pylons
-         y%SPyRtrSpd(1,2) = 100.0  ! starboard top rotor, outer pylons 
-         y%SPyRtrSpd(2,2) = -100.0  ! starboard bottom rotor, outer pylons
+         y%SPyRtrSpd(2,1) = 100.0  ! starboard bottom rotor, inner pylons     
          y%PPyRtrSpd(1,1) = -100.0  ! port top rotor, inner pylons
          y%PPyRtrSpd(2,1) = 100.0  ! port bottom rotor, inner pylons
-         y%PPyRtrSpd(1,2) = 100.0  ! port top rotor, outer pylon
-         y%PPyRtrSpd(2,2) = -100.0  ! port bottom rotor, outer pylon
+         if ( p%numPylons > 1 ) then
+            y%SPyRtrSpd(1,2) = 100.0  ! starboard top rotor, outer pylons 
+            y%SPyRtrSpd(2,2) = -100.0  ! starboard bottom rotor, outer pylons
+            y%PPyRtrSpd(1,2) = 100.0  ! port top rotor, outer pylon
+            y%PPyRtrSpd(2,2) = -100.0  ! port bottom rotor, outer pylon
+         end if
          y%SPyRtrAcc    =   0.0_ReKi  ! rad/s^2
          y%PPyRtrAcc    =   0.0_ReKi  ! rad/s^2
          y%SPyBldPitch  = 0.0_ReKi
@@ -426,14 +428,16 @@ module KiteFastController
          ! TODO: Determine what would be a realistic dummy set of speed and the correct signs for each rotor
             ! NOTE: Speed should match the settings used in the Init routine.
          y%SPyRtrSpd(1,1) = -100.0  ! starboard top rotor, inner pylons 
-         y%SPyRtrSpd(2,1) = 100.0  ! starboard bottom rotor, inner pylons
-         y%SPyRtrSpd(1,2) = 100.0  ! starboard top rotor, outer pylons 
-         y%SPyRtrSpd(2,2) = -100.0  ! starboard bottom rotor, outer pylons
+         y%SPyRtrSpd(2,1) = 100.0  ! starboard bottom rotor, inner pylons        
          y%PPyRtrSpd(1,1) = -100.0  ! port top rotor, inner pylons
          y%PPyRtrSpd(2,1) = 100.0  ! port bottom rotor, inner pylons
-         y%PPyRtrSpd(1,2) = 100.0  ! port top rotor, outer pylon
-         y%PPyRtrSpd(2,2) = -100.0  ! port bottom rotor, outer pylon
          
+         if ( p%numPylons > 1 ) then
+            y%SPyRtrSpd(1,2) = 100.0  ! starboard top rotor, outer pylons 
+            y%SPyRtrSpd(2,2) = -100.0  ! starboard bottom rotor, outer pylons
+            y%PPyRtrSpd(1,2) = 100.0  ! port top rotor, outer pylon
+            y%PPyRtrSpd(2,2) = -100.0  ! port bottom rotor, outer pylon
+         end if
             ! Zero rotor acceleration
          y%SPyRtrAcc(1,:) = 0.0_ReKi ! starboard top rotor, all pylons 
          y%SPyRtrAcc(2,:) = 0.0_ReKi ! starboard bottom rotor, all pylons
