@@ -46,7 +46,7 @@ EXTERNAL_ROUTINE void KFAST_Init(
    int*       nPHSOuts,         // Number of user-requested output locations on the port horizontal stabilizer  ( 0-9 )
    int        PHSOutNd[],       // Node number(s) (within the component) of the requested output locations.
    int*       nPylOuts,         // Number of user-requested output locations on each pylon  ( 0-9 )
-   int        PylOutNd_c[],     // Node number(s) (within the component) of the requested output locations.
+   int        PylOutNd[],       // Node number(s) (within the component) of the requested output locations.
    int*       numOutChan,       // Number of user-requested output channel names
    char*      chanList[],       // Array of output channel names (strings)
    int        chanList_len[],   // Array containing the lengths of each string element in the chanList array

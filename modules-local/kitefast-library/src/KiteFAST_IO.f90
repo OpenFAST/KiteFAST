@@ -4860,7 +4860,7 @@ SUBROUTINE KFAST_SetOutParam(OutList, NumOuts, p, ErrStat, ErrMsg )
    LOGICAL                      :: CheckOutListAgain                               ! Flag used to determine if output parameter starting with "M" is valid (or the negative of another parameter)
    LOGICAL                      :: InvalidOutput(0:MaxOutPts)                      ! This array determines if the output channel is valid for this configuration
    CHARACTER(ChanLen)           :: OutListTmp                                      ! A string to temporarily hold OutList(I)
-   CHARACTER(*), PARAMETER      :: RoutineName = "SetOutParam"
+   CHARACTER(*), PARAMETER      :: RoutineName = "KFAST_SetOutParam"
 
    CHARACTER(OutStrLenM1), PARAMETER  :: ValidParamAry(3978) =  (/ &                  ! This lists the names of the allowed parameters, which must be sorted alphabetically
                                "FUS1FRC  ","FUS1FRN  ","FUS1FRS  ","FUS1MRC  ","FUS1MRN  ","FUS1MRS  ","FUS1RDX  ","FUS1RDY  ","FUS1RDZ  ","FUS1RVC  ","FUS1RVN  ","FUS1RVS  ","FUS1TAC  ","FUS1TAN  ", &

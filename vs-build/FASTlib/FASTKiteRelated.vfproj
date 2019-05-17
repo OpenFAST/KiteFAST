@@ -439,6 +439,7 @@
 		<File RelativePath="..\..\modules-local\kiteaerodyn\src\KiteAeroDyn_IO.f90"/></Filter>
 		<Filter Name="KiteFAST">
 		<File RelativePath="..\..\modules-local\kitefast-library\src\KiteFAST.f90"/>
+		<File RelativePath="..\..\modules-local\kitefast-library\src\KiteFAST_GlobalData.f90"/>
 		<File RelativePath="..\..\modules-local\kitefast-library\src\KiteFAST_IO.f90"/>
 		<File RelativePath="..\..\modules-local\kitefast-library\src\KiteFAST_Registry.txt">
 			<FileConfiguration Name="Debug_Double|Win32">
@@ -465,6 +466,7 @@
 				<Tool Name="VFCustomBuildTool" CommandLine="CALL ..\RunRegistry.bat KiteFAST" Description="Running Registry for KiteFAST" Outputs="..\..\build\types-files\KiteFAST_Types.f90"/></FileConfiguration>
 			<FileConfiguration Name="Release_Matlab|Win32">
 				<Tool Name="VFCustomBuildTool" CommandLine="CALL ..\RunRegistry.bat KiteFAST" Description="Running Registry for KiteFAST" Outputs="..\..\build\types-files\KiteFAST_Types.f90"/></FileConfiguration></File>
+		<File RelativePath="..\..\modules-local\kitefast-library\src\KiteFAST_Subs.f90"/>
 		<File RelativePath="..\..\build\types-files\KiteFAST_Types.f90"/></Filter>
 		<Filter Name="KiteFast-Controller">
 		<File RelativePath="..\..\modules-local\kitefast-controller\src\KiteFastController.f90"/>
