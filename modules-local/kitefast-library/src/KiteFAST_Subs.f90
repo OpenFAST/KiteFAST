@@ -2065,41 +2065,41 @@ subroutine TransferMBDynInputs2KADMeshes( isInitialTime, FusO, p, m, errStat, er
       end do
    end do
    
-   if ( isInitialTime > 0 ) then
+   !if ( isInitialTime > 0 ) then
       call KAD_CopyInput(m%KAD%u, OtherSt%KAD%u(1), MESH_NEWCOPY, errStat2, errMsg2)
             call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )  
-    else
-      ! Now filter the inputs:   
-      ! call MeshExtrapInterp1(u1, u2, tin, u_out, tin_out, ErrStat, ErrMsg )
-       call MeshExtrapInterp1( m%KAD%u%FusOMotions, OtherSt%KAD%u(2)%FusOMotions, (/0.0_DbKi, 1.0_DbKi/), OtherSt%KAD%u(1)%FusOMotions, p%KAD_filtConst, errStat2, errMsg2 )
-          call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
-       call MeshExtrapInterp1( m%KAD%u%FusMotions, OtherSt%KAD%u(2)%FusMotions, (/0.0_DbKi, 1.0_DbKi/), OtherSt%KAD%u(1)%FusMotions, p%KAD_filtConst, errStat2, errMsg2 )
-          call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
-       call MeshExtrapInterp1( m%KAD%u%SWnMotions, OtherSt%KAD%u(2)%SWnMotions, (/0.0_DbKi, 1.0_DbKi/), OtherSt%KAD%u(1)%SWnMotions, p%KAD_filtConst, errStat2, errMsg2 )
-          call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
-       call MeshExtrapInterp1( m%KAD%u%PWnMotions, OtherSt%KAD%u(2)%PWnMotions, (/0.0_DbKi, 1.0_DbKi/), OtherSt%KAD%u(1)%PWnMotions, p%KAD_filtConst, errStat2, errMsg2 )
-          call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
-       call MeshExtrapInterp1( m%KAD%u%VSMotions , OtherSt%KAD%u(2)%VSMotions , (/0.0_DbKi, 1.0_DbKi/), OtherSt%KAD%u(1)%VSMotions , p%KAD_filtConst, errStat2, errMsg2 )
-          call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
-       call MeshExtrapInterp1( m%KAD%u%SHSMotions, OtherSt%KAD%u(2)%SHSMotions, (/0.0_DbKi, 1.0_DbKi/), OtherSt%KAD%u(1)%SHSMotions, p%KAD_filtConst, errStat2, errMsg2 )
-          call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
-       call MeshExtrapInterp1( m%KAD%u%PHSMotions, OtherSt%KAD%u(2)%PHSMotions, (/0.0_DbKi, 1.0_DbKi/), OtherSt%KAD%u(1)%PHSMotions, p%KAD_filtConst, errStat2, errMsg2 )
-          call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
+    ! else
+      ! ! Now filter the inputs:   
+      ! ! call MeshExtrapInterp1(u1, u2, tin, u_out, tin_out, ErrStat, ErrMsg )
+       ! call MeshExtrapInterp1( m%KAD%u%FusOMotions, OtherSt%KAD%u(2)%FusOMotions, (/0.0_DbKi, 1.0_DbKi/), OtherSt%KAD%u(1)%FusOMotions, p%KAD_filtConst, errStat2, errMsg2 )
+          ! call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
+       ! call MeshExtrapInterp1( m%KAD%u%FusMotions, OtherSt%KAD%u(2)%FusMotions, (/0.0_DbKi, 1.0_DbKi/), OtherSt%KAD%u(1)%FusMotions, p%KAD_filtConst, errStat2, errMsg2 )
+          ! call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
+       ! call MeshExtrapInterp1( m%KAD%u%SWnMotions, OtherSt%KAD%u(2)%SWnMotions, (/0.0_DbKi, 1.0_DbKi/), OtherSt%KAD%u(1)%SWnMotions, p%KAD_filtConst, errStat2, errMsg2 )
+          ! call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
+       ! call MeshExtrapInterp1( m%KAD%u%PWnMotions, OtherSt%KAD%u(2)%PWnMotions, (/0.0_DbKi, 1.0_DbKi/), OtherSt%KAD%u(1)%PWnMotions, p%KAD_filtConst, errStat2, errMsg2 )
+          ! call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
+       ! call MeshExtrapInterp1( m%KAD%u%VSMotions , OtherSt%KAD%u(2)%VSMotions , (/0.0_DbKi, 1.0_DbKi/), OtherSt%KAD%u(1)%VSMotions , p%KAD_filtConst, errStat2, errMsg2 )
+          ! call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
+       ! call MeshExtrapInterp1( m%KAD%u%SHSMotions, OtherSt%KAD%u(2)%SHSMotions, (/0.0_DbKi, 1.0_DbKi/), OtherSt%KAD%u(1)%SHSMotions, p%KAD_filtConst, errStat2, errMsg2 )
+          ! call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
+       ! call MeshExtrapInterp1( m%KAD%u%PHSMotions, OtherSt%KAD%u(2)%PHSMotions, (/0.0_DbKi, 1.0_DbKi/), OtherSt%KAD%u(1)%PHSMotions, p%KAD_filtConst, errStat2, errMsg2 )
+          ! call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
       
-       do j = 1, p%numPylons
-          call MeshExtrapInterp1( m%KAD%u%SPyMotions(j), OtherSt%KAD%u(2)%SPyMotions(j), (/0.0_DbKi, 1.0_DbKi/), OtherSt%KAD%u(1)%SPyMotions(j), p%KAD_filtConst, errStat2, errMsg2 )
-             call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
-          call MeshExtrapInterp1( m%KAD%u%PPyMotions(j), OtherSt%KAD%u(2)%PPyMotions(j), (/0.0_DbKi, 1.0_DbKi/), OtherSt%KAD%u(1)%PPyMotions(j), p%KAD_filtConst, errStat2, errMsg2 )
-             call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
-          do i=1,2 ! two per pylon
-             c = i+(j-1)*p%numPylons
-             call MeshExtrapInterp1( m%KAD%u%SPyRtrMotions(c), OtherSt%KAD%u(2)%SPyRtrMotions(c), (/0.0_DbKi, 1.0_DbKi/), OtherSt%KAD%u(1)%SPyRtrMotions(c), p%KAD_filtConst, errStat2, errMsg2 )
-                call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
-             call MeshExtrapInterp1( m%KAD%u%PPyRtrMotions(c), OtherSt%KAD%u(2)%PPyRtrMotions(c), (/0.0_DbKi, 1.0_DbKi/), OtherSt%KAD%u(1)%PPyRtrMotions(c), p%KAD_filtConst, errStat2, errMsg2 )
-                call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
-          end do
-       end do
-    end if
+       ! do j = 1, p%numPylons
+          ! call MeshExtrapInterp1( m%KAD%u%SPyMotions(j), OtherSt%KAD%u(2)%SPyMotions(j), (/0.0_DbKi, 1.0_DbKi/), OtherSt%KAD%u(1)%SPyMotions(j), p%KAD_filtConst, errStat2, errMsg2 )
+             ! call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
+          ! call MeshExtrapInterp1( m%KAD%u%PPyMotions(j), OtherSt%KAD%u(2)%PPyMotions(j), (/0.0_DbKi, 1.0_DbKi/), OtherSt%KAD%u(1)%PPyMotions(j), p%KAD_filtConst, errStat2, errMsg2 )
+             ! call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
+          ! do i=1,2 ! two per pylon
+             ! c = i+(j-1)*p%numPylons
+             ! call MeshExtrapInterp1( m%KAD%u%SPyRtrMotions(c), OtherSt%KAD%u(2)%SPyRtrMotions(c), (/0.0_DbKi, 1.0_DbKi/), OtherSt%KAD%u(1)%SPyRtrMotions(c), p%KAD_filtConst, errStat2, errMsg2 )
+                ! call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
+             ! call MeshExtrapInterp1( m%KAD%u%PPyRtrMotions(c), OtherSt%KAD%u(2)%PPyRtrMotions(c), (/0.0_DbKi, 1.0_DbKi/), OtherSt%KAD%u(1)%PPyRtrMotions(c), p%KAD_filtConst, errStat2, errMsg2 )
+                ! call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
+          ! end do
+       ! end do
+    ! end if
    
 end subroutine TransferMBDynInputs2KADMeshes
 
