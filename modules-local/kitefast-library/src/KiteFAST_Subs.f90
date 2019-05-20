@@ -3560,7 +3560,7 @@ subroutine AssRes_OnShore( t_c, isInitialTime_c, WindPt_c, FusO_c, FusODCM_c, Fu
 
       if ( isInitialTime < 1 ) then
          call MD_CopyInput( OtherSt%MD_Tether_u, m%MD_Tether%u(2), MESH_NEWCOPY, errStat2, errMsg2 )
-         call MD_UpdateStates( utimes(1), n, m%MD_Tether%u, utimes, m%MD_Tether%p, OtherSt%MD_Tether%x_copy, m%MD_Tether%xd, m%MD_Tether%z, OtherSt%MD_Tether%OtherSt, m%MD_Tether%m, errStat2, errMsg2 )
+         call MD_UpdateStates( utimes(2), n2, m%MD_Tether%u, utimes, m%MD_Tether%p, OtherSt%MD_Tether%x_copy, m%MD_Tether%xd, m%MD_Tether%z, OtherSt%MD_Tether%OtherSt, m%MD_Tether%m, errStat2, errMsg2 )
             call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
                if (errStat >= AbortErrLev ) return
 
@@ -3771,8 +3771,8 @@ subroutine AssRes_OnShore( t_c, isInitialTime_c, WindPt_c, FusO_c, FusODCM_c, Fu
             call KAD_Input_ExtrapInterp(OtherSt%KAD%u, OtherSt%KAD%t_in, m%KAD%u, t+p%KAD_dt, errStat2, errMsg2 )
                call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
           
-              ! Update the KAD states, n2 corresponds to time, t
-            call KAD_UpdateStates( t, n2, OtherSt%KAD%u, OtherSt%KAD%t_in, m%KAD%p, m%KAD%x, m%KAD%xd, OtherSt%KAD%z, OtherSt%KAD%OtherSt, m%KAD%m, errStat2, errMsg2 )
+              ! Update the KAD states, n corresponds to time, t
+            call KAD_UpdateStates( t, n, OtherSt%KAD%u, OtherSt%KAD%t_in, m%KAD%p, m%KAD%x, m%KAD%xd, OtherSt%KAD%z, OtherSt%KAD%OtherSt, m%KAD%m, errStat2, errMsg2 )
                call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
             call KAD_CalcOutput( t+p%KAD_dt, m%KAD%u, m%KAD%p, m%KAD%x, m%KAD%xd, OtherSt%KAD%z, OtherSt%KAD%OtherSt, m%KAD%y, m%KAD%m, errStat2, errMsg2 )
                call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
@@ -3791,7 +3791,7 @@ subroutine AssRes_OnShore( t_c, isInitialTime_c, WindPt_c, FusO_c, FusODCM_c, Fu
                   OtherSt%KAD%t_in(1) = t              
                end if
                
-               call KAD_UpdateStates( t, n2, OtherSt%KAD%u, OtherSt%KAD%t_in, m%KAD%p, m%KAD%x, m%KAD%xd, OtherSt%KAD%z, OtherSt%KAD%OtherSt, m%KAD%m, errStat2, errMsg2 )
+               call KAD_UpdateStates( t, n, OtherSt%KAD%u, OtherSt%KAD%t_in, m%KAD%p, m%KAD%x, m%KAD%xd, OtherSt%KAD%z, OtherSt%KAD%OtherSt, m%KAD%m, errStat2, errMsg2 )
                   call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
 !               call KAD_UpdateStates( utimes(1), n, OtherSt%KAD%u, utimes, m%KAD%p, m%KAD%x, m%KAD%xd, OtherSt%KAD%z, OtherSt%KAD%OtherSt, m%KAD%m, errStat2, errMsg2 )
 !                  call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
