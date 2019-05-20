@@ -3889,6 +3889,9 @@ subroutine AssRes_OnShore( t_c, isInitialTime_c, WindPt_c, FusO_c, FusODCM_c, Fu
             call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )                             
       end do
    end do
+   
+   call TransferLoadsToMBDyn( p, m, nodeLoads_c, rtrLoads_c, errStat2, errMsg2 )
+      call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
 
 end subroutine AssRes_OnShore
 
@@ -3953,7 +3956,7 @@ subroutine End_Onshore(errStat, errMsg)
    errMsg  = ''
 
    
-   call KFAST_DestroyOtherState( OtherSt, ErrStat, ErrMsg )
+   !call KFAST_DestroyOtherState( OtherSt, ErrStat, ErrMsg )
    
    ! Call the End subroutines for KiteAeroDyn, MoorDyn, InflowWind, and the Controller
    if ( p%useKAD ) then
@@ -3977,8 +3980,8 @@ subroutine End_Onshore(errStat, errMsg)
    if ( p%useMD_Tether ) then
       call MD_DestroyInput(m%MD_Tether%u(2), errStat2 , errMsg2)
          call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
-      call MD_DestroyInput(OtherSt%MD_Tether_u, errStat2 , errMsg2)
-         call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
+      !call MD_DestroyInput(OtherSt%MD_Tether_u, errStat2 , errMsg2)
+      !   call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
 
       call MD_End(m%MD_Tether%u(1), m%MD_Tether%p, OtherSt%MD_Tether%x, m%MD_Tether%xd, m%MD_Tether%z, OtherSt%MD_Tether%OtherSt, m%MD_Tether%y, m%MD_Tether%m, errStat2 , errMsg2)
          call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
