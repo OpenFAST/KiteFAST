@@ -171,6 +171,7 @@ void controller_step(double t, double dcm_g2b_c[], double pqr_c[], double *acc_n
 				 &controlglob.state.motor_state);
 
 	ControlLog control_log;
+	control_log.time = t;
 	control_log.stateEstLog = controlglob.state_est; 
 	// Other modes to be added here
 	#if DEBUG

@@ -59,10 +59,12 @@ rules specific to the preprocessor input file:
 ::
 
     element_end_nodes:
-        - -5.000   0.000   -2.000    0.0      none                 0
-        - -3.000   0.000    0.000    0.0      none                 0
-        -  0.000   0.000    0.000    0.0      wing                 0
-        -  2.000   0.000    0.000    0.0      none                 0
+        #  z      twist    attached component   point mass
+        #  m      deg                           kg
+        - -5.000  0.0      none                 0
+        - -3.000  0.0      none                 0
+        -  0.000  0.0      wing                 0
+        -  2.000  0.0      none                 0
 
 - Null values in the "attached component" columns should be denoted by "none"
 

@@ -9,10 +9,10 @@ void ControlLogInit(char* controllerVerNumber){
     strftime(timeStr, sizeof(timeStr)-1, "%d/%m/%Y %H:%M \n", t);
 
 	FILE * fp;
-	fp = fopen("controller_save_data.csv", "w+");
-	fprintf(fp, "Controller Output Text File \nFile Created on: %s",timeStr);
-	fprintf(fp, "controller version: %s \n", controllerVerNumber);
-    fprintf(fp, "dcm0_0, dcm0_1, dcm0_2, dcm1_0, dcm1_1, dcm1_2, dcm2_0, dcm2_1, dcm2_2, ");
+    fp = fopen("controller_save_data.csv", "w+");
+    fprintf(fp, "Controller Output Text File \nFile Created on: %s",timeStr);
+    fprintf(fp, "controller version: %s \n", controllerVerNumber);
+    fprintf(fp, "time, dcm0_0, dcm0_1, dcm0_2, dcm1_0, dcm1_1, dcm1_2, dcm2_0, dcm2_1, dcm2_2, ");
     fprintf(fp, "acc_norm_f, pqr_f.x, pqr_f.y, pqr_f.z, Xg.x, Xg.y, Xg.z, Vg.x, Vg.y, Vg.z, Vb.x, Vb.y, Vb.z, Ag.x, Ag.y, Ag.z, ");
     fprintf(fp, "Ab_f.x, Ab_f.y, Ab_f.z, rho, sph_f.v, sph_f.alpha, sph_f.beta, tether_force_b.vector_f.x, tether_force_b.vector_f.y, tether_force_b.vector_f.z, ");
     fprintf(fp, "wind_g.vector.x, wind_g.vector.y, wind_g.vector.z, flaps[0], flaps[1], flaps[2], flaps[3], flaps[4], flaps[5], flaps[6], flaps[7], ");
@@ -29,9 +29,19 @@ void ControlLogEntry(ControlLog* control_log){
 #ifdef DEBUG
     printf("   Control Logging : Saving Step data\n");
 #endif
-    char assembledStr[1024];
-    char tempStr[80];
-    // dcm 
+
+
+
+   /* char assembledStr[2048];
+    char tempStr[160];
+    // time
+//#ifdef DEBUG
+    printf("   debug - t from control log = %0.4f\n", control_log->time);
+//#endif
+    double temp = control_log->time;
+    sprintf(tempStr, "%0.4f,", temp);
+    strcat(assembledStr,tempStr);
+    // dcm
     sprintf(tempStr, "%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,",
         control_log->stateEstLog.dcm_g2b.d[0][0],
         control_log->stateEstLog.dcm_g2b.d[1][0],
@@ -131,11 +141,73 @@ void ControlLogEntry(ControlLog* control_log){
         control_log->controlOutputLog.rotors[kMotor7],
         control_log->controlOutputLog.rotors[kMotor8]);
     strcat( assembledStr, tempStr); 
-    
+    */
+    FILE *fp;
+    fp = fopen("controller_save_data.csv", "a+");
+    fprintf(fp, "%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f\n",
+		control_log->time,
+		control_log->stateEstLog.dcm_g2b.d[0][0],
+        	control_log->stateEstLog.dcm_g2b.d[1][0],
+        	control_log->stateEstLog.dcm_g2b.d[2][0],
+        	control_log->stateEstLog.dcm_g2b.d[0][1],
+        	control_log->stateEstLog.dcm_g2b.d[1][1],
+        	control_log->stateEstLog.dcm_g2b.d[2][1],
+        	control_log->stateEstLog.dcm_g2b.d[0][2],
+        	control_log->stateEstLog.dcm_g2b.d[1][2],
+        	control_log->stateEstLog.dcm_g2b.d[2][2],
+		control_log->stateEstLog.pqr_f.x,
+        	control_log->stateEstLog.pqr_f.y,
+        	control_log->stateEstLog.pqr_f.z,
+		control_log->stateEstLog.acc_norm_f,
+		control_log->stateEstLog.Xg.x,
+		control_log->stateEstLog.Xg.y,
+		control_log->stateEstLog.Xg.z,
+		control_log->stateEstLog.Vg.x,
+		control_log->stateEstLog.Vg.y,
+		control_log->stateEstLog.Vg.z,
+		control_log->stateEstLog.Vb.x,
+		control_log->stateEstLog.Vb.y,
+		control_log->stateEstLog.Vb.z,
+		control_log->stateEstLog.Ag.x,
+		control_log->stateEstLog.Ag.y,
+		control_log->stateEstLog.Ag.z,
+		control_log->stateEstLog.Ab_f.x,
+		control_log->stateEstLog.Ab_f.y,
+		control_log->stateEstLog.Ab_f.z,
+		control_log->stateEstLog.rho,
+		control_log->stateEstLog.apparent_wind.sph_f.v,    
+		control_log->stateEstLog.apparent_wind.sph_f.alpha,
+		control_log->stateEstLog.apparent_wind.sph_f.beta,
+		control_log->stateEstLog.tether_force_b.vector_f.x,
+		control_log->stateEstLog.tether_force_b.vector_f.y,
+		control_log->stateEstLog.tether_force_b.vector_f.z,
+		control_log->stateEstLog.wind_g.vector.x,
+		control_log->stateEstLog.wind_g.vector.y,
+		control_log->stateEstLog.wind_g.vector.z,
+		control_log->controlOutputLog.flaps[kFlapA1],
+		control_log->controlOutputLog.flaps[kFlapA2],
+		control_log->controlOutputLog.flaps[kFlapA4],
+		control_log->controlOutputLog.flaps[kFlapA5],
+		control_log->controlOutputLog.flaps[kFlapA7],
+		control_log->controlOutputLog.flaps[kFlapA8],
+		control_log->controlOutputLog.flaps[kFlapEle],
+		control_log->controlOutputLog.flaps[kFlapRud],
+		control_log->controlOutputLog.rotors[kMotor1],
+		control_log->controlOutputLog.rotors[kMotor2],
+		control_log->controlOutputLog.rotors[kMotor3],
+		control_log->controlOutputLog.rotors[kMotor4],
+		control_log->controlOutputLog.rotors[kMotor5],
+		control_log->controlOutputLog.rotors[kMotor6],
+		control_log->controlOutputLog.rotors[kMotor7],
+		control_log->controlOutputLog.rotors[kMotor8]);
+    fclose(fp);
+
+/*
     FILE * fp;
-	fp = fopen("controller_save_data.csv", "a+");
-	fprintf(fp, "%s \n", assembledStr);
-	fclose(fp);
+    fp = fopen("controller_save_data.csv", "a+");
+    fprintf(fp, "%s \n", assembledStr);
+    fclose(fp);
+*/
 #ifdef DEBUG
     printf("   Control Step Saved: File saved as - controller_save_data.csv \n");
 #endif

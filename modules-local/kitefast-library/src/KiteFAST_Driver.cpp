@@ -160,6 +160,15 @@ int main(int argc, char *argv[])
     pFusODCM[6] =  0.0;
     pFusODCM[7] =  0.0;
     pFusODCM[8] =  -1.0;
+    /*pFusODCM[0] = 1.0;
+    pFusODCM[1] = 2.0;
+    pFusODCM[2] = 3.0;
+    pFusODCM[3] = 4.0;
+    pFusODCM[4] = 5.0;
+    pFusODCM[5] = 6.0;
+    pFusODCM[6] = 7.0;
+    pFusODCM[7] = 8.0;
+    pFusODCM[8] = 9.0;*/
 
     // Offset of kite in global coordinates (m)
     // This offset needs to be added to all the reference points.
@@ -451,11 +460,13 @@ int main(int argc, char *argv[])
     pNodePts[c + 5] = -1.832 - pRefPts[n + 2] + pKiteOffset[2];
 */
 
+
     // This is called as part of the user module constructor
     KFAST_Init(&dt, &numFlaps, &numPylons, &numComp, pNumCompNds, pModFlags, KAD_FileName, IfW_FileName, MD_FileName, KFC_FileName, outFileRoot, &printSum, &gravity, &KAD_InterpOrder,
        pFusODCM, &numRtrPts, pRtrPts, pRtrMass, pRtrI_Rot, pRtrI_Trans, pRtrXcm, pRefPts, &numNodePts, pNodePts, pNodeDCMs,
        &nFusOuts, FusOutNd, &nSWnOuts, SWnOutNd, &nPWnOuts, PWnOutNd, &nVSOuts, VSOutNd, &nSHSOuts, SHSOutNd, &nPHSOuts, PHSOutNd, &nPylOuts, PylOutNd, &numOutChan, outChanList, pChanList_len, &errStat, errMsg);
 
+   
     if (errStat == 4)
     {
         printf("%s\n", errMsg);
@@ -575,6 +586,7 @@ int main(int argc, char *argv[])
                     &numRtrPts, pRtrPts, pRtrDCMs, pRtrVels, pRtrOmegas, pRtrAccs, pRtrAlphas,
                     pNodeLoads, pRtrLoads, &errStat, errMsg);
 
+  
 
     for (n = 0; n < numNodeLoadsElem; n = n + 6)
     {
@@ -633,7 +645,8 @@ int main(int argc, char *argv[])
            pNodeVels, pNodeOmegas, pNodeAccs,
            &numRtrPts, pRtrPts, pRtrDCMs, pRtrVels, pRtrOmegas, pRtrAccs, pRtrAlphas,
            pNodeLoads, pRtrLoads, &errStat, errMsg);
-           
+         
+
         if (errStat != 0)
         {
             printf("%s\n", errMsg);

@@ -98,10 +98,14 @@ class KiteModel(BaseModel):
 
         self.joints = self._build_joints()
 
+        # the mip node is the fuselage node which connects to the wing
+        self.mip_node = self.fuselage.nodes[2 * self.fuselage.component.index("wing")]
+
         self._validate_model()
 
         # simulation setup
         self.main_mbd = MainMBD(simulation_dict,
+                                self.mip_node.id,
                                 model_dict["keypoints"],
                                 self.joints,
                                 self.fuselage,
@@ -268,6 +272,11 @@ class KiteModel(BaseModel):
     
     def _validate_model(self):
         
+        # mip node should be located at (0.0, 0.0, 0.0)
+        zeros = Vec3(0.0, 0.0, 0.0)
+        if self.mip_node.position != zeros:
+            raise ModelException(self.fuselage, "Invalid node - fuselage/wing connecting node must be at {}".format(zeros))
+
         # pylons should be given in order from inboard to outboard
 
         # port pylons should decrease in y as the array index gets larger

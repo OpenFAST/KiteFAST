@@ -64,7 +64,7 @@ typedef    ^                   ^               DbKi                    dt - - - 
 #   e.g. indices for searching in an array, large arrays that are local variables in any routine called multiple times, etc.
 typedef   ^    MiscVarType    KAD_Data         KAD              -    -   -  "KiteAeroDyn framework data" -
 typedef   ^    MiscVarType    IfW_Data         IfW              -    -   -  "InflowWind framework data" -
-typedef   ^    MiscVarType    MD_Data          MD               -    -   -  "MoorDyn framework data" -
+typedef   ^    MiscVarType    MD_Data          MD_Tether        -    -   -  "MoorDyn framework data for the kite tether" -
 typedef   ^    MiscVarType    KFC_Data         KFC              -    -   -  "KiteFAST Controller framework data" -
 typedef   ^    MiscVarType    MeshType         mbdFusMotions    -    -   -  "" -
 typedef   ^    MiscVarType    MeshType         mbdSWnMotions    -    -   -  "" -
@@ -188,10 +188,11 @@ typedef   ^    MiscVarType    ReKi             WriteOutput   {:}      - - "" -
 #
 typedef   ^  ParameterType  IntKi            numFlaps    -  -  -  "Number of flaps per wing" -
 typedef   ^  ^              IntKi            numPylons   -  -  -  "Number of pylons per wing" -
+typedef   ^  ^              IntKi            simMod      -  -  -  "Simulation model [1=onshore, 2=offshore, 3=offshore platform + mooring, only (no kite)]" -
 typedef   ^  ^              IntKi            KAD_InterpOrder -  -  -  "KiteAeroDyn Interpolation order.  (0=hold, 1=linear, 2=2nd order)" -
 typedef   ^  ^              Logical          useKAD      -  -  -  "Using KiteAeroDyn module?" -
 typedef   ^  ^              Logical          useIfW      -  -  -  "Using InflowWind module?" -
-typedef   ^  ^              Logical          useMD       -  -  -  "Using MoorDyn module?" -
+typedef   ^  ^              Logical          useMD_Tether -  -  -  "Using MoorDyn module for the tether?" -
 typedef   ^  ^              Logical          useKFC      -  -  -  "Using KiteFAST Controller module?" -
 typedef   ^  ^              DbKi             dt          -  -  -  "Time interval for calculations" s
 typedef   ^  ^              DbKi             KAD_dt      -  -  -  "Time interval for KAD calculations" s
@@ -252,8 +253,8 @@ typedef   ^  OtherStateType logical          KFC_NewTime         -     -   -  "f
 typedef   ^  OtherStateType logical          doStartupInterp     -     -   -  "flag indicating whether the simulation is in startup and KAD_InterpOrder will be overridden to a setting of 0" -
 typedef   ^  OtherStateType KAD_States       KAD                 -     -   -  "KiteAeroDyn framework states and historical inputs/outputs" -
 typedef   ^  OtherStateType IfW_States       IfW                 -     -   -  "InflowWind framework states" -
-typedef   ^  OtherStateType MD_States        MD                  -     -   -  "MoorDyn framework states" -
-#typedef   ^  OtherStateType KFC_States       KFC                 -     -   -  "KiteFAST Controller framework states and historical inputs/outputs" -
+typedef   ^  OtherStateType MD_States        MD_Tether           -     -   -  "MoorDyn tether framework states" -
+#typedef   ^  OtherStateType KFC_States      KFC                 -     -   -  "KiteFAST Controller framework states and historical inputs/outputs" -
 typedef   ^  ^              ReKi             windPt             {3}    -   -  "Previous timestep location of ground station" m
 typedef   ^  ^              ReKi             totalFairLeadLoads {3}    -   -  "Previous timestep total fairlead loads from the tether module in global coordinates" N
 typedef   ^  ^              DbKi             SPyRtrDCMs         {:}{:}{:}{:} - - "Previous timestep starboard rotor/nacelle DCM" -
@@ -265,4 +266,4 @@ typedef   ^  ^              ReKi             FusOv              {3}    -   -  "f
 typedef   ^  ^              ReKi             FusODCM            {3}{3} -   -  "fuselage reference point DCM to transform from global to kite coordinates at time t-p%dt"
 typedef   ^  ^              ReKi             FusOomegas         {3}    -   -  "fuselage reference point rotational velocities in global coordinates at time t-p%dt" m/s
 typedef   ^  ^              ReKi             FusOacc            {3}    -   -  "fuselage reference point accelerations in global coordinates at time t-p%dt" m/s^2
-typedef   ^  ^              MD_InputType     MD_u                -     -   -  "The previous timesteps MoorDyn inputs" -
+typedef   ^  ^              MD_InputType     MD_Tether_u         -     -   -  "The previous timesteps MoorDyn tether inputs" -

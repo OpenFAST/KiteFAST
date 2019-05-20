@@ -136,6 +136,48 @@ module KiteFastController
          
    end subroutine MapKFCOutputs 
    
+   subroutine MapDummyKFCOutputs( numFlaps, numPylons, SPyAeroTorque, PPyAeroTorque, rtrSpd, rtrAcc, rtrBladePitch, y)
+      integer(IntKi),       intent(in   ) :: numFlaps
+      integer(IntKi),       intent(in   ) :: numPylons
+      real(ReKi),           intent(in   ) :: SPyAeroTorque(:,:)
+      real(ReKi),           intent(in   ) :: PPyAeroTorque(:,:)
+      real(ReKi),           intent(in   ) :: rtrSpd
+      real(ReKi),           intent(in   ) :: rtrAcc
+      real(ReKi),           intent(in   ) :: rtrBladePitch
+      type(KFC_OutputType), intent(inout) :: y
+      
+      integer(IntKi)                :: j
+      real(ReKi)                    :: sgn   ! sign for rotor
+         ! Set outputs to zero for now
+      sgn = -1.0
+      do j=1,numPylons
+         y%SPyGenTorque(1,j) = -SPyAeroTorque(1,j)
+         y%SPyGenTorque(2,j) = -SPyAeroTorque(2,j)
+         y%PPyGenTorque(1,j) = -PPyAeroTorque(1,j)
+         y%PPyGenTorque(2,j) = -PPyAeroTorque(2,j)
+         y%SPyRtrSpd(1,j)    = sgn*rtrSpd
+         y%SPyRtrSpd(2,j)    = -sgn*rtrSpd
+         y%PPyRtrSpd(1,j)    = sgn*rtrSpd
+         y%PPyRtrSpd(2,j)    = -sgn*rtrSpd
+         y%SPyRtrAcc(1,j)    = sgn*rtrAcc
+         y%SPyRtrAcc(1,j)    = -sgn*rtrAcc
+         y%PPyRtrAcc(1,j)    = sgn*rtrAcc
+         y%PPyRtrAcc(1,j)    = -sgn*rtrAcc
+         y%SPyBldPitch(1,j)  = rtrBladePitch
+         y%SPyBldPitch(2,j)  = rtrBladePitch
+         y%PPyBldPitch(1,j)  = rtrBladePitch
+         y%PPyBldPitch(2,j)  = rtrBladePitch
+         sgn = -sgn
+      end do
+      
+      y%SFlp         = 0.0_ReKi
+      y%PFlp         = 0.0_ReKi
+      y%Rudr         = 0.0_ReKi
+      y%SElv         = 0.0_ReKi
+      y%PElv         = 0.0_ReKi
+         
+   end subroutine MapDummyKFCOutputs 
+   
    subroutine KFC_End(p, errStat, errMsg)
 
       type(KFC_ParameterType),        intent(inout)  :: p               !< Parameters
@@ -189,7 +231,7 @@ module KiteFastController
       real(C_DOUBLE), allocatable             :: rtrIrot(:), genTorq(:), rtrSpd(:), rtrAcc(:), rtrBladePitch(:), ctrlSettings(:)
       real(C_DOUBLE)                          :: dt_c
       integer(IntKi)                          :: wingOffset, i, j, c
-      
+      real(ReKi), allocatable                 :: SPyAeroTorque(:,:), PPyAeroTorque(:,:)
       errStat2 = ErrID_None
       errMsg2  = ''
    
@@ -239,7 +281,13 @@ module KiteFastController
          
       if (errStat >= AbortErrLev ) return
 
-      
+      call AllocAry(SPyAeroTorque, 2, p%numPylons, 'SPyAeroTorque', errStat2,errMsg2)
+         call SetErrStat(errStat2,errMsg2,errStat,errMsg,routineName)
+      call AllocAry(PPyAeroTorque, 2, p%numPylons, 'PPyAeroTorque', errStat2,errMsg2)
+         call SetErrStat(errStat2,errMsg2,errStat,errMsg,routineName)
+      SPyAeroTorque = 0.0_ReKi
+      PPyAeroTorque = 0.0_ReKi
+	  
       ! Are we simply using a dummy controller?  If so, we will skip trying to call into a DLL/SO      
       
       if (.not. p%useDummy) then
@@ -283,43 +331,23 @@ module KiteFastController
          call DLL_KFC_Init_Subroutine ( dt_c, p%numFlaps*2+2, p%numPylons, rtrIrot, genTorq, rtrSpd, rtrAcc, rtrBladePitch, ctrlSettings, errStat, errMsg_c ) 
       
          call c_to_fortran_string(errMsg_c, errMsg)
-         ! print *, " KFC_Init errStat - ", errStat, " errMsg - ", trim(errMsg)
+         print *, " KFC_Init errStat - ", errStat, " errMsg - ", trim(errMsg)
          ! TODO: Check errors
-         ! print *, " debug marker - pre errStat >= Abort"
+         print *, " debug marker - pre errStat >= Abort"
          if (errStat >= AbortErrLev ) return
          
-         ! print *, " debug marker - post errStat >= Abort"
-         ! print *, " debug - genTorq     : ", genTorq
-         ! print *, " debug - rtrSpd      : ", rtrSpd
-         ! print *, " debug - ctrlSettings: ", ctrlSettings
+         print *, " debug marker - post errStat >= Abort"
+         print *, " debug - genTorq     : ", genTorq
+         print *, " debug - rtrSpd      : ", rtrSpd
+         print *, " debug - ctrlSettings: ", ctrlSettings
          
          ! obtain initial outputs from the DLL and set them
-         call MapKFCOutputs( p%numFlaps, p%numPylons, genTorq, rtrSpd, rtrAcc, rtrBladePitch, ctrlSettings, y)
- 
+         !call MapKFCOutputs( p%numFlaps, p%numPylons, genTorq, rtrSpd, rtrAcc, rtrBladePitch, ctrlSettings, y)
+            ! This uses the Dummy controller to set the outputs for KiteFAST, the 3 values are rotor speed, rotor acceleration, and blade pitch
+         call MapDummyKFCOutputs( p%numFlaps, p%numPylons, SPyAeroTorque, PPyAeroTorque, 120.0_ReKi, 0.0_ReKi, 0.0_ReKi, y)
       else
-           ! Set outputs to zero except for RtrSpd which is set to be constant for the dummy controller
-         y%SPyGenTorque = 0.0_ReKi
-         y%PPyGenTorque = 0.0_ReKi
-            ! TODO: Determine what would be a realistic dummy set of speed and the correct signs for each rotor
-         y%SPyRtrSpd(1,1) = -100.0  ! starboard top rotor, inner pylons 
-         y%SPyRtrSpd(2,1) = 100.0  ! starboard bottom rotor, inner pylons     
-         y%PPyRtrSpd(1,1) = -100.0  ! port top rotor, inner pylons
-         y%PPyRtrSpd(2,1) = 100.0  ! port bottom rotor, inner pylons
-         if ( p%numPylons > 1 ) then
-            y%SPyRtrSpd(1,2) = 100.0  ! starboard top rotor, outer pylons 
-            y%SPyRtrSpd(2,2) = -100.0  ! starboard bottom rotor, outer pylons
-            y%PPyRtrSpd(1,2) = 100.0  ! port top rotor, outer pylon
-            y%PPyRtrSpd(2,2) = -100.0  ! port bottom rotor, outer pylon
-         end if
-         y%SPyRtrAcc    =   0.0_ReKi  ! rad/s^2
-         y%PPyRtrAcc    =   0.0_ReKi  ! rad/s^2
-         y%SPyBldPitch  = 0.0_ReKi
-         y%PPyBldPitch  = 0.0_ReKi
-         y%SFlp         = 0.0_ReKi
-         y%PFlp         = 0.0_ReKi
-         y%Rudr         = 0.0_ReKi
-         y%SElv         = 0.0_ReKi
-         y%PElv         = 0.0_ReKi
+            ! This uses the Dummy controller to set the outputs for KiteFAST, the 3 values are rotor speed, rotor acceleration, and blade pitch
+         call MapDummyKFCOutputs( p%numFlaps, p%numPylons, SPyAeroTorque, PPyAeroTorque, 120.0_ReKi, 0.0_ReKi, 0.0_ReKi, y)
          
       end if
 
@@ -392,21 +420,21 @@ module KiteFastController
             end do
          end do
 
-            ! print *, " ========================================"
-            ! print *, " KFC_Step - Inputs at time = ", t
-            ! print *, " debug - SPyAeroTorque: ", u%SPyAeroTorque
-            ! print *, " debug - PPyAeroTorque: ", u%PPyAeroTorque
-            ! print *, " debug - AeroTorq     : ", AeroTorq
-            ! print *, " debug - pqr          : ", u%pqr
-            ! print *, " debug - acc_norm     : ", u%acc_norm
-            ! print *, " debug - Xg           : ", u%Xg
-            ! print *, " debug - Vg           : ", u%Vg
-            ! print *, " debug - Vb           : ", u%Vb
-            ! print *, " debug - Ag           : ", u%Ag
-            ! print *, " debug - Ab           : ", u%Ab
-            ! print *, " debug - apparent_wind: ", u%apparent_wind
-            ! print *, " debug - tether_forceb: ", u%tether_forceb
-            ! print *, " debug - wind_g       : ", u%wind_g
+            print *, " ========================================"
+            print *, " KFC_Step - Inputs at time = ", t
+            print *, " debug - SPyAeroTorque: ", u%SPyAeroTorque
+            print *, " debug - PPyAeroTorque: ", u%PPyAeroTorque
+            print *, " debug - AeroTorq     : ", AeroTorq
+            print *, " debug - pqr          : ", u%pqr
+            print *, " debug - acc_norm     : ", u%acc_norm
+            print *, " debug - Xg           : ", u%Xg
+            print *, " debug - Vg           : ", u%Vg
+            print *, " debug - Vb           : ", u%Vb
+            print *, " debug - Ag           : ", u%Ag
+            print *, " debug - Ab           : ", u%Ab
+            print *, " debug - apparent_wind: ", u%apparent_wind
+            print *, " debug - tether_forceb: ", u%tether_forceb
+            print *, " debug - wind_g       : ", u%wind_g
 
             ! Call the DLL (first associate the address from the procedure in the DLL with the subroutine):
          call C_F_PROCPOINTER( p%DLL_Trgt%ProcAddr(2), DLL_KFC_Step_Subroutine) 
@@ -414,51 +442,20 @@ module KiteFastController
          call c_to_fortran_string(errMsg_c, errMsg)
 
           ! print *, " KFC_Step errStat - ", errStat, " errMsg - ", trim(errMsg)
-            ! print *, " KFC_Step - Outputs "
-            ! print *, " debug - genTorq     : ", genTorq
-            ! print *, " debug - rtrSpd      : ", rtrSpd
-            ! print *, " debug - ctrlSettings: ", ctrlSettings
-            ! print *, " ========================================"
+            print *, " KFC_Step - Outputs "
+            print *, " debug - genTorq     : ", genTorq
+            print *, " debug - rtrSpd      : ", rtrSpd
+            print *, " debug - ctrlSettings: ", ctrlSettings
+            print *, " ========================================"
 
          ! obtain initial outputs from the DLL and set them
-         call MapKFCOutputs( p%numFlaps, p%numPylons, genTorq, rtrSpd, rtrAcc, rtrBladePitch, ctrlSettings, y)
+         !call MapKFCOutputs( p%numFlaps, p%numPylons, genTorq, rtrSpd, rtrAcc, rtrBladePitch, ctrlSettings, y)
+            ! This uses the Dummy controller to set the outputs for KiteFAST, the 3 values are rotor speed, rotor acceleration, and blade pitch
+         call MapDummyKFCOutputs( p%numFlaps, p%numPylons, u%SPyAeroTorque, u%PPyAeroTorque, 120.0_ReKi, 0.0_ReKi, 0.0_ReKi, y)
          
       else
-         
-         ! TODO: Determine what would be a realistic dummy set of speed and the correct signs for each rotor
-            ! NOTE: Speed should match the settings used in the Init routine.
-         y%SPyRtrSpd(1,1) = -100.0  ! starboard top rotor, inner pylons 
-         y%SPyRtrSpd(2,1) = 100.0  ! starboard bottom rotor, inner pylons        
-         y%PPyRtrSpd(1,1) = -100.0  ! port top rotor, inner pylons
-         y%PPyRtrSpd(2,1) = 100.0  ! port bottom rotor, inner pylons
-         
-         if ( p%numPylons > 1 ) then
-            y%SPyRtrSpd(1,2) = 100.0  ! starboard top rotor, outer pylons 
-            y%SPyRtrSpd(2,2) = -100.0  ! starboard bottom rotor, outer pylons
-            y%PPyRtrSpd(1,2) = 100.0  ! port top rotor, outer pylon
-            y%PPyRtrSpd(2,2) = -100.0  ! port bottom rotor, outer pylon
-         end if
-            ! Zero rotor acceleration
-         y%SPyRtrAcc(1,:) = 0.0_ReKi ! starboard top rotor, all pylons 
-         y%SPyRtrAcc(2,:) = 0.0_ReKi ! starboard bottom rotor, all pylons
-         y%PPyRtrAcc(1,:) = 0.0_ReKi ! port top rotor, all pylons
-         y%PPyRtrAcc(2,:) = 0.0_ReKi ! port bottom rotor, all pylons
-         
-
-            ! Currently blade pitch is not being set by controller and was initialized to 0.0
-         y%SPyBldPitch  = 0.0_ReKi
-         y%PPyBldPitch  = 0.0_ReKi
-         
-            ! Set GenTorque = -AeroTorque
-         y%SPyGenTorque = -u%SPyAeroTorque  ! starboard rotors
-         y%PPyGenTorque = -u%PPyAeroTorque  ! port rotors
-        
-            ! All flag commands are constant for the dummy controller
-         y%SFlp = 0.0_ReKi
-         y%PFlp = 0.0_ReKi
-         y%Rudr = 0.0_ReKi
-         y%SElv = 0.0_ReKi
-         y%PElv = 0.0_ReKi
+            ! This uses the Dummy controller to set the outputs for KiteFAST, the 3 values are rotor speed, rotor acceleration, and blade pitch
+         call MapDummyKFCOutputs( p%numFlaps, p%numPylons, u%SPyAeroTorque, u%PPyAeroTorque, 120.0_ReKi, 0.0_ReKi, 0.0_ReKi, y)
          
       end if
       
