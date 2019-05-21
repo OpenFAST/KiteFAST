@@ -46,6 +46,11 @@ class Input():
         self.simulation_dict = self._parse_simulation_dict(self.input_dict)
         self.model_dict = self._parse_model_dict(self.input_dict)
 
+    def _string_to_list(self, string, delimiter=" "):
+        dirty = string.split(delimiter)
+        clean = filter(None, dirty)
+        return list(clean)
+
     def _parse_simulation_dict(self, input_dict):
         constants = input_dict["constants"]
         simulation_controls = input_dict["simulation_controls"]

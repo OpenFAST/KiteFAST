@@ -17,6 +17,7 @@
 from .base_model import BaseModel
 from .components import Fuselage
 from .iohandler import Output
+from .mbdyn_types import Vec3
 from .mbdyn_types import OrientationMatrix
 from .mbdyn_types import ReferenceFrame
 
@@ -60,18 +61,6 @@ class TwoElementBeamModel(BaseModel):
             self.mip_reference_frame,
             self.fuselage
         )
-
-    def _preprocess_model_dict(self, model_dict):
-        keypoints = model_dict["keypoints"]
-        for keypoint in keypoints:
-            keypoints[keypoint] = self._list_to_vec3(keypoints[keypoint])
-        model_dict["keypoints"] = keypoints
-
-        for component_path in self.required_components:
-            component_dict = self._deep_get(model_dict, component_path)
-            keypoint = self._list_to_vec3(component_dict["keypoint"])
-            # model_dict[]
-        return model_dict
 
     def _build_components(self, model_dict):
 
@@ -207,7 +196,7 @@ class MainMBD():
 
         self.initial_position = simulation_controls["initial_conditions"]["location"]
         constants = simulation_controls["constants"]
-        self.gravity = constants["gravity"]
+        self.gravity = Vec3(constants["gravity"])
         self.fast_submodules = simulation_controls["fast_submodules"]
         self.fast_submodule_input_files = simulation_controls["fast_submodule_input_files"]
         time = simulation_controls["time"]
