@@ -2065,41 +2065,41 @@ subroutine TransferMBDynInputs2KADMeshes( isInitialTime, FusO, p, m, errStat, er
       end do
    end do
    
-   if ( isInitialTime > 0 ) then
+   !if ( isInitialTime > 0 ) then
       call KAD_CopyInput(m%KAD%u, OtherSt%KAD%u(1), MESH_NEWCOPY, errStat2, errMsg2)
             call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )  
-    else
-      ! Now filter the inputs:   
-      ! call MeshExtrapInterp1(u1, u2, tin, u_out, tin_out, ErrStat, ErrMsg )
-       call MeshExtrapInterp1( m%KAD%u%FusOMotions, OtherSt%KAD%u(2)%FusOMotions, (/0.0_DbKi, 1.0_DbKi/), OtherSt%KAD%u(1)%FusOMotions, p%KAD_filtConst, errStat2, errMsg2 )
-          call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
-       call MeshExtrapInterp1( m%KAD%u%FusMotions, OtherSt%KAD%u(2)%FusMotions, (/0.0_DbKi, 1.0_DbKi/), OtherSt%KAD%u(1)%FusMotions, p%KAD_filtConst, errStat2, errMsg2 )
-          call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
-       call MeshExtrapInterp1( m%KAD%u%SWnMotions, OtherSt%KAD%u(2)%SWnMotions, (/0.0_DbKi, 1.0_DbKi/), OtherSt%KAD%u(1)%SWnMotions, p%KAD_filtConst, errStat2, errMsg2 )
-          call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
-       call MeshExtrapInterp1( m%KAD%u%PWnMotions, OtherSt%KAD%u(2)%PWnMotions, (/0.0_DbKi, 1.0_DbKi/), OtherSt%KAD%u(1)%PWnMotions, p%KAD_filtConst, errStat2, errMsg2 )
-          call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
-       call MeshExtrapInterp1( m%KAD%u%VSMotions , OtherSt%KAD%u(2)%VSMotions , (/0.0_DbKi, 1.0_DbKi/), OtherSt%KAD%u(1)%VSMotions , p%KAD_filtConst, errStat2, errMsg2 )
-          call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
-       call MeshExtrapInterp1( m%KAD%u%SHSMotions, OtherSt%KAD%u(2)%SHSMotions, (/0.0_DbKi, 1.0_DbKi/), OtherSt%KAD%u(1)%SHSMotions, p%KAD_filtConst, errStat2, errMsg2 )
-          call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
-       call MeshExtrapInterp1( m%KAD%u%PHSMotions, OtherSt%KAD%u(2)%PHSMotions, (/0.0_DbKi, 1.0_DbKi/), OtherSt%KAD%u(1)%PHSMotions, p%KAD_filtConst, errStat2, errMsg2 )
-          call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
+    ! else
+      ! ! Now filter the inputs:   
+      ! ! call MeshExtrapInterp1(u1, u2, tin, u_out, tin_out, ErrStat, ErrMsg )
+       ! call MeshExtrapInterp1( m%KAD%u%FusOMotions, OtherSt%KAD%u(2)%FusOMotions, (/0.0_DbKi, 1.0_DbKi/), OtherSt%KAD%u(1)%FusOMotions, p%KAD_filtConst, errStat2, errMsg2 )
+          ! call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
+       ! call MeshExtrapInterp1( m%KAD%u%FusMotions, OtherSt%KAD%u(2)%FusMotions, (/0.0_DbKi, 1.0_DbKi/), OtherSt%KAD%u(1)%FusMotions, p%KAD_filtConst, errStat2, errMsg2 )
+          ! call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
+       ! call MeshExtrapInterp1( m%KAD%u%SWnMotions, OtherSt%KAD%u(2)%SWnMotions, (/0.0_DbKi, 1.0_DbKi/), OtherSt%KAD%u(1)%SWnMotions, p%KAD_filtConst, errStat2, errMsg2 )
+          ! call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
+       ! call MeshExtrapInterp1( m%KAD%u%PWnMotions, OtherSt%KAD%u(2)%PWnMotions, (/0.0_DbKi, 1.0_DbKi/), OtherSt%KAD%u(1)%PWnMotions, p%KAD_filtConst, errStat2, errMsg2 )
+          ! call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
+       ! call MeshExtrapInterp1( m%KAD%u%VSMotions , OtherSt%KAD%u(2)%VSMotions , (/0.0_DbKi, 1.0_DbKi/), OtherSt%KAD%u(1)%VSMotions , p%KAD_filtConst, errStat2, errMsg2 )
+          ! call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
+       ! call MeshExtrapInterp1( m%KAD%u%SHSMotions, OtherSt%KAD%u(2)%SHSMotions, (/0.0_DbKi, 1.0_DbKi/), OtherSt%KAD%u(1)%SHSMotions, p%KAD_filtConst, errStat2, errMsg2 )
+          ! call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
+       ! call MeshExtrapInterp1( m%KAD%u%PHSMotions, OtherSt%KAD%u(2)%PHSMotions, (/0.0_DbKi, 1.0_DbKi/), OtherSt%KAD%u(1)%PHSMotions, p%KAD_filtConst, errStat2, errMsg2 )
+          ! call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
       
-       do j = 1, p%numPylons
-          call MeshExtrapInterp1( m%KAD%u%SPyMotions(j), OtherSt%KAD%u(2)%SPyMotions(j), (/0.0_DbKi, 1.0_DbKi/), OtherSt%KAD%u(1)%SPyMotions(j), p%KAD_filtConst, errStat2, errMsg2 )
-             call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
-          call MeshExtrapInterp1( m%KAD%u%PPyMotions(j), OtherSt%KAD%u(2)%PPyMotions(j), (/0.0_DbKi, 1.0_DbKi/), OtherSt%KAD%u(1)%PPyMotions(j), p%KAD_filtConst, errStat2, errMsg2 )
-             call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
-          do i=1,2 ! two per pylon
-             c = i+(j-1)*p%numPylons
-             call MeshExtrapInterp1( m%KAD%u%SPyRtrMotions(c), OtherSt%KAD%u(2)%SPyRtrMotions(c), (/0.0_DbKi, 1.0_DbKi/), OtherSt%KAD%u(1)%SPyRtrMotions(c), p%KAD_filtConst, errStat2, errMsg2 )
-                call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
-             call MeshExtrapInterp1( m%KAD%u%PPyRtrMotions(c), OtherSt%KAD%u(2)%PPyRtrMotions(c), (/0.0_DbKi, 1.0_DbKi/), OtherSt%KAD%u(1)%PPyRtrMotions(c), p%KAD_filtConst, errStat2, errMsg2 )
-                call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
-          end do
-       end do
-    end if
+       ! do j = 1, p%numPylons
+          ! call MeshExtrapInterp1( m%KAD%u%SPyMotions(j), OtherSt%KAD%u(2)%SPyMotions(j), (/0.0_DbKi, 1.0_DbKi/), OtherSt%KAD%u(1)%SPyMotions(j), p%KAD_filtConst, errStat2, errMsg2 )
+             ! call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
+          ! call MeshExtrapInterp1( m%KAD%u%PPyMotions(j), OtherSt%KAD%u(2)%PPyMotions(j), (/0.0_DbKi, 1.0_DbKi/), OtherSt%KAD%u(1)%PPyMotions(j), p%KAD_filtConst, errStat2, errMsg2 )
+             ! call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
+          ! do i=1,2 ! two per pylon
+             ! c = i+(j-1)*p%numPylons
+             ! call MeshExtrapInterp1( m%KAD%u%SPyRtrMotions(c), OtherSt%KAD%u(2)%SPyRtrMotions(c), (/0.0_DbKi, 1.0_DbKi/), OtherSt%KAD%u(1)%SPyRtrMotions(c), p%KAD_filtConst, errStat2, errMsg2 )
+                ! call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
+             ! call MeshExtrapInterp1( m%KAD%u%PPyRtrMotions(c), OtherSt%KAD%u(2)%PPyRtrMotions(c), (/0.0_DbKi, 1.0_DbKi/), OtherSt%KAD%u(1)%PPyRtrMotions(c), p%KAD_filtConst, errStat2, errMsg2 )
+                ! call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
+          ! end do
+       ! end do
+    ! end if
    
 end subroutine TransferMBDynInputs2KADMeshes
 
@@ -3560,7 +3560,7 @@ subroutine AssRes_OnShore( t_c, isInitialTime_c, WindPt_c, FusO_c, FusODCM_c, Fu
 
       if ( isInitialTime < 1 ) then
          call MD_CopyInput( OtherSt%MD_Tether_u, m%MD_Tether%u(2), MESH_NEWCOPY, errStat2, errMsg2 )
-         call MD_UpdateStates( utimes(1), n, m%MD_Tether%u, utimes, m%MD_Tether%p, OtherSt%MD_Tether%x_copy, m%MD_Tether%xd, m%MD_Tether%z, OtherSt%MD_Tether%OtherSt, m%MD_Tether%m, errStat2, errMsg2 )
+         call MD_UpdateStates( utimes(2), n2, m%MD_Tether%u, utimes, m%MD_Tether%p, OtherSt%MD_Tether%x_copy, m%MD_Tether%xd, m%MD_Tether%z, OtherSt%MD_Tether%OtherSt, m%MD_Tether%m, errStat2, errMsg2 )
             call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
                if (errStat >= AbortErrLev ) return
 
@@ -3771,8 +3771,8 @@ subroutine AssRes_OnShore( t_c, isInitialTime_c, WindPt_c, FusO_c, FusODCM_c, Fu
             call KAD_Input_ExtrapInterp(OtherSt%KAD%u, OtherSt%KAD%t_in, m%KAD%u, t+p%KAD_dt, errStat2, errMsg2 )
                call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
           
-              ! Update the KAD states, n2 corresponds to time, t
-            call KAD_UpdateStates( t, n2, OtherSt%KAD%u, OtherSt%KAD%t_in, m%KAD%p, m%KAD%x, m%KAD%xd, OtherSt%KAD%z, OtherSt%KAD%OtherSt, m%KAD%m, errStat2, errMsg2 )
+              ! Update the KAD states, n corresponds to time, t
+            call KAD_UpdateStates( t, n, OtherSt%KAD%u, OtherSt%KAD%t_in, m%KAD%p, m%KAD%x, m%KAD%xd, OtherSt%KAD%z, OtherSt%KAD%OtherSt, m%KAD%m, errStat2, errMsg2 )
                call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
             call KAD_CalcOutput( t+p%KAD_dt, m%KAD%u, m%KAD%p, m%KAD%x, m%KAD%xd, OtherSt%KAD%z, OtherSt%KAD%OtherSt, m%KAD%y, m%KAD%m, errStat2, errMsg2 )
                call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
@@ -3791,7 +3791,7 @@ subroutine AssRes_OnShore( t_c, isInitialTime_c, WindPt_c, FusO_c, FusODCM_c, Fu
                   OtherSt%KAD%t_in(1) = t              
                end if
                
-               call KAD_UpdateStates( t, n2, OtherSt%KAD%u, OtherSt%KAD%t_in, m%KAD%p, m%KAD%x, m%KAD%xd, OtherSt%KAD%z, OtherSt%KAD%OtherSt, m%KAD%m, errStat2, errMsg2 )
+               call KAD_UpdateStates( t, n, OtherSt%KAD%u, OtherSt%KAD%t_in, m%KAD%p, m%KAD%x, m%KAD%xd, OtherSt%KAD%z, OtherSt%KAD%OtherSt, m%KAD%m, errStat2, errMsg2 )
                   call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
 !               call KAD_UpdateStates( utimes(1), n, OtherSt%KAD%u, utimes, m%KAD%p, m%KAD%x, m%KAD%xd, OtherSt%KAD%z, OtherSt%KAD%OtherSt, m%KAD%m, errStat2, errMsg2 )
 !                  call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
@@ -3889,6 +3889,9 @@ subroutine AssRes_OnShore( t_c, isInitialTime_c, WindPt_c, FusO_c, FusODCM_c, Fu
             call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )                             
       end do
    end do
+   
+   call TransferLoadsToMBDyn( p, m, nodeLoads_c, rtrLoads_c, errStat2, errMsg2 )
+      call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
 
 end subroutine AssRes_OnShore
 
@@ -3953,7 +3956,7 @@ subroutine End_Onshore(errStat, errMsg)
    errMsg  = ''
 
    
-   call KFAST_DestroyOtherState( OtherSt, ErrStat, ErrMsg )
+   !call KFAST_DestroyOtherState( OtherSt, ErrStat, ErrMsg )
    
    ! Call the End subroutines for KiteAeroDyn, MoorDyn, InflowWind, and the Controller
    if ( p%useKAD ) then
@@ -3977,8 +3980,8 @@ subroutine End_Onshore(errStat, errMsg)
    if ( p%useMD_Tether ) then
       call MD_DestroyInput(m%MD_Tether%u(2), errStat2 , errMsg2)
          call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
-      call MD_DestroyInput(OtherSt%MD_Tether_u, errStat2 , errMsg2)
-         call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
+      !call MD_DestroyInput(OtherSt%MD_Tether_u, errStat2 , errMsg2)
+      !   call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
 
       call MD_End(m%MD_Tether%u(1), m%MD_Tether%p, OtherSt%MD_Tether%x, m%MD_Tether%xd, m%MD_Tether%z, OtherSt%MD_Tether%OtherSt, m%MD_Tether%y, m%MD_Tether%m, errStat2 , errMsg2)
          call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
