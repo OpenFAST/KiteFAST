@@ -58,6 +58,7 @@ SET ALL_FAST_Includes=-I "%FAST_Loc%" -I "%NWTC_Lib_Loc%" -I "%ED_Loc%" -I "%Srv
  "%IceF_Loc%" -I "%IceD_Loc%" -I "%MD_Loc%" -I "%OpFM_Loc%" -I "%Orca_Loc%" -I "%ExtPtfm_Loc%"
 
 SET ALL_KFAST_Includes=-I "%KFAST_Loc%" -I "%NWTC_Lib_Loc%" -I "%KAD_Loc%" -I "%VSM_Loc%" -I "%ActDsk_Loc%" -I "%AFI_Loc%" -I "%MD_Loc%" -I "%KFC_Loc%" -I "%IfW_Loc%"
+SET ALL_KFAST_OS_Includes=-I "%KFAST_Loc%" -I "%NWTC_Lib_Loc%" -I "%MD_Loc%" -I "%HD_Loc%"
 
 SET ModuleName=%1
 
@@ -80,6 +81,11 @@ GOTO checkError
 :KiteFAST
 SET CURR_LOC=%KFAST_Loc%
 %REGISTRY% "%CURR_LOC%\KiteFAST_Registry.txt" %ALL_KFAST_Includes% -noextrap -O "%Output_Loc%"
+GOTO checkError
+
+:KiteFAST_OS
+SET CURR_LOC=%KFAST_Loc%
+%REGISTRY% "%CURR_LOC%\KiteFAST_OS_Registry.txt" %ALL_KFAST_OS_Includes% -noextrap -O "%Output_Loc%"
 GOTO checkError
 
 :BeamDyn

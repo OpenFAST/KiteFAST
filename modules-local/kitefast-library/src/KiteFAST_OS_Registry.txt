@@ -1,0 +1,83 @@
+###################################################################################################################################
+# Registry for KiteFAST in the FAST Modularization Framework
+# This Registry file is used to create MODULE KiteFAST  which contains all of the user-defined types needed in KiteFAST.
+# It also contains copy, destroy, pack,  and unpack routines associated with each defined data types.
+# See NWTC Programmer's Handbook for further information on the format/contents of this file.
+#
+# Entries are of the form
+# <keyword>         <ModuleName/ModName>          <TypeName>          <FieldType>         <FieldName>         <Dims>    <IO>      <DNAME>   <DESCRIP> <UNITS>
+#
+# Use ^ as a shortcut for the value in the same column from the previous line.
+# ...... Include files (definitions from NWTC Library and module components) ............................................................................
+include Registry_NWTC_Library.txt
+usefrom MoorDyn_Registry.txt
+usefrom HydroDyn.txt
+#
+#
+# ..... Initialization data .......................................................................................................
+# Define inputs that the initialization routine may need here:
+#   e.g.,  the name of the input file,  the file root name,etc.
+#
+
+typedef    KiteFAST_OS/KFAST_OS    MD_Data         MD_ParameterType              p  - - - "Parameter data for MoorDyn module" -
+typedef    ^                       ^               MD_InputType                  u  {2} - - "Input data for MoorDyn module" -
+typedef    ^                       ^               MD_MiscVarType                m  - - - "Misc vars for MoorDyn module" -
+typedef    ^                       ^               MD_DiscreteStateType          xd - - - "Discrete states for MoorDyn module" -
+typedef    ^                       ^               MD_ConstraintStateType        z  - - - "Constraint states for MoorDyn module" -
+typedef    ^                       ^               MD_OutputType                 y  - - - "Output data for MoorDyn module" -   
+typedef    KiteFAST_OS/KFAST_OS    MD_States       MD_ContinuousStateType        x  - - - "Continuous states for MoorDyn module" -
+typedef    ^                       ^               MD_ContinuousStateType        x_copy  - - - "Continuous states copy for MoorDyn module" -
+typedef    ^                       ^               MD_OtherStateType             OtherSt  - - - "Other states for MoorDyn module" -
+typedef    KiteFAST_OS/KFAST_OS    HD_Data         HydroDyn_ParameterType        p  - - - "Parameter data for HydroDyn module" -
+typedef    ^                       ^               HydroDyn_InputType            u  {2} - - "Input data for HydroDyn module" -
+typedef    ^                       ^               HydroDyn_MiscVarType          m  - - - "Misc vars for HydroDyn module" -
+typedef    ^                       ^               HydroDyn_ConstraintStateType  z  - - - "Constraint states for HydroDyn module" -
+typedef    ^                       ^               HydroDyn_OutputType           y  - - - "Output data for HydroDyn module" -   
+typedef    KiteFAST_OS/KFAST_OS    HD_States       HydroDyn_ContinuousStateType  x  - - - "Continuous states for HydroDyn module" -
+typedef    ^                       ^               HydroDyn_ContinuousStateType  x_copy  - - - "Continuous states copy for HydroDyn module" -
+typedef    ^                       ^               HydroDyn_InputType            u_prev - - - "Input data from previous timestep for HydroDyn module" -
+typedef    ^                       ^               HydroDyn_DiscreteStateType    xd - - - "Discrete states for HydroDyn module" -
+typedef    ^                       ^               HydroDyn_DiscreteStateType    xd_copy - - - "Discrete states copy for HydroDyn module" -
+typedef    ^                       ^               HydroDyn_OtherStateType       OtherSt  - - - "Other states for HydroDyn module" -
+ 
+# ..... Misc/Optimization variables.................................................................................................
+# Define any data that are used only for efficiency purposes (these variables are not associated with time):
+#   e.g. indices for searching in an array, large arrays that are local variables in any routine called multiple times, etc.
+typedef   ^    MiscVarType    MD_Data          MD_Mooring       -    -  - "MoorDyn framework data for the mooring system - Offshore Data" -
+typedef   ^    ^              HD_Data          HD               -    -  - "HydroDyn framework data for the offshore system - Offshore Data" -
+typedef   ^    ^              MeshType         mbdPtfmMotions   -    -  - "" -
+typedef   ^    ^              MeshType         mbdPtfmLoads     -    -  - "" -
+typedef   ^    ^              MeshMapType      HD_P_2_HD_M_P    -    -  - "" -
+typedef   ^    ^              MeshMapType      HD_P_2_HD_M_L    -    -  - "" -
+typedef   ^    ^              MeshMapType      MD_M_P_2_MBD_P   -    -  - "" -
+typedef   ^    ^              MeshMapType      HD_P_2_MD_P      -    -  - "" -
+typedef   ^    ^              ReKi             AllOuts     {3978}    -  - "" -
+typedef   ^    ^              ReKi             WriteOutput   {:}     -  - "" -
+#
+# ..... Parameters ................................................................................................................
+# Define parameters here:
+# Time step for integration of continuous states (if a fixed-step integrator is used) and update of discrete states:
+#
+typedef   ^  ParameterType  IntKi            simMod        -  -  -  "Simulation model [1=onshore, 2=offshore, 3=offshore platform + mooring, only (no kite)]" -
+typedef   ^  ^              Logical          useMD_Mooring -  -  -  "Using MoorDyn module for the mooring lines? - Offshore Data" -
+typedef   ^  ^              Logical          useHD         -  -  -  "Using HydroDyn module? - Offshore Data" -
+typedef   ^  ^              DbKi             dt            -  -  -  "Time interval for calculations" s
+typedef   ^  ^              ReKi             Gravity       -  -  -  "Gravitational constant" m/s^2
+typedef   ^  ^              ReKi             GSRefPtR     {3} -  -  "Reference location of the Ground Station reference point in global coordinates - Offshore Data" m
+typedef   ^  ^              CHARACTER(1024)  outFileRoot   -  -  -  "Rootname of the KiteFAST output file(s)"   -
+typedef   ^  ^              IntKi            numOuts       -  0  -  "Total number of outputs requested (across all modules)"  -
+typedef   ^  ^              IntKi            numKFASTOuts  -  0  -  "Number of offshore, KFAST-specific outputs requested"  -
+typedef   ^  ^              IntKi            numHDOuts    -  0  -  "Number of HD outputs requested" -
+typedef   ^  ^              IntKi            numMDOuts     -  0  -  "Number of MD mooring outputs requested"  -
+typedef   ^  ^              OutParmType      OutParam     {:} -  -  "Names and units (and other characteristics) of all requested output parameters"    -
+typedef   ^  ^              LOGICAL          TabDelim      -  -  -  "Flag to cause tab-delimited text output (delimited by space otherwise)"  -
+typedef   ^  ^              CHARACTER(20)    OutFmt        -  -  -  "Output format for tabular data"    -
+typedef   ^  ^              CHARACTER(20)    OutSFmt       -  -  -  "Output format for channel labels and units"    -
+typedef   ^  ^              CHARACTER(1)     Delim         -  -  -  "Column delimiter for output text files"    -
+typedef   ^  ^              IntKi            UnOutFile     -  -  -  "File unit for the KAD-generated output file"   -
+
+# ..... Other States ................................................................................................................
+typedef   ^  OtherStateType MD_States           MD_Mooring          -     -   -  "MoorDyn moorintg line framework states" -
+typedef   ^  ^              HD_States           HD                  -     -   -  "MoorDyn framework states" -
+typedef   ^  ^              MD_InputType        MD_Mooring_u        -     -   -  "The previous timesteps MoorDyn mooring inputs" -
+typedef   ^  ^              HydroDyn_InputType  HD_u                -     -   -  "The previous timesteps HydroDyn inputs" -
