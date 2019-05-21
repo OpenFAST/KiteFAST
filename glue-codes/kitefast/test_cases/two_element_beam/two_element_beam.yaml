@@ -5,8 +5,8 @@ title:
 constants:
     gravity:
         # SI units, global reference frame
-        # x        y        z
-        [0.0,      0.0,     -9.81]
+        # [x, y, z]
+        [0.0, 0.0, -9.81]
 
 simulation_controls:
     fast_submodules:
@@ -65,27 +65,27 @@ simulation_controls:
         location:
             # locates the weather station; this point is passed directly to
             # KiteFAST which uses it to interface with the controller
-            # x     y       z
-            [0.0,   0.0,    0.0]
+            # [x, y, z]
+            [0.0, 0.0, 0.0]
 
     initial_conditions:
         location:
             # locates the kite coordinate system (MIP point) in the global frame
-            # x     y       z
-            [0.0,   0.0,    0.0]
+            # [x, y, z]
+            [0.0, 0.0, 0.0]
 
         orientation:
-            # roll  pitch   yaw
-            [0.0,   0.0,    0.0]
+            # [roll, pitch, yaw]
+            [0.0, 0.0, 0.0]
 
         velocity:
             translational:
-                # x     y       z
-                [0.0,   0.0,    0.0]
+                # [x, y, z]
+                [0.0, 0.0, 0.0]
 
             rotational:
-                # roll  pitch   yaw
-                [0.0,   0.0,    0.0]
+                # [roll, pitch, yaw]
+                [0.0, 0.0, 0.0]
 
 keypoints:
     # component label                    X      Y      Z
@@ -94,25 +94,25 @@ keypoints:
 
 fuselage:
     element_end_nodes:
-        # x        y        z        twist    attached component   point mass
-        # m        m        m        deg                           kg
-        - [0.000,  0.000,   0.000,   0.0,     none,                0.0]
-        - [5.000,  0.000,   0.000,   0.0,     none,                10.0]
+        # [x, twist, attached component, point mass]
+        # [m,   deg,           <string>,         kg]
+        - [0.0, 0.0, 0.0, 0.0, none, 0.0]
+        - [5.0, 0.0, 0.0, 0.0, none, 10.0]
 
     proportional_stiffness_constant:
         0.01
 
     stiffness_matrix:
-        # EA                                                    GA                                          GA                                 GJ0                         EJxx             EJyy
-        # K11      K12      K13      K14      K15      K16      K22      K23     K24      K25      K26      K33       K34      K35     K36      K44      K45      K46      K55      K56     K66
-        - [5.94e6, 0.0,     0.0,     0.0,     0.0,     0.0,     2.23e6,  0.0,    0.0,     0.0,     0.0,     2.23e6,   0.0,     0.0,    0.0,     4.58E5,  0.0,     0.0,     6.09e5,  0.0,    6.09e5]
-        - [5.94e6, 0.0,     0.0,     0.0,     0.0,     0.0,     2.23e6,  0.0,    0.0,     0.0,     0.0,     2.23e6,   0.0,     0.0,    0.0,     4.58E5,  0.0,     0.0,     6.09e5,  0.0,    6.09e5]
+        #  EA                                                                         GJ             EIcc      EInn
+        # [K11, K12, K13, K14, K15, K16, K22, K23, K24, K25, K26, K33, K34, K35, K36, K44, K45, K46, K55, K56, K66]
+        - [5.94e6, 0.0, 0.0, 0.0, 0.0, 0.0, 2.23e6, 0.0, 0.0, 0.0, 0.0, 2.23e6, 0.0, 0.0, 0.0, 4.58E5, 0.0, 0.0, 6.09e5, 0.0, 6.09e5]
+        - [5.94e6, 0.0, 0.0, 0.0, 0.0, 0.0, 2.23e6, 0.0, 0.0, 0.0, 0.0, 2.23e6, 0.0, 0.0, 0.0, 4.58E5, 0.0, 0.0, 6.09e5, 0.0, 6.09e5]
 
     mass_distribution:
-        # mass/l    Cmy      Cmz      Ixx      Iyy      Izz      Ixy      Ixz      Iyz
-        # kg/m      m        m        kg*m     kg*m     kg*m     kg*m     kg*m     kg*m
-        - [500.000, 0.0,     0.000,   455.0,   227.0,   227.0,   0.0,     0.0,     0.0]
-        - [500.000, 0.0,     0.000,   455.0,   227.0,   227.0,   0.0,     0.0,     0.0]
+        # [mass/l, Cmy, Cmz,  Ixx,  Iyy,  Izz,  Ixy,  Ixz,  Iyz]
+        # [  kg/m,   m,   m, kg*m, kg*m, kg*m, kg*m, kg*m, kg*m]
+        - [500.000, 0.0, 0.0, 455.0, 227.0, 227.0, 0.0, 0.0, 0.0]
+        - [500.000, 0.0, 0.0, 455.0, 227.0, 227.0, 0.0, 0.0, 0.0]
 
 output:
     # pass
