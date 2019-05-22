@@ -25,7 +25,19 @@ class BaseModel():
         self.required_components = []
         self.components = []
 
+    def _list_to_vec3(self, list):
+        return Vec3(list[0], list[1], list[2])
+
     def _deep_get(self, _dict, keys, default=None):
+        """
+        Recursive function for finding a nested dict.
+
+        _dict: the dictionary to search over
+        keys: list of keys defining the nested path
+        default: optional value to return when the given path is not found
+
+        returns the nested dictionary
+        """
         for key in keys:
             if isinstance(_dict, dict):
                 _dict = _dict.get(key, default)
@@ -33,10 +45,52 @@ class BaseModel():
                 return default
         return _dict
 
+    def _deep_put(self, _dict, keys, value):
+        """
+        A function for putting a given value at a key path.
+
+        _dict: the input dictionary to modify
+        keys: list of keys defining the nested path
+        value: the value to add at the nested path
+
+        returns the modified input dictionary
+
+        NOTE: this takes advantage of the face that Python stores values by
+        reference. Since `traverse_dict` is referencing the same memory as the
+        input `_dict`, modifying it also modifies `_dict`.
+        """
+        traverse_dict = _dict
+        for i, key in enumerate(keys[:-1]):
+            traverse_dict = traverse_dict.get(key)
+            if i == len(keys) - 2:
+                traverse_dict[keys[-1]] = value
+                break
+        return _dict
+
     def _verify_component_list(self, model_dict):
         for path in self.required_components:
             if self._deep_get(model_dict, path) is None:
                 raise ModelException(path, "expected component not given")
+
+    def _preprocess_model_dict(self, model_dict):
+        keypoints = model_dict["keypoints"]
+        for keypoint in keypoints:
+            keypoints[keypoint] = self._list_to_vec3(keypoints[keypoint])
+        model_dict["keypoints"] = keypoints
+
+        for component_path in self.required_components:
+            component_dict = self._deep_get(model_dict, component_path)
+            keypoint = self._list_to_vec3(component_dict["keypoint"])
+            self._deep_put(model_dict, component_path + ["keypoint"], keypoint)
+        return model_dict
+
+    def _preprocess_simulation_dict(self, simulation_dict):
+        simulation_dict["ground_weather_station"]["location"] = self._list_to_vec3(simulation_dict["ground_weather_station"]["location"])
+        simulation_dict["initial_conditions"]["location"] = self._list_to_vec3(simulation_dict["initial_conditions"]["location"])
+        simulation_dict["initial_conditions"]["orientation"] = self._list_to_vec3(simulation_dict["initial_conditions"]["orientation"])
+        simulation_dict["initial_conditions"]["velocity"]["translational"] = self._list_to_vec3(simulation_dict["initial_conditions"]["velocity"]["translational"])
+        simulation_dict["initial_conditions"]["velocity"]["rotational"] = self._list_to_vec3(simulation_dict["initial_conditions"]["velocity"]["rotational"])
+        return simulation_dict
 
     def print_model_info(self):
         """

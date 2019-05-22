@@ -63,16 +63,16 @@ function create_link {
 sudo apt update
 
 # install these general software development tools
-install_if_not_found "git/stable"
-install_if_not_found "cmake/stable"
-install_if_not_found "build-essential/stable"
-install_if_not_found "software-properties-common/stable"
-install_if_not_found "gfortran-6/stable"
-install_if_not_found "libblas-dev/stable"   # blas math library
-install_if_not_found "liblapack-dev/stable" # lapack math library
-install_if_not_found "libltdl-dev/stable"   # libltdl headers, used in mbdyn for linking
-install_if_not_found "libgsl-dev/stable"    # used in the STI controller
-install_if_not_found "python3-pip"    # used in the STI controller
+install_if_not_found "git"
+install_if_not_found "cmake"
+install_if_not_found "build-essential"
+install_if_not_found "software-properties-common"
+install_if_not_found "gfortran-6"
+install_if_not_found "libblas-dev"   # blas math library
+install_if_not_found "liblapack-dev" # lapack math library
+install_if_not_found "libltdl-dev"   # libltdl headers, used in mbdyn for linking
+install_if_not_found "libgsl-dev"    # used in the STI controller
+install_if_not_found "python3-pip"   # used in the STI controller
 # optional: needed for eigen analysis and netcdf output
 # install_if_not_found libnetcdf-c++4
 

@@ -20,16 +20,24 @@ from .iohandler import Output
 from .mbdyn_types import Vec3
 from .mbdyn_types import OrientationMatrix
 from .mbdyn_types import ReferenceFrame
-from .mbdyn_types import TotalJoint, RevoluteHinge
 
 
 class TwoElementBeamModel(BaseModel):
-    def __init__(self, simulation_dict, model_dict):
+    def __init__(self, input_simulation_dict, input_model_dict):
         super().__init__()
 
-        # constants
-        self.title = simulation_dict["title"]
-        initial_conditions = simulation_dict["initial_conditions"]
+        # verify required components exist
+        self.required_components = [
+            ["fuselage"]
+        ]
+        self._verify_component_list(input_model_dict)
+
+        # do any additional data preprocessing of the inputs
+        self.model_dict = self._preprocess_model_dict(input_model_dict)
+        self.simulation_dict = self._preprocess_simulation_dict(input_simulation_dict)
+
+        # build the primary reference frame
+        initial_conditions = self.simulation_dict["initial_conditions"]
         self.mip_reference_frame = ReferenceFrame(
             name="mip_rf",
             reference="global",
@@ -39,20 +47,14 @@ class TwoElementBeamModel(BaseModel):
             absolute_angular_velocity=initial_conditions["velocity"]["rotational"]
         )
 
-        # verify required components exist
-        self.required_components = [
-            ["fuselage"]
-        ]
-        self._verify_component_list(model_dict)
-
         # model setup
-        self.components = self._build_components(model_dict)
+        self.components = self._build_components(self.model_dict)
         self.fuselage = self.components[0]
 
         # simulation setup
         self.main_mbd = MainMBD(
-            simulation_dict,
-            model_dict["keypoints"],
+            self.simulation_dict,
+            self.model_dict["keypoints"],
             self.fuselage
         )
         self.main_set = MainSet(
@@ -194,7 +196,7 @@ class MainMBD():
 
         self.initial_position = simulation_controls["initial_conditions"]["location"]
         constants = simulation_controls["constants"]
-        self.gravity = constants["gravity"]
+        self.gravity = Vec3(constants["gravity"])
         self.fast_submodules = simulation_controls["fast_submodules"]
         self.fast_submodule_input_files = simulation_controls["fast_submodule_input_files"]
         time = simulation_controls["time"]

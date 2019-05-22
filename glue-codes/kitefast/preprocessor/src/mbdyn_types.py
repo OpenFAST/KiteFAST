@@ -24,10 +24,13 @@ class Vec3():
         Vec3(1, 2, 3) + Vec3(4, 5, 6) = Vec3(5, 7, 9)
         Vec3(1, 2, 3) + 3 = Vec3(4, 5, 6)
     """
-    def __init__(self, x1, x2, x3):
-        self.x1 = float(x1)
-        self.x2 = float(x2)
-        self.x3 = float(x3)
+    def __init__(self, x1, x2=None, x3=None):
+        if isinstance(x1, list):
+            self.x1, self.x2, self.x3 = [float(x) for x in x1]
+        else:
+            self.x1 = float(x1)
+            self.x2 = float(x2)
+            self.x3 = float(x3)
 
     def __str__(self):
         return "{:8.3f},{:8.3f},{:8.3f}".format(self.x1, self.x2, self.x3)

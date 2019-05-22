@@ -15,7 +15,6 @@
 #
 
 import yaml
-from .mbdyn_types import Vec3
 
 
 class Output():
@@ -52,54 +51,33 @@ class Input():
         clean = filter(None, dirty)
         return list(clean)
 
-    def _string_to_vec3(self, string, delimiter=" "):
-        tup = self._string_to_list(string, delimiter)
-        return Vec3(tup[0], tup[1], tup[2])
-
     def _parse_simulation_dict(self, input_dict):
         constants = input_dict["constants"]
         simulation_controls = input_dict["simulation_controls"]
         simulation_dict = {
             "title": input_dict["title"],
             "constants": {
-                "gravity": self._string_to_vec3(constants["gravity"])
+                "gravity": constants["gravity"]
             },
             "output": input_dict["output"]
         }
         simulation_dict.update(simulation_controls)
 
-        # handle any special cases here
-        simulation_dict["ground_weather_station"]["location"] = self._string_to_vec3(
-            simulation_controls["ground_weather_station"]["location"])
-
-        simulation_dict["initial_conditions"]["location"] = self._string_to_vec3(
-            simulation_dict["initial_conditions"]["location"])
-
-        simulation_dict["initial_conditions"]["orientation"] = self._string_to_vec3(
-            simulation_dict["initial_conditions"]["orientation"])
-
-        simulation_dict["initial_conditions"]["velocity"]["translational"] = self._string_to_vec3(
-            simulation_dict["initial_conditions"]["velocity"]["translational"])
-
-        simulation_dict["initial_conditions"]["velocity"]["rotational"] = self._string_to_vec3(
-            simulation_dict["initial_conditions"]["velocity"]["rotational"])
-
         return simulation_dict 
 
     def _parse_model_dict(self, input_dict):
-        # convert the keypoints input into Vec3 values
         model_dict = {
             "keypoints": {
-                "fuselage": self._string_to_vec3("0.000  0.000  0.000")
+                "fuselage": [0.000, 0.000, 0.000]
             }
         }
         for key, value in input_dict["keypoints"].items():
-            model_dict["keypoints"][key] = self._string_to_vec3(value)
+            model_dict["keypoints"][key] = value
 
         # unpack component info
         # component = {
-        #     "keypoint": Vec3,
-        #     "element_end_nodes": [Vec3],
+        #     "keypoint": [float],
+        #     "element_end_nodes": [float],
         #     "twist": [float],
         #     "component": [str],
         #     "point_mass": [float],
@@ -128,7 +106,7 @@ class Input():
 
             for i, end_node in enumerate(input_component["element_end_nodes"]):
                 # element end nodes
-                this_node = self._string_to_list(end_node)
+                this_node = end_node
 
                 nodes.append(float(this_node[0]))
                 twist.append(float(this_node[1]))
@@ -136,11 +114,11 @@ class Input():
                 point_mass.append(float(this_node[3]))
 
                 # stiffness matrix
-                this_stiff = self._string_to_list(input_component["stiffness_matrix"][i])
+                this_stiff = input_component["stiffness_matrix"][i]
                 stiffness_matrix.append([float(stiff) for stiff in this_stiff])
 
                 # mass distribution
-                this_mass = self._string_to_list(input_component["mass_distribution"][i])
+                this_mass = input_component["mass_distribution"][i]
                 mass_distribution.append(float(this_mass[0]))
                 cm_offset.append([float(m) for m in this_mass[1:3]])
                 inertias.append([float(m) for m in this_mass[3:9]])
@@ -204,13 +182,13 @@ class Input():
                                                         + "/" + str(position)
                                                         + "/" + level]
 
-                        rotor_mass_props = self._string_to_list(this_component["rotor"]["mass_properties"])
+                        rotor_mass_props = this_component["rotor"]["mass_properties"]
                         rotor_mass = float(rotor_mass_props[0])
                         rotor_cm_offset = float(rotor_mass_props[1])
                         rotor_rot_inertia = float(rotor_mass_props[2])
                         rotor_trans_inertia = float(rotor_mass_props[3])
 
-                        nacelle_mass_props = self._string_to_list(this_component["nacelle"]["mass_properties"])
+                        nacelle_mass_props = this_component["nacelle"]["mass_properties"]
                         nacelle_mass = float(nacelle_mass_props[0])
                         nacelle_cm_offset = [float(m) for m in nacelle_mass_props[1:4]]
                         nacelle_inertias = [float(m) for m in nacelle_mass_props[4:10]]

@@ -29,41 +29,21 @@ from .iohandler import Output
 from .mbdyn_types import Vec3
 from .mbdyn_types import OrientationMatrix
 from .mbdyn_types import ReferenceFrame
-from .mbdyn_types import TotalJoint, RevoluteHinge
+from .mbdyn_types import TotalJoint
 
 
 class KiteModel(BaseModel):
-    def __init__(self, simulation_dict, model_dict):
+    def __init__(self, input_simulation_dict, input_model_dict):
         super().__init__()
-
-        # constants
-        self.title = simulation_dict["title"]
-
-        # store these so they can be exported later
-        self.simulation_dict = simulation_dict
-        self.model_dict = model_dict
-
-        # parse the initial conditions
-        initial_conditions = simulation_dict["initial_conditions"]
-
-        # build the primary reference frame
-        self.mip_reference_frame = ReferenceFrame(
-            name="mip_rf",
-            reference="global",
-            absolute_position=initial_conditions["location"],
-            absolute_orientation_matrix=OrientationMatrix(initial_conditions["orientation"]),
-            absolute_velocity=initial_conditions["velocity"]["translational"],
-            absolute_angular_velocity=initial_conditions["velocity"]["rotational"],
-        )
 
         # unpack and derive model constants
         number_of_pylons_per_wing = 0
-        for key in model_dict["keypoints"].keys():
+        for key in input_model_dict["keypoints"].keys():
             if "pylon" in key:
                 number_of_pylons_per_wing += 1
         self.number_of_pylons_per_wing = int(number_of_pylons_per_wing / 2)
         number_of_kite_components = 6 + 2 * self.number_of_pylons_per_wing
-        number_of_flaps_per_wing = model_dict["wing"]["number_of_flaps_per_wing"]
+        number_of_flaps_per_wing = input_model_dict["wing"]["number_of_flaps_per_wing"]
 
         # verify required components exist
         self.required_components = [
@@ -81,10 +61,25 @@ class KiteModel(BaseModel):
             self.required_components.append(["rotor_assembly", "starboard", i + 1, "lower"])
             self.required_components.append(["rotor_assembly", "port", i + 1, "upper"])
             self.required_components.append(["rotor_assembly", "port", i + 1, "lower"])
-        self._verify_component_list(model_dict)
+        self._verify_component_list(input_model_dict)
+
+        # do any additional data preprocessing of the inputs
+        self.model_dict = self._preprocess_model_dict(input_model_dict)
+        self.simulation_dict = self._preprocess_simulation_dict(input_simulation_dict)
+
+        # build the primary reference frame
+        initial_conditions = self.simulation_dict["initial_conditions"]
+        self.mip_reference_frame = ReferenceFrame(
+            name="mip_rf",
+            reference="global",
+            absolute_position=initial_conditions["location"],
+            absolute_orientation_matrix=OrientationMatrix(initial_conditions["orientation"]),
+            absolute_velocity=initial_conditions["velocity"]["translational"],
+            absolute_angular_velocity=initial_conditions["velocity"]["rotational"]
+        )
 
         # model setup
-        self.components = self._build_components(model_dict)
+        self.components = self._build_components(self.model_dict)
         self.fuselage = self.components[0]
         self.starboard_wing = self.components[1]
         self.port_wing = self.components[2]
@@ -104,9 +99,9 @@ class KiteModel(BaseModel):
         self._validate_model()
 
         # simulation setup
-        self.main_mbd = MainMBD(simulation_dict,
+        self.main_mbd = MainMBD(self.simulation_dict,
                                 self.mip_node.id,
-                                model_dict["keypoints"],
+                                self.model_dict["keypoints"],
                                 self.joints,
                                 self.fuselage,
                                 self.starboard_wing, self.port_wing,
