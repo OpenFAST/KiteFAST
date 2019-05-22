@@ -47,24 +47,24 @@ rules specific to the preprocessor input file:
     title:
         M600 PreProcessor Input File
 
-- Vector quantities are space delimited; for example
+- Vector quantities are comma separated; for example
 
 ::
 
     gravity:
-        0.0      0.0     -9.81
+        [0.0, 0.0, -9.81]
 
 - List elements are denoted by a leading "-" such as
 
 ::
 
     element_end_nodes:
-        #  z      twist    attached component   point mass
-        #  m      deg                           kg
-        - -5.000  0.0      none                 0
-        - -3.000  0.0      none                 0
-        -  0.000  0.0      wing                 0
-        -  2.000  0.0      none                 0
+        #  z       twist    attached component   point mass
+        #  m       deg                           kg
+        - [-5.000, 0.0,     none,                0]
+        - [-3.000, 0.0,     none,                0]
+        - [ 0.000, 0.0,     wing,                0]
+        - [ 2.000, 0.0,     none,                0]
 
 - Null values in the "attached component" columns should be denoted by "none"
 
