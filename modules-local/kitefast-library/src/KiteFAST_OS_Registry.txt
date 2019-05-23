@@ -53,6 +53,23 @@ typedef   ^    ^              MeshMapType      MD_M_P_2_MBD_P   -    -  - "" -
 typedef   ^    ^              MeshMapType      HD_P_2_MD_P      -    -  - "" -
 typedef   ^    ^              ReKi             AllOuts     {3978}    -  - "" -
 typedef   ^    ^              ReKi             WriteOutput   {:}     -  - "" -
+typedef   ^    ^              ReKi             PtfmO          {3} - - "Current timestep position of the Platform reference point, expressed in global coordinates." m
+typedef   ^    ^              R8Ki             PtfmODCM       {3}{3} - - "Current timestep DCM matrix to transform the location of the Platform reference point from global to kite coordinates."
+typedef   ^    ^              ReKi             PtfmOv         {3} - - "Current timestep velocity of the Platform reference point, expressed in global coordinates." m/s
+typedef   ^    ^              ReKi             PtfmOomegas    {3} - - "Current timestep rotational velocity of the Platform reference point, expressed in global coordinates." rad/s
+typedef   ^    ^              ReKi             PtfmOacc       {3} - - "Current timestep translational acceleration of the Platform reference point, expressed in global coordinates." m/s^2
+typedef   ^    ^              ReKi             PtfmOalphas    {3} - - "Current timestep rotational acceleration of the Platform reference point, expressed in global coordinates." rad/s^2 
+typedef   ^    ^              ReKi             PtfmIMUPt      {3} - - "Current timestep position of the Platform IMU point, expressed in global coordinates." m
+typedef   ^    ^              R8Ki             PtfmIMUDCM     {3}{3} - - "Current timestep DCM matrix to transform the location of the Platform IMU point from global to kite coordinates."
+typedef   ^    ^              ReKi             PtfmIMUv       {3} - - "Current timestep velocity of the Platform IMU point, expressed in global coordinates." m/s
+typedef   ^    ^              ReKi             PtfmIMUomegas  {3} - - "Current timestep rotational velocity of the Platform IMU point, expressed in global coordinates." rad/s
+typedef   ^    ^              ReKi             PtfmIMUacc     {3} - - "Current timestep translational acceleration of the Platform IMU point, expressed in global coordinates." m/s^2
+typedef   ^    ^              ReKi             GSRefPt        {3} - - "Current timestep position of the ground station reference point, expressed in global coordinates." m 
+typedef   ^    ^              R8Ki             GSRefDCM       {3}{3} - - "Current timestep DCM matrix to transform the location of the ground station reference point from global to kite coordinates."
+typedef   ^    ^              ReKi             GSRefv         {3} - - "Current timestep velocity of the ground station reference point, expressed in global coordinates." m/s
+typedef   ^    ^              ReKi             GSRefomegas    {3} - - "Current timestep rotational velocity of the ground station reference point, expressed in global coordinates." rad/s
+typedef   ^    ^              ReKi             GSRefacc       {3} - - "Current timestep translational acceleration of the ground station reference point, expressed in global coordinates." m/s^2
+
 #
 # ..... Parameters ................................................................................................................
 # Define parameters here:
