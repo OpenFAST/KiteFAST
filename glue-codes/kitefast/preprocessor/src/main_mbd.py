@@ -15,7 +15,7 @@
 #
 
 from .iohandler import Output
-
+from .mbdyn_types import Vec3
 
 class MainMBD():
 
@@ -36,7 +36,7 @@ class MainMBD():
 
         self.initial_position = simulation_controls["initial_conditions"]["location"]
         constants = simulation_controls["constants"]
-        self.gravity = constants["gravity"]
+        self.gravity = Vec3(constants["gravity"])
         self.fast_submodules = simulation_controls["fast_submodules"]
         self.fast_submodule_input_files = simulation_controls["fast_submodule_input_files"]
         self.print_kitefast_summary_file = simulation_controls["print_kitefast_summary_file"]
@@ -102,7 +102,7 @@ class MainMBD():
 
         output = Output("{}/KiteMain.mbd".format(output_directory))
 
-        output.write_line("# KiteWing.mbd")
+        output.write_line("# KiteMain.mbd")
         output.write_empty_line()
         output.write_empty_line()
         output.write_line("module load: \"libmodule-kitefastmbd\";")

@@ -20,7 +20,6 @@ endif()
 
 generate_f90_types(src/KiteFAST_Registry.txt KiteFAST_Types.f90 -noextrap)
 
-# add_library(kitefast_prelib )
 set(LIB_SOURCES
   src/KiteFAST.f90
   src/KiteFAST_IO.f90
@@ -37,8 +36,6 @@ target_link_libraries(kitefastlib
   kitefastcontrollerlib
   moordynlib
 )
-
-# target_link_libraries(kitefastlib kitefast_prelib)
 
 install(TARGETS kitefastlib
   EXPORT ${CMAKE_PROJECT_NAME}Libraries

@@ -380,7 +380,7 @@ ModuleKiteFAST::ModuleKiteFAST(unsigned uLabel, const DofOwner *pDO, DataManager
              output_file_root,
              &print_summary_file,
              &gravity,
-			 &KAD_interpolation_order,
+             &KAD_interpolation_order,
              mip_dcm,
              &n_rotor_points,
              rotor_points,
