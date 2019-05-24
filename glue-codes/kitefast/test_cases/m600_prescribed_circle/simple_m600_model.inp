@@ -7,7 +7,7 @@ False     Echo      ! Echo input data to <RootName>.ech? (flag)
 1        RotorMod  ! Rotor calculation model (-) (switch) {0:none, 1:actuator disk}
 True      UseCm     ! Include aerodynamic pitching moment in calculations? (flag)
 --- ENVIRONMENTAL CONDITIONS ---
-1.225     AirDens   ! Air density (kg/m^3) [>0.0]
+1.075     AirDens   ! Air density (kg/m^3) [>0.0]
 1.464E-05 KinVisc   ! Kinematic air viscosity (m^2/s) [>0.0]
 335.0     SpdSound  ! Speed of sound (m/s) [>0.0]
 --- LIFTING LINE VORTEX-STEP METHOD OPTIONS --- [used only when LiftMod=2]
