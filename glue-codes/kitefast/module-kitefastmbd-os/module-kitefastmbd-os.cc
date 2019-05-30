@@ -428,7 +428,7 @@ ModuleKiteFASTOS::~ModuleKiteFASTOS(void)
 
   int error_status;
   char error_message[INTERFACE_STRING_LENGTH];
-  KFAST_End(&error_status, error_message);
+  KFAST_OS_End(&error_status, error_message);
   printdebug("KFAST_End error");
   printdebug("    status: " + std::to_string(error_status) + ";");
   printdebug("    message: " + std::string(error_message) + ";");
@@ -563,7 +563,7 @@ void ModuleKiteFASTOS::Output(OutputHandler &OH) const
 
   integer error_status;
   char error_message[INTERFACE_STRING_LENGTH];
-  KFAST_Output(&current_time, &n_gauss_load_points, gauss_point_loads, &error_status, error_message);
+  KFAST_OS_Output(&current_time, &n_gauss_load_points, gauss_point_loads, &error_status, error_message);
   printdebug("KFAST_Output error");
   printdebug("    status: " + std::to_string(error_status) + ";");
   printdebug("    message: " + std::string(error_message) + ";");
@@ -862,7 +862,7 @@ void ModuleKiteFASTOS::AfterPredict(VectorHandler &X, VectorHandler &XP)
   doublereal t = Time.dGet();
   int error_status;
   char error_message[INTERFACE_STRING_LENGTH];
-  KFAST_AfterPredict(&t, &error_status, error_message);
+  KFAST_OS_AfterPredict(&t, &error_status, error_message);
   printdebug("KFAST_AfterPredict error");
   printdebug("    status: " + std::to_string(error_status) + ";");
   printdebug("    message: " + std::string(error_message) + ";");
