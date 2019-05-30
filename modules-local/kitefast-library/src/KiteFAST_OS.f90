@@ -241,15 +241,13 @@ subroutine KFAST_OS_WriteOutputUnitNames( p, HD_InitOut, MD_InitOut )
             
    if ( p%numOuts > 0 ) then   ! Output has been requested 
       
-      
-      write (p%UnOutFile,'()')
    
          ! Write the names of the output channel units:
       
      
       if ( p%numKFASTOuts > 0 ) then
          do i=1,p%numKFASTOuts
-            call WrFileNR ( p%UnOutFile, p%Delim//p%OutParam(i)%Name )
+            call WrFileNR ( p%UnOutFile, p%Delim//p%OutParam(i)%Units )
          end do ! I
       end if
       
@@ -271,9 +269,12 @@ subroutine KFAST_OS_WriteOutputUnitNames( p, HD_InitOut, MD_InitOut )
 
 end subroutine KFAST_OS_WriteOutputUnitNames
 
-subroutine KFAST_OS_ProcessOutputs()
+subroutine KFAST_OS_ProcessOutputs(p, m)
+   type(KFAST_OS_ParameterType),     intent( inout ) :: p   
+   type(KFAST_OS_MiscVarType),       intent( inout ) :: m   
 
-   real(ReKi) :: val3(3)
+   real(ReKi)     :: val3(3)
+   integer(IntKi) :: i
    
    ! Platform Motions
    val3 = m_OS%PtfmO
@@ -339,17 +340,29 @@ subroutine KFAST_OS_ProcessOutputs()
    m%AllOuts(BGSRTAy  ) = val3(2)
    m%AllOuts(BGSRTAz  ) = val3(3)
 
+   !...............................................................................................................................
+   ! Place the selected output channels into the WriteOutput(:) array with the proper sign:
+   !...............................................................................................................................
+
+   dO i = 1,p%numKFASTOuts  ! Loop through all selected output channels
+      if (p%OutParam(i)%Indx == 0 ) then
+         m%WriteOutput(i) = 0.0
+      else
+         m%WriteOutput(i) = p%OutParam(i)%SignM * m%AllOuts( p%OutParam(i)%Indx )
+      end if
+   end do             ! i - All selected output channels
+   
 end subroutine KFAST_OS_ProcessOutputs
 
 
 !====================================================================================================
-subroutine KFAST_OS_WriteOutput( t, p, y_HD, y_MD, errStat, errMsg )
+subroutine KFAST_OS_WriteOutput( p, m, y_HD, y_MD, errStat, errMsg )
 ! This subroutine 
 !----------------------------------------------------------------------------------------------------
 
       ! Passed variables
-   real(DbKi),                    intent( in    ) :: t
    type(KFAST_OS_ParameterType),  intent( inout ) :: p   
+   type(KFAST_OS_MiscVarType),    intent( inout ) :: m  
    type(HydroDyn_OutPutType ),    intent( in    ) :: y_HD         !
    type(MD_OutPutType ),          intent( in    ) :: y_MD          !
    integer,                       intent(   out ) :: errStat       ! a non-zero value indicates an error occurred           
@@ -372,9 +385,6 @@ subroutine KFAST_OS_WriteOutput( t, p, y_HD, y_MD, errStat, errMsg )
               ! Write one line of tabular output:
       Frmt = '"'//p%Delim//'"'//p%OutFmt      ! format for array elements from individual modules
 
-          ! time
-      write( tmpStr, '(F10.6)' ) t
-      call WrFileNR( p%UnOutFile, tmpStr )
 
          ! write the individual module output (convert to SiKi if necessary, so that we don't need to print so many digits in the exponent)
       
@@ -798,6 +808,9 @@ subroutine KFAST_OS_Init(SimMod, dt_c, TMAX_c, numFlaps, numPylons, numComp, num
    if ( (p%numOuts + p_OS%numOuts) > 0 ) then
       call KFAST_OpenOutput( KFAST_Ver, p%outFileRoot, p, errStat, errMsg ) 
       p_OS%UnOutFile = p%UnOutFile
+      p_OS%OutSFmt   = p%OutSFmt 
+      p_OS%OutFmt    = p%OutFmt
+      p_OS%Delim     = p%Delim
       call KFAST_WriteOutputTimeChanName( p%UnOutFile )
       if (simMod == 2) call KFAST_WriteOutputChanNames( p, KAD_InitOut, MD_Tether_InitOut, IfW_InitOut )
       call KFAST_OS_WriteOutputChanNames( p_OS, HD_InitOut, MD_Mooring_InitOut )
@@ -1197,12 +1210,12 @@ subroutine KFAST_OS_Output(t_c, numGaussPts_c, gaussPtLoads_c, errStat_c, errMsg
 
       call KFAST_WriteOutputTime( t, p%UnOutFile )
       if (p%numOuts  > 0 .and. p_OS%simMod == 2) then
-         call KFAST_WriteOutput( t, p, m%KAD%y, m%MD_Tether%y, m%IfW%y, errStat2, errMsg2 )
+         call KFAST_WriteOutput( p, m%KAD%y, m%MD_Tether%y, m%IfW%y, errStat2, errMsg2 )
          call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
       end if
       if ( p_OS%numOuts > 0 ) then
-         call KFAST_OS_ProcessOutputs()
-         call KFAST_OS_WriteOutput( t, p_OS, m_OS%HD%y, m_OS%MD_Mooring%y, errStat2, errMsg2 )
+         call KFAST_OS_ProcessOutputs(p_OS, m_OS)
+         call KFAST_OS_WriteOutput( p_OS, m_OS, m_OS%HD%y, m_OS%MD_Mooring%y, errStat2, errMsg2 )
       end if
       
       call KFAST_WriteOutputNL( p%UnOutFile ) 

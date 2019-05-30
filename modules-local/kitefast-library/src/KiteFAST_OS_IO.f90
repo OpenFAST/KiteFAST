@@ -124,6 +124,11 @@ module KiteFAST_OS_IO
  ! end subroutine ShiftOutParams
   
  SUBROUTINE KFAST_OS_FindValidParam(OutList, NumOuts, p, numInValidOuts, ErrStat, ErrMsg )
+ ! The OutList can contain both Onshore and Offshore channel names.
+         ! The valid Offshore channels were already identified in KFAST_OS_SetOutParam().  Any channels marked invalid will be passed onto the Onshore parsing code
+         !   and the previously marked invalid channels will simply be removed from the Offshore list (p_OS%OutParam)
+         ! On return, NumOuts will correspond to only the valid Offshore channel count, and numInValidOuts will be all the invalid Offshore channels.
+         !   Outlist will now only contain the names of all the invalid Offshore channels.
 !..................................................................................................................................
 
    IMPLICIT                        NONE
@@ -156,8 +161,7 @@ module KiteFAST_OS_IO
    ! Find invalid channels
    do i = 1,NumOuts
       if (p%OutParam(i)%SignM == 0 ) then
-         numValidOuts = numValidOuts - 1     
-      else
+         numValidOuts   = numValidOuts - 1 
          numInvalidOuts = numInvalidOuts + 1
       end if
       
@@ -170,13 +174,16 @@ module KiteFAST_OS_IO
       !   call SetErrStat( ErrID_Fatal,"Error allocating memory for the KiteFAST_OS OutParam array.", ErrStat, ErrMsg, RoutineName )
       !   return
       !endif
-      allocate ( OutParam(0:numInvalidOuts) , STAT=ErrStat2 )    
+      
+      ! Temporary copy
+      allocate ( OutParam(0:NumOuts) , STAT=ErrStat2 )    
       if ( ErrStat2 /= 0_IntKi )  then
          call SetErrStat( ErrID_Fatal,"Error allocating memory for the KiteFAST_OS OutParam array.", ErrStat, ErrMsg, RoutineName )
          return
       endif
       
-      OutParam = p%OutParam
+      OutParam= p%OutParam
+      
       deallocate(p%OutParam)
       allocate ( p%OutParam(0:numValidOuts) , STAT=ErrStat2 )
       if ( ErrStat2 /= 0_IntKi )  then
@@ -189,7 +196,7 @@ module KiteFAST_OS_IO
       ivc = 1
       
       do i = 1,NumOuts
-         if (p%OutParam(i)%SignM == 0 ) then
+         if (OutParam(i)%SignM == 0 ) then
             OutList(ivc) = OutList(i)
             ivc = ivc + 1
          else
@@ -297,7 +304,7 @@ SUBROUTINE KFAST_OS_SetOutParam(OutList, NumOuts, p, ErrStat, ErrMsg )
       ! Set index, name, and units for all of the output channels.
       ! If a selected output channel is not available by this module set ErrStat = ErrID_Warn.
 
-   DO I = 1,p%NumOuts
+   DO I = 1, NumOuts
 
       p%OutParam(I)%Name  = OutList(I)
       OutListTmp          = OutList(I)
@@ -347,7 +354,7 @@ SUBROUTINE KFAST_OS_SetOutParam(OutList, NumOuts, p, ErrStat, ErrMsg )
          p%OutParam(I)%Units = "INVALID"
          p%OutParam(I)%SignM = 0                    ! multiply all results by zero
 
-         CALL SetErrStat(ErrID_Fatal, TRIM(p%OutParam(I)%Name)//" is not an available output channel.",ErrStat,ErrMsg,RoutineName)
+         CALL SetErrStat(ErrID_Warn, TRIM(p%OutParam(I)%Name)//" is not an available output channel.",ErrStat,ErrMsg,RoutineName)
       END IF
 
    END DO

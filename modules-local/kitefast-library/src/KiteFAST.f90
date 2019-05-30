@@ -162,16 +162,17 @@ subroutine KFAST_Init(dt_c, numFlaps, numPylons, numComp, numCompNds, modFlags, 
 ! Open the Output file and generate header data
 ! -------------------------------------------------------------------------      
    call KFAST_SetNumOutputs( p, KAD_InitOut, MD_InitOut, IfW_InitOut, errStat, errMsg )
-   call KFAST_OpenOutput( KFAST_Ver, p%outFileRoot, p, errStat, errMsg )    
+   if ( p%numOuts > 0 ) then
+      call KFAST_OpenOutput( KFAST_Ver, p%outFileRoot, p, errStat, errMsg )    
    
-   call KFAST_WriteOutputTimeChanName( p%UnOutFile )
-   call KFAST_WriteOutputChanNames( p, KAD_InitOut, MD_InitOut, IfW_InitOut )
-   call KFAST_WriteOutputNL( p%UnOutFile )
+      call KFAST_WriteOutputTimeChanName( p%UnOutFile )
+      call KFAST_WriteOutputChanNames( p, KAD_InitOut, MD_InitOut, IfW_InitOut )
+      call KFAST_WriteOutputNL( p%UnOutFile )
    
-   call KFAST_WriteOutputTimeChanUnits( p%UnOutFile )   
-   call KFAST_WriteOutputUnitNames( p, KAD_InitOut, MD_InitOut, IfW_InitOut )    
-   call KFAST_WriteOutputNL( p%UnOutFile )
-      
+      call KFAST_WriteOutputTimeChanUnits( p%UnOutFile )   
+      call KFAST_WriteOutputUnitNames( p, KAD_InitOut, MD_InitOut, IfW_InitOut )    
+      call KFAST_WriteOutputNL( p%UnOutFile )
+   end if  
 ! -------------------------------------------------------------------------
 ! Create Summary file
 ! -------------------------------------------------------------------------      
@@ -295,7 +296,7 @@ subroutine KFAST_Output(t_c, numGaussPts_c, gaussPtLoads_c, errStat_c, errMsg_c)
       call KFAST_ProcessOutputs()
       
       call KFAST_WriteOutputTime( t, p%UnOutFile )
-      call KFAST_WriteOutput( t, p, m%KAD%y, m%MD_Tether%y, m%IfW%y, errStat2, errMsg2 )
+      call KFAST_WriteOutput( p, m%KAD%y, m%MD_Tether%y, m%IfW%y, errStat2, errMsg2 )
          call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
       call KFAST_WriteOutputNL( p%UnOutFile ) 
       

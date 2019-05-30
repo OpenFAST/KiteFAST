@@ -464,7 +464,7 @@ int main(int argc, char *argv[])
     //Setup Offshore simulation data
     char MD_Mooring_FileName[INTERFACE_STRING_LENGTH];
     char HD_FileName[INTERFACE_STRING_LENGTH];
-    int  simMod = 3;  //3 = Offshore, no kite simulation model
+    int  simMod = 2;  //3 = Offshore, no kite simulation model
     double tmax = 60.0;
     
     double* pWindPtVel = (double *)malloc(3 * sizeof(double));
@@ -491,12 +491,12 @@ int main(int argc, char *argv[])
 
     // Set module flags 0 = off, 1=on
     pModFlags = (int *)malloc(6 * sizeof(int));
-    pModFlags[0] = 0;  // use KAD module
-    pModFlags[1] = 0;  // use InflowWind module
+    pModFlags[0] = 1;  // use KAD module
+    pModFlags[1] = 1;  // use InflowWind module
     pModFlags[2] = 0;  // use MoorDyn tether module
     pModFlags[3] = 0;  // no KiteFAST controller
     pModFlags[4] = 1;  // use HydroDyn module
-    pModFlags[5] = 1;  // use MoorDyn mooring module
+    pModFlags[5] = 0;  // use MoorDyn mooring module
 
     // Set input file names
     // NOTE: All the data further below is directly tied to the KAD file listed here.
@@ -559,7 +559,7 @@ int main(int argc, char *argv[])
     //KFAST_Init(&dt, &numFlaps, &numPylons, &numComp, pNumCompNds, pModFlags, KAD_FileName, IfW_FileName, MD_FileName, KFC_FileName, outFileRoot, &printSum, &gravity, &KAD_InterpOrder,
     //   pFusODCM, &numRtrPts, pRtrPts, pRtrMass, pRtrI_Rot, pRtrI_Trans, pRtrXcm, pRefPts, &numNodePts, pNodePts, pNodeDCMs,
     //   &nFusOuts, FusOutNd, &nSWnOuts, SWnOutNd, &nPWnOuts, PWnOutNd, &nVSOuts, VSOutNd, &nSHSOuts, SHSOutNd, &nPHSOuts, PHSOutNd, &nPylOuts, PylOutNd, &numOutChan, outChanList, pChanList_len, &errStat, errMsg);
-
+    printf("Calling Init\n");
     KFAST_OS_Init(&simMod, &dt, &tmax, &numFlaps, &numPylons, &numComp, pNumCompNds, pModFlags, KAD_FileName, IfW_FileName, MD_FileName, KFC_FileName, HD_FileName, MD_Mooring_FileName, outFileRoot, &printSum, &gravity, &KAD_InterpOrder,
        pFusODCM, &numRtrPts, pRtrPts, pRtrMass, pRtrI_Rot, pRtrI_Trans, pRtrXcm, pRefPts, &numNodePts, pNodePts, pNodeDCMs,
        &nFusOuts, FusOutNd, &nSWnOuts, SWnOutNd, &nPWnOuts, PWnOutNd, &nVSOuts, VSOutNd, &nSHSOuts, SHSOutNd, &nPHSOuts, PHSOutNd, &nPylOuts, PylOutNd, pPtfmO, pPtfmODCM, pGSRefPt, &numOutChan, outChanList, pChanList_len, &errStat, errMsg);
@@ -682,7 +682,7 @@ int main(int argc, char *argv[])
     //                pNodeVels, pNodeOmegas, pNodeAccs,
     //                &numRtrPts, pRtrPts, pRtrDCMs, pRtrVels, pRtrOmegas, pRtrAccs, pRtrAlphas,
     //                pNodeLoads, pRtrLoads, &errStat, errMsg);
-
+    printf("Calling KFAST_OS_AssRes\n");
     KFAST_OS_AssRes(&t, &isInitialTime, pWindPt, pWindPtVel, pFusO, pFusODCM, pFusOv,
        pFusOomegas, pFusOacc, pFusOalphas, &numNodePts, pNodePts, pNodeDCMs,
        pNodeVels, pNodeOmegas, pNodeAccs,
@@ -714,7 +714,8 @@ int main(int argc, char *argv[])
        pGaussPtLoads[n+5] = 6.0;
     }
     // Output()
-    KFAST_Output(&t, &numGaussLoadPts, pGaussPtLoads, &errStat, errMsg);
+    printf("Calling KFAST_OS_Output\n");
+    KFAST_OS_Output(&t, &numGaussLoadPts, pGaussPtLoads, &errStat, errMsg);
     if (errStat != 0)
     {
         printf("%s\n", errMsg);
@@ -724,7 +725,8 @@ int main(int argc, char *argv[])
     t = t + dt;  // MBDyn increments time before AfterPredict()
     
     // AfterPredict()
-    KFAST_AfterPredict(&t, &errStat, errMsg);
+    printf("Calling KFAST_OS_AfterPredict\n");
+    KFAST_OS_AfterPredict(&t, &errStat, errMsg);
     if (errStat != 0)
     {
        printf("%s\n", errMsg);
@@ -749,7 +751,7 @@ int main(int argc, char *argv[])
         //   pNodeVels, pNodeOmegas, pNodeAccs,
         //   &numRtrPts, pRtrPts, pRtrDCMs, pRtrVels, pRtrOmegas, pRtrAccs, pRtrAlphas,
         //   pNodeLoads, pRtrLoads, &errStat, errMsg);
-         
+       printf("Calling KFAST_OS_AssRes\n");
         KFAST_OS_AssRes(&t, &isInitialTime, pWindPt, pWindPtVel, pFusO, pFusODCM, pFusOv,
            pFusOomegas, pFusOacc, pFusOalphas, &numNodePts, pNodePts, pNodeDCMs,
            pNodeVels, pNodeOmegas, pNodeAccs,
@@ -766,7 +768,8 @@ int main(int argc, char *argv[])
         }
 
         // Output()
-        KFAST_Output(&t, &numGaussPtLoadsElem, pGaussPtLoads, &errStat, errMsg);
+        printf("Calling KFAST_OS_Output\n");
+        KFAST_OS_Output(&t, &numGaussPtLoadsElem, pGaussPtLoads, &errStat, errMsg);
         if (errStat != 0)
         {
            printf("%s\n", errMsg);
@@ -777,7 +780,8 @@ int main(int argc, char *argv[])
 
        
         // AfterPredict()
-        KFAST_AfterPredict(&t, &errStat, errMsg);
+        printf("Calling KFAST_OS_AfterPredict\n");
+        KFAST_OS_AfterPredict(&t, &errStat, errMsg);
         if (errStat != 0)
         {
             printf("%s\n", errMsg);
@@ -790,7 +794,7 @@ int main(int argc, char *argv[])
 
 
     // End()
-    KFAST_End(&errStat, errMsg);
+    KFAST_OS_End(&errStat, errMsg);
     if (errStat != 0)
     {
         printf("%s\n", errMsg);
