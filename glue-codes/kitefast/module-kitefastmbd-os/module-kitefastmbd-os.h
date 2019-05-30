@@ -67,98 +67,123 @@ typedef double f_real;
 #define ErrID_Fatal 4
 #define INTERFACE_STRING_LENGTH 1025
 
-  // *** Mapping from kitefastmbd to KiteFAST variable names ***
+// *** Mapping from kitefastmbd to KiteFAST variable names ***
 
-  extern int KFAST_Init(
-      double *time_step,                                  // dt
-      int *n_flaps_per_wing,                              // numFlaps
-      int *n_pylons_per_wing,                             // numPylons
-      int *n_components,                                  // numComp
-      int component_node_counts[],                        // numCompNds
-      int kitefast_module_flags[],                        // modFlags
-      const char kiteaerodyn_filename[],                  // KAD_FileName
-      const char inflowwind_filename[],                   // IfW_FileName
-      const char moordyn_filename[],                      // MD_FileName
-      const char controller_filename[],                   // KFC_FileName
-      const char output_file_root[],                      // outFileRoot
-      int *print_summary_file,                            // printSum
-      double *gravity,                                    // gravity
-      int *KAD_interpolation_order,                       // KiteAeroDyn interpolation order
-      double mip_dcm[],                                   // FusODCM
-      int *n_rotor_points,                                // numRtrPts
-      double rotor_points[],                              // rtrPts
-      double rotor_masses[],                              // rtrMass
-      double rotor_rotational_inertias[],                 // rtrI_Rot
-      double rotor_translational_inertias[],              // rtrI_trans
-      double rotor_cm_offsets[],                          // rtrXcm
-      double reference_points[],                          // refPts
-      int *node_count_no_rotors,                          // numNodePts
-      double node_points[],                               // nodePts
-      double node_dcms[],                                 // nodeDCMs
-      int *n_fuselage_outputs,                            // nFusOuts
-      int fuselage_output_nodes[],                        // FusOutNd
-      int *n_starboard_wing_outputs,                      // nSWnOuts
-      int starboard_wing_output_nodes[],                  // SWnOutNd
-      int *n_port_wing_outputs,                           // nPWnOuts
-      int port_wing_output_nodes[],                       // PWnOutNd
-      int *n_vertical_stabilizer_outputs,                 // nVSOuts
-      int vertical_stabilizer_output_nodes[],             // VSOutNd
-      int *n_starboard_horizontal_stabilizer_outputs,     // nSHSOuts
-      int starboard_horizontal_stabilizer_output_nodes[], // SHSOutNd
-      int *n_port_horizontal_stabilizer_outputs,          // nPHSOuts
-      int port_horizontal_stabilizer_output_nodes[],      // PHSOutNd
-      int *n_pylon_outputs,                               // nPylOuts
-      int pylon_output_nodes[],                           // PylOutNd
-      int *n_output_channels,                             // numOutChan
-      char *output_channel_array[],                       // chanList
-      int output_channel_lengths[],                       // ChanList_len
-      int *error_status,                                  // errStat
-      char error_message[]                                // errMsg
-  );
-  extern int KFAST_AssRes(
-      double *t,                     // t
-      int *first_iteration,          // isInitialTime
-      double ground_station_point[], // WindPt
-      double mip_position[],         // FusO
-      double mip_dcm[],              // FusODCM
-      double mip_vels[],             // FusOv
-      double mip_omegas[],           // FusOomegas
-      double mip_accs[],             // FusOacc
-      double mip_alphas[],           // FusOalphas
-      int *node_count_no_rotors,     // numNodePts
-      double node_points[],          // nodePts
-      double node_dcms[],            // nodeDCMs
-      double node_vels[],            // nodeVels
-      double node_omegas[],          // nodeOmegas
-      double node_accs[],            // nodeAccs
-      int *n_rotor_points,           // numRtrPts
-      double rotor_points[],         // rtrPts
-      double rotor_dcms[],           // nodeDCMs
-      double rotor_vels[],           // nodeVels
-      double rotor_omegas[],         // rtrOmegas
-      double rotor_accs[],           // rtrAccs
-      double rotor_alphas[],         // rtrAlphas
-      double node_loads[],           // nodeLoads
-      double rotor_loads[],          // rtrLoads
-      int *error_status,             // errStat
-      char error_message[]           // errMsg
-  );
-  extern int KFAST_AfterPredict(
-      double *t,           // t
-      int *error_status,   // errStat
-      char error_message[] // errMsg
-  );
-  extern int KFAST_Output(
-      double *current_time,       // simulation time for the current timestep (s)
-      int *n_gauss_load_points,   // Total number of gauss points in the MBDyn model
-      double gauss_point_loads[], // Array of loads in the global coordinate system (3 forces + 3 moments) corresponding to each MBDyn gauss point. ( N, N-m )
-      int *error_status,          // errStat
-      char error_message[]        // errMsg
-  );
-  extern int KFAST_End(
-      int *error_status,   // errStat
-      char error_message[] // errMsg
-  );
+extern int KFAST_OS_Init(
+  int *simulation_type,                               // simMod
+  double *time_step,                                  // dt
+  double *time_max,                                   // TMAX
+  int *n_flaps_per_wing,                              // numFlaps
+  int *n_pylons_per_wing,                             // numPylons
+  int *n_components,                                  // numComp
+  int component_node_counts[],                        // numCompNds
+  int kitefast_module_flags[],                        // modFlags
+  const char kiteaerodyn_filename[],                  // KAD_FileName
+  const char inflowwind_filename[],                   // IfW_FileName
+  const char moordyn_tether_filename[],               // MD_FileName
+  const char controller_filename[],                   // KFC_FileName
+  const char hydrodyn_filename[],                     // HD_FileName
+  const char moordyn_mooring_filename[],              // MD_Mooring_FileName
+  const char output_file_root[],                      // outFileRoot
+  int *print_summary_file,                            // printSum
+  double *gravity,                                    // gravity
+  int *KAD_interpolation_order,                       // KAD_InterpOrder
+  double mip_dcm[],                                   // FusODCM
+  int *n_rotor_points,                                // numRtrPts
+  double rotor_points[],                              // rtrPts
+  double rotor_masses[],                              // rtrMass
+  double rotor_rotational_inertias[],                 // rtrI_Rot
+  double rotor_translational_inertias[],              // rtrI_trans
+  double rotor_cm_offsets[],                          // rtrXcm
+  double reference_points[],                          // refPts
+  int *node_count_no_rotors,                          // numNodePts
+  double node_points[],                               // nodePts
+  double node_dcms[],                                 // nodeDCMs
+  int *n_fuselage_outputs,                            // nFusOuts
+  int fuselage_output_nodes[],                        // FusOutNd
+  int *n_starboard_wing_outputs,                      // nSWnOuts
+  int starboard_wing_output_nodes[],                  // SWnOutNd
+  int *n_port_wing_outputs,                           // nPWnOuts
+  int port_wing_output_nodes[],                       // PWnOutNd
+  int *n_vertical_stabilizer_outputs,                 // nVSOuts
+  int vertical_stabilizer_output_nodes[],             // VSOutNd
+  int *n_starboard_horizontal_stabilizer_outputs,     // nSHSOuts
+  int starboard_horizontal_stabilizer_output_nodes[], // SHSOutNd
+  int *n_port_horizontal_stabilizer_outputs,          // nPHSOuts
+  int port_horizontal_stabilizer_output_nodes[],      // PHSOutNd
+  int *n_pylon_outputs,                               // nPylOuts
+  int pylon_output_nodes[],                           // PylOutNd
+  double platform_mip_position[],                     // PtfmO[]
+  double platform_mip_dcm[],                          // PtfmODCM[]
+  double ground_station_reference_point[],            // GSRefPtR[]
+  int *n_output_channels,                             // numOutChan
+  char *output_channel_array[],                       // chanList
+  int output_channel_lengths[],                       // ChanList_len
+  int *error_status,                                  // errStat
+  char error_message[]                                // errMsg
+);
+extern int KFAST_OS_AssRes(
+  double *t,                                // t
+  int *first_iteration,                     // isInitialTime
+  double wind_reference_station_position[], // WindPt
+  double WindPtVel[],                       // Velocity of the ground station where the fixed wind measurement is taken, expressed in global coordinates. (m)
+  double mip_position[],                    // FusO
+  double mip_dcm[],                         // FusODCM
+  double mip_vels[],                        // FusOv
+  double mip_omegas[],                      // FusOomegas
+  double mip_accs[],                        // FusOacc
+  double mip_alphas[],                      // FusOalphas
+  int *node_count_no_rotors,                // numNodePts
+  double node_points[],                     // nodePts
+  double node_dcms[],                       // nodeDCMs
+  double node_vels[],                       // nodeVels
+  double node_omegas[],                     // nodeOmegas
+  double node_accs[],                       // nodeAccs
+  int *n_rotor_points,                      // numRtrPts
+  double rotor_points[],                    // rtrPts
+  double rotor_dcms[],                      // nodeDCMs
+  double rotor_vels[],                      // nodeVels
+  double rotor_omegas[],                    // rtrOmegas
+  double rotor_accs[],                      // rtrAccs
+  double rotor_alphas[],                    // rtrAlphas
+  double PtfmO[],                           // Current timestep position of the Platform reference point, expressed in global coordinates. (m)
+  double PtfmODCM[],                        // Current timestep DCM matrix to transform the location of the Platform reference point from global to kite coordinates.
+  double PtfmOv[],                          // Current timestep velocity of the Platform reference point, expressed in global coordinates. (m / s)
+  double PtfmOomegas[],                     // Current timestep rotational velocity of the Platform reference point, expressed in global coordinates. (rad / s)
+  double PtfmOacc[],                        // Current timestep translational acceleration of the Platform reference point, expressed in global coordinates. (m / s ^ 2)
+  double PtfmOalphas[],                     // Current timestep rotational acceleration of the Platform reference point, expressed in global coordinates. (rad / s ^ 2)
+  double PtfmIMUPt[],                       // Current timestep position of the Platform IMU point, expressed in global coordinates. (m)
+  double PtfmIMUDCM[],                      // Current timestep DCM matrix to transform the location of the Platform IMU point from global to kite coordinates.
+  double PtfmIMUv[],                        // Current timestep velocity of the Platform IMU point, expressed in global coordinates. (m / s)
+  double PtfmIMUomegas[],                   // Current timestep rotational velocity of the Platform IMU point, expressed in global coordinates. (rad / s)
+  double PtfmIMUacc[],                      // Current timestep translational acceleration of the Platform IMU point, expressed in global coordinates. (m / s ^ 2)
+  double GSRefPt[],                         // Current timestep position of the ground station reference point, expressed in global coordinates. (m)
+  double GSRefDCM[],                        // Current timestep DCM matrix to transform the location of the ground station reference point from global to kite coordinates.
+  double GSRefv[],                          // Current timestep velocity of the ground station reference point, expressed in global coordinates. (m / s)
+  double GSRefomegas[],                     // Current timestep rotational velocity of the ground station reference point, expressed in global coordinates. (rad / s)
+  double GSRefacc[],                        // Current timestep translational acceleration of the ground station reference point, expressed in global coordinates. (m / s ^ 2)
+  double node_loads[],                      // nodeLoads
+  double rotor_loads[],                     // rtrLoads
+  double ptfmLoads[],                       // Concentrated loads at the plaform reference pont in global coordinates.Returned from KiteFAST to MBDyn.
+  int *error_status,                        // errStat
+  char error_message[]                      // errMsg
+);
+extern int KFAST_OS_AfterPredict(
+  double *t,                     // t
+  int *error_status,             // errStat
+  char error_message[]           // errMsg
+);
+extern int KFAST_OS_Output(
+  double *current_time,          // simulation time for the current timestep (s)
+  int *n_gauss_load_points,      // Total number of gauss points in the MBDyn model
+  double gauss_point_loads[],    // Array of loads in the global coordinate system (3 forces + 3 moments) corresponding to each MBDyn gauss point. ( N, N-m )
+  int *error_status,             // errStat
+  char error_message[]           // errMsg
+);
+extern int KFAST_OS_End(
+  int *error_status,             // errStat
+  char error_message[]           // errMsg
+);
 
 #ifdef __cplusplus
 }
