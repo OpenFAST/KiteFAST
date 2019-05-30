@@ -29,11 +29,11 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 # user inputs
-plot_vars = ["sph_f.v","sph_f.alpha","flaps[0]", "rotors[7]"] #variables to be plotted
+plot_vars = ["Xg.x","Xg.y","Xg.z"] #variables to be plotted
 file_name = "controller_save_data.csv" #file name of data file
 time_val = 0 #inital time of data/plots
-dT = 0.02 #sec (time step)
-row_count = 9 # total rows found in .csv
+dT = 0.01 #sec (time step)
+row_count = 6004 # total rows found in .csv
 header_count = 4 # total number of rows that are headers
 
 # initialize variables
