@@ -122,14 +122,16 @@ ModuleKiteFASTOS::ModuleKiteFASTOS(unsigned uLabel, const DofOwner *pDO, DataMan
   ValidateInputKeyword(HP, "kiteaerodyn_interpolation_order");
   integer KAD_interpolation_order = HP.GetInt();
 
-  // parse the wind reference station ground station location
-  ValidateInputKeyword(HP, "wind_reference_station_position");
-  wind_reference_station_position[0] = HP.GetReal();
-  wind_reference_station_position[1] = HP.GetReal();
-  wind_reference_station_position[2] = HP.GetReal();
+  // parse the wind reference station location
+  ValidateInputKeyword(HP, "wind_reference_station_node");
+  wind_reference_station_node.pNode = dynamic_cast<StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
+  Vec3 wind_reference_xcurr = wind_reference_station_node.pNode->GetXCurr();
+  wind_reference_station_position[0] = wind_reference_xcurr[0];
+  wind_reference_station_position[1] = wind_reference_xcurr[1];
+  wind_reference_station_position[2] = wind_reference_xcurr[2];
 
   // parse the ground station location
-  ValidateInputKeyword(HP, "ground_reference_station_position");
+  ValidateInputKeyword(HP, "ground_station_position");
   ground_station_reference_point[0] = HP.GetReal();
   ground_station_reference_point[1] = HP.GetReal();
   ground_station_reference_point[2] = HP.GetReal();
@@ -147,12 +149,16 @@ ModuleKiteFASTOS::ModuleKiteFASTOS(unsigned uLabel, const DofOwner *pDO, DataMan
   // parse the keypoints (aka reference points)
   ValidateInputKeyword(HP, "keypoints");
   doublereal *reference_points = new doublereal[3 * n_components];
+  doublereal *platform_reference_point = new doublereal[3];
   for (int i = 0; i < n_components; i++)
   {
     reference_points[3 * i] = HP.GetReal();
     reference_points[3 * i + 1] = HP.GetReal();
     reference_points[3 * i + 2] = HP.GetReal();
   }
+  platform_reference_point[0] = HP.GetReal();
+  platform_reference_point[1] = HP.GetReal();
+  platform_reference_point[2] = HP.GetReal();
 
   // parse the mip node
   ValidateInputKeyword(HP, "mip_node");
@@ -184,6 +190,9 @@ ModuleKiteFASTOS::ModuleKiteFASTOS(unsigned uLabel, const DofOwner *pDO, DataMan
   }
   BuildComponentArrays(pDM, HP, "starboard_rotors", nodes_starrotors, beams_throwaway);
   BuildComponentArrays(pDM, HP, "port_rotors", nodes_portrotors, beams_throwaway);
+
+  BuildComponentArrays(pDM, HP, "platform", nodes_platform, beams_throwaway);
+  platform_node = nodes_platform[0];
 
   // build a single node array
   integer total_node_count = nodes_fuselage.size() + nodes_starwing.size() + nodes_portwing.size() + nodes_vstab.size() + nodes_starhstab.size() + nodes_porthstab.size();
@@ -279,6 +288,17 @@ ModuleKiteFASTOS::ModuleKiteFASTOS(unsigned uLabel, const DofOwner *pDO, DataMan
     node_dcms[9 * i + 7] = rnode.dGet(3, 2);
     node_dcms[9 * i + 8] = rnode.dGet(3, 3);
   }
+  doublereal *platform_mip_dcm = new doublereal[9];
+  Mat3x3 platform_rnode = platform_node.pNode->GetRCurr();
+  platform_mip_dcm[0] = platform_rnode.dGet(1, 1);
+  platform_mip_dcm[1] = platform_rnode.dGet(1, 2);
+  platform_mip_dcm[2] = platform_rnode.dGet(1, 3);
+  platform_mip_dcm[3] = platform_rnode.dGet(2, 1);
+  platform_mip_dcm[4] = platform_rnode.dGet(2, 2);
+  platform_mip_dcm[5] = platform_rnode.dGet(2, 3);
+  platform_mip_dcm[6] = platform_rnode.dGet(3, 1);
+  platform_mip_dcm[7] = platform_rnode.dGet(3, 2);
+  platform_mip_dcm[8] = platform_rnode.dGet(3, 3);
 
   // The kite is aligned with the Global Coordinate system
   Mat3x3 mip_dcm_matrix = mip_node.pNode->GetRCurr();
@@ -377,7 +397,9 @@ ModuleKiteFASTOS::ModuleKiteFASTOS(unsigned uLabel, const DofOwner *pDO, DataMan
   // call KFAST_Init method
   int error_status;
   char error_message[INTERFACE_STRING_LENGTH];
-  KFAST_Init(&time_step,
+  KFAST_OS_Init(&simulation_type,
+             &time_step,
+             &time_max,
              &n_flaps_per_wing,
              &n_pylons_per_wing,
              &n_components,
@@ -385,8 +407,10 @@ ModuleKiteFASTOS::ModuleKiteFASTOS(unsigned uLabel, const DofOwner *pDO, DataMan
              kitefast_module_flags,
              kiteaerodyn_filename,
              inflowwind_filename,
-             moordyn_filename,
+             moordyn_tether_filename,
              controller_filename,
+             hydrodyn_filename,
+             moordyn_mooring_filename,
              output_file_root,
              &print_summary_file,
              &gravity,
@@ -416,6 +440,9 @@ ModuleKiteFASTOS::ModuleKiteFASTOS(unsigned uLabel, const DofOwner *pDO, DataMan
              port_horizontal_stabilizer_output_nodes.data(),
              &n_pylon_outputs,
              pylon_output_nodes.data(),
+             platform_reference_point,
+             platform_mip_dcm,
+             ground_station_reference_point,
              &n_output_channels,
              output_channel_array.data(),
              output_channel_lengths,
@@ -431,9 +458,11 @@ ModuleKiteFASTOS::ModuleKiteFASTOS(unsigned uLabel, const DofOwner *pDO, DataMan
   }
 
   delete[] reference_points;
+  delete[] platform_reference_point;
   delete[] component_node_counts;
   delete[] node_points;
   delete[] node_dcms;
+  delete[] platform_mip_dcm;
   delete[] rotor_points;
   delete[] rotor_masses;
   delete[] rotor_rotational_inertias;
@@ -491,9 +520,9 @@ void ModuleKiteFASTOS::BuildComponentArrays(DataManager *pDM, MBDynParser &HP,
 
   BuildComponentNodeArray(pDM, HP, node_array);
 
-  // if keyword contains "rotor", dont read beams
+  // if keyword contains "rotor" or "platform", dont read beams
   std::string kwd(keyword);
-  if (kwd.find("rotor") != std::string::npos)
+  if (kwd.find("rotor") != std::string::npos || kwd.find("platform") != std::string::npos)
     return;
 
   BuildComponentBeamArray(pDM, HP, beam_array);
