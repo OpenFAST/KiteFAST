@@ -9,8 +9,8 @@ reference: mip_rf,
                 reference, global, 1, 0.86101738, 0.1191939, -0.49441064,
                            3, -0.4510669, 0.62803003, -0.63412691,
         reference, global,   54.49566619,   5.0564282,   -28.4868811,
-        reference, global,   1.984969e-02,   -3.768248e-03,   2.413641e-03;
-
+        reference, global,   -0.0124,   1.4169,   1.3185;
+# -0.0124, -0.0152, -0.3994
 # *** Fuselage ***
 set: integer fuselage_root_node = mip_node;
 set: integer fuselage_node_count = 5;

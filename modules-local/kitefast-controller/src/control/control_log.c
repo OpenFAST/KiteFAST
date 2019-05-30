@@ -30,135 +30,23 @@ void ControlLogEntry(ControlLog* control_log){
     printf("   Control Logging : Saving Step data\n");
 #endif
 
-
-
-   /* char assembledStr[2048];
-    char tempStr[160];
-    // time
-//#ifdef DEBUG
-    printf("   debug - t from control log = %0.4f\n", control_log->time);
-//#endif
-    double temp = control_log->time;
-    sprintf(tempStr, "%0.4f,", temp);
-    strcat(assembledStr,tempStr);
-    // dcm
-    sprintf(tempStr, "%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,",
-        control_log->stateEstLog.dcm_g2b.d[0][0],
-        control_log->stateEstLog.dcm_g2b.d[1][0],
-        control_log->stateEstLog.dcm_g2b.d[2][0],
-        control_log->stateEstLog.dcm_g2b.d[0][1],
-        control_log->stateEstLog.dcm_g2b.d[1][1],
-        control_log->stateEstLog.dcm_g2b.d[2][1],
-        control_log->stateEstLog.dcm_g2b.d[0][2],
-        control_log->stateEstLog.dcm_g2b.d[1][2],
-        control_log->stateEstLog.dcm_g2b.d[2][2]);
-    strcpy( assembledStr, tempStr);
-    // pqr
-    sprintf(tempStr, "%0.4f,%0.4f,%0.4f,",
-        control_log->stateEstLog.pqr_f.x,
-        control_log->stateEstLog.pqr_f.y,
-        control_log->stateEstLog.pqr_f.z);
-    strcat( assembledStr, tempStr);
-    // acc_norm_c
-    sprintf(tempStr, "%0.4f,", control_log->stateEstLog.acc_norm_f);
-    strcat( assembledStr, tempStr);
-    // Xg_c
-    sprintf(tempStr, "%0.4f,%0.4f,%0.4f,",
-        control_log->stateEstLog.Xg.x,        
-        control_log->stateEstLog.Xg.y,
-        control_log->stateEstLog.Xg.z);
-    strcat( assembledStr, tempStr);
-    // Vg_c
-    sprintf(tempStr, "%0.4f,%0.4f,%0.4f,",
-        control_log->stateEstLog.Vg.x,        
-        control_log->stateEstLog.Vg.y,
-        control_log->stateEstLog.Vg.z);
-    strcat( assembledStr, tempStr);
-    // Vb_c
-    sprintf(tempStr, "%0.4f,%0.4f,%0.4f,",
-        control_log->stateEstLog.Vb.x,        
-        control_log->stateEstLog.Vb.y,
-        control_log->stateEstLog.Vb.z);
-    strcat( assembledStr, tempStr);
-    // Ag_c
-    sprintf(tempStr, "%0.4f,%0.4f,%0.4f,",
-        control_log->stateEstLog.Ag.x,        
-        control_log->stateEstLog.Ag.y,
-        control_log->stateEstLog.Ag.z);
-    strcat( assembledStr, tempStr);
-    // Ab_c
-    sprintf(tempStr, "%0.4f,%0.4f,%0.4f,",
-        control_log->stateEstLog.Ab_f.x,        
-        control_log->stateEstLog.Ab_f.y,
-        control_log->stateEstLog.Ab_f.z);
-    strcat( assembledStr, tempStr);
-	// rho
-    sprintf(tempStr, "%0.4f,", control_log->stateEstLog.rho);
-    strcat( assembledStr, tempStr); 
-	//apparent_wind_c_v
-    sprintf(tempStr, "%0.4f,%0.4f,%0.4f,",
-        control_log->stateEstLog.apparent_wind.sph_f.v,        
-        control_log->stateEstLog.apparent_wind.sph_f.alpha,
-        control_log->stateEstLog.apparent_wind.sph_f.beta);
-    strcat( assembledStr, tempStr);
-	//tether_force_c
-    sprintf(tempStr, "%0.4f,%0.4f,%0.4f,",
-        control_log->stateEstLog.tether_force_b.vector_f.x,        
-        control_log->stateEstLog.tether_force_b.vector_f.y,
-        control_log->stateEstLog.tether_force_b.vector_f.z);
-    strcat( assembledStr, tempStr);
-	//wind_g
-    sprintf(tempStr, "%0.4f,%0.4f,%0.4f,",
-        control_log->stateEstLog.wind_g.vector.x,        
-        control_log->stateEstLog.wind_g.vector.y,
-        control_log->stateEstLog.wind_g.vector.z);
-    strcat( assembledStr, tempStr);   
-    // kFlaps[]
-#ifdef DEBUG
-    printf("   Control Logging : saving flaps\n");
-#endif
-    sprintf(tempStr, "%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,",
-        control_log->controlOutputLog.flaps[kFlapA1],    
-        control_log->controlOutputLog.flaps[kFlapA2],
-        control_log->controlOutputLog.flaps[kFlapA4],
-        control_log->controlOutputLog.flaps[kFlapA5],
-        control_log->controlOutputLog.flaps[kFlapA7],
-        control_log->controlOutputLog.flaps[kFlapA8],
-        control_log->controlOutputLog.flaps[kFlapEle],
-        control_log->controlOutputLog.flaps[kFlapRud]);
-    strcat( assembledStr, tempStr);
-#ifdef DEBUG
-    printf("   Control Logging : saving rotors\n");
-#endif
-    // rotors 
-    sprintf(tempStr, "%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,",
-        control_log->controlOutputLog.rotors[kMotor1],    
-        control_log->controlOutputLog.rotors[kMotor2],
-        control_log->controlOutputLog.rotors[kMotor3],
-        control_log->controlOutputLog.rotors[kMotor4],
-        control_log->controlOutputLog.rotors[kMotor5],
-        control_log->controlOutputLog.rotors[kMotor6],
-        control_log->controlOutputLog.rotors[kMotor7],
-        control_log->controlOutputLog.rotors[kMotor8]);
-    strcat( assembledStr, tempStr); 
-    */
     FILE *fp;
     fp = fopen("controller_save_data.csv", "a+");
     fprintf(fp, "%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f\n",
 		control_log->time,
 		control_log->stateEstLog.dcm_g2b.d[0][0],
-        	control_log->stateEstLog.dcm_g2b.d[1][0],
-        	control_log->stateEstLog.dcm_g2b.d[2][0],
         	control_log->stateEstLog.dcm_g2b.d[0][1],
-        	control_log->stateEstLog.dcm_g2b.d[1][1],
-        	control_log->stateEstLog.dcm_g2b.d[2][1],
         	control_log->stateEstLog.dcm_g2b.d[0][2],
+        	control_log->stateEstLog.dcm_g2b.d[1][0],
+        	control_log->stateEstLog.dcm_g2b.d[1][1],
         	control_log->stateEstLog.dcm_g2b.d[1][2],
+        	control_log->stateEstLog.dcm_g2b.d[2][0],
+        	control_log->stateEstLog.dcm_g2b.d[2][1],
         	control_log->stateEstLog.dcm_g2b.d[2][2],
+		control_log->stateEstLog.acc_norm_f,
 		control_log->stateEstLog.pqr_f.x,
         	control_log->stateEstLog.pqr_f.y,
         	control_log->stateEstLog.pqr_f.z,
-		control_log->stateEstLog.acc_norm_f,
 		control_log->stateEstLog.Xg.x,
 		control_log->stateEstLog.Xg.y,
 		control_log->stateEstLog.Xg.z,
@@ -201,13 +89,6 @@ void ControlLogEntry(ControlLog* control_log){
 		control_log->controlOutputLog.rotors[kMotor7],
 		control_log->controlOutputLog.rotors[kMotor8]);
     fclose(fp);
-
-/*
-    FILE * fp;
-    fp = fopen("controller_save_data.csv", "a+");
-    fprintf(fp, "%s \n", assembledStr);
-    fclose(fp);
-*/
 #ifdef DEBUG
     printf("   Control Step Saved: File saved as - controller_save_data.csv \n");
 #endif
