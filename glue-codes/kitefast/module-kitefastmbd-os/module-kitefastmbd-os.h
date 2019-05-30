@@ -44,8 +44,8 @@
 
 #define USE_SINGLE_PRECISION
 
-#ifndef KiteFAST_MBD_H
-#define KiteFAST_MBD_H
+#ifndef KiteFAST_MBD_OS_H
+#define KiteFAST_MBD_OS_H
 
 #ifdef __cplusplus
 extern "C"
@@ -164,9 +164,9 @@ typedef double f_real;
 }
 #endif /* __cplusplus */
 
-#endif /* KiteFAST_MBD_H */
+#endif /* KiteFAST_MBD_OS_H */
 
-class ModuleKiteFAST : virtual public Elem, public UserDefinedElem
+class ModuleKiteFASTOS : virtual public Elem, public UserDefinedElem
 {
 private:
   struct KiteFASTNode
@@ -218,8 +218,8 @@ private:
   const DataManager *data_manager;
 
 public:
-  ModuleKiteFAST(unsigned uLabel, const DofOwner *pDO, DataManager *pDM, MBDynParser &HP);
-  virtual ~ModuleKiteFAST(void);
+  ModuleKiteFASTOS(unsigned uLabel, const DofOwner *pDO, DataManager *pDM, MBDynParser &HP);
+  virtual ~ModuleKiteFASTOS(void);
   void SetValue(DataManager *pDM, VectorHandler &X, VectorHandler &XP, SimulationEntity::Hints *ph);
   void ValidateInputKeyword(MBDynParser &HP, const char *keyword);
   void BuildComponentArrays(DataManager *pDM, MBDynParser &HP, const char *keyword, std::vector<KiteFASTNode> &node_array, std::vector<KiteFASTBeam> &beam_array);

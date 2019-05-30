@@ -27,15 +27,15 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#include "module-kitefastmbd.h"
+#include "module-kitefastmbd-os.h"
 
 // #define DEBUGUDE
 
-ModuleKiteFAST::ModuleKiteFAST(unsigned uLabel, const DofOwner *pDO, DataManager *pDM, MBDynParser &HP) : Elem(uLabel, flag(0)), UserDefinedElem(uLabel, pDO)
+ModuleKiteFASTOS::ModuleKiteFASTOS(unsigned uLabel, const DofOwner *pDO, DataManager *pDM, MBDynParser &HP) : Elem(uLabel, flag(0)), UserDefinedElem(uLabel, pDO)
 {
   if (!HP.IsArg())
   {
-    silent_cout("No Arguments provided for ModuleKiteFAST for UDE IDE=" << uLabel << std::endl);
+    silent_cout("No Arguments provided for ModuleKiteFASTOS for UDE IDE=" << uLabel << std::endl);
     throw NoErr(MBDYN_EXCEPT_ARGS);
   }
 
@@ -43,7 +43,7 @@ ModuleKiteFAST::ModuleKiteFAST(unsigned uLabel, const DofOwner *pDO, DataManager
   {
     silent_cout(std::endl
                 << "Module: KiteFastMBD" << std::endl
-                << "Author: Rick Damiani <rick.damiani@nrel.gov> and Rafael Mudafort <rafael.mudafort@nrel.gov>" << std::endl
+                << "Author: Rafael Mudafort <rafael.mudafort@nrel.gov>" << std::endl
                 << "Organization:" << std::endl
                 << "    National Renewable Energy Lab" << std::endl
                 << "    National Wind Technology Center" << std::endl
@@ -422,9 +422,9 @@ ModuleKiteFAST::ModuleKiteFAST(unsigned uLabel, const DofOwner *pDO, DataManager
   delete[] output_channel_lengths;
 }
 
-ModuleKiteFAST::~ModuleKiteFAST(void)
+ModuleKiteFASTOS::~ModuleKiteFASTOS(void)
 {
-  printdebug("~ModuleKiteFAST");
+  printdebug("~ModuleKiteFASTOS");
 
   int error_status;
   char error_message[INTERFACE_STRING_LENGTH];
@@ -439,13 +439,13 @@ ModuleKiteFAST::~ModuleKiteFAST(void)
   }
 }
 
-void ModuleKiteFAST::SetValue(DataManager *pDM, VectorHandler &X, VectorHandler &XP, SimulationEntity::Hints *ph)
+void ModuleKiteFASTOS::SetValue(DataManager *pDM, VectorHandler &X, VectorHandler &XP, SimulationEntity::Hints *ph)
 {
   printdebug("SetValue");
   NO_OP;
 }
 
-void ModuleKiteFAST::ValidateInputKeyword(MBDynParser &HP, const char *keyword)
+void ModuleKiteFASTOS::ValidateInputKeyword(MBDynParser &HP, const char *keyword)
 {
   printdebug("ValidateInputKeyword - " + std::string(keyword));
 
@@ -456,7 +456,7 @@ void ModuleKiteFAST::ValidateInputKeyword(MBDynParser &HP, const char *keyword)
   }
 }
 
-void ModuleKiteFAST::BuildComponentArrays(DataManager *pDM, MBDynParser &HP,
+void ModuleKiteFASTOS::BuildComponentArrays(DataManager *pDM, MBDynParser &HP,
                                           const char *keyword,
                                           std::vector<KiteFASTNode> &node_array,
                                           std::vector<KiteFASTBeam> &beam_array)
@@ -479,7 +479,7 @@ void ModuleKiteFAST::BuildComponentArrays(DataManager *pDM, MBDynParser &HP,
   BuildComponentBeamArray(pDM, HP, beam_array);
 }
 
-void ModuleKiteFAST::BuildComponentNodeArray(DataManager *pDM,
+void ModuleKiteFASTOS::BuildComponentNodeArray(DataManager *pDM,
                                              MBDynParser &HP,
                                              std::vector<KiteFASTNode> &node_array)
 {
@@ -497,7 +497,7 @@ void ModuleKiteFAST::BuildComponentNodeArray(DataManager *pDM,
   }
 }
 
-void ModuleKiteFAST::BuildComponentBeamArray(DataManager *pDM,
+void ModuleKiteFASTOS::BuildComponentBeamArray(DataManager *pDM,
                                              MBDynParser &HP,
                                              std::vector<KiteFASTBeam> &beam_array)
 {
@@ -511,7 +511,7 @@ void ModuleKiteFAST::BuildComponentBeamArray(DataManager *pDM,
   }
 }
 
-void ModuleKiteFAST::BuildComponentOutputArray(MBDynParser &HP,
+void ModuleKiteFASTOS::BuildComponentOutputArray(MBDynParser &HP,
                                                const char *keyword,
                                                integer &n_outputs,
                                                std::vector<int> &output_nodes)
@@ -528,7 +528,7 @@ void ModuleKiteFAST::BuildComponentOutputArray(MBDynParser &HP,
   }
 }
 
-doublereal ModuleKiteFAST::GetPrivateData(KiteFASTBeam beam, const char *private_data) const
+doublereal ModuleKiteFASTOS::GetPrivateData(KiteFASTBeam beam, const char *private_data) const
 {
   printdebug("_GetPrivateData");
 
@@ -537,7 +537,7 @@ doublereal ModuleKiteFAST::GetPrivateData(KiteFASTBeam beam, const char *private
   return value;
 }
 
-void ModuleKiteFAST::Output(OutputHandler &OH) const
+void ModuleKiteFASTOS::Output(OutputHandler &OH) const
 {
   printdebug("Output");
 
@@ -576,32 +576,32 @@ void ModuleKiteFAST::Output(OutputHandler &OH) const
   delete[] gauss_point_loads;
 }
 
-int ModuleKiteFAST::iGetNumConnectedNodes(void) const
+int ModuleKiteFASTOS::iGetNumConnectedNodes(void) const
 {
   printdebug("iGetNumConnectedNodes");
   return nodes.size();
 }
 
-void ModuleKiteFAST::WorkSpaceDim(integer *piNumRows, integer *piNumCols) const
+void ModuleKiteFASTOS::WorkSpaceDim(integer *piNumRows, integer *piNumCols) const
 {
   printdebug("WorkSpaceDim");
   *piNumRows = 6 * iGetNumConnectedNodes();
   *piNumCols = 1;
 }
 
-VariableSubMatrixHandler &ModuleKiteFAST::AssJac(VariableSubMatrixHandler &WorkMat, doublereal dCoef, const VectorHandler &XCurr, const VectorHandler &XPrimeCurr)
+VariableSubMatrixHandler &ModuleKiteFASTOS::AssJac(VariableSubMatrixHandler &WorkMat, doublereal dCoef, const VectorHandler &XCurr, const VectorHandler &XPrimeCurr)
 {
   printdebug("AssJac");
   WorkMat.SetNullMatrix();
   return WorkMat;
 }
 
-void ModuleKiteFAST::Update(const VectorHandler &XCurr, const VectorHandler &XPrimeCurr)
+void ModuleKiteFASTOS::Update(const VectorHandler &XCurr, const VectorHandler &XPrimeCurr)
 {
   printdebug("Update");
 }
 
-void ModuleKiteFAST::_AssRes(doublereal *node_loads, doublereal *rotor_loads)
+void ModuleKiteFASTOS::_AssRes(doublereal *node_loads, doublereal *rotor_loads)
 {
   printdebug("_AssRes");
 
@@ -795,7 +795,7 @@ void ModuleKiteFAST::_AssRes(doublereal *node_loads, doublereal *rotor_loads)
   delete[] rotor_alphas;
 }
 
-SubVectorHandler &ModuleKiteFAST::AssRes(SubVectorHandler &WorkVec, doublereal dCoef, const VectorHandler &XCurr, const VectorHandler &XPrimeCurr)
+SubVectorHandler &ModuleKiteFASTOS::AssRes(SubVectorHandler &WorkVec, doublereal dCoef, const VectorHandler &XCurr, const VectorHandler &XPrimeCurr)
 {
   printdebug("AssRes");
 
@@ -848,12 +848,12 @@ SubVectorHandler &ModuleKiteFAST::AssRes(SubVectorHandler &WorkVec, doublereal d
   return WorkVec;
 }
 
-void ModuleKiteFAST::BeforePredict(VectorHandler &X, VectorHandler &XP, VectorHandler &XPrev, VectorHandler &XPPrev) const
+void ModuleKiteFASTOS::BeforePredict(VectorHandler &X, VectorHandler &XP, VectorHandler &XPrev, VectorHandler &XPPrev) const
 {
   printdebug("BeforePredict");
 }
 
-void ModuleKiteFAST::AfterPredict(VectorHandler &X, VectorHandler &XP)
+void ModuleKiteFASTOS::AfterPredict(VectorHandler &X, VectorHandler &XP)
 {
   printdebug("AfterPredict");
 
@@ -873,39 +873,39 @@ void ModuleKiteFAST::AfterPredict(VectorHandler &X, VectorHandler &XP)
   }
 }
 
-void ModuleKiteFAST::AfterConvergence(const VectorHandler &X, const VectorHandler &XP)
+void ModuleKiteFASTOS::AfterConvergence(const VectorHandler &X, const VectorHandler &XP)
 {
   printdebug("AfterConvergence");
 }
 
 extern "C" int module_init(const char *module_name, void *pdm, void *php)
 {
-  UserDefinedElemRead *rf = new UDERead<ModuleKiteFAST>;
-  if (!SetUDE("ModuleKiteFAST", rf))
+  UserDefinedElemRead *rf = new UDERead<ModuleKiteFASTOS>;
+  if (!SetUDE("ModuleKiteFASTOS", rf))
   {
     delete rf;
-    silent_cerr("module-kitefastmbd: module_init(" << module_name << ") failed" << std::endl);
+    silent_cerr("module-kitefastmbd-os: module_init(" << module_name << ") failed" << std::endl);
     return -1;
   }
   return 0;
 }
 
 // helper functions while in development
-void ModuleKiteFAST::printdebug(std::string debugstring) const
+void ModuleKiteFASTOS::printdebug(std::string debugstring) const
 {
 #ifdef DEBUGUDE
   silent_cout("****** " << debugstring << "\t (time: " << Time.dGet() << ")" << std::endl);
 #endif
 }
 
-void ModuleKiteFAST::PrintNodeLocations(KiteFASTNode node)
+void ModuleKiteFASTOS::PrintNodeLocations(KiteFASTNode node)
 {
   Vec3 location = node.pNode->GetXCurr();
   Vec3 accel = node.pNode->GetXPPCurr();
   printf("x: %f\ty: %f\tz: %f\tx\": %f\ty\": %f\tz:\"%f\n", location[0], location[1], location[2], accel[0], accel[1], accel[2]);
 }
 
-void ModuleKiteFAST::InitOutputFile(std::string output_file_name)
+void ModuleKiteFASTOS::InitOutputFile(std::string output_file_name)
 {
   printdebug("InitOutputFile");
 
@@ -930,13 +930,13 @@ void ModuleKiteFAST::InitOutputFile(std::string output_file_name)
 }
 
 // these are specific for mbdyn, not used by us or KiteFAST
-unsigned int ModuleKiteFAST::iGetNumPrivData(void) const
+unsigned int ModuleKiteFASTOS::iGetNumPrivData(void) const
 {
   printdebug("iGetNumPrivData");
   return 0;
 }
 
-void ModuleKiteFAST::GetConnectedNodes(std::vector<const Node *> &connectedNodes) const
+void ModuleKiteFASTOS::GetConnectedNodes(std::vector<const Node *> &connectedNodes) const
 {
   printdebug("GetConnectedNodes");
   connectedNodes.resize(nodes.size());
@@ -946,26 +946,26 @@ void ModuleKiteFAST::GetConnectedNodes(std::vector<const Node *> &connectedNodes
   }
 }
 
-std::ostream &ModuleKiteFAST::Restart(std::ostream &out) const
+std::ostream &ModuleKiteFASTOS::Restart(std::ostream &out) const
 {
   printdebug("Restart");
   return out << "module-kitefastmbd not implemented" << std::endl;
 }
 
-unsigned int ModuleKiteFAST::iGetInitialNumDof(void) const
+unsigned int ModuleKiteFASTOS::iGetInitialNumDof(void) const
 {
   printdebug("iGetInitialNumDof");
   return 0;
 }
 
-void ModuleKiteFAST::InitialWorkSpaceDim(integer *piNumRows, integer *piNumCols) const
+void ModuleKiteFASTOS::InitialWorkSpaceDim(integer *piNumRows, integer *piNumCols) const
 {
   printdebug("InitialWorkSpaceDim");
   *piNumRows = 0;
   *piNumCols = 0;
 }
 
-VariableSubMatrixHandler &ModuleKiteFAST::InitialAssJac(VariableSubMatrixHandler &WorkMat, const VectorHandler &XCurr)
+VariableSubMatrixHandler &ModuleKiteFASTOS::InitialAssJac(VariableSubMatrixHandler &WorkMat, const VectorHandler &XCurr)
 {
   printdebug("InitialAssJac");
 
@@ -975,7 +975,7 @@ VariableSubMatrixHandler &ModuleKiteFAST::InitialAssJac(VariableSubMatrixHandler
   return WorkMat;
 }
 
-SubVectorHandler &ModuleKiteFAST::InitialAssRes(SubVectorHandler &WorkVec, const VectorHandler &XCurr)
+SubVectorHandler &ModuleKiteFASTOS::InitialAssRes(SubVectorHandler &WorkVec, const VectorHandler &XCurr)
 {
   printdebug("InitialAssRes");
 
