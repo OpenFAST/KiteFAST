@@ -65,26 +65,36 @@ ModuleKiteFASTOS::ModuleKiteFASTOS(unsigned uLabel, const DofOwner *pDO, DataMan
   // set this variable for use in AssRes
   first_iteration = 1;
 
+  // parse the simulation type
+  ValidateInputKeyword(HP, "simulation_type");
+  integer simulation_type = HP.GetReal();
+
   // parse the kitefast module flags
   // 0 = off, 1 = on
   ValidateInputKeyword(HP, "fast_submodule_flags");
-  integer kitefast_module_flags[4];
+  integer kitefast_module_flags[6];
   kitefast_module_flags[0] = HP.GetInt(); // kiteaerodyn
   kitefast_module_flags[1] = HP.GetInt(); // inflowwind
-  kitefast_module_flags[2] = HP.GetInt(); // moordyn
+  kitefast_module_flags[2] = HP.GetInt(); // moordyn tether
   kitefast_module_flags[3] = HP.GetInt(); // controller
+  kitefast_module_flags[4] = HP.GetInt(); // hydrodyn
+  kitefast_module_flags[5] = HP.GetInt(); // moordyn mooring
 
   // parse the kitefast module input files
   char kiteaerodyn_filename[INTERFACE_STRING_LENGTH];
   char inflowwind_filename[INTERFACE_STRING_LENGTH];
-  char moordyn_filename[INTERFACE_STRING_LENGTH];
+  char moordyn_tether_filename[INTERFACE_STRING_LENGTH];
   char controller_filename[INTERFACE_STRING_LENGTH];
+  char hydrodyn_filename[INTERFACE_STRING_LENGTH];
+  char moordyn_mooring_filename[INTERFACE_STRING_LENGTH];
   char output_file_root[INTERFACE_STRING_LENGTH];
   ValidateInputKeyword(HP, "fast_submodule_input_files");
   strcpy(kiteaerodyn_filename, HP.GetFileName());
   strcpy(inflowwind_filename, HP.GetFileName());
-  strcpy(moordyn_filename, HP.GetFileName());
+  strcpy(moordyn_tether_filename, HP.GetFileName());
   strcpy(controller_filename, HP.GetFileName());
+  strcpy(hydrodyn_filename, HP.GetFileName());
+  strcpy(moordyn_mooring_filename, HP.GetFileName());
 
   // parse the output file settings and initialize the output file
   ValidateInputKeyword(HP, "output_file_root");
@@ -99,6 +109,10 @@ ModuleKiteFASTOS::ModuleKiteFASTOS(unsigned uLabel, const DofOwner *pDO, DataMan
   ValidateInputKeyword(HP, "time_step");
   time_step = HP.GetReal();
 
+  // parse the max time
+  ValidateInputKeyword(HP, "time_max");
+  doublereal time_max = HP.GetReal();
+
   // parse the gravity
   ValidateInputKeyword(HP, "gravity");
   doublereal gravity = HP.GetReal();
@@ -108,11 +122,17 @@ ModuleKiteFASTOS::ModuleKiteFASTOS(unsigned uLabel, const DofOwner *pDO, DataMan
   ValidateInputKeyword(HP, "kiteaerodyn_interpolation_order");
   integer KAD_interpolation_order = HP.GetInt();
 
+  // parse the wind reference station ground station location
+  ValidateInputKeyword(HP, "wind_reference_station_position");
+  wind_reference_station_position[0] = HP.GetReal();
+  wind_reference_station_position[1] = HP.GetReal();
+  wind_reference_station_position[2] = HP.GetReal();
+
   // parse the ground station location
-  ValidateInputKeyword(HP, "ground_weather_station_location");
-  ground_station_point[0] = HP.GetReal();
-  ground_station_point[1] = HP.GetReal();
-  ground_station_point[2] = HP.GetReal();
+  ValidateInputKeyword(HP, "ground_reference_station_position");
+  ground_station_reference_point[0] = HP.GetReal();
+  ground_station_reference_point[1] = HP.GetReal();
+  ground_station_reference_point[2] = HP.GetReal();
 
   // parse the component counts
   ValidateInputKeyword(HP, "number_of_flaps_per_wing");
