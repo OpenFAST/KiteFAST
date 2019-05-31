@@ -126,7 +126,7 @@ extern int KFAST_OS_AssRes(
   double *t,                                // t
   int *first_iteration,                     // isInitialTime
   double wind_reference_station_position[], // WindPt
-  double WindPtVel[],                       // Velocity of the ground station where the fixed wind measurement is taken, expressed in global coordinates. (m)
+  double wind_reference_station_velocity[], // WindPtVel
   double mip_position[],                    // FusO
   double mip_dcm[],                         // FusODCM
   double mip_vels[],                        // FusOv
@@ -207,13 +207,17 @@ private:
   const static int AbortErrLev = ErrID_Fatal; // abort error level; compare with NWTC Library
 
   doublereal time_step;
-  doublereal ground_station_point[3];
   integer n_rotor_points;
   integer node_count_no_rotors;
   integer first_iteration;
   doublereal initial_time;
   integer total_beam_count;
+
+  // single point reference nodes
+  KiteFASTNode wind_reference_station_node;
+  KiteFASTNode ground_station_node;
   KiteFASTNode mip_node;
+  KiteFASTNode platform_node;
 
   std::vector<KiteFASTNode> nodes;
   std::vector<KiteFASTNode> nodes_fuselage;
@@ -226,6 +230,7 @@ private:
   std::vector<std::vector<KiteFASTNode>> nodes_portpylons; // < size - n pylons < size - n nodes in pylon >>
   std::vector<KiteFASTNode> nodes_starrotors;
   std::vector<KiteFASTNode> nodes_portrotors;
+  std::vector<KiteFASTNode> nodes_platform;
 
   std::vector<KiteFASTBeam> beams;
   std::vector<KiteFASTBeam> beams_fuselage;

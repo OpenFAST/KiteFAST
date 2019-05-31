@@ -126,12 +126,14 @@ ModuleKiteFASTOS::ModuleKiteFASTOS(unsigned uLabel, const DofOwner *pDO, DataMan
   ValidateInputKeyword(HP, "wind_reference_station_node");
   wind_reference_station_node.pNode = dynamic_cast<StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
   Vec3 wind_reference_xcurr = wind_reference_station_node.pNode->GetXCurr();
+  doublereal wind_reference_station_position[3];
   wind_reference_station_position[0] = wind_reference_xcurr[0];
   wind_reference_station_position[1] = wind_reference_xcurr[1];
   wind_reference_station_position[2] = wind_reference_xcurr[2];
 
   // parse the ground station location
-  ValidateInputKeyword(HP, "ground_station_position");
+  ValidateInputKeyword(HP, "ground_station_node");
+  doublereal ground_station_reference_point[3];
   ground_station_reference_point[0] = HP.GetReal();
   ground_station_reference_point[1] = HP.GetReal();
   ground_station_reference_point[2] = HP.GetReal();
