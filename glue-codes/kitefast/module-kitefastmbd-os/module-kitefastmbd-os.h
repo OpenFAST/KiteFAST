@@ -146,25 +146,25 @@ extern int KFAST_OS_AssRes(
   double rotor_omegas[],                    // rtrOmegas
   double rotor_accs[],                      // rtrAccs
   double rotor_alphas[],                    // rtrAlphas
-  double PtfmO[],                           // Current timestep position of the Platform reference point, expressed in global coordinates. (m)
-  double PtfmODCM[],                        // Current timestep DCM matrix to transform the location of the Platform reference point from global to kite coordinates.
-  double PtfmOv[],                          // Current timestep velocity of the Platform reference point, expressed in global coordinates. (m / s)
-  double PtfmOomegas[],                     // Current timestep rotational velocity of the Platform reference point, expressed in global coordinates. (rad / s)
-  double PtfmOacc[],                        // Current timestep translational acceleration of the Platform reference point, expressed in global coordinates. (m / s ^ 2)
-  double PtfmOalphas[],                     // Current timestep rotational acceleration of the Platform reference point, expressed in global coordinates. (rad / s ^ 2)
-  double PtfmIMUPt[],                       // Current timestep position of the Platform IMU point, expressed in global coordinates. (m)
-  double PtfmIMUDCM[],                      // Current timestep DCM matrix to transform the location of the Platform IMU point from global to kite coordinates.
-  double PtfmIMUv[],                        // Current timestep velocity of the Platform IMU point, expressed in global coordinates. (m / s)
-  double PtfmIMUomegas[],                   // Current timestep rotational velocity of the Platform IMU point, expressed in global coordinates. (rad / s)
-  double PtfmIMUacc[],                      // Current timestep translational acceleration of the Platform IMU point, expressed in global coordinates. (m / s ^ 2)
-  double GSRefPt[],                         // Current timestep position of the ground station reference point, expressed in global coordinates. (m)
-  double GSRefDCM[],                        // Current timestep DCM matrix to transform the location of the ground station reference point from global to kite coordinates.
-  double GSRefv[],                          // Current timestep velocity of the ground station reference point, expressed in global coordinates. (m / s)
-  double GSRefomegas[],                     // Current timestep rotational velocity of the ground station reference point, expressed in global coordinates. (rad / s)
-  double GSRefacc[],                        // Current timestep translational acceleration of the ground station reference point, expressed in global coordinates. (m / s ^ 2)
+  double platform_position[],               // PtfmO
+  double platform_dcm[],                    // PtfmODCM
+  double platform_vels[],                   // PtfmOv
+  double platform_omegas[],                 // PtfmOomegas
+  double platform_accs[],                   // PtfmOacc
+  double platform_alphas[],                 // PtfmOalphas
+  double platform_imu_position[],           // PtfmIMUPt
+  double platform_imu_dcm[],                // PtfmIMUDCM
+  double platform_imu_vels[],               // PtfmIMUv
+  double platform_imu_omegas[],             // PtfmIMUomegas
+  double platform_imu_accs[],               // PtfmIMUacc
+  double ground_station_position[],         // GSRefPt
+  double ground_station_dcm[],              // GSRefDCM
+  double ground_station_vels[],             // GSRefv
+  double ground_station_omegas[],           // GSRefomegas
+  double ground_station_accs[],             // GSRefacc
   double node_loads[],                      // nodeLoads
   double rotor_loads[],                     // rtrLoads
-  double ptfmLoads[],                       // Concentrated loads at the plaform reference pont in global coordinates.Returned from KiteFAST to MBDyn.
+  double platform_loads[],                  // ptfmLoads
   int *error_status,                        // errStat
   char error_message[]                      // errMsg
 );
@@ -214,10 +214,11 @@ private:
   integer total_beam_count;
 
   // single point reference nodes
-  KiteFASTNode wind_reference_station_node;
-  KiteFASTNode ground_station_node;
   KiteFASTNode mip_node;
   KiteFASTNode platform_node;
+  KiteFASTNode platform_imu_node;
+  KiteFASTNode wind_reference_station_node;
+  KiteFASTNode ground_station_node;
 
   std::vector<KiteFASTNode> nodes;
   std::vector<KiteFASTNode> nodes_fuselage;
@@ -263,7 +264,7 @@ public:
   virtual void WorkSpaceDim(integer *piNumRows, integer *piNumCols) const;
   VariableSubMatrixHandler &AssJac(VariableSubMatrixHandler &WorkMat, doublereal dCoef, const VectorHandler &XCurr, const VectorHandler &XPrimeCurr);
   void Update(const VectorHandler &XCurr, const VectorHandler &XPrimeCurr);
-  void _AssRes(doublereal *nodeLoads, doublereal *rotorLoads);
+  void _AssRes(doublereal *nodeLoads, doublereal *rotorLoads, doublereal *platform_loads);
   SubVectorHandler &AssRes(SubVectorHandler &WorkVec, doublereal dCoef, const VectorHandler &XCurr, const VectorHandler &XPrimeCurr);
   void BeforePredict(VectorHandler & /* X */, VectorHandler & /* XP */, VectorHandler & /* XPrev */, VectorHandler & /* XPPrev */) const;
   void AfterPredict(VectorHandler &X, VectorHandler &XP);

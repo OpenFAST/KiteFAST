@@ -122,22 +122,6 @@ ModuleKiteFASTOS::ModuleKiteFASTOS(unsigned uLabel, const DofOwner *pDO, DataMan
   ValidateInputKeyword(HP, "kiteaerodyn_interpolation_order");
   integer KAD_interpolation_order = HP.GetInt();
 
-  // parse the wind reference station location
-  ValidateInputKeyword(HP, "wind_reference_station_node");
-  wind_reference_station_node.pNode = dynamic_cast<StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
-  Vec3 wind_reference_xcurr = wind_reference_station_node.pNode->GetXCurr();
-  doublereal wind_reference_station_position[3];
-  wind_reference_station_position[0] = wind_reference_xcurr[0];
-  wind_reference_station_position[1] = wind_reference_xcurr[1];
-  wind_reference_station_position[2] = wind_reference_xcurr[2];
-
-  // parse the ground station location
-  ValidateInputKeyword(HP, "ground_station_node");
-  doublereal ground_station_reference_point[3];
-  ground_station_reference_point[0] = HP.GetReal();
-  ground_station_reference_point[1] = HP.GetReal();
-  ground_station_reference_point[2] = HP.GetReal();
-
   // parse the component counts
   ValidateInputKeyword(HP, "number_of_flaps_per_wing");
   integer n_flaps_per_wing = HP.GetInt();
@@ -165,6 +149,31 @@ ModuleKiteFASTOS::ModuleKiteFASTOS(unsigned uLabel, const DofOwner *pDO, DataMan
   // parse the mip node
   ValidateInputKeyword(HP, "mip_node");
   mip_node.pNode = dynamic_cast<StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
+
+  // parse the platform node
+  ValidateInputKeyword(HP, "platform_node");
+  platform_node.pNode = dynamic_cast<StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
+
+  // parse the platform imu node
+  ValidateInputKeyword(HP, "platform_imu_node");
+  platform_imu_node.pNode = dynamic_cast<StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
+
+  // parse the wind reference station location
+  ValidateInputKeyword(HP, "wind_reference_station_node");
+  wind_reference_station_node.pNode = dynamic_cast<StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
+  Vec3 wind_reference_xcurr = wind_reference_station_node.pNode->GetXCurr();
+  doublereal wind_reference_station_position[3];
+  wind_reference_station_position[0] = wind_reference_xcurr[0];
+  wind_reference_station_position[1] = wind_reference_xcurr[1];
+  wind_reference_station_position[2] = wind_reference_xcurr[2];
+
+  // parse the ground station location
+  ValidateInputKeyword(HP, "ground_station_node");
+  ground_station_node.pNode = dynamic_cast<StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
+  doublereal ground_station_reference_point[3];
+  ground_station_reference_point[0] = HP.GetReal();
+  ground_station_reference_point[1] = HP.GetReal();
+  ground_station_reference_point[2] = HP.GetReal();
 
   // parse the component nodes and beams into arrays
   BuildComponentArrays(pDM, HP, "fuselage", nodes_fuselage, beams_fuselage);
@@ -652,7 +661,7 @@ void ModuleKiteFASTOS::Update(const VectorHandler &XCurr, const VectorHandler &X
   printdebug("Update");
 }
 
-void ModuleKiteFASTOS::_AssRes(doublereal *node_loads, doublereal *rotor_loads)
+void ModuleKiteFASTOS::_AssRes(doublereal *node_loads, doublereal *rotor_loads, doublereal *platform_loads)
 {
   printdebug("_AssRes");
 
@@ -666,6 +675,18 @@ void ModuleKiteFASTOS::_AssRes(doublereal *node_loads, doublereal *rotor_loads)
   }
 
   doublereal t = Time.dGet();
+
+  doublereal wind_reference_station_position[3];
+  Vec3 wind_reference_xcurr = wind_reference_station_node.pNode->GetXCurr();
+  wind_reference_station_position[0] = wind_reference_xcurr[0];
+  wind_reference_station_position[1] = wind_reference_xcurr[1];
+  wind_reference_station_position[2] = wind_reference_xcurr[2];
+
+  doublereal wind_reference_station_velocity[3];
+  Vec3 wind_reference_vcurr = wind_reference_station_node.pNode->GetVCurr();
+  wind_reference_station_velocity[0] = wind_reference_vcurr[0];
+  wind_reference_station_velocity[1] = wind_reference_vcurr[1];
+  wind_reference_station_velocity[2] = wind_reference_vcurr[2];
 
   doublereal mip_position[3];
   Vec3 vec3_mip_pos = mip_node.pNode->GetXCurr();
@@ -795,11 +816,129 @@ void ModuleKiteFASTOS::_AssRes(doublereal *node_loads, doublereal *rotor_loads)
     rotor_alphas[3 * i + 2] = angacc_curr[2];
   }
 
+  // platform
+  doublereal platform_position[3];
+  Vec3 vec3_platform_pos = platform_node.pNode->GetXCurr();
+  platform_position[0] = vec3_platform_pos[0];
+  platform_position[1] = vec3_platform_pos[1];
+  platform_position[2] = vec3_platform_pos[2];
+
+  doublereal platform_dcm[9];
+  Mat3x3 mat3_platform_dcm = platform_node.pNode->GetRCurr();
+  platform_dcm[0] = mat3_platform_dcm.dGet(1, 1);
+  platform_dcm[1] = mat3_platform_dcm.dGet(1, 2);
+  platform_dcm[2] = mat3_platform_dcm.dGet(1, 3);
+  platform_dcm[3] = mat3_platform_dcm.dGet(2, 1);
+  platform_dcm[4] = mat3_platform_dcm.dGet(2, 2);
+  platform_dcm[5] = mat3_platform_dcm.dGet(2, 3);
+  platform_dcm[6] = mat3_platform_dcm.dGet(3, 1);
+  platform_dcm[7] = mat3_platform_dcm.dGet(3, 2);
+  platform_dcm[8] = mat3_platform_dcm.dGet(3, 3);
+
+  doublereal platform_vels[3];
+  Vec3 vec3_platform_vels = platform_node.pNode->GetVCurr();
+  platform_vels[0] = vec3_platform_vels[0];
+  platform_vels[1] = vec3_platform_vels[1];
+  platform_vels[2] = vec3_platform_vels[2];
+
+  doublereal platform_omegas[3];
+  Vec3 vec3_platform_omegas = platform_node.pNode->GetWCurr();
+  platform_omegas[0] = vec3_platform_omegas[0];
+  platform_omegas[1] = vec3_platform_omegas[1];
+  platform_omegas[2] = vec3_platform_omegas[2];
+
+  doublereal platform_accs[3];
+  Vec3 vec3_platform_acc = platform_node.pNode->GetXPPCurr();
+  platform_accs[0] = vec3_platform_acc[0];
+  platform_accs[1] = vec3_platform_acc[1];
+  platform_accs[2] = vec3_platform_acc[2];
+
+  doublereal platform_alphas[3];
+  Vec3 vec3_platform_alphas = platform_node.pNode->GetWPCurr();
+  platform_alphas[0] = vec3_platform_alphas[0];
+  platform_alphas[1] = vec3_platform_alphas[1];
+  platform_alphas[2] = vec3_platform_alphas[2];
+
+  // platform imu
+  doublereal platform_imu_position[3];
+  Vec3 vec3_platform_imu_pos = platform_imu_node.pNode->GetXCurr();
+  platform_imu_position[0] = vec3_platform_imu_pos[0];
+  platform_imu_position[1] = vec3_platform_imu_pos[1];
+  platform_imu_position[2] = vec3_platform_imu_pos[2];
+
+  doublereal platform_imu_dcm[9];
+  Mat3x3 mat3_platform_imu_dcm = platform_imu_node.pNode->GetRCurr();
+  platform_imu_dcm[0] = mat3_platform_imu_dcm.dGet(1, 1);
+  platform_imu_dcm[1] = mat3_platform_imu_dcm.dGet(1, 2);
+  platform_imu_dcm[2] = mat3_platform_imu_dcm.dGet(1, 3);
+  platform_imu_dcm[3] = mat3_platform_imu_dcm.dGet(2, 1);
+  platform_imu_dcm[4] = mat3_platform_imu_dcm.dGet(2, 2);
+  platform_imu_dcm[5] = mat3_platform_imu_dcm.dGet(2, 3);
+  platform_imu_dcm[6] = mat3_platform_imu_dcm.dGet(3, 1);
+  platform_imu_dcm[7] = mat3_platform_imu_dcm.dGet(3, 2);
+  platform_imu_dcm[8] = mat3_platform_imu_dcm.dGet(3, 3);
+
+  doublereal platform_imu_vels[3];
+  Vec3 vec3_platform_imu_vels = platform_imu_node.pNode->GetVCurr();
+  platform_imu_vels[0] = vec3_platform_imu_vels[0];
+  platform_imu_vels[1] = vec3_platform_imu_vels[1];
+  platform_imu_vels[2] = vec3_platform_imu_vels[2];
+
+  doublereal platform_imu_omegas[3];
+  Vec3 vec3_platform_imu_omegas = platform_imu_node.pNode->GetWCurr();
+  platform_imu_omegas[0] = vec3_platform_imu_omegas[0];
+  platform_imu_omegas[1] = vec3_platform_imu_omegas[1];
+  platform_imu_omegas[2] = vec3_platform_imu_omegas[2];
+
+  doublereal platform_imu_accs[3];
+  Vec3 vec3_platform_imu_acc = platform_imu_node.pNode->GetXPPCurr();
+  platform_imu_accs[0] = vec3_platform_imu_acc[0];
+  platform_imu_accs[1] = vec3_platform_imu_acc[1];
+  platform_imu_accs[2] = vec3_platform_imu_acc[2];
+
+  // ground station point
+  doublereal ground_station_position[3];
+  Vec3 vec3_ground_station_pos = ground_station_node.pNode->GetXCurr();
+  ground_station_position[0] = vec3_ground_station_pos[0];
+  ground_station_position[1] = vec3_ground_station_pos[1];
+  ground_station_position[2] = vec3_ground_station_pos[2];
+
+  doublereal ground_station_dcm[9];
+  Mat3x3 mat3_ground_station_dcm = ground_station_node.pNode->GetRCurr();
+  ground_station_dcm[0] = mat3_ground_station_dcm.dGet(1, 1);
+  ground_station_dcm[1] = mat3_ground_station_dcm.dGet(1, 2);
+  ground_station_dcm[2] = mat3_ground_station_dcm.dGet(1, 3);
+  ground_station_dcm[3] = mat3_ground_station_dcm.dGet(2, 1);
+  ground_station_dcm[4] = mat3_ground_station_dcm.dGet(2, 2);
+  ground_station_dcm[5] = mat3_ground_station_dcm.dGet(2, 3);
+  ground_station_dcm[6] = mat3_ground_station_dcm.dGet(3, 1);
+  ground_station_dcm[7] = mat3_ground_station_dcm.dGet(3, 2);
+  ground_station_dcm[8] = mat3_ground_station_dcm.dGet(3, 3);
+
+  doublereal ground_station_vels[3];
+  Vec3 vec3_ground_station_vels = ground_station_node.pNode->GetVCurr();
+  ground_station_vels[0] = vec3_ground_station_vels[0];
+  ground_station_vels[1] = vec3_ground_station_vels[1];
+  ground_station_vels[2] = vec3_ground_station_vels[2];
+
+  doublereal ground_station_omegas[3];
+  Vec3 vec3_ground_station_omegas = ground_station_node.pNode->GetWCurr();
+  ground_station_omegas[0] = vec3_ground_station_omegas[0];
+  ground_station_omegas[1] = vec3_ground_station_omegas[1];
+  ground_station_omegas[2] = vec3_ground_station_omegas[2];
+
+  doublereal ground_station_accs[3];
+  Vec3 vec3_ground_station_accs = ground_station_node.pNode->GetXPPCurr();
+  ground_station_accs[0] = vec3_ground_station_accs[0];
+  ground_station_accs[1] = vec3_ground_station_accs[1];
+  ground_station_accs[2] = vec3_ground_station_accs[2];
+
   int error_status;
   char error_message[INTERFACE_STRING_LENGTH];
-  KFAST_AssRes(&t,
+  KFAST_OS_AssRes(&t,
                &first_iteration,
-               ground_station_point,
+               wind_reference_station_position,
+               wind_reference_station_velocity,
                mip_position,
                mip_dcm,
                mip_vels,
@@ -819,8 +958,25 @@ void ModuleKiteFASTOS::_AssRes(doublereal *node_loads, doublereal *rotor_loads)
                rotor_omegas,
                rotor_accs,
                rotor_alphas,
+               platform_position,
+               platform_dcm,
+               platform_vels,
+               platform_omegas,
+               platform_accs,
+               platform_alphas,
+               platform_imu_position,
+               platform_imu_dcm,
+               platform_imu_vels,
+               platform_imu_omegas,
+               platform_imu_accs,
+               ground_station_position,
+               ground_station_dcm,
+               ground_station_vels,
+               ground_station_omegas,
+               ground_station_accs,
                node_loads,
                rotor_loads,
+               platform_loads,
                &error_status,
                error_message);
 
@@ -857,7 +1013,10 @@ SubVectorHandler &ModuleKiteFASTOS::AssRes(SubVectorHandler &WorkVec, doublereal
   integer n_rotor_loads = 6 * n_rotor_points; // force and moment components for each rotor node
   doublereal *rotor_loads = new doublereal[n_rotor_loads];
 
-  _AssRes(node_loads, rotor_loads);
+  integer n_platform_loads = 6; // force and moment components for the platform node
+  doublereal *platform_loads = new doublereal[n_platform_loads];
+
+  _AssRes(node_loads, rotor_loads, platform_loads);
 
   integer iNumRows, iNumCols;
   WorkSpaceDim(&iNumRows, &iNumCols);
@@ -895,6 +1054,7 @@ SubVectorHandler &ModuleKiteFASTOS::AssRes(SubVectorHandler &WorkVec, doublereal
 
   delete[] node_loads;
   delete[] rotor_loads;
+  delete[] platform_loads;
 
   return WorkVec;
 }
