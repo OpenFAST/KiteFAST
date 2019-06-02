@@ -19,6 +19,7 @@ if(APPLE OR UNIX)
 endif()
 
 generate_f90_types(src/KiteFAST_Registry.txt KiteFAST_Types.f90 -noextrap)
+generate_f90_types(src/KiteFAST_OS_Registry.txt KiteFAST_OS_Types.f90 -noextrap)
 
 set(LIB_SOURCES
   src/KiteFAST.f90
@@ -37,7 +38,27 @@ target_link_libraries(kitefastlib
   moordynlib
 )
 
-install(TARGETS kitefastlib
+set(LIB_SOURCES
+  src/KiteFAST_OS.f90
+  src/KiteFAST_IO.f90
+  src/KiteFAST_OS_IO.f90
+  src/KiteFAST_Subs.f90
+  src/KiteFAST_GlobalData.f90
+  KiteFAST_Types.f90
+  KiteFAST_OS_Types.f90
+)
+add_library(kitefastoslib ${LIB_SOURCES})
+target_link_libraries(kitefastoslib
+  actuatordisklib
+  airfoilinfolib
+  hydrodynlib
+  ifwlib
+  kiteaerodynlib
+  kitefastcontrollerlib
+  moordynlib
+)
+
+install(TARGETS kitefastlib kitefastoslib
   EXPORT ${CMAKE_PROJECT_NAME}Libraries
   RUNTIME DESTINATION lib
   ARCHIVE DESTINATION lib
@@ -46,7 +67,10 @@ install(TARGETS kitefastlib
 add_executable(kitefast_driver src/KiteFAST_Driver.cpp)
 target_link_libraries(kitefast_driver kitefastlib)
 
-install(TARGETS kitefast_driver
+add_executable(kitefast_os_driver src/KiteFAST_OS_Driver.cpp)
+target_link_libraries(kitefast_os_driver kitefastoslib)
+
+install(TARGETS kitefast_driver kitefast_os_driver
   EXPORT "${CMAKE_PROJECT_NAME}Libraries"
   RUNTIME DESTINATION bin
   LIBRARY DESTINATION lib
