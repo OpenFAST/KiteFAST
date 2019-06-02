@@ -8,17 +8,27 @@ constants:
         [0.0, 0.0, -9.81]
 
 simulation_controls:
+    simulation_type:
+        # 1: onshore
+        # 2: full offshore
+        # 3: offshore, but no kite
+        2
+
     fast_submodules:
         kiteaerodyn: true
         inflowwind: false
-        moordyn: false
+        moordyn_tether: false
         controller: false
+        hydrodyn: false
+        moordyn_mooring: false
 
     fast_submodule_input_files:
         kiteaerodyn_input: "simple_m600_model.inp"
         inflowwind_input: "kiteInflowWind.dat"
-        moordyn_input: "m600-MoorDyn.dat"
+        moordyn_tether_input: "m600-MoorDyn.dat"
         controller_input: "../../../../build/modules-local/kitefast-controller/libkitefastcontroller_controller.so"
+        hydrodyn_input: ""
+        moordyn_mooring_input: ""
 
     print_kitefast_summary_file:
         false
@@ -65,13 +75,6 @@ simulation_controls:
     debug:
         # true | false
         false
-
-    ground_weather_station:
-        location:
-            # locates the weather station; this point is passed directly to
-            # KiteFAST which uses it to interface with the controller
-            # [x, y, z]
-            [-0.202, -1.627, 19.860]
 
     initial_conditions:
         location:
@@ -497,6 +500,24 @@ rotor_assembly:
                         # [mass, Cmx, Cmy, Cmz,    Ixx,    Iyy,    Izz,    Ixy,    Ixz,    Iyz]
                         # [  kg,   m,   m,   m, kg*m^2, kg*m^2, kg*m^2, kg*m^2, kg*m^2, kg*m^2]
                         [55.150, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+
+platform:
+    node_location:
+        [-0.202, -1.627, 19.860]
+
+    imu_location:
+        [-0.202, -1.627, 19.860]
+
+wind_reference_station:
+    location:
+        [-0.202, -1.627, 19.860]
+
+ground_station:
+    location:
+        # locates the weather station; this point is passed directly to
+        # KiteFAST which uses it to interface with the controller
+        # [x, y, z]
+        [-0.202, -1.627, 19.860]
 
 output:
     fuselage_nodes:
