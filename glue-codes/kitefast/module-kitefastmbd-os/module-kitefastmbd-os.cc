@@ -135,16 +135,12 @@ ModuleKiteFASTOS::ModuleKiteFASTOS(unsigned uLabel, const DofOwner *pDO, DataMan
   // parse the keypoints (aka reference points)
   ValidateInputKeyword(HP, "keypoints");
   doublereal *reference_points = new doublereal[3 * n_components];
-  doublereal *platform_reference_point = new doublereal[3];
   for (int i = 0; i < n_components; i++)
   {
     reference_points[3 * i] = HP.GetReal();
     reference_points[3 * i + 1] = HP.GetReal();
     reference_points[3 * i + 2] = HP.GetReal();
   }
-  platform_reference_point[0] = HP.GetReal();
-  platform_reference_point[1] = HP.GetReal();
-  platform_reference_point[2] = HP.GetReal();
 
   // parse the mip node
   ValidateInputKeyword(HP, "mip_node");
@@ -153,6 +149,11 @@ ModuleKiteFASTOS::ModuleKiteFASTOS(unsigned uLabel, const DofOwner *pDO, DataMan
   // parse the platform node
   ValidateInputKeyword(HP, "platform_node");
   platform_node.pNode = dynamic_cast<StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
+  Vec3 platform_xcurr = platform_node.pNode->GetXCurr();
+  doublereal platform_position[3];
+  platform_position[0] = platform_xcurr[0];
+  platform_position[1] = platform_xcurr[1];
+  platform_position[2] = platform_xcurr[2];
 
   // parse the platform imu node
   ValidateInputKeyword(HP, "platform_imu_node");
@@ -170,10 +171,11 @@ ModuleKiteFASTOS::ModuleKiteFASTOS(unsigned uLabel, const DofOwner *pDO, DataMan
   // parse the ground station location
   ValidateInputKeyword(HP, "ground_station_node");
   ground_station_node.pNode = dynamic_cast<StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
-  doublereal ground_station_reference_point[3];
-  ground_station_reference_point[0] = HP.GetReal();
-  ground_station_reference_point[1] = HP.GetReal();
-  ground_station_reference_point[2] = HP.GetReal();
+  Vec3 ground_station_xcurr = ground_station_node.pNode->GetXCurr();
+  doublereal ground_station_position[3];
+  ground_station_position[0] = ground_station_xcurr[0];
+  ground_station_position[1] = ground_station_xcurr[1];
+  ground_station_position[2] = ground_station_xcurr[2];
 
   // parse the component nodes and beams into arrays
   BuildComponentArrays(pDM, HP, "fuselage", nodes_fuselage, beams_fuselage);
@@ -201,9 +203,6 @@ ModuleKiteFASTOS::ModuleKiteFASTOS(unsigned uLabel, const DofOwner *pDO, DataMan
   }
   BuildComponentArrays(pDM, HP, "starboard_rotors", nodes_starrotors, beams_throwaway);
   BuildComponentArrays(pDM, HP, "port_rotors", nodes_portrotors, beams_throwaway);
-
-  BuildComponentArrays(pDM, HP, "platform", nodes_platform, beams_throwaway);
-  platform_node = nodes_platform[0];
 
   // build a single node array
   integer total_node_count = nodes_fuselage.size() + nodes_starwing.size() + nodes_portwing.size() + nodes_vstab.size() + nodes_starhstab.size() + nodes_porthstab.size();
@@ -451,9 +450,9 @@ ModuleKiteFASTOS::ModuleKiteFASTOS(unsigned uLabel, const DofOwner *pDO, DataMan
              port_horizontal_stabilizer_output_nodes.data(),
              &n_pylon_outputs,
              pylon_output_nodes.data(),
-             platform_reference_point,
+             platform_position,
              platform_mip_dcm,
-             ground_station_reference_point,
+             ground_station_position,
              &n_output_channels,
              output_channel_array.data(),
              output_channel_lengths,
@@ -469,7 +468,6 @@ ModuleKiteFASTOS::ModuleKiteFASTOS(unsigned uLabel, const DofOwner *pDO, DataMan
   }
 
   delete[] reference_points;
-  delete[] platform_reference_point;
   delete[] component_node_counts;
   delete[] node_points;
   delete[] node_dcms;

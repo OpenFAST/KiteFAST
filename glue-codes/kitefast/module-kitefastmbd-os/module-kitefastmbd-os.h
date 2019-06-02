@@ -174,9 +174,9 @@ extern int KFAST_OS_AfterPredict(
   char error_message[]           // errMsg
 );
 extern int KFAST_OS_Output(
-  double *current_time,          // simulation time for the current timestep (s)
-  int *n_gauss_load_points,      // Total number of gauss points in the MBDyn model
-  double gauss_point_loads[],    // Array of loads in the global coordinate system (3 forces + 3 moments) corresponding to each MBDyn gauss point. ( N, N-m )
+  double *current_time,          // t
+  int *n_gauss_load_points,      // numGaussLoadPts
+  double gauss_point_loads[],    // gaussPtLoads
   int *error_status,             // errStat
   char error_message[]           // errMsg
 );
@@ -227,8 +227,8 @@ private:
   std::vector<KiteFASTNode> nodes_vstab;
   std::vector<KiteFASTNode> nodes_porthstab;
   std::vector<KiteFASTNode> nodes_starhstab;
-  std::vector<std::vector<KiteFASTNode>> nodes_starpylons; // < size - n pylons < size - n nodes in pylon >>
-  std::vector<std::vector<KiteFASTNode>> nodes_portpylons; // < size - n pylons < size - n nodes in pylon >>
+  std::vector<std::vector<KiteFASTNode> > nodes_starpylons; // < size - n pylons < size - n nodes in pylon >>
+  std::vector<std::vector<KiteFASTNode> > nodes_portpylons; // < size - n pylons < size - n nodes in pylon >>
   std::vector<KiteFASTNode> nodes_starrotors;
   std::vector<KiteFASTNode> nodes_portrotors;
   std::vector<KiteFASTNode> nodes_platform;
@@ -240,8 +240,8 @@ private:
   std::vector<KiteFASTBeam> beams_vstab;
   std::vector<KiteFASTBeam> beams_porthstab;
   std::vector<KiteFASTBeam> beams_starhstab;
-  std::vector<std::vector<KiteFASTBeam>> beams_starpylons;
-  std::vector<std::vector<KiteFASTBeam>> beams_portpylons;
+  std::vector<std::vector<KiteFASTBeam> > beams_starpylons;
+  std::vector<std::vector<KiteFASTBeam> > beams_portpylons;
   std::vector<KiteFASTBeam> beams_throwaway;
 
   mutable std::ofstream outputfile;
