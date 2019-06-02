@@ -25,6 +25,7 @@ from .components import HorizontalStabilizer
 from .components import VerticalStabilizer
 from .components import Pylon
 from .components import RotorAssembly
+from .components import Platform
 from .iohandler import Output
 from .mbdyn_types import Vec3
 from .mbdyn_types import OrientationMatrix
@@ -90,6 +91,7 @@ class KiteModel(BaseModel):
         self.port_pylons = self.components[7]
         self.starboard_rotors = self.components[8]
         self.port_rotors = self.components[9]
+        self.platform = self.components[10]
 
         self.joints = self._build_joints()
 
@@ -109,6 +111,7 @@ class KiteModel(BaseModel):
                                 self.vstab,
                                 self.starboard_pylons, self.port_pylons,
                                 self.starboard_rotors, self.port_rotors,
+                                self.platform,
                                 number_of_flaps_per_wing,
                                 self.number_of_pylons_per_wing,
                                 number_of_kite_components
@@ -120,7 +123,9 @@ class KiteModel(BaseModel):
                                 self.starboard_hstab, self.port_hstab,
                                 self.vstab,
                                 self.starboard_pylons, self.port_pylons,
-                                self.starboard_rotors, self.port_rotors)
+                                self.starboard_rotors, self.port_rotors,
+                                self.platform
+                                )
 
     def _build_components(self, model_dict):
 
@@ -173,7 +178,10 @@ class KiteModel(BaseModel):
             rotor = _build_component(RotorAssembly, ["rotor_assembly", "port", i + 1, "lower"], mbdyn_ref_index + 10)
             port_rotors.append(rotor)
 
-        return fuselage, starboard_wing, port_wing, vstab, starboard_hstab, port_hstab, starboard_pylons, port_pylons, starboard_rotors, port_rotors
+        # platform
+        platform = _build_component(Platform, ["platform"], 40000)
+
+        return fuselage, starboard_wing, port_wing, vstab, starboard_hstab, port_hstab, starboard_pylons, port_pylons, starboard_rotors, port_rotors, platform
 
     def _build_joints(self):
 
@@ -351,3 +359,4 @@ class KiteModel(BaseModel):
             rotor.export_all(output_directory)
         for rotor in self.port_rotors:
             rotor.export_all(output_directory)
+        self.platform.export_all(output_directory)

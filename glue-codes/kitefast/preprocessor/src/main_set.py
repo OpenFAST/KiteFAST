@@ -25,7 +25,8 @@ class MainSet():
                  starboard_horizontal_stabilizer, port_horizontal_stabilizer,
                  vertical_stabilizer,
                  starboard_pylons, port_pylons,
-                 starboard_rotors, port_rotors
+                 starboard_rotors, port_rotors,
+                 platform
                  ):
         self.mip_reference_frame = mip_reference_frame
         self.fuselage = fuselage
@@ -38,6 +39,7 @@ class MainSet():
         self.port_pylons = port_pylons
         self.starboard_rotors = starboard_rotors
         self.port_rotors = port_rotors
+        self.platform = platform
 
     def export_set_file(self, output_directory):
 
@@ -101,6 +103,8 @@ class MainSet():
             output.write_line("set: integer {}_reference_frame = {};".format(component.component_name, component.mbdyn_ref_index))
             output.write_line("set: integer {}_root_node = {};".format(component.component_name, component.mbdyn_ref_index))
             output.write_line("set: integer {}_node_count = {};".format(component.component_name, component.node_count))
+        output.write_line("# *** Platform ***")
+        output.write_line("set: integer {}_root_node = {};".format(self.platform.component_name, self.platform.mbdyn_ref_index))
         output.write_empty_line()
         output.write_line("# Initialize variables for reuse later")
         output.write_line("set: integer current_beam = 0;")

@@ -82,10 +82,20 @@ class BaseModel():
             component_dict = self._deep_get(model_dict, component_path)
             keypoint = self._list_to_vec3(component_dict["keypoint"])
             self._deep_put(model_dict, component_path + ["keypoint"], keypoint)
+        
+        reference_point_paths = [
+            ["platform", "node_location"],
+            ["platform", "imu_location"],
+            ["platform", "wind_reference_station_location"],
+            ["platform", "ground_station_location"]
+        ]
+        for path in reference_point_paths:
+            point = self._deep_get(model_dict, path)
+            self._deep_put(model_dict, path, self._list_to_vec3(point))
+
         return model_dict
 
     def _preprocess_simulation_dict(self, simulation_dict):
-        simulation_dict["ground_weather_station"]["location"] = self._list_to_vec3(simulation_dict["ground_weather_station"]["location"])
         simulation_dict["initial_conditions"]["location"] = self._list_to_vec3(simulation_dict["initial_conditions"]["location"])
         simulation_dict["initial_conditions"]["orientation"] = self._list_to_vec3(simulation_dict["initial_conditions"]["orientation"])
         simulation_dict["initial_conditions"]["velocity"]["translational"] = self._list_to_vec3(simulation_dict["initial_conditions"]["velocity"]["translational"])

@@ -18,8 +18,6 @@ from .iohandler import Output
 from .mbdyn_types import Vec3
 from .mbdyn_types import StructuralNode
 from .mbdyn_types import Body
-from .mbdyn_types import Beam3
-from .mbdyn_types import ReferenceFrame
 import numpy as np
 
 

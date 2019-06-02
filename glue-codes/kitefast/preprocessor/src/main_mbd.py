@@ -30,12 +30,14 @@ class MainMBD():
                  vstab,
                  starboard_pylons, port_pylons,
                  starboard_rotors, port_rotors,
+                 platform,
                  number_of_flaps_per_wing,
                  number_of_pylons_per_wing,
                  number_of_kite_components):
 
         self.initial_position = simulation_controls["initial_conditions"]["location"]
         constants = simulation_controls["constants"]
+        self.simulation_type = simulation_controls["simulation_type"]
         self.gravity = Vec3(constants["gravity"])
         self.fast_submodules = simulation_controls["fast_submodules"]
         self.fast_submodule_input_files = simulation_controls["fast_submodule_input_files"]
@@ -54,8 +56,6 @@ class MainMBD():
         self.linear_solver = simulation_controls["linear_solver"]
         self.debug = simulation_controls["debug"]
         self.rigid_model = simulation_controls["rigid_model"]
-        ground_weather_station = simulation_controls["ground_weather_station"]
-        self.ground_weather_station_location = ground_weather_station["location"]
         output = simulation_controls["output"]
         self.mip_id = mip_id
         self.fuselage_output_nodes = output["fuselage_nodes"]
@@ -80,6 +80,7 @@ class MainMBD():
         self.port_pylons = port_pylons            # this is [Pylon]
         self.starboard_rotors = starboard_rotors  # this is [Rotor]
         self.port_rotors = port_rotors            # this is [Rotor]
+        self.platform = platform
 
         self.component_list = [self.fuselage,
                                self.starboard_wing,
@@ -105,7 +106,7 @@ class MainMBD():
         output.write_line("# KiteMain.mbd")
         output.write_empty_line()
         output.write_empty_line()
-        output.write_line("module load: \"libmodule-kitefastmbd\";")
+        output.write_line("module load: \"libmodule-kitefastmbd-os\";")
         output.write_empty_line()
         output.write_empty_line()
         output.write_line("begin: data;")
@@ -142,6 +143,7 @@ class MainMBD():
             output.write_line("      + {}_node_count".format(component.component_name))
         output.write_line("      + {}  # 1 for each rotor".format(str(len(self.starboard_rotors) + len(self.port_rotors))))
         output.write_line("      + {}  # 1 for each nacelle".format(str(len(self.starboard_rotors) + len(self.port_rotors))))
+        output.write_line("      + {}  # platform".format(str(len(self.platform.nodes))))
         output.write_line("    ;")
         output.write_empty_line()
         output.write_line("    set: integer body_count =")
@@ -172,6 +174,7 @@ class MainMBD():
             output.write_line("    include: \"{}.nodes\";".format(component.component_name))
         for rotor in self.starboard_rotors + self.port_rotors:
             output.write_line("    include: \"{}.nodes\";".format(rotor.component_name))
+        output.write_line("    include: \"{}.nodes\";".format(self.platform.component_name))
         output.write_line("end: nodes;")
         output.write_empty_line()
         output.write_empty_line()
@@ -191,29 +194,35 @@ class MainMBD():
         output.write_empty_line()
         output.write_line("    inertia: 1, body, all;")
         output.write_empty_line()
-        output.write_line("    user defined: 1, ModuleKiteFAST,")
+        output.write_line("    user defined: 1, ModuleKiteFASTOS,")
+        output.write_line("        simulation_type,")
+        output.write_line("            {},".format(self.simulation_type))
         output.write_line("        fast_submodule_flags,")
         output.write_line("            {},".format(1 if self.fast_submodules["kiteaerodyn"] is True else 0))
         output.write_line("            {},".format(1 if self.fast_submodules["inflowwind"] is True else 0))
-        output.write_line("            {},".format(1 if self.fast_submodules["moordyn"] is True else 0))
+        output.write_line("            {},".format(1 if self.fast_submodules["moordyn_tether"] is True else 0))
         output.write_line("            {},".format(1 if self.fast_submodules["controller"] is True else 0))
+        output.write_line("            {},".format(1 if self.fast_submodules["hydrodyn"] is True else 0))
+        output.write_line("            {},".format(1 if self.fast_submodules["moordyn_mooring"] is True else 0))
         output.write_line("        fast_submodule_input_files,")
         output.write_line("            \"{}\",".format(self.fast_submodule_input_files["kiteaerodyn_input"]))
         output.write_line("            \"{}\",".format(self.fast_submodule_input_files["inflowwind_input"]))
-        output.write_line("            \"{}\",".format(self.fast_submodule_input_files["moordyn_input"]))
+        output.write_line("            \"{}\",".format(self.fast_submodule_input_files["moordyn_tether_input"]))
         output.write_line("            \"{}\",".format(self.fast_submodule_input_files["controller_input"]))
+        output.write_line("            \"{}\",".format(self.fast_submodule_input_files["hydrodyn_input"]))
+        output.write_line("            \"{}\",".format(self.fast_submodule_input_files["moordyn_mooring_input"]))
         output.write_line("        output_file_root,")
         output.write_line("            \"{}\",".format(self.kitefast_output_file_root_name))
         output.write_line("        print_kitefast_summary_file,")
         output.write_line("            {},".format(1 if self.print_kitefast_summary_file is True else 0))
         output.write_line("        time_step,")
         output.write_line("            {},".format(self.timestep))
+        output.write_line("        time_max,")
+        output.write_line("            {},".format(self.final_time))
         output.write_line("        gravity,")
         output.write_line("            {},".format(-1 * self.gravity.x3))
         output.write_line("        kiteaerodyn_interpolation_order,")
         output.write_line("            {},".format(self.kiteaerodyn_interpolation_order))
-        output.write_line("        ground_weather_station_location,")
-        output.write_line("            {},".format(self.ground_weather_station_location))
         output.write_line("        number_of_flaps_per_wing,")
         output.write_line("            {},".format(self.number_of_flaps_per_wing))
         output.write_line("        number_of_pylons_per_wing,")
@@ -233,6 +242,14 @@ class MainMBD():
             output.write_line("         {},".format(self.keypoints["pylon/port/{}".format(str(i + 1))]))
         output.write_line("        mip_node,")
         output.write_line("            {},".format(self.mip_id))
+        output.write_line("        platform_node,")
+        output.write_line("            {},".format(self.platform.nodes[0].id))
+        output.write_line("        platform_imu_node,")
+        output.write_line("            {},".format(self.platform.nodes[1].id))
+        output.write_line("        wind_reference_station_node,")
+        output.write_line("            {},".format(self.platform.nodes[2].id))
+        output.write_line("        ground_station_node,")
+        output.write_line("            {},".format(self.platform.nodes[3].id))
         for component in self.component_list:
             output.write_line("        {},".format(component.component_name))
             output.write_line("            {}_node_count,".format(component.component_name))

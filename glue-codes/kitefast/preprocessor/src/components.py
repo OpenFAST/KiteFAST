@@ -16,6 +16,7 @@
 
 from .base_component import BaseComponent
 from .base_rotor import BaseRotor
+from .base_platform import BasePlatform
 
 
 class Fuselage(BaseComponent):
@@ -94,5 +95,10 @@ class Pylon(BaseComponent):
 
 
 class RotorAssembly(BaseRotor):
+    def __init__(self, component_name, model_dict, mbdyn_ref_index):
+        super().__init__(component_name, model_dict, mbdyn_ref_index)
+
+
+class Platform(BasePlatform):
     def __init__(self, component_name, model_dict, mbdyn_ref_index):
         super().__init__(component_name, model_dict, mbdyn_ref_index)

@@ -209,4 +209,11 @@ class Input():
                         }
         model_dict[component] = rotor_assembly
 
+        model_dict["platform"] = {
+            "node_location": input_dict["platform"]["node_location"],
+            "imu_location": input_dict["platform"]["imu_location"],
+            "wind_reference_station_location": input_dict["wind_reference_station"]["location"],
+            "ground_station_location": input_dict["ground_station"]["location"]
+        }
+
         return model_dict
