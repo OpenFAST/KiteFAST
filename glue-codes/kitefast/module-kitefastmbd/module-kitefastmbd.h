@@ -94,25 +94,25 @@ extern int KFAST_Init(
   int *node_count_no_rotors,             // numNodePts
   double node_points[],                  // nodePts
   double node_dcms[],                    // nodeDCMs
-  int *n_fuselage_outputs,               // nodePts
-  int fuselage_output_nodes[],           // nodeDCMs
-  int *n_starboard_wing_outputs,         // nFusOuts
-  int starboard_wing_output_nodes[],     // FusOutNd
-  int *n_port_wing_outputs,              // nSWnOuts
-  int port_wing_output_nodes[],          // SWnOutNd
-  int *n_vertical_stabilizer_outputs,                 // nPWnOuts
-  int vertical_stabilizer_output_nodes[],             // PWnOutNd
-  int *n_starboard_horizontal_stabilizer_outputs,     // nVSOuts
-  int starboard_horizontal_stabilizer_output_nodes[], // VSOutNd
-  int *n_port_horizontal_stabilizer_outputs,          // nSHSOuts
-  int port_horizontal_stabilizer_output_nodes[],      // SHSOutNd
-  int *n_pylon_outputs,                               // nPHSOuts
-  int pylon_output_nodes[],              // PHSOutNd
-  int *n_output_channels,                // nPylOuts
-  char *output_channel_array[],          // PylOutNd
-  int output_channel_lengths[],          // numOutChan
-  int *error_status,                     // chanList
-  char error_message[]                   // ChanList_len
+  int *n_fuselage_outputs,               // nFusOuts
+  int fuselage_output_nodes[],           // FusOutNd
+  int *n_starboard_wing_outputs,         // nSWnOuts
+  int starboard_wing_output_nodes[],     // SWnOutNd
+  int *n_port_wing_outputs,              // nPWnOuts
+  int port_wing_output_nodes[],          // PWnOutNd
+  int *n_vertical_stabilizer_outputs,                 // nVSOuts
+  int vertical_stabilizer_output_nodes[],             // VSOutNd
+  int *n_starboard_horizontal_stabilizer_outputs,     // nSHSOuts
+  int starboard_horizontal_stabilizer_output_nodes[], // SHSOutNd
+  int *n_port_horizontal_stabilizer_outputs,          // nPHSOuts
+  int port_horizontal_stabilizer_output_nodes[],      // PHSOutNd
+  int *n_pylon_outputs,                  // nPylOuts             
+  int pylon_output_nodes[],              // PylOutNd
+  int *n_output_channels,                // numOutChan
+  char *output_channel_array[],          // chanList
+  int output_channel_lengths[],          // ChanList_len
+  int *error_status,                     // errStat
+  char error_message[]                   // errMsg
 );
 extern int KFAST_AssRes(
   double *t,                     // t
