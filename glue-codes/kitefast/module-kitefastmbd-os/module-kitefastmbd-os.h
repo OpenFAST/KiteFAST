@@ -42,6 +42,8 @@
 
 #include <sstream>
 
+#include "KiteFASTNode.cc"
+
 #define USE_SINGLE_PRECISION
 
 #ifndef KiteFAST_MBD_OS_H
@@ -194,11 +196,6 @@ extern int KFAST_OS_End(
 class ModuleKiteFASTOS : virtual public Elem, public UserDefinedElem
 {
 private:
-  struct KiteFASTNode
-  {
-    StructNode *pNode;
-  };
-
   struct KiteFASTBeam
   {
     Beam *pBeam;
