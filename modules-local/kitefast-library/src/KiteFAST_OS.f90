@@ -50,12 +50,12 @@ subroutine SetupSim_OS(modFlags, p, errStat, errMsg)
    else
       p_OS%useHD = .false.
    end if
-   
+   if ( .not. p_OS%useHD ) then
+      ! If we are using a mooring system we must be also using HydroDyn!
+      call SetErrStat(ErrID_Fatal,'Enabling the Mooring module requires the HydroDyn module to be enabled.',errStat,errMsg,'SetupSim_OS')
+   end if      
    if ( modFlags(6) > 0 ) then 
-      if ( .not. p_OS%useHD ) then
-         ! If we are using a mooring system we must be also using HydroDyn!
-         call SetErrStat(ErrID_Fatal,'Enabling the Mooring module requires the HydroDyn module to be enabled.',errStat,errMsg,'SetupSim_OS')
-      end if      
+      
       p_OS%useMD_Mooring = .true.
    else
       p_OS%useMD_Mooring = .false.
@@ -112,7 +112,7 @@ subroutine KFAST_OS_WriteSummary( SumFileUnit, GSRefPtR_c, p, m, HD_InitOut, MD_
    
          ! reference point for platform
    write(SumFileUnit,'(3X,A32,2X,A19,4X,A1,10X,A1,8X,3(F7.3,1X))',IOSTAT=TmpErrStat) 'Platform                        ', 'Reference point    ', '-', '-', 0, 0, 0
-   write(SumFileUnit,'(3X,A32,2X,A19,4X,A1,10X,A1,8X,3(F7.3,1X))',IOSTAT=TmpErrStat) 'GS Refererence                  ', 'Reference point    ', '-', '-', GSRefPtR_c(1),GSRefPtR_c(2),GSRefPtR_c(3)
+   write(SumFileUnit,'(3X,A32,2X,A19,4X,A1,10X,A1,8X,3(F7.3,1X))',IOSTAT=TmpErrStat) 'GS Refererence                  ', 'Reference point    ', '-', '-', p%GSRefPtR(1),p%GSRefPtR(2),p%GSRefPtR(3)
   ! write(SumFileUnit,'(3X,A32,2X,A19,4X,A1,10X,A1,8X,3(F7.3,1X))',IOSTAT=TmpErrStat) 'IMU Reference                   ', 'Reference point    ', '-', '-', 0, 0, 0
 
    write(SumFileUnit,'()')
@@ -539,7 +539,8 @@ subroutine Init_Offshore(dt, TMax, PtfmO_c, PtfmODCM_c, GSRefPtR_c, HD_FileName_
    errMsg     = ''
    PtfmODCM   = reshape(PtfmODCM_c,(/3,3/))
    PtfmO      = PtfmO_c
-   p_OS%GSRefPtR = GSRefPtR_c
+   p_OS%GSRefPtR = matmul( PtfmODCM, (GSRefPtR_c - PtfmO) )
+   
       ! Must be using HD if Offshore application (check was done previously for useHD = .true.)
    HD_InitInp%Gravity       = p%Gravity
    HD_InitInp%UseInputFile  = .TRUE.
@@ -568,11 +569,15 @@ subroutine Init_Offshore(dt, TMax, PtfmO_c, PtfmODCM_c, GSRefPtR_c, HD_FileName_
       call MeshMapCreate( m_OS%HD%u(1)%Mesh,  m_OS%HD%u(1)%Morison%LumpedMesh, m_OS%HD_P_2_HD_M_P, errStat2, errMsg2 )
          call SetErrStat( errStat2, errMsg2, errStat, errMsg, RoutineName//':HD_P_2_HD_M_P' )                  
    end if
-      
+   m_OS%HD%u(1)%Morison%LumpedMesh%RemapFlag  = .false.
+   
    if ( m_OS%HD%u(1)%Morison%DistribMesh%Committed ) then
       call MeshMapCreate( m_OS%HD%u(1)%Mesh,  m_OS%HD%u(1)%Morison%DistribMesh, m_OS%HD_P_2_HD_M_L, errStat2, errMsg2 )
          call SetErrStat( errStat2, errMsg2, errStat, errMsg, RoutineName//':HD_P_2_HD_M_L' )                  
    end if
+   m_OS%HD%u(1)%Mesh%RemapFlag = .false.
+   m_OS%HD%u(1)%Morison%DistribMesh%RemapFlag = .false.
+   !TODO: Check for need to map bewteen HD%u%Mesh to %WAMIT
    
    if (errStat >= AbortErrLev ) then
       return
@@ -617,11 +622,16 @@ subroutine Init_Offshore(dt, TMax, PtfmO_c, PtfmODCM_c, GSRefPtR_c, HD_FileName_
       call MeshMapCreate( m_OS%HD%u(1)%Mesh, m_OS%MD_Mooring%u(1)%PtFairleadDisplacement, m_OS%HD_P_2_MD_P, errStat2, errMsg2 )
          call SetErrStat( errStat2, errMsg2, errStat, errMsg, ' CreateMeshMappings: m_OS%HD_P_2_MD_M_P' )     
                if (errStat>=AbortErrLev) return
+      m_OS%HD%u(1)%Mesh%RemapFlag = .false.
+      m_OS%MD_Mooring%u(1)%PtFairleadDisplacement%RemapFlag = .false.
+      
          ! Need to transfer the MoorDyn mooring fairlead point loads back the to MBDyn platform reference mesh for loads
       call MeshMapCreate( m_OS%MD_Mooring%y%PtFairleadLoad, m_OS%mbdPtfmLoads,  m_OS%MD_M_P_2_MBD_P, errStat2, errMsg2 )
          call SetErrStat( errStat2, errMsg2, errStat, errMsg, ' CreateMeshMappings: m_OS%MD_M_P_2_MBD_P' )     
                if (errStat>=AbortErrLev) return
-
+     m_OS%MD_Mooring%y%PtFairleadLoad%RemapFlag = .false.
+     m_OS%mbdPtfmLoads%RemapFlag = .false.
+     
    end if
    
 end subroutine Init_Offshore
@@ -723,7 +733,7 @@ subroutine KFAST_OS_Init(SimMod, dt_c, TMAX_c, numFlaps, numPylons, numComp, num
       end if 
    
    if ( simMod < 2 .or. simMod > 3 ) then
-      call SetErrStat( ErrID_FATAL, 'SimMod flag must be set to a value of 1, 2, or 3', errStat, errMsg, routineName ) 
+      call SetErrStat( ErrID_FATAL, 'SimMod flag must be set to a value of 2, or 3 for Offshore simulations.', errStat, errMsg, routineName ) 
       call TransferErrors(errStat, errMsg, errStat_c, errMsg_c)
          return
    end if
@@ -923,12 +933,12 @@ subroutine Ass_Res_OffShore(t_c, isInitialTime_c, PtfmO_c, PtfmODCM_c, PtfmOv_c,
    ! Transfer MBDyn platform motions to HD input mesh
                        
    m_OS%HD%u(1)%Mesh%Orientation  (:,:,1) = m_OS%PtfmODCM
-   m_OS%HD%u(1)%Mesh%TranslationDisp(:,1) = PtfmO_c - m_OS%HD%u(1)%Mesh%Position(:,1)
+   m_OS%HD%u(1)%Mesh%TranslationDisp(:,1) = m_OS%PtfmO - m_OS%HD%u(1)%Mesh%Position(:,1)
    m_OS%mbdPtfmLoads%TranslationDisp(:,1) = m_OS%HD%u(1)%Mesh%TranslationDisp(:,1)
-   m_OS%HD%u(1)%Mesh%TranslationVel (:,1) = PtfmOv_c
-   m_OS%HD%u(1)%Mesh%RotationVel    (:,1) = PtfmOomegas_c
-   m_OS%HD%u(1)%Mesh%TranslationAcc (:,1) = PtfmOacc_c
-   m_OS%HD%u(1)%Mesh%RotationAcc    (:,1) = PtfmOalphas_c
+   m_OS%HD%u(1)%Mesh%TranslationVel (:,1) = m_OS%PtfmOv
+   m_OS%HD%u(1)%Mesh%RotationVel    (:,1) = m_OS%PtfmOomegas
+   m_OS%HD%u(1)%Mesh%TranslationAcc (:,1) = m_OS%PtfmOacc
+   m_OS%HD%u(1)%Mesh%RotationAcc    (:,1) = m_OS%PtfmOalphas
    
    IF ( m_OS%HD%u(1)%Morison%LumpedMesh%Committed ) THEN 
 
@@ -950,21 +960,23 @@ subroutine Ass_Res_OffShore(t_c, isInitialTime_c, PtfmO_c, PtfmODCM_c, PtfmOv_c,
          call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
    call HydroDyn_CopyDiscState( OtherSt_OS%HD%xd, OtherSt_OS%HD%xd_copy, MESH_NEWCOPY, errStat2, errMsg2 )
          call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
-         
+   call HydroDyn_CopyOtherState( OtherSt_OS%HD%OtherSt, OtherSt_OS%HD%OtherSt_copy, MESH_NEWCOPY, errStat2, errMsg2 )
+         call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )      
    if ( isInitialTime < 1 ) then
       
       call HydroDyn_CopyInput( OtherSt_OS%HD_u, m_OS%HD%u(2), MESH_NEWCOPY, errStat2, errMsg2 )
-      call HydroDyn_UpdateStates( utimes(1), n, m_OS%HD%u, utimes, m_OS%HD%p, OtherSt_OS%HD%x_copy, OtherSt_OS%HD%xd_copy, m_OS%HD%z, OtherSt_OS%HD%OtherSt, m_OS%HD%m, errStat2, errMsg2 )
+      call HydroDyn_UpdateStates( utimes(1), n, m_OS%HD%u, utimes, m_OS%HD%p, OtherSt_OS%HD%x_copy, OtherSt_OS%HD%xd_copy, m_OS%HD%z, OtherSt_OS%HD%OtherSt_copy, m_OS%HD%m, errStat2, errMsg2 )
          call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
       if (errStat >= AbortErrLev ) return      
             
    end if         
          
-   call HydroDyn_CalcOutput( t, m_OS%HD%u(1), m_OS%HD%p, OtherSt_OS%HD%x_copy, OtherSt_OS%HD%xd_copy, m_OS%HD%z, OtherSt_OS%HD%OtherSt, m_OS%HD%y, m_OS%HD%m, errStat2, errMsg2 )
+   call HydroDyn_CalcOutput( t, m_OS%HD%u(1), m_OS%HD%p, OtherSt_OS%HD%x_copy, OtherSt_OS%HD%xd_copy, m_OS%HD%z, OtherSt_OS%HD%OtherSt_copy, m_OS%HD%y, m_OS%HD%m, errStat2, errMsg2 )
       call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
    if (errStat >= AbortErrLev ) return
       
    do i = 1,3
+      ! NOTE: This only works if the MBDyn platform reference point is co-located with the HydroDyn platform reference point.
       ptfmLoads_c(i)   = m_OS%HD%y%AllHdroOrigin%Force(i,1)
       ptfmLoads_c(i+3) = m_OS%HD%y%AllHdroOrigin%Moment(i,1)      
    end do
@@ -1163,6 +1175,8 @@ subroutine KFAST_OS_AfterPredict(t_c, errStat_c, errMsg_c) BIND (C, NAME='KFAST_
       call HydroDyn_CopyContState( OtherSt_OS%HD%x_copy, OtherSt_OS%HD%x, MESH_NEWCOPY, errStat2, errMsg2 )
          call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
       call HydroDyn_CopyDiscState( OtherSt_OS%HD%xd_copy, OtherSt_OS%HD%xd, MESH_NEWCOPY, errStat2, errMsg2 )
+         call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
+      call HydroDyn_CopyOtherState( OtherSt_OS%HD%OtherSt_copy, OtherSt_OS%HD%OtherSt, MESH_NEWCOPY, errStat2, errMsg2 )
          call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
          ! Copy t inputs for use has  t-dt, historical inputs, for the next timestep
       call HydroDyn_CopyInput( m_OS%HD%u(1), OtherSt_OS%HD_u, MESH_NEWCOPY, errStat2, errMsg2 )
