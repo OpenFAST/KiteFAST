@@ -10,9 +10,9 @@ constants:
 simulation_controls:
     fast_submodules:
         kiteaerodyn: true
-        inflowwind: false
+        inflowwind: true
         moordyn: false
-        controller: false
+        controller: true
 
     fast_submodule_input_files:
         kiteaerodyn_input: "simple_m600_model.inp"
