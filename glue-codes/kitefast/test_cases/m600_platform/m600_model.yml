@@ -16,10 +16,10 @@ simulation_controls:
 
     fast_submodules:
         kiteaerodyn: true
-        inflowwind: false
+        inflowwind: true
         moordyn_tether: false
         controller: false
-        hydrodyn: false
+        hydrodyn: true
         moordyn_mooring: false
 
     fast_submodule_input_files:
@@ -27,7 +27,7 @@ simulation_controls:
         inflowwind_input: "kiteInflowWind.dat"
         moordyn_tether_input: "m600-MoorDyn.dat"
         controller_input: "../../../../build/modules-local/kitefast-controller/libkitefastcontroller_controller.so"
-        hydrodyn_input: ""
+        hydrodyn_input: "../5MW_OC3Spar_DLL_WTurb_WavesIrr/NRELOffshrBsline5MW_OC3Hywind_HydroDyn.dat"
         moordyn_mooring_input: ""
 
     print_kitefast_summary_file:

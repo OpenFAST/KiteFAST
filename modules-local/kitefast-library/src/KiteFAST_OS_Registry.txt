@@ -39,6 +39,7 @@ typedef    ^                       ^               HydroDyn_InputType           
 typedef    ^                       ^               HydroDyn_DiscreteStateType    xd - - - "Discrete states for HydroDyn module" -
 typedef    ^                       ^               HydroDyn_DiscreteStateType    xd_copy - - - "Discrete states copy for HydroDyn module" -
 typedef    ^                       ^               HydroDyn_OtherStateType       OtherSt  - - - "Other states for HydroDyn module" -
+typedef    ^                       ^               HydroDyn_OtherStateType       OtherSt_copy  - - - "Other states copy for HydroDyn module" -
  
 # ..... Misc/Optimization variables.................................................................................................
 # Define any data that are used only for efficiency purposes (these variables are not associated with time):

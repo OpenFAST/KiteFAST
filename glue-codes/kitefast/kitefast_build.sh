@@ -9,7 +9,7 @@ set -e
 # directories where kitefast and mbdyn will ultimately go
 source_code_parent_directory="/Users/rmudafor/Development/makani"
 mbdyn_directory=$source_code_parent_directory"/mbdyn-1.7.3"
-openfast_directory=$source_code_parent_directory"/makani_openfast"
+openfast_directory=$source_code_parent_directory"/sandbox"
 
 if [ ! -d $source_code_parent_directory ]; then
   echo "source_code_parent_directory does not exist as given: "$source_code_parent_directory
@@ -119,12 +119,12 @@ if [ ! -d $mbdyn_directory ]; then
 fi
 
 # put the module files in the appropriate place
-if [ ! -d $mbdyn_directory/modules/module-kitefastmbd ]; then
-  mkdir $mbdyn_directory/modules/module-kitefastmbd
+if [ ! -d $mbdyn_directory/modules/module-kitefastmbd-os ]; then
+  mkdir $mbdyn_directory/modules/module-kitefastmbd-os
 fi
-create_link $openfast_directory/glue-codes/kitefast/module-kitefastmbd/Makefile.inc $mbdyn_directory/modules/module-kitefastmbd/.
-create_link $openfast_directory/glue-codes/kitefast/module-kitefastmbd/module-kitefastmbd.cc $mbdyn_directory/modules/module-kitefastmbd/.
-create_link $openfast_directory/glue-codes/kitefast/module-kitefastmbd/module-kitefastmbd.h $mbdyn_directory/modules/module-kitefastmbd/.
+create_link $openfast_directory/glue-codes/kitefast/module-kitefastmbd-os/Makefile.inc $mbdyn_directory/modules/module-kitefastmbd-os/.
+create_link $openfast_directory/glue-codes/kitefast/module-kitefastmbd-os/module-kitefastmbd-os.cc $mbdyn_directory/modules/module-kitefastmbd-os/.
+create_link $openfast_directory/glue-codes/kitefast/module-kitefastmbd-os/module-kitefastmbd-os.h $mbdyn_directory/modules/module-kitefastmbd-os/.
 
 # # link kitefast lib and its module file to the module-kitefastmbd directory
 create_link $openfast_directory/build/modules-local/kitefast-library/libkitefastoslib.a $mbdyn_directory/modules/module-kitefastmbd-os/libkitefastoslib.a
@@ -145,7 +145,7 @@ cd $mbdyn_directory
 # modify the line below as needed
 # for debug, add --enable-debug
 # for eigen analysis, add --enable-netcdf --with-lapack --enable-eig
-./configure --enable-runtime-loading --with-module="kitefastmbd"
+./configure --enable-runtime-loading --with-module="kitefastmbd kitefastmbd-os"
 
 sudo make                      # build mbdyn
 cd modules                     # move to the module directory
