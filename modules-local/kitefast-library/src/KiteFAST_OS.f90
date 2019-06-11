@@ -545,6 +545,7 @@ subroutine Init_Offshore(dt, TMax, PtfmO_c, PtfmODCM_c, GSRefPtR_c, HD_FileName_
    HD_InitInp%Gravity       = p%Gravity
    HD_InitInp%UseInputFile  = .TRUE.
    HD_InitInp%InputFile     = transfer(HD_FileName_c(1:IntfStrLen-1),HD_InitInp%InputFile)
+   call RemoveNullChar(HD_InitInp%InputFile)
    HD_InitInp%OutRootName   = p%outFileRoot
    HD_InitInp%TMax          = TMax
    HD_InitInp%hasIce        = .false.
