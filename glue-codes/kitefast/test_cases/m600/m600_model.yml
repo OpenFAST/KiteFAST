@@ -123,7 +123,7 @@ fuselage:
         - [-6.917, 0.0, stabilizer/vertical, 0.0]    # aft
 
     proportional_stiffness_constant:
-        0.00
+        0.01
 
     stiffness_matrix:
         #  EA                                                                         GJ             EIcc      EInn
@@ -154,7 +154,7 @@ wing:
             - [12.831, 0.0, none, 0.0]                 # tip
 
         proportional_stiffness_constant:
-            0.00
+            0.01
 
         stiffness_matrix:
             #                                EA                                           EIcc           GJ        EInn
@@ -185,7 +185,7 @@ wing:
             - [-12.831, 0.0, none, 0.0]             # tip
 
         proportional_stiffness_constant:
-            0.00
+            0.01
 
         stiffness_matrix:
             #                                EA                                           EIcc           GJ        EInn
@@ -215,7 +215,7 @@ stabilizer:
             - [0.712, 0.0, stabilizer/horizontal, 5.810]  # bottom
 
         proportional_stiffness_constant:
-            0.00
+            0.01
 
         stiffness_matrix:
             #                                                         EA                  EIcc           EInn      GJ
@@ -241,7 +241,7 @@ stabilizer:
                 - [2.447, 0.0, none, 0]                     # tip
 
             proportional_stiffness_constant:
-                0.00
+                0.01
 
             stiffness_matrix:
                 #                                EA                                           EIcc           GJ        EInn
@@ -266,7 +266,7 @@ stabilizer:
                 - [-2.447, 0.0, none, 0]                      # tip
 
             proportional_stiffness_constant:
-                0.00
+                0.01
 
             stiffness_matrix:
                 #                                EA                                           EIcc           GJ        EInn
@@ -293,7 +293,7 @@ pylon:
                 - [1.832, 0.0, rotor_assembly/starboard/1/lower, 0.000]   # bottom
 
             proportional_stiffness_constant:
-                0.00
+                0.01
 
             stiffness_matrix:
                 #                                                         EA                  EIcc           EInn      GJ
@@ -318,7 +318,7 @@ pylon:
                 - [1.832, 0.0, rotor_assembly/starboard/2/lower, 0.000]   # bottom
 
             proportional_stiffness_constant:
-                0.00
+                0.01
 
             stiffness_matrix:
                 #                                                         EA                  EIcc           EInn      GJ
@@ -344,7 +344,7 @@ pylon:
                 - [1.832, 0.0, rotor_assembly/port/1/lower, 0.000]   # bottom
 
             proportional_stiffness_constant:
-                0.00
+                0.01
 
             stiffness_matrix:
                 #                                                         EA                  EIcc           EInn      GJ
@@ -369,7 +369,7 @@ pylon:
                 - [1.832, 0.0, rotor_assembly/port/2/lower, 0.000]   # bottom
 
             proportional_stiffness_constant:
-                0.00
+                0.01
 
             stiffness_matrix:
                 #                                                         EA                  EIcc           EInn      GJ
