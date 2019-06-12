@@ -283,7 +283,7 @@ subroutine VSM_Compute_Influence(CtrlPtMod, KinVisc,  numVolElem, numElem, inPtA
    real(ReKi)  :: r1p_prime_v(3), r2p_prime_v(3), cp_v(3), tmp1cZeta_v(3), tmp2cZeta_v(3), tmp1c0_v(3),tmp1c2_v(3)
    real(ReKi)  :: r1_primeprime_hat(3), r2_primeprime_hat(3), Phi_AB_v(3), tmp2D_v(3), tmp1_v(3), tmp2_v(3), tmpAB_v(3)
    real(ReKi)  :: alpha0, r1, r2, Factor2D, e11,  e12,  r1_prime, r2_prime,  Factor1, Factor2, FactorAB, r1p, r2p
-   real(ReKi)  :: tmp1cZeta, tmp2cZeta, tmp1c0,tmp1c2, U_Inf_hat(3)
+   real(ReKi)  :: tmp1cZeta, tmp2cZeta, tmp1c0,tmp1c2, U_Inf_hat(3), U_Inf_ave(3)
    integer(IntKi)                           :: errStat2
    character(ErrMsgLen)                     :: errMsg2
    character(*), parameter                  :: routineName = 'VSM_Compute'
@@ -293,6 +293,20 @@ subroutine VSM_Compute_Influence(CtrlPtMod, KinVisc,  numVolElem, numElem, inPtA
    Phi_AB2D_v = 0.0_ReKi
    U_InfTotal = 0.0_ReKi
    noInflow = .false.
+
+   ! We are now using an average of all the inflow directions to determine a single direction for use across all VSM elements.
+   U_Inf_ave  = 0.0_ReKi
+   do i = 1+numVolElem, numElem
+      U_Inf = TwoNorm(U_Inf_v(:,i))    
+      if ( .not. EqualRealNos(U_Inf, 0.0_ReKi) ) then
+         U_Inf_hat = U_Inf_v(:,i) / U_Inf 
+         U_Inf_ave = U_Inf_ave + U_Inf_hat
+      end if
+   end do
+   
+   U_Inf = TwoNorm(U_Inf_ave)
+   if (.not. EqualRealNos(U_Inf, 0.0_ReKi) ) U_Inf_ave = U_Inf_ave / U_Inf  
+   
    
    do i = 1+numVolElem, numElem
       
@@ -314,8 +328,8 @@ subroutine VSM_Compute_Influence(CtrlPtMod, KinVisc,  numVolElem, numElem, inPtA
          PtP(:,i) = PtC(:,i) + 0.5*chord(i)*y_hat(:,i)
       else
             ! Along the freestream direction
-            ! Rotate 3/4 chord onto the free stream vector, using C as stationary point
-         PtP(:,i) = PtC(:,i) + 0.5*chord(i)*U_Inf_hat
+            ! Rotate 3/4 chord onto the average free stream vector, using C as stationary point
+         PtP(:,i) = PtC(:,i) + 0.5*chord(i)*U_Inf_ave
       end if
       
       r0_hat = (inPtB(:,i) - inPtA(:,i)) / TwoNorm(inPtB(:,i) - inPtA(:,i))

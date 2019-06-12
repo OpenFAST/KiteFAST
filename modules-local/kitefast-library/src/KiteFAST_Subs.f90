@@ -1223,7 +1223,9 @@ subroutine CreateMeshMappings(m, p, KAD, MD, errStat, errMsg)
                call DumpMotionsMeshData(KAD%u(1)%FusMotions, "KAD%u(1)%FusMotions")
                return
             end if
-
+      m%mbdFusMotions%RemapFlag = .false.
+      KAD%u(1)%FusMotions%RemapFlag = .false.
+      
       call MeshMapCreate( m%mbdSWnMotions, KAD%u(1)%SWnMotions, m%SWn_L2_L2, errStat2, errMsg2 )
          call SetErrStat( errStat2, errMsg2, errStat, errMsg, ' CreateMeshMappings: m%SWn_L2_L2' )     
             if (ErrStat>=AbortErrLev) then 
@@ -1231,7 +1233,9 @@ subroutine CreateMeshMappings(m, p, KAD, MD, errStat, errMsg)
                call DumpMotionsMeshData(KAD%u(1)%SWnMotions, "KAD%u(1)%SWnMotions")
                return
             end if
-            
+      m%mbdSWnMotions%RemapFlag = .false.
+      KAD%u(1)%SWnMotions%RemapFlag = .false.
+         
       call MeshMapCreate( m%mbdPWnMotions, KAD%u(1)%PWnMotions, m%PWn_L2_L2, errStat2, errMsg2 )
          call SetErrStat( errStat2, errMsg2, errStat, errMsg, ' CreateMeshMappings: m%PWn_L2_L2' )     
             if (ErrStat>=AbortErrLev) then 
@@ -1239,7 +1243,9 @@ subroutine CreateMeshMappings(m, p, KAD, MD, errStat, errMsg)
                call DumpMotionsMeshData(KAD%u(1)%PWnMotions, "KAD%u(1)%PWnMotions")
                return
             end if
-
+      m%mbdPWnMotions%RemapFlag = .false.
+      KAD%u(1)%PWnMotions%RemapFlag = .false.
+      
       call MeshMapCreate( m%mbdVSMotions, KAD%u(1)%VSMotions, m%VS_L2_L2, errStat2, errMsg2 )
          call SetErrStat( errStat2, errMsg2, errStat, errMsg, ' CreateMeshMappings: m%VS_L2_L2' )     
             if (ErrStat>=AbortErrLev) then 
@@ -1247,7 +1253,9 @@ subroutine CreateMeshMappings(m, p, KAD, MD, errStat, errMsg)
                call DumpMotionsMeshData(KAD%u(1)%VSMotions, "KAD%u(1)%VSMotions")
                return
             end if
-
+      m%mbdVSMotions%RemapFlag = .false.
+      KAD%u(1)%VSMotions%RemapFlag = .false.
+      
       call MeshMapCreate( m%mbdSHSMotions, KAD%u(1)%SHSMotions, m%SHS_L2_L2, errStat2, errMsg2 )
          call SetErrStat( errStat2, errMsg2, errStat, errMsg, ' CreateMeshMappings: m%SHS_L2_L2' )     
             if (ErrStat>=AbortErrLev) then 
@@ -1255,7 +1263,9 @@ subroutine CreateMeshMappings(m, p, KAD, MD, errStat, errMsg)
                call DumpMotionsMeshData(KAD%u(1)%SHSMotions, "KAD%u(1)%SHSMotions")
                return
             end if
-
+      m%mbdSHSMotions%RemapFlag = .false.
+      KAD%u(1)%SHSMotions%RemapFlag = .false.
+      
       call MeshMapCreate( m%mbdPHSMotions, KAD%u(1)%PHSMotions, m%PHS_L2_L2, errStat2, errMsg2 )
          call SetErrStat( errStat2, errMsg2, errStat, errMsg, ' CreateMeshMappings: m%PHS_L2_L2' )     
             if (ErrStat>=AbortErrLev) then 
@@ -1263,7 +1273,8 @@ subroutine CreateMeshMappings(m, p, KAD, MD, errStat, errMsg)
                call DumpMotionsMeshData(KAD%u(1)%PHSMotions, "KAD%u(1)%PHSMotions")
                return
             end if
-
+      m%mbdPHSMotions%RemapFlag = .false.
+      KAD%u(1)%PHSMotions%RemapFlag = .false.
 
       allocate(m%SPy_L2_L2(p%NumPylons), STAT=errStat2)
          if (errStat2 /= 0) call SetErrStat( ErrID_Fatal, 'Could not allocate memory for m%SPy_L2_L2', errStat, errMsg, RoutineName )     
@@ -1278,7 +1289,9 @@ subroutine CreateMeshMappings(m, p, KAD, MD, errStat, errMsg)
                   call DumpMotionsMeshData(KAD%u(1)%SPyMotions(i), "KAD%u(1)%SPyMotions("//trim(num2lstr(i))//")")
                   return
                end if
-            
+         m%mbdSPyMotions(i)%RemapFlag = .false.
+         KAD%u(1)%SPyMotions(i)%RemapFlag = .false.  
+         
          call MeshMapCreate( m%mbdPPyMotions(i), KAD%u(1)%PPyMotions(i), m%PPy_L2_L2(i), errStat2, errMsg2 )
             call SetErrStat( errStat2, errMsg2, errStat, errMsg, ' CreateMeshMappings: m%PPy_L2_L2('//trim(num2lstr(i))//')' ) 
                if (ErrStat>=AbortErrLev) then 
@@ -1286,6 +1299,8 @@ subroutine CreateMeshMappings(m, p, KAD, MD, errStat, errMsg)
                   call DumpMotionsMeshData(KAD%u(1)%PPyMotions(i), "KAD%u(1)%PPyMotions("//trim(num2lstr(i))//")")
                   return
                end if
+         m%mbdPPyMotions(i)%RemapFlag = .false.
+         KAD%u(1)%PPyMotions(i)%RemapFlag = .false.
       end do
    
    
@@ -1294,21 +1309,39 @@ subroutine CreateMeshMappings(m, p, KAD, MD, errStat, errMsg)
       call MeshMapCreate( m%KAD%y%FusLoads, m%mbdFusLoads, m%Fus_P_P, errStat2, errMsg2 )
          call SetErrStat( errStat2, errMsg2, errStat, errMsg, ' CreateMeshMappings: m%Fus_P_P' )     
             if (ErrStat>=AbortErrLev) return
+      m%KAD%y%FusLoads%RemapFlag = .false.
+      m%mbdFusLoads%RemapFlag = .false.
+      
       call MeshMapCreate( m%KAD%y%SWnLoads, m%mbdSWnLoads, m%SWn_P_P, errStat2, errMsg2 )
          call SetErrStat( errStat2, errMsg2, errStat, errMsg, ' CreateMeshMappings: m%SWn_P_P' )     
             if (ErrStat>=AbortErrLev) return
+      m%KAD%y%SWnLoads%RemapFlag = .false.
+      m%mbdSWnLoads%RemapFlag = .false.
+      
       call MeshMapCreate( m%KAD%y%PWnLoads, m%mbdPWnLoads, m%PWn_P_P, errStat2, errMsg2 )
          call SetErrStat( errStat2, errMsg2, errStat, errMsg, ' CreateMeshMappings: m%PWn_P_P' )     
             if (ErrStat>=AbortErrLev) return
+      m%KAD%y%PWnLoads%RemapFlag = .false.
+      m%mbdPWnLoads%RemapFlag = .false.
+      
       call MeshMapCreate( m%KAD%y%VSLoads, m%mbdVSLoads, m%VS_P_P, errStat2, errMsg2 )
          call SetErrStat( errStat2, errMsg2, errStat, errMsg, ' CreateMeshMappings: m%VS_P_P' )     
             if (ErrStat>=AbortErrLev) return
+      m%KAD%y%VSLoads%RemapFlag = .false.
+      m%mbdVSLoads%RemapFlag = .false.
+      
       call MeshMapCreate( m%KAD%y%SHSLoads, m%mbdSHSLoads, m%SHS_P_P, errStat2, errMsg2 )
          call SetErrStat( errStat2, errMsg2, errStat, errMsg, ' CreateMeshMappings: m%SHS_P_P' )     
             if (ErrStat>=AbortErrLev) return
+      m%KAD%y%SHSLoads%RemapFlag = .false.
+      m%mbdSHSLoads%RemapFlag = .false.
+      
       call MeshMapCreate( m%KAD%y%PHSLoads, m%mbdPHSLoads, m%PHS_P_P, errStat2, errMsg2 )
          call SetErrStat( errStat2, errMsg2, errStat, errMsg, ' CreateMeshMappings: m%PHS_P_P' )     
             if (ErrStat>=AbortErrLev) return
+      m%KAD%y%PHSLoads%RemapFlag = .false.
+      m%mbdPHSLoads%RemapFlag = .false.
+      
 
       allocate(m%SPy_P_P(p%NumPylons), STAT=errStat2)
          if (errStat2 /= 0) call SetErrStat( ErrID_Fatal, 'Could not allocate memory for m%SPy_P_P', errStat, errMsg, RoutineName )     
@@ -1319,10 +1352,15 @@ subroutine CreateMeshMappings(m, p, KAD, MD, errStat, errMsg)
          call MeshMapCreate( m%KAD%y%SPyLoads(i), m%mbdSPyLoads(i), m%SPy_P_P(i), errStat2, errMsg2 )
             call SetErrStat( errStat2, errMsg2, errStat, errMsg, ' CreateMeshMappings: m%SPy_P_P('//trim(num2lstr(i))//')' ) 
                if (ErrStat>=AbortErrLev) return
+          m%KAD%y%SPyLoads(i)%RemapFlag = .false.
+          m%mbdSPyLoads(i)%RemapFlag = .false.
             
          call MeshMapCreate( m%KAD%y%PPyLoads(i), m%mbdPPyLoads(i), m%PPy_P_P(i), errStat2, errMsg2 )
             call SetErrStat( errStat2, errMsg2, errStat, errMsg, ' CreateMeshMappings: m%PPy_P_P('//trim(num2lstr(i))//')' ) 
                if (ErrStat>=AbortErrLev) return
+         m%KAD%y%PPyLoads(i)%RemapFlag = .false.
+         m%mbdPPyLoads(i)%RemapFlag = .false.
+         
       end do
    end if ! if ( p%useKAD )
    
@@ -1331,10 +1369,16 @@ subroutine CreateMeshMappings(m, p, KAD, MD, errStat, errMsg)
       call MeshMapCreate( m%mbdWngMotions, MD%u(1)%PtFairleadDisplacement, m%MD_L2_2_P, errStat2, errMsg2 )
          call SetErrStat( errStat2, errMsg2, errStat, errMsg, ' CreateMeshMappings: m%MD_L2_2_P' )     
                if (ErrStat>=AbortErrLev) return
+      m%mbdWngMotions%RemapFlag = .false.
+      MD%u(1)%PtFairleadDisplacement%RemapFlag = .false.
+      
          ! Need to transfer the MoorDyn bridle point loads back the to MBDyn wing mesh for loads
       call MeshMapCreate( MD%y%PtFairleadLoad, m%mbdWngLoads,  m%MD_P_2_P, errStat2, errMsg2 )
          call SetErrStat( errStat2, errMsg2, errStat, errMsg, ' CreateMeshMappings: m%MD_P_2_P' )     
                if (ErrStat>=AbortErrLev) return
+      MD%y%PtFairleadLoad%RemapFlag = .false.
+      m%mbdWngLoads%RemapFlag = .false.
+      
    end if 
    
 end subroutine CreateMeshMappings

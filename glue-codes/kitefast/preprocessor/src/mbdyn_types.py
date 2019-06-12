@@ -15,6 +15,7 @@
 #
 
 import numpy as np
+from scipy.spatial.transform import Rotation as R
 
 
 class Vec3():
@@ -83,47 +84,24 @@ class Vec3():
 
 class OrientationMatrix():
     def __init__(self, rotation_angles):
-        self.alpha = np.radians(rotation_angles.x1)  # roll
-        self.beta = np.radians(rotation_angles.x2)  # pitch
-        self.gamma = np.radians(rotation_angles.x3)  # yaw
-        self.rotation_matrix = self.generalized_rotation(self.alpha, self.beta, self.gamma)
+        self.alpha = rotation_angles.x1  # roll
+        self.beta = rotation_angles.x2   # pitch
+        self.gamma = rotation_angles.x3  # yaw
+
+        # Upper case XYZ are intrinsic rotations (body-reference-frame)
+        # https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.transform.Rotation.from_euler.html#scipy.spatial.transform.Rotation.from_euler
+        rotation = R.from_euler("XYZ", [self.alpha, self.beta, self.gamma], degrees=True)
+        self.rotation_matrix = np.transpose(rotation.as_dcm())
         self.row1 = ", ".join([str(n) for n in self.rotation_matrix[0]])
         self.row2 = ", ".join([str(n) for n in self.rotation_matrix[1]])
-        self.row3 = None
-
-    def generalized_rotation(self, alpha, beta, gamma):
-        def _roll(angle):
-            return np.array(
-                [
-                    [1,                  0,                  0],
-                    [0,      np.cos(angle),      np.sin(angle)],
-                    [0, -1 * np.sin(angle),      np.cos(angle)]
-                ]
-            )
-        def _pitch(angle):
-            return np.array(
-                [
-                    [     np.cos(angle),  0,      np.sin(angle)],
-                    [                 0,  1,                  0],
-                    [-1 * np.sin(angle),  0,      np.cos(angle)]
-                ]
-            )
-        def _yaw(angle):
-            return np.array(
-                [
-                    [     np.cos(angle),      np.sin(angle),  0],
-                    [-1 * np.sin(angle),      np.cos(angle),  0],
-                    [                 0,                  0,  1]
-                ]
-            )
-        return np.matmul(_roll(alpha), np.matmul(_pitch(beta), _yaw(gamma)))
+        self.row3 = ", ".join([str(n) for n in self.rotation_matrix[2]])
 
     def __str__(self):
         string = ""
         if self.row1 is not None:
             string += "{:8d},{},".format(1, self.row1)
-        if self.row2 is not None:
-            string += "{:8d},{}".format(2, self.row2)
+        if self.row3 is not None:
+            string += "{:8d},{}".format(3, self.row3)
         return string
 
 
