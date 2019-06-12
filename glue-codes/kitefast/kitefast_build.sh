@@ -125,6 +125,7 @@ fi
 create_link $openfast_directory/glue-codes/kitefast/module-kitefastmbd-os/Makefile.inc $mbdyn_directory/modules/module-kitefastmbd-os/.
 create_link $openfast_directory/glue-codes/kitefast/module-kitefastmbd-os/module-kitefastmbd-os.cc $mbdyn_directory/modules/module-kitefastmbd-os/.
 create_link $openfast_directory/glue-codes/kitefast/module-kitefastmbd-os/module-kitefastmbd-os.h $mbdyn_directory/modules/module-kitefastmbd-os/.
+create_link $openfast_directory/glue-codes/kitefast/module-kitefastmbd-os/KiteFASTNode.cc $mbdyn_directory/modules/module-kitefastmbd-os/.
 
 # # link kitefast lib and its module file to the module-kitefastmbd directory
 create_link $openfast_directory/build/modules-local/kitefast-library/libkitefastoslib.a $mbdyn_directory/modules/module-kitefastmbd-os/libkitefastoslib.a
