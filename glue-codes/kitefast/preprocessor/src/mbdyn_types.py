@@ -91,7 +91,7 @@ class OrientationMatrix():
         # Upper case XYZ are intrinsic rotations (body-reference-frame)
         # https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.transform.Rotation.from_euler.html#scipy.spatial.transform.Rotation.from_euler
         rotation = R.from_euler("XYZ", [self.alpha, self.beta, self.gamma], degrees=True)
-        self.rotation_matrix = rotation.as_dcm()
+        self.rotation_matrix = np.transpose(rotation.as_dcm())
         self.row1 = ", ".join([str(n) for n in self.rotation_matrix[0]])
         self.row2 = ", ".join([str(n) for n in self.rotation_matrix[1]])
         self.row3 = ", ".join([str(n) for n in self.rotation_matrix[2]])
