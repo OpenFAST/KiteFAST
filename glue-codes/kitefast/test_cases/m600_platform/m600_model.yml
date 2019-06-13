@@ -503,10 +503,10 @@ rotor_assembly:
 
 platform:
     node_location:
-        [-0.202, -1.627, 19.860]
+        [0.0, 0.0, 0.0]
 
     imu_location:
-        [-0.202, -1.627, 19.860]
+        [1.0, 1.0, 1.0]
 
 wind_reference_station:
     location:
