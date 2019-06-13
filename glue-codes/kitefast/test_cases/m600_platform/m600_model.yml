@@ -80,20 +80,20 @@ simulation_controls:
         location:
             # locates the kite coordinate system (MIP point) in the global frame
             # [x, y, z]
-            [430.0, 0.0, 100.0]
+            [126.6398, -379.6509, 172.8097]
 
         orientation:
             # [roll, pitch, yaw]
-            [0.0, 180.0, 0.0]
+            [136.84688687, -29.63091069, -7.88157559]
 
         velocity:
             translational:
                 # [x, y, z]
-                [-50.0, 0.0, 0.0]
+                [53.9008, 3.3295, -29.7069]
 
             rotational:
                 # [roll, pitch, yaw]
-                [0.0, 0.0, 0.0]
+                [0.01984969, -0.003768248, 0.002413641]
 
 keypoints:
     # component label                    X      Y      Z
