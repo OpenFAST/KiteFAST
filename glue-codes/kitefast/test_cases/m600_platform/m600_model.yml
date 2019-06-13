@@ -550,10 +550,6 @@ output:
         - 0
 
     output_channels:
-        - "Fus1TDx"
-        - "Fus1TDy"
-        - "Fus1TDz"
-        - "SWn1TDx"
-        - "SWn1TDy"
-        - "SWn1TDz"
-        - "PP12FRc"
+        - "KitePxi"
+        - "KitePyi"
+        - "KitePzi"
