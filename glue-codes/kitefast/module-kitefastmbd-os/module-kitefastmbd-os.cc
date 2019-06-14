@@ -666,6 +666,7 @@ void ModuleKiteFASTOS::_AssRes(doublereal *node_loads, doublereal *rotor_loads, 
   doublereal *wind_reference_station_velocity = wind_reference_station_node.GetCurrentVelocity();
 
   doublereal *mip_position = mip_node.GetCurrentVelocity();
+  doublereal *mip_position = mip_node.GetCurrentPosition();
   doublereal *mip_dcm = mip_node.GetCurrentDCM();
   doublereal *mip_velocity = mip_node.GetCurrentVelocity();
   doublereal *mip_omegas = mip_node.GetCurrentAngularVelocity();
