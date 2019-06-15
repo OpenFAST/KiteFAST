@@ -935,7 +935,6 @@ subroutine Ass_Res_OffShore(t_c, isInitialTime_c, PtfmO_c, PtfmODCM_c, PtfmOv_c,
                        
    m_OS%HD%u(1)%Mesh%Orientation  (:,:,1) = m_OS%PtfmODCM
    m_OS%HD%u(1)%Mesh%TranslationDisp(:,1) = m_OS%PtfmO - m_OS%HD%u(1)%Mesh%Position(:,1)
-   m_OS%mbdPtfmLoads%TranslationDisp(:,1) = m_OS%HD%u(1)%Mesh%TranslationDisp(:,1)
    m_OS%HD%u(1)%Mesh%TranslationVel (:,1) = m_OS%PtfmOv
    m_OS%HD%u(1)%Mesh%RotationVel    (:,1) = m_OS%PtfmOomegas
    m_OS%HD%u(1)%Mesh%TranslationAcc (:,1) = m_OS%PtfmOacc
@@ -986,6 +985,8 @@ subroutine Ass_Res_OffShore(t_c, isInitialTime_c, PtfmO_c, PtfmODCM_c, PtfmOv_c,
 
    if ( p_OS%useMD_Mooring ) then
       
+      m_OS%mbdPtfmLoads%TranslationDisp(:,1) = m_OS%HD%u(1)%Mesh%TranslationDisp(:,1)
+
       call Transfer_Point_to_Point( m_OS%HD%u(1)%Mesh, m_OS%MD_Mooring%u(1)%PtFairleadDisplacement, m_OS%HD_P_2_MD_P, errStat2, errMsg2 )
          call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
       if (errStat >= AbortErrLev ) return
