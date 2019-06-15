@@ -149,7 +149,11 @@ ModuleKiteFASTOS::ModuleKiteFASTOS(unsigned uLabel, const DofOwner *pDO, DataMan
   // parse the platform node
   ValidateInputKeyword(HP, "platform_node");
   platform_node.pNode = dynamic_cast<StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
-  doublereal *platform_position = platform_node.GetCurrentPosition();
+  doublereal platform_position[3];
+  Vec3 vec3_platform_pos = platform_node.pNode->GetXCurr();
+  platform_position[0] = vec3_platform_pos[0];
+  platform_position[1] = vec3_platform_pos[1];
+  platform_position[2] = vec3_platform_pos[2];
 
   // parse the platform imu node
   ValidateInputKeyword(HP, "platform_imu_node");
@@ -158,12 +162,20 @@ ModuleKiteFASTOS::ModuleKiteFASTOS(unsigned uLabel, const DofOwner *pDO, DataMan
   // parse the wind reference station location
   ValidateInputKeyword(HP, "wind_reference_station_node");
   wind_reference_station_node.pNode = dynamic_cast<StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
-  doublereal *wind_reference_station_position = wind_reference_station_node.GetCurrentPosition();
+  doublereal wind_reference_station_position[3];
+  Vec3 vec3_wind_ref_pos = wind_reference_station_node.pNode->GetXCurr();
+  wind_reference_station_position[0] = vec3_wind_ref_pos[0];
+  wind_reference_station_position[1] = vec3_wind_ref_pos[1];
+  wind_reference_station_position[2] = vec3_wind_ref_pos[2];
 
   // parse the ground station location
   ValidateInputKeyword(HP, "ground_station_node");
   ground_station_node.pNode = dynamic_cast<StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
-  doublereal *ground_station_position = ground_station_node.GetCurrentPosition();
+  doublereal ground_station_position[3];
+  Vec3 vec3_ground_station_pos = ground_station_node.pNode->GetXCurr();
+  ground_station_position[0] = vec3_ground_station_pos[0];
+  ground_station_position[1] = vec3_ground_station_pos[1];
+  ground_station_position[2] = vec3_ground_station_pos[2];
 
   // parse the component nodes and beams into arrays
   BuildComponentArrays(pDM, HP, "fuselage", nodes_fuselage, beams_fuselage);
