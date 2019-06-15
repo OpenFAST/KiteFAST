@@ -154,6 +154,12 @@ ModuleKiteFASTOS::ModuleKiteFASTOS(unsigned uLabel, const DofOwner *pDO, DataMan
   platform_position[0] = vec3_platform_pos[0];
   platform_position[1] = vec3_platform_pos[1];
   platform_position[2] = vec3_platform_pos[2];
+  nodes_platform.resize(1);
+  nodes_platform[0] = platform_node;
+  if (!nodes_platform[0].pNode->bComputeAccelerations())
+  {
+    nodes_platform[0].pNode->ComputeAccelerations(true);
+  }
 
   // parse the platform imu node
   ValidateInputKeyword(HP, "platform_imu_node");
@@ -229,6 +235,7 @@ ModuleKiteFASTOS::ModuleKiteFASTOS(unsigned uLabel, const DofOwner *pDO, DataMan
   }
   nodes.insert(nodes.end(), nodes_starrotors.begin(), nodes_starrotors.end());
   nodes.insert(nodes.end(), nodes_portrotors.begin(), nodes_portrotors.end());
+  nodes.insert(nodes.end(), nodes_platform.begin(), nodes_platform.end());
 
   // build a single beam array
   total_beam_count = beams_fuselage.size() + beams_starwing.size() + beams_portwing.size() + beams_vstab.size() + beams_starhstab.size() + beams_porthstab.size();
