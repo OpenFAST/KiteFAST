@@ -271,6 +271,11 @@ class KiteModel(BaseModel):
             node2 = rotor.nodes[1]
             joints.append(_build_joint(TotalJoint, node1, node2, len(joints) + 1))
         
+        # platform auxiliary nodes to main node
+        main_node = self.platform.nodes[0]
+        for aux_node in self.platform.nodes[1:]:
+            joints.append(_build_joint(TotalJoint, main_node, aux_node, len(joints) + 1))
+
         return joints
     
     def _validate_model(self):
