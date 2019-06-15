@@ -44,6 +44,7 @@ class BasePlatform():
             StructuralNode(
                 parent_component=self.component_name,
                 root_offset_index=0,
+                reference_frame="global",
                 position=self.node_location
             ),
 
@@ -51,6 +52,7 @@ class BasePlatform():
             StructuralNode(
                 parent_component=self.component_name,
                 root_offset_index=1,
+                reference_frame="global",
                 position=self.imu_location
             ),
 
@@ -58,6 +60,7 @@ class BasePlatform():
             StructuralNode(
                 parent_component=self.component_name,
                 root_offset_index=2,
+                reference_frame="global",
                 position=self.wind_reference_station_location
             ),
 
@@ -65,6 +68,7 @@ class BasePlatform():
             StructuralNode(
                 parent_component=self.component_name,
                 root_offset_index=3,
+                reference_frame="global",
                 position=self.ground_station_location
             )
         ])
