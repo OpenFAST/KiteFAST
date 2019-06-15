@@ -502,6 +502,9 @@ rotor_assembly:
                         [55.150, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 
 platform:
+    mass_properties:
+        [7.700, 0.0, 1.610, 0.805]
+
     node_location:
         [0.0, 0.0, 0.0]
 
