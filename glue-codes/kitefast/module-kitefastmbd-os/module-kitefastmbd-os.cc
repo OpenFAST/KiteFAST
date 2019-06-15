@@ -534,6 +534,9 @@ void ModuleKiteFASTOS::BuildComponentArrays(DataManager *pDM, MBDynParser &HP,
   if (kwd.find("rotor") != std::string::npos || kwd.find("platform") != std::string::npos)
     return;
 
+  if (node_array.size() == 0)
+    return;
+
   BuildComponentBeamArray(pDM, HP, beam_array);
 }
 
