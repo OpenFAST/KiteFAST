@@ -36,9 +36,9 @@ begin: control data;
 
     set: integer beam_count = 0;
 
-    rigid bodies: 0;
+    rigid bodies: 1;
     beams: beam_count;
-    joints: 0;
+    joints: 3;
     gravity;
     loadable elements: 1;
 end: control data;
@@ -54,6 +54,48 @@ begin: elements;
     gravity: uniform,   0.000,   0.000,   1.000, const, -9.81;
 
     inertia: 1, body, all;
+
+    body: 1, platform_root_node, 1.0,
+        reference, node,   0.000,   0.000,   0.000,
+        sym,    1.000,      0.000,      0.000,
+                            1.000,      0.000,
+                                        1.000;
+
+    joint: 1, total joint,
+        platform_root_node + 0,
+        platform_root_node + 1,
+            position, reference, other node, null,
+            rotation orientation, reference, other node, eye,
+        position constraint,
+            active, active, active,
+            null,
+        orientation constraint,
+            active, active, active,
+            null;
+
+    joint: 2, total joint,
+        platform_root_node + 0,
+        platform_root_node + 2,
+            position, reference, other node, null,
+            rotation orientation, reference, other node, eye,
+        position constraint,
+            active, active, active,
+            null,
+        orientation constraint,
+            active, active, active,
+            null;
+
+    joint: 3, total joint,
+        platform_root_node + 0,
+        platform_root_node + 3,
+            position, reference, other node, null,
+            rotation orientation, reference, other node, eye,
+        position constraint,
+            active, active, active,
+            null,
+        orientation constraint,
+            active, active, active,
+            null;
 
     user defined: 1, ModuleKiteFASTOS,
         simulation_type,
