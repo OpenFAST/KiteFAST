@@ -1,0 +1,27 @@
+# Structural nodes for the platform
+
+# *** nodes ***
+structural: platform_root_node + 0, dynamic,
+    reference, mip_rf,   0.000,   0.000,   0.000,
+    reference, mip_rf,eye,
+    reference, mip_rf,   0.000,   0.000,   0.000,
+    reference, mip_rf,   0.000,   0.000,   0.000;
+
+structural: platform_root_node + 1, dynamic,
+    reference, mip_rf,   1.000,   1.000,   1.000,
+    reference, mip_rf,eye,
+    reference, mip_rf,   0.000,   0.000,   0.000,
+    reference, mip_rf,   0.000,   0.000,   0.000;
+
+structural: platform_root_node + 2, dynamic,
+    reference, mip_rf,   2.000,   2.000,   2.000,
+    reference, mip_rf,eye,
+    reference, mip_rf,   0.000,   0.000,   0.000,
+    reference, mip_rf,   0.000,   0.000,   0.000;
+
+structural: platform_root_node + 3, dynamic,
+    reference, mip_rf,   3.000,   3.000,   3.000,
+    reference, mip_rf,eye,
+    reference, mip_rf,   0.000,   0.000,   0.000,
+    reference, mip_rf,   0.000,   0.000,   0.000;
+
