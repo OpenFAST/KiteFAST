@@ -33,6 +33,8 @@ class BasePlatform():
         self.imu_location = model_dict["imu_location"]
         self.wind_reference_station_location = model_dict["wind_reference_station_location"]
         self.ground_station_location = model_dict["ground_station_location"]
+        self.platform_mass = model_dict["mass"]
+        self.platform_inertia = model_dict["inertia"]
 
         self._preprocess()
         self._postprocess()
@@ -44,6 +46,7 @@ class BasePlatform():
             StructuralNode(
                 parent_component=self.component_name,
                 root_offset_index=0,
+                reference_frame="global",
                 position=self.node_location
             ),
 
@@ -51,6 +54,7 @@ class BasePlatform():
             StructuralNode(
                 parent_component=self.component_name,
                 root_offset_index=1,
+                reference_frame="global",
                 position=self.imu_location
             ),
 
@@ -58,6 +62,7 @@ class BasePlatform():
             StructuralNode(
                 parent_component=self.component_name,
                 root_offset_index=2,
+                reference_frame="global",
                 position=self.wind_reference_station_location
             ),
 
@@ -65,10 +70,25 @@ class BasePlatform():
             StructuralNode(
                 parent_component=self.component_name,
                 root_offset_index=3,
+                reference_frame="global",
                 position=self.ground_station_location
             )
         ])
         self.node_count = self.nodes.shape[0]
+    
+        self.bodies = np.array([
+
+            # platform node
+            Body(
+                identifier=self.nodes[0].id,
+                node=self.nodes[0],
+                mass=self.platform_mass,
+                added_mass=0.0,
+                Ixx=self.platform_inertia[0],
+                Iyy=self.platform_inertia[1],
+                Izz=self.platform_inertia[2]
+            )
+        ])
 
     def _postprocess(self):
         # NOTE: this will not match mbdyn because the rotor mass is not included in the mbdyn model
@@ -84,6 +104,7 @@ class BasePlatform():
 
     def export_all(self, output_directory):
         self.export_node_file(output_directory)
+        self.export_element_file(output_directory)
 
     def export_node_file(self, output_directory):
         output = Output(
@@ -94,5 +115,13 @@ class BasePlatform():
         output.write_line("# *** nodes ***")
         for n in self.nodes:
             output.write_line(str(n))
+            output.write_empty_line()
+        output.end()
+
+    def export_element_file(self, output_directory):
+        output = Output("{}/{}.elements".format(output_directory, self.component_name))
+        output.write_line("# *** bodies ***")
+        for b in self.bodies:
+            output.write_line(str(b))
             output.write_empty_line()
         output.end()

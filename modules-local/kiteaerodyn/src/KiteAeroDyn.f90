@@ -921,97 +921,155 @@ subroutine CreateMeshMappings( u, y, p, m, errStat, errMsg )
    call MeshCopy( y%FusLoads, m%FusLoads, MESH_NEWCOPY, ErrStat2, ErrMsg2 )  ! we need to make this copy because we cannot update y in UpdateStates()
       call SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
          if (ErrStat>=AbortErrLev) return
+   y%FusLoads%RemapFlag = .false.
+   m%FusLoads%RemapFlag = .false.
+   
    call MeshMapCreate( u%FusMotions, m%FusLoads, m%Fus_L_2_P, errStat2, errMsg2 )
       call SetErrStat( errStat2, errMsg2, errStat, errMsg, ' CreateMeshMappings: Fus_L_2_P' )     
          if (ErrStat>=AbortErrLev) return
+   u%FusMotions%RemapFlag = .false.
+   m%FusLoads%RemapFlag = .false.
    
    call MeshCopy( y%SWnLoads, m%SWnLoads, MESH_NEWCOPY, ErrStat2, ErrMsg2 )
       call SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
          if (ErrStat>=AbortErrLev) return
+   y%SWnLoads%RemapFlag = .false.
+   m%SWnLoads%RemapFlag = .false.
+   
    call MeshMapCreate( u%SWnMotions, m%SWnLoads, m%SWn_L_2_P, errStat2, errMsg2 )
       call SetErrStat( errStat2, errMsg2, errStat, errMsg, ' CreateMeshMappings: SWn_L_2_P' )     
          if (ErrStat>=AbortErrLev) return
-         
+   u%SWnMotions%RemapFlag = .false.
+   m%SWnLoads%RemapFlag = .false.
+   
    call MeshCopy( y%PWnLoads, m%PWnLoads, MESH_NEWCOPY, ErrStat2, ErrMsg2 )
       call SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
-         if (ErrStat>=AbortErrLev) return      
+         if (ErrStat>=AbortErrLev) return   
+   y%PWnLoads%RemapFlag = .false.
+   m%PWnLoads%RemapFlag = .false.
+   
    call MeshMapCreate( u%PWnMotions, m%PWnLoads, m%PWn_L_2_P, errStat2, errMsg2 )
       call SetErrStat( errStat2, errMsg2, errStat, errMsg, ' CreateMeshMappings: PWn_L_2_P' )     
          if (ErrStat>=AbortErrLev) return
-         
+   u%PWnMotions%RemapFlag = .false.
+   m%PWnLoads%RemapFlag = .false.
+   
    call MeshCopy( y%VSLoads, m%VSLoads, MESH_NEWCOPY, ErrStat2, ErrMsg2 )
       call SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
-         if (ErrStat>=AbortErrLev) return         
+         if (ErrStat>=AbortErrLev) return        
+   y%VSLoads%RemapFlag = .false.
+   m%VSLoads%RemapFlag = .false.
+   
    call MeshMapCreate( u%VSMotions, m%VSLoads, m%VS_L_2_P, errStat2, errMsg2 )
       call SetErrStat( errStat2, errMsg2, errStat, errMsg, ' CreateMeshMappings: VS_L_2_P' )     
          if (ErrStat>=AbortErrLev) return
-         
+   u%VSMotions%RemapFlag = .false.
+   m%VSLoads%RemapFlag = .false.
+   
    call MeshCopy( y%SHSLoads, m%SHSLoads, MESH_NEWCOPY, ErrStat2, ErrMsg2 )
       call SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
-         if (ErrStat>=AbortErrLev) return       
+         if (ErrStat>=AbortErrLev) return
+   y%SHSLoads%RemapFlag = .false.
+   m%SHSLoads%RemapFlag = .false.
+   
    call MeshMapCreate( u%SHSMotions, m%SHSLoads, m%SHS_L_2_P, errStat2, errMsg2 )
       call SetErrStat( errStat2, errMsg2, errStat, errMsg, ' CreateMeshMappings: SHS_L_2_P' )     
          if (ErrStat>=AbortErrLev) return
-         
+   u%SHSMotions%RemapFlag = .false.
+   m%SHSLoads%RemapFlag = .false.
+   
    call MeshCopy( y%PHSLoads, m%PHSLoads, MESH_NEWCOPY, ErrStat2, ErrMsg2 )
       call SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
-         if (ErrStat>=AbortErrLev) return       
+         if (ErrStat>=AbortErrLev) return
+   y%PHSLoads%RemapFlag = .false.
+   m%PHSLoads%RemapFlag = .false.
+   
    call MeshMapCreate( u%PHSMotions, m%PHSLoads, m%PHS_L_2_P, errStat2, errMsg2 )
       call SetErrStat( errStat2, errMsg2, errStat, errMsg, ' CreateMeshMappings: PHS_L_2_P' )     
          if (ErrStat>=AbortErrLev) return
-         
+   u%PHSMotions%RemapFlag = .false.
+   m%PHSLoads%RemapFlag = .false.
+   
    do i = 1 , p%NumPylons      
       
       call MeshCopy( y%SPyLoads(i), m%SPyLoads(i), MESH_NEWCOPY, ErrStat2, ErrMsg2 )
          call SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
             if (ErrStat>=AbortErrLev) return 
+      y%SPyLoads(i)%RemapFlag = .false.
+      m%SPyLoads(i)%RemapFlag = .false.
+      
       call MeshMapCreate( u%SPyMotions(i), m%SPyLoads(i), m%SPy_L_2_P(i), errStat2, errMsg2 )
          call SetErrStat( errStat2, errMsg2, errStat, errMsg, ' CreateMeshMappings: SPy_L_2_P('//trim(num2lstr(i))//')' ) 
             if (ErrStat>=AbortErrLev) return
-            
+      u%SPyMotions(i)%RemapFlag = .false.
+      m%SPyLoads(i)%RemapFlag = .false.
+      
       call MeshCopy( y%PPyLoads(i), m%PPyLoads(i), MESH_NEWCOPY, ErrStat2, ErrMsg2 )
          call SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
-            if (ErrStat>=AbortErrLev) return       
+            if (ErrStat>=AbortErrLev) return    
+      y%PPyLoads(i)%RemapFlag = .false.
+      m%PPyLoads(i)%RemapFlag = .false.
+      
       call MeshMapCreate( u%PPyMotions(i), m%PPyLoads(i), m%PPy_L_2_P(i), errStat2, errMsg2 )
          call SetErrStat( errStat2, errMsg2, errStat, errMsg, ' CreateMeshMappings: PPy_L_2_P('//trim(num2lstr(i))//')' ) 
             if (ErrStat>=AbortErrLev) return
+      u%PPyMotions(i)%RemapFlag = .false.
+      m%PPyLoads(i)%RemapFlag = .false.
+      
    end do
    
       ! Map loads to FusO for total integrated load calculations
    call MeshMapCreate( y%FusLoads, m%FusOLoads, m%Fus_P_2_P, errStat2, errMsg2 )
       call SetErrStat( errStat2, errMsg2, errStat, errMsg, ' CreateMeshMappings: Fus_P_2_P' )     
          if (ErrStat>=AbortErrLev) return
+   y%FusLoads%RemapFlag = .false.
+   m%FusOLoads%RemapFlag = .false.
    
    call MeshMapCreate( y%SWnLoads, m%FusOLoads, m%SWn_P_2_P, errStat2, errMsg2 )
       call SetErrStat( errStat2, errMsg2, errStat, errMsg, ' CreateMeshMappings: SWn_P_2_P' )     
          if (ErrStat>=AbortErrLev) return
-             
+   y%SWnLoads%RemapFlag = .false.
+   m%FusOLoads%RemapFlag = .false.
+   
    call MeshMapCreate( y%PWnLoads, m%FusOLoads, m%PWn_P_2_P, errStat2, errMsg2 )
       call SetErrStat( errStat2, errMsg2, errStat, errMsg, ' CreateMeshMappings: PWn_P_2_P' )     
          if (ErrStat>=AbortErrLev) return
-                
+   y%PWnLoads%RemapFlag = .false.
+   m%FusOLoads%RemapFlag = .false.
+   
    call MeshMapCreate( y%VSLoads, m%FusOLoads, m%VS_P_2_P, errStat2, errMsg2 )
       call SetErrStat( errStat2, errMsg2, errStat, errMsg, ' CreateMeshMappings: VS_P_2_P' )     
          if (ErrStat>=AbortErrLev) return
-              
+   y%VSLoads%RemapFlag = .false.
+   m%FusOLoads%RemapFlag = .false.
+   
    call MeshMapCreate( y%SHSLoads, m%FusOLoads, m%SHS_P_2_P, errStat2, errMsg2 )
       call SetErrStat( errStat2, errMsg2, errStat, errMsg, ' CreateMeshMappings: SHS_P_2_P' )     
          if (ErrStat>=AbortErrLev) return
-              
+   y%SHSLoads%RemapFlag = .false.
+   m%FusOLoads%RemapFlag = .false.
+   
    call MeshMapCreate( y%PHSLoads, m%FusOLoads, m%PHS_P_2_P, errStat2, errMsg2 )
       call SetErrStat( errStat2, errMsg2, errStat, errMsg, ' CreateMeshMappings: PHS_P_2_P' )     
          if (ErrStat>=AbortErrLev) return
-         
+   y%PHSLoads%RemapFlag = .false.
+   m%FusOLoads%RemapFlag = .false.
+   
     ! Pylons
     do i = 1 , p%NumPylons      
       
       call MeshMapCreate( y%SPyLoads(i), m%FusOLoads, m%SPy_P_2_P(i), errStat2, errMsg2 )
          call SetErrStat( errStat2, errMsg2, errStat, errMsg, ' CreateMeshMappings: SPy_P_2_P('//trim(num2lstr(i))//')' ) 
             if (ErrStat>=AbortErrLev) return
-    
+      y%SPyLoads(i)%RemapFlag = .false.
+      m%FusOLoads%RemapFlag = .false.
+      
       call MeshMapCreate( y%PPyLoads(i), m%FusOLoads, m%PPy_P_2_P(i), errStat2, errMsg2 )
          call SetErrStat( errStat2, errMsg2, errStat, errMsg, ' CreateMeshMappings: PPy_P_2_P('//trim(num2lstr(i))//')' ) 
             if (ErrStat>=AbortErrLev) return
+      y%PPyLoads(i)%RemapFlag = .false.
+      m%FusOLoads%RemapFlag = .false.
+      
     end do   
     
     ! Rotors
@@ -1020,11 +1078,15 @@ subroutine CreateMeshMappings( u, y, p, m, errStat, errMsg )
        call MeshMapCreate( y%SPyRtrLoads(i), m%FusOLoads, m%SPyRtr_P_2_P(i), errStat2, errMsg2 )
          call SetErrStat( errStat2, errMsg2, errStat, errMsg, ' CreateMeshMappings: SPyRtr_P_2_P('//trim(num2lstr(i))//')' ) 
             if (ErrStat>=AbortErrLev) return
-    
+      y%SPyRtrLoads(i)%RemapFlag = .false.
+      m%FusOLoads%RemapFlag = .false.
+      
       call MeshMapCreate( y%PPyRtrLoads(i), m%FusOLoads, m%PPyRtr_P_2_P(i), errStat2, errMsg2 )
          call SetErrStat( errStat2, errMsg2, errStat, errMsg, ' CreateMeshMappings: PPyRtr_P_2_P('//trim(num2lstr(i))//')' ) 
             if (ErrStat>=AbortErrLev) return
-     
+      y%PPyRtrLoads(i)%RemapFlag = .false.
+      m%FusOLoads%RemapFlag = .false.
+      
     end do
     
 

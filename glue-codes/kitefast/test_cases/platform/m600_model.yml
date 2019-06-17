@@ -1,5 +1,5 @@
 title:
-    simple m600 model
+    simple m600 model with platform
 
 constants:
     gravity:
@@ -8,17 +8,27 @@ constants:
         [0.0, 0.0, -9.81]
 
 simulation_controls:
+    simulation_type:
+        # 1: onshore
+        # 2: full offshore
+        # 3: offshore, but no kite
+        2
+
     fast_submodules:
         kiteaerodyn: true
-        inflowwind: true
-        moordyn: false
-        controller: true
+        inflowwind: false
+        moordyn_tether: false
+        controller: false
+        hydrodyn: true
+        moordyn_mooring: false
 
     fast_submodule_input_files:
         kiteaerodyn_input: "simple_m600_model.inp"
         inflowwind_input: "kiteInflowWind.dat"
-        moordyn_input: "m600-MoorDyn.dat"
+        moordyn_tether_input: "m600-MoorDyn.dat"
         controller_input: "../../../../build/modules-local/kitefast-controller/libkitefastcontroller_controller.so"
+        hydrodyn_input: "../5MW_OC3Spar_DLL_WTurb_WavesIrr/NRELOffshrBsline5MW_OC3Hywind_HydroDyn.dat"
+        moordyn_mooring_input: ""
 
     print_kitefast_summary_file:
         false
@@ -65,13 +75,6 @@ simulation_controls:
     debug:
         # true | false
         false
-
-    ground_weather_station:
-        location:
-            # locates the weather station; this point is passed directly to
-            # KiteFAST which uses it to interface with the controller
-            # [x, y, z]
-            [-0.202, -1.627, 19.860]
 
     initial_conditions:
         location:
@@ -498,6 +501,24 @@ rotor_assembly:
                         # [  kg,   m,   m,   m, kg*m^2, kg*m^2, kg*m^2, kg*m^2, kg*m^2, kg*m^2]
                         [55.150, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 
+platform:
+    node_location:
+        [0.0, 0.0, 0.0]
+
+    imu_location:
+        [1.0, 1.0, 1.0]
+
+wind_reference_station:
+    location:
+        [2.0, 2.0, 2.0]
+
+ground_station:
+    location:
+        # locates the weather station; this point is passed directly to
+        # KiteFAST which uses it to interface with the controller
+        # [x, y, z]
+        [3.0, 3.0, 3.0]
+
 output:
     fuselage_nodes:
         # - 2
@@ -529,10 +550,6 @@ output:
         - 0
 
     output_channels:
-        - "Fus1TDx"
-        - "Fus1TDy"
-        - "Fus1TDz"
-        - "SWn1TDx"
-        - "SWn1TDy"
-        - "SWn1TDz"
-        - "PP12FRc"
+        - "KitePxi"
+        - "KitePyi"
+        - "KitePzi"

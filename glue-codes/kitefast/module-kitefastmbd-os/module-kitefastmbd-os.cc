@@ -149,7 +149,17 @@ ModuleKiteFASTOS::ModuleKiteFASTOS(unsigned uLabel, const DofOwner *pDO, DataMan
   // parse the platform node
   ValidateInputKeyword(HP, "platform_node");
   platform_node.pNode = dynamic_cast<StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
-  doublereal *platform_position = platform_node.GetCurrentPosition();
+  doublereal platform_position[3];
+  Vec3 vec3_platform_pos = platform_node.pNode->GetXCurr();
+  platform_position[0] = vec3_platform_pos[0];
+  platform_position[1] = vec3_platform_pos[1];
+  platform_position[2] = vec3_platform_pos[2];
+  nodes_platform.resize(1);
+  nodes_platform[0] = platform_node;
+  if (!nodes_platform[0].pNode->bComputeAccelerations())
+  {
+    nodes_platform[0].pNode->ComputeAccelerations(true);
+  }
 
   // parse the platform imu node
   ValidateInputKeyword(HP, "platform_imu_node");
@@ -158,12 +168,20 @@ ModuleKiteFASTOS::ModuleKiteFASTOS(unsigned uLabel, const DofOwner *pDO, DataMan
   // parse the wind reference station location
   ValidateInputKeyword(HP, "wind_reference_station_node");
   wind_reference_station_node.pNode = dynamic_cast<StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
-  doublereal *wind_reference_station_position = wind_reference_station_node.GetCurrentPosition();
+  doublereal wind_reference_station_position[3];
+  Vec3 vec3_wind_ref_pos = wind_reference_station_node.pNode->GetXCurr();
+  wind_reference_station_position[0] = vec3_wind_ref_pos[0];
+  wind_reference_station_position[1] = vec3_wind_ref_pos[1];
+  wind_reference_station_position[2] = vec3_wind_ref_pos[2];
 
   // parse the ground station location
   ValidateInputKeyword(HP, "ground_station_node");
   ground_station_node.pNode = dynamic_cast<StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
-  doublereal *ground_station_position = ground_station_node.GetCurrentPosition();
+  doublereal ground_station_position[3];
+  Vec3 vec3_ground_station_pos = ground_station_node.pNode->GetXCurr();
+  ground_station_position[0] = vec3_ground_station_pos[0];
+  ground_station_position[1] = vec3_ground_station_pos[1];
+  ground_station_position[2] = vec3_ground_station_pos[2];
 
   // parse the component nodes and beams into arrays
   BuildComponentArrays(pDM, HP, "fuselage", nodes_fuselage, beams_fuselage);
@@ -217,6 +235,7 @@ ModuleKiteFASTOS::ModuleKiteFASTOS(unsigned uLabel, const DofOwner *pDO, DataMan
   }
   nodes.insert(nodes.end(), nodes_starrotors.begin(), nodes_starrotors.end());
   nodes.insert(nodes.end(), nodes_portrotors.begin(), nodes_portrotors.end());
+  nodes.insert(nodes.end(), nodes_platform.begin(), nodes_platform.end());
 
   // build a single beam array
   total_beam_count = beams_fuselage.size() + beams_starwing.size() + beams_portwing.size() + beams_vstab.size() + beams_starhstab.size() + beams_porthstab.size();
@@ -522,6 +541,9 @@ void ModuleKiteFASTOS::BuildComponentArrays(DataManager *pDM, MBDynParser &HP,
   if (kwd.find("rotor") != std::string::npos || kwd.find("platform") != std::string::npos)
     return;
 
+  if (node_array.size() == 0)
+    return;
+
   BuildComponentBeamArray(pDM, HP, beam_array);
 }
 
@@ -662,15 +684,59 @@ void ModuleKiteFASTOS::_AssRes(doublereal *node_loads, doublereal *rotor_loads, 
 
   doublereal t = Time.dGet();
 
-  doublereal *wind_reference_station_position = wind_reference_station_node.GetCurrentPosition();
-  doublereal *wind_reference_station_velocity = wind_reference_station_node.GetCurrentVelocity();
+  doublereal wind_reference_station_position[3];
+  Vec3 vec3_wind_ref_pos = wind_reference_station_node.pNode->GetXCurr();
+  wind_reference_station_position[0] = vec3_wind_ref_pos[0];
+  wind_reference_station_position[1] = vec3_wind_ref_pos[1];
+  wind_reference_station_position[2] = vec3_wind_ref_pos[2];
 
-  doublereal *mip_position = mip_node.GetCurrentVelocity();
-  doublereal *mip_dcm = mip_node.GetCurrentDCM();
-  doublereal *mip_velocity = mip_node.GetCurrentVelocity();
-  doublereal *mip_omegas = mip_node.GetCurrentAngularVelocity();
-  doublereal *mip_acceleration = mip_node.GetCurrentAcceleration();
-  doublereal *mip_alphas = mip_node.GetCurrentAngularAcceleration();
+  doublereal wind_reference_station_velocity[3];
+  Vec3 vec3_wind_ref_vels = wind_reference_station_node.pNode->GetVCurr();
+  wind_reference_station_velocity[0] = vec3_wind_ref_vels[0];
+  wind_reference_station_velocity[1] = vec3_wind_ref_vels[1];
+  wind_reference_station_velocity[2] = vec3_wind_ref_vels[2];
+
+  doublereal mip_position[3];
+  Vec3 vec3_mip_pos = mip_node.pNode->GetXCurr();
+  mip_position[0] = vec3_mip_pos[0];
+  mip_position[1] = vec3_mip_pos[1];
+  mip_position[2] = vec3_mip_pos[2];
+
+  doublereal mip_dcm[9];
+  Mat3x3 mat3_mip_dcm = mip_node.pNode->GetRCurr();
+  mip_dcm[0] = mat3_mip_dcm.dGet(1, 1);
+  mip_dcm[1] = mat3_mip_dcm.dGet(1, 2);
+  mip_dcm[2] = mat3_mip_dcm.dGet(1, 3);
+  mip_dcm[3] = mat3_mip_dcm.dGet(2, 1);
+  mip_dcm[4] = mat3_mip_dcm.dGet(2, 2);
+  mip_dcm[5] = mat3_mip_dcm.dGet(2, 3);
+  mip_dcm[6] = mat3_mip_dcm.dGet(3, 1);
+  mip_dcm[7] = mat3_mip_dcm.dGet(3, 2);
+  mip_dcm[8] = mat3_mip_dcm.dGet(3, 3);
+
+  doublereal mip_velocity[3];
+  Vec3 vec3_mip_vels = mip_node.pNode->GetVCurr();
+  mip_velocity[0] = vec3_mip_vels[0];
+  mip_velocity[1] = vec3_mip_vels[1];
+  mip_velocity[2] = vec3_mip_vels[2];
+
+  doublereal mip_omegas[3];
+  Vec3 vec3_mip_omegas = mip_node.pNode->GetWCurr();
+  mip_omegas[0] = vec3_mip_omegas[0];
+  mip_omegas[1] = vec3_mip_omegas[1];
+  mip_omegas[2] = vec3_mip_omegas[2];
+
+  doublereal mip_acceleration[3];
+  Vec3 vec3_mip_acc = mip_node.pNode->GetXPPCurr();
+  mip_acceleration[0] = vec3_mip_acc[0];
+  mip_acceleration[1] = vec3_mip_acc[1];
+  mip_acceleration[2] = vec3_mip_acc[2];
+
+  doublereal mip_alphas[3];
+  Vec3 vec3_mip_alphas = mip_node.pNode->GetWPCurr();
+  mip_alphas[0] = vec3_mip_alphas[0];
+  mip_alphas[1] = vec3_mip_alphas[1];
+  mip_alphas[2] = vec3_mip_alphas[2];
 
   doublereal *node_points = new doublereal[3 * node_count_no_rotors];
   doublereal *node_dcms = new doublereal[9 * node_count_no_rotors];
@@ -679,11 +745,37 @@ void ModuleKiteFASTOS::_AssRes(doublereal *node_loads, doublereal *rotor_loads, 
   doublereal *node_accs = new doublereal[3 * node_count_no_rotors];
   for (int i = 0; i < node_count_no_rotors; i++)
   {
-    node_points[3 * i] = *(nodes[i].GetCurrentPosition());
-    node_dcms[9 * i] = *(nodes[i].GetCurrentDCM());
-    node_vels[3 * i] = *(nodes[i].GetCurrentVelocity());
-    node_omegas[3 * i] = *(nodes[i].GetCurrentAngularVelocity());
-    node_accs[3 * i] = *(nodes[i].GetCurrentAcceleration());
+    Vec3 xcurr = nodes[i].pNode->GetXCurr();
+    node_points[3 * i] = xcurr[0];
+    node_points[3 * i + 1] = xcurr[1];
+    node_points[3 * i + 2] = xcurr[2];
+
+    // these are dGet(row, col)
+    Mat3x3 rnode = nodes[i].pNode->GetRCurr();
+    node_dcms[9 * i] = rnode.dGet(1, 1);
+    node_dcms[9 * i + 1] = rnode.dGet(1, 2);
+    node_dcms[9 * i + 2] = rnode.dGet(1, 3);
+    node_dcms[9 * i + 3] = rnode.dGet(2, 1);
+    node_dcms[9 * i + 4] = rnode.dGet(2, 2);
+    node_dcms[9 * i + 5] = rnode.dGet(2, 3);
+    node_dcms[9 * i + 6] = rnode.dGet(3, 1);
+    node_dcms[9 * i + 7] = rnode.dGet(3, 2);
+    node_dcms[9 * i + 8] = rnode.dGet(3, 3);
+
+    Vec3 vcurr = nodes[i].pNode->GetVCurr();
+    node_vels[3 * i] = vcurr[0];
+    node_vels[3 * i + 1] = vcurr[1];
+    node_vels[3 * i + 2] = vcurr[2];
+
+    Vec3 wcurr = nodes[i].pNode->GetWCurr();
+    node_omegas[3 * i] = wcurr[0];
+    node_omegas[3 * i + 1] = wcurr[1];
+    node_omegas[3 * i + 2] = wcurr[2];
+
+    Vec3 acc_curr = nodes[i].pNode->GetXPPCurr();
+    node_accs[3 * i] = acc_curr[0];
+    node_accs[3 * i + 1] = acc_curr[1];
+    node_accs[3 * i + 2] = acc_curr[2];
   }
 
   doublereal *rotor_points = new doublereal[3 * n_rotor_points];
@@ -967,6 +1059,17 @@ SubVectorHandler &ModuleKiteFASTOS::AssRes(SubVectorHandler &WorkVec, doublereal
     WorkVec.Add(6 * node_count_no_rotors + 6 * i + 1, force);
     WorkVec.Add(6 * node_count_no_rotors + 6 * i + 4, moment);
   }
+
+  integer first_index = platform_node.pNode->iGetFirstMomentumIndex();
+  for (int j = 1; j <= 6; j++)
+  {
+    WorkVec.PutRowIndex(6 * (node_count_no_rotors + n_rotor_points) + j, first_index + j);
+  }
+  silent_cout("platform_loads: " << platform_loads[0] << "\t" << platform_loads[1] << "\t" << platform_loads[2] << std::endl);
+  Vec3 force = Vec3(platform_loads[0], platform_loads[1], platform_loads[2]);
+  Vec3 moment = Vec3(platform_loads[3], platform_loads[4], platform_loads[5]);
+  WorkVec.Add(6 * (node_count_no_rotors + n_rotor_points) + 1, force);
+  WorkVec.Add(6 * (node_count_no_rotors + n_rotor_points) + 4, moment);
 
   delete[] node_loads;
   delete[] rotor_loads;

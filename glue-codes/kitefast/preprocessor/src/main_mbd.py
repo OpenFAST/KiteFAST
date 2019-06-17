@@ -161,6 +161,7 @@ class MainMBD():
         output.write_line("      + body_count")
         output.write_line("      + {}  # 1 for each rotor".format(str(len(self.starboard_rotors) + len(self.port_rotors))))
         output.write_line("      + {}  # 1 for each nacelle".format(str(len(self.starboard_rotors) + len(self.port_rotors))))
+        output.write_line("      + 1  # 1 for platform")
         output.write_line("    ;")
         output.write_line("    beams: beam_count;")
         output.write_line("    joints: {};".format(str(len(self.joints))))
@@ -191,6 +192,7 @@ class MainMBD():
             output.write_line("    include: \"{}.body\";".format(component.component_name))
         for component in self.starboard_rotors + self.port_rotors:
             output.write_line("    include: \"{}.elements\";".format(component.component_name))
+        output.write_line("    include: \"{}.elements\";".format(self.platform.component_name))
         output.write_empty_line()
         output.write_line("    inertia: 1, body, all;")
         output.write_empty_line()
