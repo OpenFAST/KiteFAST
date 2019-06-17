@@ -1092,7 +1092,7 @@ SubVectorHandler &ModuleKiteFASTOS::AssRes(SubVectorHandler &WorkVec, doublereal
   {
     WorkVec.PutRowIndex(6 * (node_count_no_rotors + n_rotor_points) + j, first_index + j);
   }
-  silent_cout("platform_loads: " << platform_loads[0] << "\t" << platform_loads[1] << "\t" << platform_loads[2] << std::endl);
+  silent_cout("platform_loads: " << platform_loads[0] << "\t" << platform_loads[1] << "\t" << platform_loads[2] << "\t" << platform_loads[3] << "\t" << platform_loads[4] << "\t" << platform_loads[5] << std::endl);
   Vec3 force = Vec3(platform_loads[0], platform_loads[1], platform_loads[2]);
   Vec3 moment = Vec3(platform_loads[3], platform_loads[4], platform_loads[5]);
   WorkVec.Add(6 * (node_count_no_rotors + n_rotor_points) + 1, force);
