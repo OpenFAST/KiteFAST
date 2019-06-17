@@ -11,7 +11,7 @@ end: data;
 
 begin: initial value;
     initial time: 0.0;
-    final time: 0.5;
+    final time: 8.0;
     time step: 1e-3;
     tolerance: 1e-3;
     max iterations: 60;
@@ -101,12 +101,12 @@ begin: elements;
         simulation_type,
             3,
         fast_submodule_flags,
-            1,
             0,
             0,
             0,
+            0,
             1,
-            1,
+            0,
         fast_submodule_input_files,
             "simple_m600_model.inp",
             "kiteInflowWind.dat",
