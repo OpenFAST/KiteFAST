@@ -1087,12 +1087,16 @@ SubVectorHandler &ModuleKiteFASTOS::AssRes(SubVectorHandler &WorkVec, doublereal
     WorkVec.Add(6 * node_count_no_rotors + 6 * i + 4, moment);
   }
 
+#ifdef DEBUGUDE
+  silent_cout("****** outputs from KFAST_OS_AssRes" << std::endl);
+  silent_cout("platform_loads: " << platform_loads[0] << "\t" << platform_loads[1] << "\t" << platform_loads[2] << "\t" << platform_loads[3] << "\t" << platform_loads[4] << "\t" << platform_loads[5] << std::endl);
+#endif
+
   integer first_index = platform_node.pNode->iGetFirstMomentumIndex();
   for (int j = 1; j <= 6; j++)
   {
     WorkVec.PutRowIndex(6 * (node_count_no_rotors + n_rotor_points) + j, first_index + j);
   }
-  silent_cout("platform_loads: " << platform_loads[0] << "\t" << platform_loads[1] << "\t" << platform_loads[2] << "\t" << platform_loads[3] << "\t" << platform_loads[4] << "\t" << platform_loads[5] << std::endl);
   Vec3 force = Vec3(platform_loads[0], platform_loads[1], platform_loads[2]);
   Vec3 moment = Vec3(platform_loads[3], platform_loads[4], platform_loads[5]);
   WorkVec.Add(6 * (node_count_no_rotors + n_rotor_points) + 1, force);
