@@ -235,11 +235,18 @@ CONTAINS
 
       !print *, 'at end of echo if statement'
 
-    END IF
+      END IF
 
    !print *, 'past echo bit'
 
-
+   !   ! NBodies : the number of bodies with fairleads.
+   !CALL ReadVar ( UnIn, FileName, p%NBodies, 'NBodies', 'Number of bodies', ErrStat2, ErrMsg2, UnEc )
+   !       CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
+   !       IF ( ErrStat >= AbortErrLev ) THEN
+   !          CALL CleanUp()
+   !          RETURN
+   !       END IF
+          
     !-------------------------------------------------------------------------------------------------
     !  Line Types Properties Section
     !-------------------------------------------------------------------------------------------------

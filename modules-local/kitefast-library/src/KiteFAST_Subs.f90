@@ -1328,11 +1328,11 @@ subroutine CreateMeshMappings(m, p, KAD, MD, errStat, errMsg)
    
    if ( p%useMD_Tether ) then
          ! Need to transfer the MBDyn bridle point motions to MoorDyn
-      call MeshMapCreate( m%mbdWngMotions, MD%u(1)%PtFairleadDisplacement, m%MD_L2_2_P, errStat2, errMsg2 )
+      call MeshMapCreate( m%mbdWngMotions, MD%u(1)%PtFairleadDisplacement(1), m%MD_L2_2_P, errStat2, errMsg2 )
          call SetErrStat( errStat2, errMsg2, errStat, errMsg, ' CreateMeshMappings: m%MD_L2_2_P' )     
                if (ErrStat>=AbortErrLev) return
          ! Need to transfer the MoorDyn bridle point loads back the to MBDyn wing mesh for loads
-      call MeshMapCreate( MD%y%PtFairleadLoad, m%mbdWngLoads,  m%MD_P_2_P, errStat2, errMsg2 )
+      call MeshMapCreate( MD%y%PtFairleadLoad(1), m%mbdWngLoads,  m%MD_P_2_P, errStat2, errMsg2 )
          call SetErrStat( errStat2, errMsg2, errStat, errMsg, ' CreateMeshMappings: m%MD_P_2_P' )     
                if (ErrStat>=AbortErrLev) return
    end if 
@@ -1800,7 +1800,7 @@ subroutine TransferLoadsToMBDyn( p, m, nodeLoads_c, rtrLoads_c, errStat, errMsg 
          ! First map MD loads back to the wing mesh
          
       !TODO: add translationdisp field to m%mbdWngLoads and manually apply the m%mbdWngMotions TranslationDisp to m%mbdWngLoads mesh
-      call Transfer_Point_to_Point( m%MD_Tether%y%PtFairleadLoad, m%mbdWngLoads,  m%MD_P_2_P, errStat2, errMsg2, m%MD_Tether%u(1)%PtFairleadDisplacement, m%mbdWngLoads )
+      call Transfer_Point_to_Point( m%MD_Tether%y%PtFairleadLoad(1), m%mbdWngLoads,  m%MD_P_2_P, errStat2, errMsg2, m%MD_Tether%u(1)%PtFairleadDisplacement(1), m%mbdWngLoads )
          call SetErrStat(errStat2, errMsg2, errStat, errMsg,' TransferLoadsToMBDyn: Transfer_MD_P_2_P' )   
             
          ! Now attach these loads to the corresponding array elements which are sent back to MBDyn
@@ -2593,7 +2593,7 @@ subroutine KFAST_ProcessOutputs()
 end subroutine KFAST_ProcessOutputs
 
 subroutine Init_KiteSystem(dt_c, numFlaps, numPylons, numComp, numCompNds, modFlags, KAD_FileName_c, IfW_FileName_c, MD_FileName_c, KFC_FileName_c, &
-                       outFileRoot_c, printSum, gravity, KAD_InterpOrder, FusODCM_c, numRtrPts_c, rtrPts_c, rtrMass_c, rtrI_Rot_c, rtrI_trans_c, rtrXcm_c, refPts_c, &
+                       outFileRoot_c, printSum, gravity, KAD_InterpOrder, MD_InitInp, FusODCM_c, numRtrPts_c, rtrPts_c, rtrMass_c, rtrI_Rot_c, rtrI_trans_c, rtrXcm_c, refPts_c, &
                        numNodePts_c, nodePts_c, nodeDCMs_c, nFusOuts_c, FusOutNd_c, nSWnOuts_c, SWnOutNd_c, &
                        nPWnOuts_c, PWnOutNd_c, nVSOuts_c, VSOutNd_c, nSHSOuts_c, SHSOutNd_c, nPHSOuts_c, PHSOutNd_c, nPylOuts_c, PylOutNd_c, &
                        KAD_InitOut, MD_InitOut, IfW_InitOut, errStat, errMsg )
@@ -2613,6 +2613,7 @@ subroutine Init_KiteSystem(dt_c, numFlaps, numPylons, numComp, numCompNds, modFl
    integer(C_INT),           intent(in   ) :: printSum                       ! Print the Summary file?  1 = Yes, 0 = No.
    real(C_DOUBLE),           intent(in   ) :: gravity                        ! Scalar gravity constant.  (m/s^2)
    integer(C_INT),           intent(in   ) :: KAD_InterpOrder                ! KiteAeroDyn outputs interpolation order. 0 = hold outputs between calls, 1 = linear interpolation, 2 = 2nd order interpolation.
+   type(MD_InitInputType),   intent(inout) :: MD_InitInp                     ! MoorDyn Tether initialization inputs
    real(C_DOUBLE),           intent(in   ) :: FusODCM_c(9)                   ! Initial DCM matrix to transform the location of the Kite Fuselage reference point from global to kite coordinates.
    integer(C_INT),           intent(in   ) :: numRtrPts_c                    ! Total number of rotor points (both wings).
    real(C_DOUBLE),           intent(in   ) :: rtrPts_c(numRtrPts_c*3)                    ! Initial location of each rotor's reference point [RRP] in global coordinates. (m)
@@ -2651,7 +2652,6 @@ subroutine Init_KiteSystem(dt_c, numFlaps, numPylons, numComp, numCompNds, modFl
    integer(IntKi)                  :: errStat2
    character(ErrMsgLen)            :: errMsg2
    type(InflowWind_InitInputType)  :: IfW_InitInp 
-   type(MD_InitInputType)          :: MD_InitInp
    type(KFC_InitInputType)         :: KFC_InitInp
    character(*), parameter         :: routineName = 'KFAST_Init'
    integer(IntKi)                  :: i,j,c, count, maxSPyNds, maxPPyNds, SumFileUnit
@@ -2855,6 +2855,7 @@ subroutine Init_KiteSystem(dt_c, numFlaps, numPylons, numComp, numCompNds, modFl
    else
       p%AirDens = 1.225_ReKi   ! Default air density
       KAD_InitOut%nIfWPts = 0  
+      p%KAD_nCycles = 1
    end if
                        
 !----------------------------------------------------------------
@@ -2906,16 +2907,6 @@ subroutine Init_KiteSystem(dt_c, numFlaps, numPylons, numComp, numCompNds, modFl
 
    if (p%useMD_Tether) then
       
-      MD_InitInp%FileName  = transfer(MD_FileName_c(1:IntfStrLen-1),MD_InitInp%FileName)
-      call RemoveNullChar(MD_InitInp%FileName)
-   
-      MD_InitInp%RootName  = TRIM(p%outFileRoot)//'.MD'
-         ! The platform in this application is the location of the Kite's fuselage reference point in the inertial coordinate system
-      MD_InitInp%PtfmPos   = FusO
-      MD_InitInp%PtfmDCM   = m%FusODCM
-      MD_InitInp%g         = gravity                    ! 
-      MD_InitInp%rhoW      = p%AirDens                  ! This needs to be set according to air density at the Kite      
-      MD_InitInp%WtrDepth  = 0.0_ReKi                   ! No water depth in this application
       interval             = dt
    
       call MD_Init( MD_InitInp, m%MD_Tether%u(1), m%MD_Tether%p, OtherSt%MD_Tether%x, m%MD_Tether%xd, m%MD_Tether%z, &
@@ -3326,13 +3317,15 @@ subroutine Init_KiteSystem(dt_c, numFlaps, numPylons, numComp, numCompNds, modFl
       
 end subroutine Init_KiteSystem
     
-subroutine AssRes_OnShore( t_c, isInitialTime_c, WindPt_c, FusO_c, FusODCM_c, FusOv_c, FusOomegas_c, FusOacc_c, FusOalphas_c, numNodePts_c, nodePts_c, &
+subroutine AssRes_OnShore( t_c, isInitialTime_c, WindPt_c, WindPtVel_c, AnchorPt, FusO_c, FusODCM_c, FusOv_c, FusOomegas_c, FusOacc_c, FusOalphas_c, numNodePts_c, nodePts_c, &
                           nodeDCMs_c, nodeVels_c, nodeOmegas_c, nodeAccs_c,  numRtrPts_c, rtrPts_c, &
                           rtrDCMs_c, rtrVels_c, rtrOmegas_c, rtrAccs_c, rtrAlphas_c, nodeLoads_c, rtrLoads_c, errStat, errMsg ) 
 
    real(C_DOUBLE),         intent(in   ) :: t_c                          !  simulation time for the current timestep (s)
    integer(C_INT),         intent(in   ) :: isInitialTime_c              !  1 = first time KFAST_AssRes has been called for this particular timestep, 0 = otherwise
-   real(C_DOUBLE),         intent(in   ) :: WindPt_c(3)                  !  Position of the ground station where the fixed wind measurement is taken, expressed in global coordinates. (m)
+   real(C_DOUBLE),         intent(in   ) :: WindPt_c(3)                  !  Position of the ground station where the wind measurement is taken, expressed in global coordinates. (m)
+   real(C_DOUBLE),         intent(in   ) :: WindPtVel_c(3)               !  Velocity of the ground station where the wind measurement is taken, expressed in global coordinates. (m/s)
+   real(ReKi),             intent(in   ) :: AnchorPt(3)                  !  Location of the tether anchor point. (m)
    real(C_DOUBLE),         intent(in   ) :: FusO_c(3)                    !  Current  timestep position of the Fuselage reference point, expressed in global coordinates. (m) 
    real(C_DOUBLE),         intent(in   ) :: FusODCM_c(9)                 !  Current  timestep DCM matrix to transform the location of the Fuselage reference point from global to kite coordinates.
    real(C_DOUBLE),         intent(in   ) :: FusOv_c(3)                   !  Current timestep velocity of the Fuselage reference point, expressed in global coordinates. (m/s)
@@ -3469,7 +3462,7 @@ subroutine AssRes_OnShore( t_c, isInitialTime_c, WindPt_c, FusO_c, FusODCM_c, Fu
       m%KFC%u%dcm_g2b       = matmul(OtherSt%FusODCM, transpose(p%DCM_Fast2Ctrl))
       m%KFC%u%pqr           = matmul(OtherSt%FusODCM, OtherSt%FusOomegas)
       m%KFC%u%acc_norm      = TwoNorm(OtherSt%FusOacc)
-      m%KFC%u%Xg            = OtherSt%FusO - p%anchorPt
+      m%KFC%u%Xg            = OtherSt%FusO - AnchorPt     
       m%KFC%u%Xg            = matmul(p%DCM_Fast2Ctrl, m%KFC%u%Xg)
       m%KFC%u%Vg            = matmul(p%DCM_Fast2Ctrl, OtherSt%FusOv)
       m%KFC%u%Vb            = matmul(OtherSt%FusODCM, OtherSt%FusOv)
@@ -3544,7 +3537,7 @@ subroutine AssRes_OnShore( t_c, isInitialTime_c, WindPt_c, FusO_c, FusODCM_c, Fu
          !   We need to set the TranslationDisp, Orientation, TranslationVel, RotationVel properties on the mesh
          ! To do this we need to map the motions from a wing mesh to the specific fairlead mesh ( one node per fairlead connection point)
          ! This means we need the t and t+dt motions of this wing mesh
-      call Transfer_Line2_to_Point( m%mbdWngMotions, m%MD_Tether%u(1)%PtFairleadDisplacement, m%MD_L2_2_P, errStat2, errMsg )
+      call Transfer_Line2_to_Point( m%mbdWngMotions, m%MD_Tether%u(1)%PtFairleadDisplacement(1), m%MD_L2_2_P, errStat2, errMsg )
          if (errStat >= AbortErrLev ) return
 
 
@@ -3574,10 +3567,10 @@ subroutine AssRes_OnShore( t_c, isInitialTime_c, WindPt_c, FusO_c, FusODCM_c, Fu
       
       if ( doTransfersforKFC ) then
             ! need to transfer the bridle forces once they are computed (below) for the next call to KFC_Step() because we just stepped the controller.
-         numFairLeads = size(m%MD_Tether%y%PtFairLeadLoad%Force,2)
+         numFairLeads = size(m%MD_Tether%y%PtFairLeadLoad(1)%Force,2)
          OtherSt%totalFairLeadLoads = 0.0_ReKi
          do i = 1, numFairLeads
-            OtherSt%totalFairLeadLoads = OtherSt%totalFairLeadLoads + m%MD_Tether%y%PtFairLeadLoad%Force(:,i) 
+            OtherSt%totalFairLeadLoads = OtherSt%totalFairLeadLoads + m%MD_Tether%y%PtFairLeadLoad(1)%Force(:,i) 
          end do
       end if
       

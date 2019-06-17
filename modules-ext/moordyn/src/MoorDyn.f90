@@ -59,9 +59,9 @@ CONTAINS
 
       ! local variables
       REAL(ReKi)                                   :: t              ! instantaneous time, to be used during IC generation
-      INTEGER(IntKi)                               :: I              ! index
-      INTEGER(IntKi)                               :: J              ! index
-      INTEGER(IntKi)                               :: K              ! index
+      
+      INTEGER(IntKi)                               :: Ibody          ! index of floating bodies
+      INTEGER(IntKi)                               :: I,J,K,indx     ! indices
       INTEGER(IntKi)                               :: Converged      ! flag indicating whether the dynamic relaxation has converged
       INTEGER(IntKi)                               :: N              ! convenience integer for readability: number of segments in the line
       REAL(ReKi)                                   :: Pos(3)         ! array for setting absolute fairlead positions in mesh
@@ -102,7 +102,8 @@ CONTAINS
 
       p%RootName = TRIM(InitInp%RootName)//'.MD'  ! all files written from this module will have this root name
 
-
+      p%NBodies  = InitInp%NBodies
+      
       ! call function that reads input file and creates cross-referenced Connect and Line objects
       CALL MDIO_ReadInput(InitInp, p, m, ErrStat2, ErrMsg2)
          CALL CheckError( ErrStat2, ErrMsg2 )
@@ -113,27 +114,59 @@ CONTAINS
          CALL CheckError( ErrStat2, ErrMsg2 )
          IF (ErrStat >= AbortErrLev) RETURN
 
-
+      
+      ALLOCATE ( p%NFairs(p%NBodies), STAT = ErrStat )
+      IF ( ErrStat /= ErrID_None ) THEN
+         CALL CheckError( ErrID_Fatal, 'Error allocating space for p%NFairs array.')
+         RETURN
+      END IF
+      !@mhall: should add an error check to ensure that NBodies input matches size of the mesh arrays in InitInp
+      
       !-------------------------------------------------------------------------------------------------
       !          Connect mooring system together and make necessary allocations
       !-------------------------------------------------------------------------------------------------
 
       CALL WrNR( '   Creating mooring system.  ' )
 
-      p%NFairs = 0   ! this is the number of "vessel" type Connections.  being consistent with MAP terminology
+      DO Ibody = 1, p%NBodies
+         p%NFairs(Ibody) = 0   ! this is the number of "vessel" or "body" type Connections on each floating body
+      END DO
+      
       p%NConns = 0   ! this is the number of "connect" type Connections.  not to be confused with NConnects, the number of Connections
       p%NAnchs = 0   ! this is the number of "fixed" type Connections.
 
-      ! cycle through Connects and identify Connect types
+      ! cycle through Connections and identify Connection types
       DO I = 1, p%NConnects
          TempString = m%ConnectList(I)%type
          CALL Conv2UC(TempString)
          if (TempString == 'FIXED') then
             m%ConnectList(I)%TypeNum = 0
             p%NAnchs = p%NAnchs + 1
-         else if (TempString == 'VESSEL') then
-            m%ConnectList(I)%TypeNum = 1
-            p%NFairs = p%NFairs + 1             ! if a vessel connection, increment fairlead counter
+         else if ( INDEX( TempString, 'VESSEL' ) > 0 )THEN
+            indx = INDEX( TempString, 'VESSEL' )
+            read(TempString(indx+6:len(TempString)),*,iostat=ErrStat2)  IBody
+            if (ErrStat2 > 0) then
+               CALL CheckError( ErrID_Fatal, 'Error in parsing VESSEL ID number.  Must be an integer greater than zero and less than or equal to NBodies.' )
+               RETURN
+            end if
+            m%ConnectList(I)%TypeNum = 1            
+            m%ConnectList(I)%BodyId = Ibody                   ! store what body number this connection is attached to
+            p%NFairs(Ibody) = p%NFairs(Ibody) + 1             ! increment fairlead counter for the appropriate body
+         else if ( INDEX( TempString, 'BODY' ) > 0 ) THEN
+            indx = INDEX( TempString, 'BODY' )
+            read(TempString(indx+4:len(TempString)),*,iostat=ErrStat2)  IBody
+            if (ErrStat2 > 0) then
+               CALL CheckError( ErrID_Fatal, 'Error in parsing BODY ID number.  Must be an integer greater than zero and less than or equal to NBodies.' )
+               RETURN
+            end if
+            m%ConnectList(I)%TypeNum = 1            
+            m%ConnectList(I)%BodyId = Ibody                   ! store what body number this connection is attached to
+            p%NFairs(Ibody) = p%NFairs(Ibody) + 1             ! increment fairlead counter for the appropriate body   
+         else if (TempString == 'VESSEL') then    !@mhall: this part needs to be updated to detect "Body1","Body2" etc.
+            m%ConnectList(I)%TypeNum = 1            
+            !@mhall: need to set Ibody as body number of current connection   Ibody = ...
+            m%ConnectList(I)%BodyId = Ibody                   ! store what body number this connection is attached to
+            p%NFairs(Ibody) = p%NFairs(Ibody) + 1             ! increment fairlead counter for the appropriate body
          else if (TempString == 'CONNECT') then
             m%ConnectList(I)%TypeNum = 2
             p%NConns = p%NConns + 1
@@ -143,11 +176,11 @@ CONTAINS
          END IF
       END DO
 
-      CALL WrScr(trim(Num2LStr(p%NFairs))//' fairleads, '//trim(Num2LStr(p%NAnchs))//' anchors, '//trim(Num2LStr(p%NConns))//' connects.')
+      !CALL WrScr(trim(Num2LStr(p%NFairs(:)))//' fairleads, '//trim(Num2LStr(p%NAnchs))//' anchors, '//trim(Num2LStr(p%NConns))//' connects.') !@mhall needs updating for each body
 
 
-      ! allocate fairleads list
-      ALLOCATE ( m%FairIdList(p%NFairs), STAT = ErrStat )
+      ! allocate fairleads list (now one dimension for each body, and one dimension for each fairlead on a body)
+      ALLOCATE ( m%FairIdList(99,p%NBodies), STAT = ErrStat )
       IF ( ErrStat /= ErrID_None ) THEN
          CALL CheckError( ErrID_Fatal, 'Error allocating space for FairIdList array.')
          RETURN
@@ -162,16 +195,23 @@ CONTAINS
 
 
       ! now go back through and record the fairlead Id numbers (this is all the "connecting" that's required)
-      J = 1  ! counter for fairlead number
-      K = 1  ! counter for connect number
-      DO I = 1,p%NConnects
-         IF (m%ConnectList(I)%TypeNum == 1) THEN
-           m%FairIdList(J) = I             ! if a vessel connection, add ID to list
+      
+      J = 1 ! reset counter
+      DO I = 1,p%NConnects   
+         IF (m%ConnectList(I)%TypeNum == 2) THEN
+           m%ConnIdList(J) = I             ! if a connect connection, add ID to list
            J = J + 1
-         ELSE IF (m%ConnectList(I)%TypeNum == 2) THEN
-           m%ConnIdList(K) = I             ! if a connect connection, add ID to list
-           K = K + 1
          END IF
+      END DO     
+      
+      DO IBody = 1,p%NBodies
+         J = 1  ! reset counter
+         DO I = 1,p%NConnects
+            IF ((m%ConnectList(I)%TypeNum == 1) .AND. (m%ConnectList(I)%BodyId == IBody)) THEN   ! if it's a fairlead on the current body...
+              m%FairIdList(J,IBody) = I             ! add ID to the current body's list
+              J = J + 1
+            END IF
+         END DO
       END DO
 
 
@@ -217,75 +257,87 @@ CONTAINS
 
 
       !--------------------------------------------------------------------------
-      !             create i/o meshes for fairlead positions and forces
+      !    create i/o meshes for fairlead positions and forces, for each body
       !--------------------------------------------------------------------------
+	   Allocate(u%PtFairleadDisplacement(p%NBodies), STAT = ErrStat )
+      IF ( ErrStat /= ErrID_None ) THEN
+        ErrMsg  = ' Error allocating u%PtFairleadDisplacement vector.'
+        RETURN
+      END IF
+	   Allocate(y%PtFairleadLoad(p%NBodies), STAT = ErrStat )
+      IF ( ErrStat /= ErrID_None ) THEN
+        ErrMsg  = ' Error allocating y%PtFairleadLoad vector.'
+        RETURN
+      END IF
+      DO Ibody = 1,p%NBodies         ! loop through each body (which each has its own set of fairleads)
 
-      ! create input mesh for fairlead kinematics
-      CALL MeshCreate(BlankMesh=u%PtFairleadDisplacement , &
-                    IOS= COMPONENT_INPUT           , &
-                    Nnodes=p%NFairs                , &
-                    TranslationDisp=.TRUE.         , &
-                    TranslationVel=.TRUE.          , &
-                    ErrStat=ErrStat2                , &
-                    ErrMess=ErrMsg2)
-
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF (ErrStat >= AbortErrLev) RETURN
-
-
-      !  --------------------------- set up initial condition of each fairlead -------------------------------
-      DO i = 1,p%NFairs
-
-         Pos(1) = m%ConnectList(m%FairIdList(i))%conX ! set relative position of each fairlead i (I'm pretty sure this is just relative to ptfm origin)
-         Pos(2) = m%ConnectList(m%FairIdList(i))%conY
-         Pos(3) = m%ConnectList(m%FairIdList(i))%conZ
-
-         CALL MeshPositionNode(u%PtFairleadDisplacement,i,Pos,ErrStat2,ErrMsg2)! "assign the coordinates of each node in the global coordinate space"
-
+         ! create input mesh for fairlead kinematics
+         CALL MeshCreate(BlankMesh=u%PtFairleadDisplacement(Ibody) , &
+                       IOS= COMPONENT_INPUT           , &
+                       Nnodes=p%NFairs(Ibody)         , &
+                       TranslationDisp=.TRUE.         , &
+                       TranslationVel=.TRUE.          , &
+                       ErrStat=ErrStat2                , &
+                       ErrMess=ErrMsg2)
+   
+         CALL CheckError( ErrStat2, ErrMsg2 )
+         IF (ErrStat >= AbortErrLev) RETURN
+   
+   
+         !  --------------------------- set up initial condition of each fairlead -------------------------------
+         DO i = 1,p%NFairs(Ibody)
+   
+            Pos(1) = m%ConnectList(m%FairIdList(i,Ibody))%conX ! set relative position of each fairlead i (I'm pretty sure this is just relative to ptfm origin)
+            Pos(2) = m%ConnectList(m%FairIdList(i,Ibody))%conY
+            Pos(3) = m%ConnectList(m%FairIdList(i,Ibody))%conZ
+   
+            CALL MeshPositionNode(u%PtFairleadDisplacement(Ibody),i,Pos,ErrStat2,ErrMsg2)! "assign the coordinates of each node in the global coordinate space"
+   
+            CALL CheckError( ErrStat2, ErrMsg2 )
+            IF (ErrStat >= AbortErrLev) RETURN
+   
+   
+            CALL CheckError( ErrStat2, ErrMsg2 )
+            IF (ErrStat >= AbortErrLev) RETURN
+   
+            ! Apply initial platform rotations and translations (fixed Jun 19, 2015)
+            u%PtFairleadDisplacement(Ibody)%TranslationDisp(1,i) = InitInp%PtfmPos(1,Ibody) + InitInp%PtfmDCM(1,1,Ibody)*Pos(1) + InitInp%PtfmDCM(2,1,Ibody)*Pos(2) + InitInp%PtfmDCM(3,1,Ibody)*Pos(3) - Pos(1)
+            u%PtFairleadDisplacement(Ibody)%TranslationDisp(2,i) = InitInp%PtfmPos(2,Ibody) + InitInp%PtfmDCM(1,2,Ibody)*Pos(1) + InitInp%PtfmDCM(2,2,Ibody)*Pos(2) + InitInp%PtfmDCM(3,2,Ibody)*Pos(3) - Pos(2)
+            u%PtFairleadDisplacement(Ibody)%TranslationDisp(3,i) = InitInp%PtfmPos(3,Ibody) + InitInp%PtfmDCM(1,3,Ibody)*Pos(1) + InitInp%PtfmDCM(2,3,Ibody)*Pos(2) + InitInp%PtfmDCM(3,3,Ibody)*Pos(3) - Pos(3)
+   
+            ! set velocity of each node to zero
+            u%PtFairleadDisplacement(Ibody)%TranslationVel(1,i) = 0.0_ReKi
+            u%PtFairleadDisplacement(Ibody)%TranslationVel(2,i) = 0.0_ReKi
+            u%PtFairleadDisplacement(Ibody)%TranslationVel(3,i) = 0.0_ReKi
+            
+            !print *, 'Fairlead ', i, ' z TranslationDisp at start is ', u%PtFairleadDisplacement%TranslationDisp(3,i)
+            !print *, 'Fairlead ', i, ' z Position at start is ', u%PtFairleadDisplacement%Position(3,i)
+   
+   
+            ! set each node as a point element
+            CALL MeshConstructElement(u%PtFairleadDisplacement(Ibody), ELEMENT_POINT, ErrStat2, ErrMsg2, i)
+   
+            CALL CheckError( ErrStat2, ErrMsg2 )
+            IF (ErrStat >= AbortErrLev) RETURN
+   
+         END DO    ! I
+   
+   
+         CALL MeshCommit ( u%PtFairleadDisplacement(Ibody), ErrStat, ErrMsg )
+   
+         CALL CheckError( ErrStat2, ErrMsg2 )
+         IF (ErrStat >= AbortErrLev) RETURN
+   
+   
+         ! copy the input fairlead kinematics mesh to make the output mesh for fairlead loads, PtFairleadLoad
+         CALL MeshCopy ( SrcMesh  = u%PtFairleadDisplacement(Ibody),   DestMesh = y%PtFairleadLoad(Ibody), &
+                         CtrlCode = MESH_SIBLING,               IOS      = COMPONENT_OUTPUT, &
+                         Force    = .TRUE.,                     ErrStat  = ErrStat2, ErrMess=ErrMsg2 )
+   
          CALL CheckError( ErrStat2, ErrMsg2 )
          IF (ErrStat >= AbortErrLev) RETURN
 
-
-         CALL CheckError( ErrStat2, ErrMsg2 )
-         IF (ErrStat >= AbortErrLev) RETURN
-
-         ! Apply initial platform rotations and translations (fixed Jun 19, 2015)
-         u%PtFairleadDisplacement%TranslationDisp(1,i) = InitInp%PtfmPos(1) + InitInp%PtfmDCM(1,1)*Pos(1) + InitInp%PtfmDCM(2,1)*Pos(2) + InitInp%PtfmDCM(3,1)*Pos(3) - Pos(1)
-         u%PtFairleadDisplacement%TranslationDisp(2,i) = InitInp%PtfmPos(2) + InitInp%PtfmDCM(1,2)*Pos(1) + InitInp%PtfmDCM(2,2)*Pos(2) + InitInp%PtfmDCM(3,2)*Pos(3) - Pos(2)
-         u%PtFairleadDisplacement%TranslationDisp(3,i) = InitInp%PtfmPos(3) + InitInp%PtfmDCM(1,3)*Pos(1) + InitInp%PtfmDCM(2,3)*Pos(2) + InitInp%PtfmDCM(3,3)*Pos(3) - Pos(3)
-
-         ! set velocity of each node to zero
-         u%PtFairleadDisplacement%TranslationVel(1,i) = 0.0_ReKi
-         u%PtFairleadDisplacement%TranslationVel(2,i) = 0.0_ReKi
-         u%PtFairleadDisplacement%TranslationVel(3,i) = 0.0_ReKi
-         
-         !print *, 'Fairlead ', i, ' z TranslationDisp at start is ', u%PtFairleadDisplacement%TranslationDisp(3,i)
-         !print *, 'Fairlead ', i, ' z Position at start is ', u%PtFairleadDisplacement%Position(3,i)
-
-
-         ! set each node as a point element
-         CALL MeshConstructElement(u%PtFairleadDisplacement, ELEMENT_POINT, ErrStat2, ErrMsg2, i)
-
-         CALL CheckError( ErrStat2, ErrMsg2 )
-         IF (ErrStat >= AbortErrLev) RETURN
-
-      END DO    ! I
-
-
-      CALL MeshCommit ( u%PtFairleadDisplacement, ErrStat, ErrMsg )
-
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF (ErrStat >= AbortErrLev) RETURN
-
-
-      ! copy the input fairlead kinematics mesh to make the output mesh for fairlead loads, PtFairleadLoad
-      CALL MeshCopy ( SrcMesh  = u%PtFairleadDisplacement,   DestMesh = y%PtFairleadLoad, &
-                      CtrlCode = MESH_SIBLING,               IOS      = COMPONENT_OUTPUT, &
-                      Force    = .TRUE.,                     ErrStat  = ErrStat2, ErrMess=ErrMsg2 )
-
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF (ErrStat >= AbortErrLev) RETURN
-
+      END DO     ! end of body list
 
       ! --------------------------------------------------------------------
       !   go through all Connects and set position based on input file
@@ -302,10 +354,12 @@ CONTAINS
       END DO
 
       ! then do it for fairlead types
-      DO I = 1,p%NFairs
-         DO J = 1, 3
-            m%ConnectList(m%FairIdList(I))%r(J)  = u%PtFairleadDisplacement%Position(J,I) + u%PtFairleadDisplacement%TranslationDisp(J,I)
-            m%ConnectList(m%FairIdList(I))%rd(J) = 0.0_ReKi
+      DO Ibody = 1,p%NBodies
+         DO I = 1,p%NFairs(Ibody)
+            DO J = 1, 3
+               m%ConnectList(m%FairIdList(I,Ibody))%r(J)  = u%PtFairleadDisplacement(Ibody)%Position(J,I) + u%PtFairleadDisplacement(Ibody)%TranslationDisp(J,I)
+               m%ConnectList(m%FairIdList(I,Ibody))%rd(J) = 0.0_ReKi
+            END DO
          END DO
       END DO
 
@@ -374,17 +428,20 @@ CONTAINS
          m%LineTypeList(I)%Cdt = m%LineTypeList(I)%Cdt * InitInp%CdScaleIC
       END DO
 
+
+      !@mhall: for now the convergence check is just using the fairleads attached to the first body. Maybe later it should be expanded to all fairleads.
+
       ! allocate array holding three latest fairlead tensions
-      ALLOCATE ( FairTensIC(p%NFairs,3), STAT = ErrStat )
+      ALLOCATE ( FairTensIC(3,p%NFairs(1)), STAT = ErrStat )
       IF ( ErrStat /= ErrID_None ) THEN
          CALL CheckError( ErrID_Fatal, ErrMsg2 )
          RETURN
       END IF
 
       ! initialize fairlead tension memory at zero
-      DO J = 1,p%NFairs
-         DO I = 1, 3
-            FairTensIC(J,I) = 0.0_ReKi
+      DO J = 1,p%NFairs(1)
+         DO I = 1,3
+            FairTensIC(I,J) = 0.0_ReKi
          END DO
       END DO
 
@@ -402,23 +459,23 @@ CONTAINS
             IF (ErrStat >= AbortErrLev) RETURN
 
          ! store new fairlead tension (and previous fairlead tensions for comparison)
-         DO J = 1, p%NFairs
-            FairTensIC(J,3) = FairTensIC(J,2)
-            FairTensIC(J,2) = FairTensIC(J,1)
-            FairTensIC(J,1) = TwoNorm(m%ConnectList(m%FairIdList(J))%Ftot(:))
+         DO J = 1, p%NFairs(1)
+            FairTensIC(3,J) = FairTensIC(2,J)
+            FairTensIC(2,J) = FairTensIC(1,J)
+            FairTensIC(1,J) = TwoNorm(m%ConnectList(m%FairIdList(J,1))%Ftot(:))
          END DO
 
          ! provide status message
          ! bjj: putting this in a string so we get blanks to cover up previous values (if current string is shorter than previous one)
          Message = '   t='//trim(Num2LStr(t))//'  FairTen 1: '//trim(Num2LStr(FairTensIC(1,1)))// &
-                        ', '//trim(Num2LStr(FairTensIC(1,2)))//', '//trim(Num2LStr(FairTensIC(1,3))) 
+                        ', '//trim(Num2LStr(FairTensIC(2,1)))//', '//trim(Num2LStr(FairTensIC(3,1))) 
          CALL WrOver( Message )
 
          ! check for convergence (compare current tension at each fairlead with previous two values)
          IF (I > 2) THEN
             Converged = 1
-            DO J = 1, p%NFairs   ! check for non-convergence
-               IF (( abs( FairTensIC(J,1)/FairTensIC(J,2) - 1.0 ) > InitInp%threshIC ) .OR. ( abs( FairTensIC(J,1)/FairTensIC(J,3) - 1.0 ) > InitInp%threshIC ) ) THEN
+            DO J = 1, p%NFairs(1)   ! check for non-convergence
+               IF (( abs( FairTensIC(1,J)/FairTensIC(2,J) - 1.0 ) > InitInp%threshIC ) .OR. ( abs( FairTensIC(1,J)/FairTensIC(3,J) - 1.0 ) > InitInp%threshIC ) ) THEN
                   Converged = 0
                   EXIT
                END IF
@@ -615,6 +672,8 @@ CONTAINS
       CHARACTER(*)                   , INTENT(INOUT) :: ErrMsg
 
       TYPE(MD_ContinuousStateType)                   :: dxdt    ! time derivatives of continuous states (initialized in CalcContStateDeriv)
+      
+      INTEGER(IntKi)                                 :: Ibody   ! index of floating bodies
       INTEGER(IntKi)                                 :: I       ! counter
       INTEGER(IntKi)                                 :: J       ! counter
       REAL(ReKi)                                     :: t2      ! real version of t (double)
@@ -628,10 +687,12 @@ CONTAINS
       t2 = real(t, ReKi)
 
       ! go through fairleads and apply motions from driver
-      DO I = 1, p%NFairs
-         DO J = 1,3
-            m%ConnectList(m%FairIdList(I))%r(J)  = u%PtFairleadDisplacement%Position(J,I) + u%PtFairleadDisplacement%TranslationDisp(J,I)
-            m%ConnectList(m%FairIdList(I))%rd(J) = u%PtFairleadDisplacement%TranslationVel(J,I)  ! is this right? <<<
+      DO Ibody=1, p%NBodies
+         DO I = 1, p%NFairs(Ibody)
+            DO J = 1,3
+               m%ConnectList(m%FairIdList(I,Ibody))%r(J)  = u%PtFairleadDisplacement(IBody)%Position(J,I) + u%PtFairleadDisplacement(IBody)%TranslationDisp(J,I)
+               m%ConnectList(m%FairIdList(I,Ibody))%rd(J) = u%PtFairleadDisplacement(IBody)%TranslationVel(J,I)  ! is this right? <<<
+            END DO
          END DO
       END DO
 
@@ -640,9 +701,11 @@ CONTAINS
 
 
       ! assign net force on fairlead Connects to the output mesh
-      DO i = 1, p%NFairs
-         DO J=1,3
-            y%PtFairleadLoad%Force(J,I) = m%ConnectList(m%FairIdList(I))%Ftot(J)
+      DO Ibody=1, p%NBodies
+         DO i = 1, p%NFairs(Ibody)
+            DO J=1,3
+               y%PtFairleadLoad(Ibody)%Force(J,I) = m%ConnectList(m%FairIdList(I,Ibody))%Ftot(J)
+            END DO
          END DO
       END DO
 
@@ -688,6 +751,7 @@ CONTAINS
    !=============================================================================================
 
 
+
    !=============================================================================================
    SUBROUTINE MD_CalcContStateDeriv( t, u, p, x, xd, z, other, m, dxdt, ErrStat, ErrMsg )
    ! Tight coupling routine for computing derivatives of continuous states
@@ -705,7 +769,7 @@ CONTAINS
       INTEGER(IntKi),                     INTENT( OUT)   :: ErrStat ! Error status of the operation
       CHARACTER(*),                       INTENT( OUT)   :: ErrMsg  ! Error message if ErrStat /= ErrID_None
 
-
+      INTEGER(IntKi)                                     :: Ibody   ! index
       INTEGER(IntKi)                                     :: L       ! index
       INTEGER(IntKi)                                     :: J       ! index
       INTEGER(IntKi)                                     :: K       ! index
@@ -738,10 +802,12 @@ CONTAINS
       END DO
       
       ! update fairlead positions for instantaneous values (fixed 2015-06-22)    
-      DO K = 1, p%NFairs
-         DO J = 1,3
-            m%ConnectList(m%FairIdList(K))%r(J)  = u%PtFairleadDisplacement%Position(J,K) + u%PtFairleadDisplacement%TranslationDisp(J,K)
-            m%ConnectList(m%FairIdList(K))%rd(J) = u%PtFairleadDisplacement%TranslationVel(J,K)  ! is this right? <<<
+      DO Ibody=1, p%NBodies
+         DO K = 1, p%NFairs(Ibody)
+            DO J = 1,3
+               m%ConnectList(m%FairIdList(K,Ibody))%r(J)  = u%PtFairleadDisplacement(Ibody)%Position(J,K) + u%PtFairleadDisplacement(Ibody)%TranslationDisp(J,K)
+               m%ConnectList(m%FairIdList(K,Ibody))%rd(J) = u%PtFairleadDisplacement(Ibody)%TranslationVel(J,K)  ! is this right? <<<
+            END DO
          END DO
       END DO
 
@@ -795,7 +861,7 @@ CONTAINS
          Real(ReKi), INTENT(INOUT)     :: AnchFtot(:)    ! total force on Connect bottom of line is attached to
          Real(ReKi), INTENT(INOUT)     :: AnchMtot(:,:)  ! total mass of Connect bottom of line is attached to
 
-
+         INTEGER(IntKi)                :: Ibody          ! index of floating bodies
          INTEGER(IntKi)                :: I              ! index of segments or nodes along line
          INTEGER(IntKi)                :: J              ! index
          INTEGER(IntKi)                :: K              ! index

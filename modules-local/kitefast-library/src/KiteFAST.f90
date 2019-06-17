@@ -134,16 +134,29 @@ subroutine KFAST_Init(dt_c, numFlaps, numPylons, numComp, numCompNds, modFlags, 
       call TransferErrors(errStat, errMsg, errStat_c, errMsg_c)
       return
    end if 
-   
+   if (p%useMD_Tether) then
+         ! The 1st vessel is the location of the Kite's fuselage reference point in the inertial coordinate system
+      call AllocAry( MD_InitInp%PtfmPos, 3, 1, 'MD_InitInp%PtfmPos', errStat2, errMsg2 )
+      call AllocAry( MD_InitInp%PtfmDCM, 3, 3, 1, 'MD_InitInp%PtfmDCM', errStat2, errMsg2 )
+      MD_InitInp%PtfmPos(:,1)   = refPts_c(1:3)  ! FusO
+      MD_InitInp%PtfmDCM(:,:,1) = reshape(FusODCM_c,(/3,3/))
+      MD_InitInp%FileName  = transfer(MD_FileName_c(1:IntfStrLen-1),MD_InitInp%FileName)
+      call RemoveNullChar(MD_InitInp%FileName) 
+      MD_InitInp%RootName  = TRIM(p%outFileRoot)//'.MD'        
+      MD_InitInp%g         = gravity                    ! 
+      MD_InitInp%rhoW      = p%AirDens                  ! This needs to be set according to air density at the Kite      
+      MD_InitInp%WtrDepth  = 0.0_ReKi                   ! No water depth in this application
+      MD_InitInp%NBodies   = 1                          ! Kite is the only body
+   end if
    call Init_KiteSystem(dt_c, numFlaps, numPylons, numComp, numCompNds, modFlags, KAD_FileName_c, IfW_FileName_c, MD_FileName_c, KFC_FileName_c, &
-                       outFileRoot_c, printSum, gravity, KAD_InterpOrder, FusODCM_c, numRtrPts_c, rtrPts_c, rtrMass_c, rtrI_Rot_c, rtrI_trans_c, rtrXcm_c, refPts_c, &
+                       outFileRoot_c, printSum, gravity, KAD_InterpOrder, MD_InitInp, FusODCM_c, numRtrPts_c, rtrPts_c, rtrMass_c, rtrI_Rot_c, rtrI_trans_c, rtrXcm_c, refPts_c, &
                        numNodePts_c, nodePts_c, nodeDCMs_c, nFusOuts_c, FusOutNd_c, nSWnOuts_c, SWnOutNd_c, &
                        nPWnOuts_c, PWnOutNd_c, nVSOuts_c, VSOutNd_c, nSHSOuts_c, SHSOutNd_c, nPHSOuts_c, PHSOutNd_c, nPylOuts_c, PylOutNd_c, KAD_InitOut, MD_InitOut, IfW_InitOut, errStat, errMsg )
    if (errStat >= AbortErrLev ) then
       call TransferErrors(errStat, errMsg, errStat_c, errMsg_c)
       return
    end if
-
+   
       ! Set parameters for output channels:
    call KFAST_SetOutParam(OutList, p%numKFASTOuts, p, errStat2, errMsg2 ) ! requires:  sets: p%OutParam.
       call SetErrStat(errStat2,errMsg2,errStat,errMsg,routineName)
@@ -235,11 +248,11 @@ subroutine KFAST_AssRes(t_c, isInitialTime_c, WindPt_c, FusO_c, FusODCM_c, FusOv
    integer(IntKi)           :: errStat, errStat2              ! error status values
    character(ErrMsgLen)     :: errMsg, errMsg2                ! error messages
    character(*), parameter  :: routineName = 'KFAST_AssRes'
-   
+   real(C_DOUBLE)           :: WindPtVel_c(3)
    errStat = ErrID_None
    errMsg  = ''
-   
-   call AssRes_OnShore( t_c, isInitialTime_c, WindPt_c, FusO_c, FusODCM_c, FusOv_c, FusOomegas_c, FusOacc_c, FusOalphas_c, numNodePts_c, nodePts_c, &
+   WindPtVel_c = (/0.0, 0.0, 0.0/)  ! The wind measurement station is not in motion in these simulations
+   call AssRes_OnShore( t_c, isInitialTime_c, WindPt_c, WindPtVel_c, p%anchorPt, FusO_c, FusODCM_c, FusOv_c, FusOomegas_c, FusOacc_c, FusOalphas_c, numNodePts_c, nodePts_c, &
                           nodeDCMs_c, nodeVels_c, nodeOmegas_c, nodeAccs_c,  numRtrPts_c, rtrPts_c, &
                           rtrDCMs_c, rtrVels_c, rtrOmegas_c, rtrAccs_c, rtrAlphas_c, nodeLoads_c, rtrLoads_c, errStat, errMsg ) 
 

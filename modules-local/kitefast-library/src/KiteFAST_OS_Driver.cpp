@@ -21,7 +21,7 @@ int main(int argc, char *argv[])
     int i;
     int c;
   
-    double dt = 0.01;
+    double dt = 0.001;
     int isInitialTime;
     int nFinal;          // Last time increment for this simulation
     int numFlaps = 3;
@@ -491,12 +491,12 @@ int main(int argc, char *argv[])
 
     // Set module flags 0 = off, 1=on
     pModFlags = (int *)malloc(6 * sizeof(int));
-    pModFlags[0] = 1;  // use KAD module
-    pModFlags[1] = 1;  // use InflowWind module
+    pModFlags[0] = 0;  // use KAD module
+    pModFlags[1] = 0;  // use InflowWind module
     pModFlags[2] = 0;  // use MoorDyn tether module
     pModFlags[3] = 0;  // no KiteFAST controller
     pModFlags[4] = 1;  // use HydroDyn module
-    pModFlags[5] = 0;  // use MoorDyn mooring module
+    pModFlags[5] = 1;  // use MoorDyn mooring module
 
     // Set input file names
     // NOTE: All the data further below is directly tied to the KAD file listed here.

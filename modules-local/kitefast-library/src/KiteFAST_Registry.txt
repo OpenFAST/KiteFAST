@@ -118,7 +118,7 @@ typedef   ^    MiscVarType    ReKi             SHSPts        {:}{:}  -  - "" m
 typedef   ^    MiscVarType    ReKi             PHSPts        {:}{:}  -  - "" m
 typedef   ^    MiscVarType    ReKi             SPyPts      {:}{:}{:} -  - "" m
 typedef   ^    MiscVarType    ReKi             PPyPts      {:}{:}{:} -  - "" m
-typedef   ^    MiscVarType    ReKi             FusOv            {:}  -  - "" m/s
+typedef   ^    MiscVarType    ReKi             FusOv            {3}  -  - "" m/s
 typedef   ^    MiscVarType    ReKi             FusVels       {:}{:}  -  - "" m/s
 typedef   ^    MiscVarType    ReKi             SWnVels       {:}{:}  -  - "" m/s
 typedef   ^    MiscVarType    ReKi             PWnVels       {:}{:}  -  - "" m/s
@@ -127,7 +127,7 @@ typedef   ^    MiscVarType    ReKi             SHSVels       {:}{:}  -  - "" m/s
 typedef   ^    MiscVarType    ReKi             PHSVels       {:}{:}  -  - "" m/s
 typedef   ^    MiscVarType    ReKi             SPyVels     {:}{:}{:} -  - "" m/s
 typedef   ^    MiscVarType    ReKi             PPyVels     {:}{:}{:} -  - "" m/s
-typedef   ^    MiscVarType    ReKi             FusOomegas       {:}  -  - "" rad/s
+typedef   ^    MiscVarType    ReKi             FusOomegas       {3}  -  - "" rad/s
 typedef   ^    MiscVarType    ReKi             FusOmegas     {:}{:}  -  - "" rad/s
 typedef   ^    MiscVarType    ReKi             SWnOmegas     {:}{:}  -  - "" rad/s
 typedef   ^    MiscVarType    ReKi             PWnOmegas     {:}{:}  -  - "" rad/s
@@ -136,7 +136,7 @@ typedef   ^    MiscVarType    ReKi             SHSOmegas     {:}{:}  -  - "" rad
 typedef   ^    MiscVarType    ReKi             PHSOmegas     {:}{:}  -  - "" rad/s
 typedef   ^    MiscVarType    ReKi             SPyOmegas   {:}{:}{:} -  - "" rad/s
 typedef   ^    MiscVarType    ReKi             PPyOmegas   {:}{:}{:} -  - "" rad/s
-typedef   ^    MiscVarType    ReKi             FusOaccs         {:}  -  - "" m/s^2
+typedef   ^    MiscVarType    ReKi             FusOaccs         {3}  -  - "" m/s^2
 typedef   ^    MiscVarType    ReKi             FusAccs       {:}{:}  -  - "" m/s^2
 typedef   ^    MiscVarType    ReKi             SWnAccs       {:}{:}  -  - "" m/s^2
 typedef   ^    MiscVarType    ReKi             PWnAccs       {:}{:}  -  - "" m/s^2
@@ -145,7 +145,7 @@ typedef   ^    MiscVarType    ReKi             SHSAccs       {:}{:}  -  - "" m/s
 typedef   ^    MiscVarType    ReKi             PHSAccs       {:}{:}  -  - "" m/s^2
 typedef   ^    MiscVarType    ReKi             SPyAccs     {:}{:}{:} -  - "" m/s^2
 typedef   ^    MiscVarType    ReKi             PPyAccs     {:}{:}{:} -  - "" m/s^2
-typedef   ^    MiscVarType    ReKi             FusOalphas        {:}  -  - "" rad/s^2
+typedef   ^    MiscVarType    ReKi             FusOalphas        {3}  -  - "" rad/s^2
 typedef   ^    MiscVarType    ReKi             FusLoadInpts   {:}{:}  -  - "" N,Nm
 typedef   ^    MiscVarType    ReKi             SWnLoadInpts   {:}{:}  -  - "" N,Nm
 typedef   ^    MiscVarType    ReKi             PWnLoadInpts   {:}{:}  -  - "" N,Nm
@@ -166,7 +166,7 @@ typedef   ^    MiscVarType    ReKi             SPyRtrAccs  {:}{:}{:} -  - "" m/s
 typedef   ^    MiscVarType    ReKi             PPyRtrAccs  {:}{:}{:} -  - "" m/s^2
 typedef   ^    MiscVarType    ReKi             SPyRtrAlphas  {:}{:}{:} -  - "" rad/s^2
 typedef   ^    MiscVarType    ReKi             PPyRtrAlphas  {:}{:}{:} -  - "" rad/s^2
-typedef   ^    MiscVarType    R8Ki             FusODCM       {:}{:}  -  - "" -
+typedef   ^    MiscVarType    R8Ki             FusODCM       {3}{3}  -  - "" -
 typedef   ^    MiscVarType    R8Ki             FusNdDCMs   {:}{:}{:} -  - "" -
 typedef   ^    MiscVarType    R8Ki             SWnNdDCMs   {:}{:}{:} -  - "" -
 typedef   ^    MiscVarType    R8Ki             PWnNdDCMs   {:}{:}{:} -  - "" -

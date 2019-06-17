@@ -590,13 +590,15 @@ subroutine Init_Offshore(dt, TMax, PtfmO_c, PtfmODCM_c, GSRefPtR_c, HD_FileName_
    
       MD_InitInp%RootName  = TRIM(p%outFileRoot)//'_Mooring.MD'
          ! The platform in this application is the location of the Kite's fuselage reference point in the inertial coordinate system
-      MD_InitInp%PtfmPos   = PtfmO
-      MD_InitInp%PtfmDCM   = PtfmODCM
+      call AllocAry( MD_InitInp%PtfmPos, 3, 1, 'MD_InitInp%PtfmPos', errStat2, errMsg2 )
+      call AllocAry( MD_InitInp%PtfmDCM, 3, 3, 1, 'MD_InitInp%PtfmDCM', errStat2, errMsg2 )
+      MD_InitInp%PtfmPos(:,1)   = PtfmO
+      MD_InitInp%PtfmDCM(:,:,1) = PtfmODCM
       MD_InitInp%g         = p%Gravity                    ! 
       MD_InitInp%rhoW      = HD_InitOut%WtrDens                   ! This needs to be set according to HD water density value      
       MD_InitInp%WtrDepth  = HD_InitOut%WtrDpth                   ! HD sets the water depth
       interval             = dt
-   
+      MD_InitInp%NBodies   = 1
       call MD_Init( MD_InitInp, m_OS%MD_Mooring%u(1), m_OS%MD_Mooring%p, OtherSt_OS%MD_Mooring%x, m_OS%MD_Mooring%xd, m_OS%MD_Mooring%z, &
                      OtherSt_OS%MD_Mooring%OtherSt, m_OS%MD_Mooring%y, m_OS%MD_Mooring%m, interval, MD_Mooring_InitOut, errStat2, errMsg2 )
          call SetErrStat(errStat2,errMsg2,errStat,errMsg,routineName)
@@ -620,17 +622,17 @@ subroutine Init_Offshore(dt, TMax, PtfmO_c, PtfmODCM_c, GSRefPtR_c, HD_FileName_
          
         
          ! Need to transfer the MBDyn platform reference point motions to MoorDyn_Mooring module
-      call MeshMapCreate( m_OS%HD%u(1)%Mesh, m_OS%MD_Mooring%u(1)%PtFairleadDisplacement, m_OS%HD_P_2_MD_P, errStat2, errMsg2 )
-         call SetErrStat( errStat2, errMsg2, errStat, errMsg, ' CreateMeshMappings: m_OS%HD_P_2_MD_M_P' )     
+      call MeshMapCreate( m_OS%HD%u(1)%Mesh, m_OS%MD_Mooring%u(1)%PtFairleadDisplacement(1), m_OS%HD_P_2_MD_P, errStat2, errMsg2 )
+         call SetErrStat( errStat2, errMsg2, errStat, errMsg, ' CreateMeshMappings: m_OS%HD_P_2_MD_P' )     
                if (errStat>=AbortErrLev) return
       m_OS%HD%u(1)%Mesh%RemapFlag = .false.
-      m_OS%MD_Mooring%u(1)%PtFairleadDisplacement%RemapFlag = .false.
+      m_OS%MD_Mooring%u(1)%PtFairleadDisplacement(1)%RemapFlag = .false.
       
          ! Need to transfer the MoorDyn mooring fairlead point loads back the to MBDyn platform reference mesh for loads
-      call MeshMapCreate( m_OS%MD_Mooring%y%PtFairleadLoad, m_OS%mbdPtfmLoads,  m_OS%MD_M_P_2_MBD_P, errStat2, errMsg2 )
+      call MeshMapCreate( m_OS%MD_Mooring%y%PtFairleadLoad(1), m_OS%mbdPtfmLoads,  m_OS%MD_M_P_2_MBD_P, errStat2, errMsg2 )
          call SetErrStat( errStat2, errMsg2, errStat, errMsg, ' CreateMeshMappings: m_OS%MD_M_P_2_MBD_P' )     
                if (errStat>=AbortErrLev) return
-     m_OS%MD_Mooring%y%PtFairleadLoad%RemapFlag = .false.
+     m_OS%MD_Mooring%y%PtFairleadLoad(1)%RemapFlag = .false.
      m_OS%mbdPtfmLoads%RemapFlag = .false.
      
    end if
@@ -701,6 +703,7 @@ subroutine KFAST_OS_Init(SimMod, dt_c, TMAX_c, numFlaps, numPylons, numComp, num
    integer(IntKi)                  :: errStat, errStat2
    character(ErrMsgLen)            :: errMsg, errMsg2
    type(InflowWind_InitOutputType) :: IfW_InitOut
+   type(MD_InitInputType)          :: MD_InitInp
    type(MD_InitOutputType)         :: MD_Tether_InitOut
    type(HydroDyn_InitOutputType)   :: HD_InitOut
    type(MD_InitOutputType)         :: MD_Mooring_InitOut
@@ -740,8 +743,24 @@ subroutine KFAST_OS_Init(SimMod, dt_c, TMAX_c, numFlaps, numPylons, numComp, num
    end if
    
    if ( simMod == 2 ) then ! Full Offshore, including kite
+      
+      ! Since this is an offshore kite system we need to establish two Vessel positions and orientations which are passed to the MoorDyn Tether Init routine
+      if (p%useMD_Tether) then
+         ! The 1st vessel is the location of the Kite's fuselage reference point in the inertial coordinate system
+         call AllocAry( MD_InitInp%PtfmPos, 3, 2, 'MD_InitInp%PtfmPos', errStat2, errMsg2 )
+         call AllocAry( MD_InitInp%PtfmDCM, 3, 3, 2, 'MD_InitInp%PtfmDCM', errStat2, errMsg2 )
+         MD_InitInp%PtfmPos(:,1)   = refPts_c(1:3)  ! FusO
+         MD_InitInp%PtfmDCM(:,:,1) = reshape(FusODCM_c,(/3,3/))
+         MD_InitInp%FileName  = transfer(MD_Tether_FileName_c(1:IntfStrLen-1),MD_InitInp%FileName)
+         call RemoveNullChar(MD_InitInp%FileName) 
+         MD_InitInp%RootName  = TRIM(p%outFileRoot)//'.MD'        
+         MD_InitInp%g         = gravity                    ! 
+         MD_InitInp%rhoW      = p%AirDens                  ! This needs to be set according to air density at the Kite      
+         MD_InitInp%WtrDepth  = 0.0_ReKi                   ! No water depth for the kite tether
+         MD_InitInp%NBodies   = 2                          ! Kite and platform are the two bodies
+      end if
       call Init_KiteSystem(dt_c, numFlaps, numPylons, numComp, numCompNds, modFlags, KAD_FileName_c, IfW_FileName_c, MD_Tether_FileName_c, KFC_FileName_c, &
-                       outFileRoot_c, printSum, gravity, KAD_InterpOrder, FusODCM_c, numRtrPts_c, rtrPts_c, rtrMass_c, rtrI_Rot_c, rtrI_trans_c, rtrXcm_c, refPts_c, &
+                       outFileRoot_c, printSum, gravity, KAD_InterpOrder, MD_InitInp, FusODCM_c, numRtrPts_c, rtrPts_c, rtrMass_c, rtrI_Rot_c, rtrI_trans_c, rtrXcm_c, refPts_c, &
                        numNodePts_c, nodePts_c, nodeDCMs_c, nFusOuts_c, FusOutNd_c, nSWnOuts_c, SWnOutNd_c, &
                        nPWnOuts_c, PWnOutNd_c, nVSOuts_c, VSOutNd_c, nSHSOuts_c, SHSOutNd_c, nPHSOuts_c, PHSOutNd_c, nPylOuts_c, PylOutNd_c, KAD_InitOut, MD_Tether_InitOut, IfW_InitOut, errStat, errMsg )
       if (errStat >= AbortErrLev ) then
@@ -935,7 +954,6 @@ subroutine Ass_Res_OffShore(t_c, isInitialTime_c, PtfmO_c, PtfmODCM_c, PtfmOv_c,
                        
    m_OS%HD%u(1)%Mesh%Orientation  (:,:,1) = m_OS%PtfmODCM
    m_OS%HD%u(1)%Mesh%TranslationDisp(:,1) = m_OS%PtfmO - m_OS%HD%u(1)%Mesh%Position(:,1)
-   m_OS%mbdPtfmLoads%TranslationDisp(:,1) = m_OS%HD%u(1)%Mesh%TranslationDisp(:,1)
    m_OS%HD%u(1)%Mesh%TranslationVel (:,1) = m_OS%PtfmOv
    m_OS%HD%u(1)%Mesh%RotationVel    (:,1) = m_OS%PtfmOomegas
    m_OS%HD%u(1)%Mesh%TranslationAcc (:,1) = m_OS%PtfmOacc
@@ -985,8 +1003,10 @@ subroutine Ass_Res_OffShore(t_c, isInitialTime_c, PtfmO_c, PtfmODCM_c, PtfmOv_c,
    ! MoorDyn - Moorings 
 
    if ( p_OS%useMD_Mooring ) then
-      
-      call Transfer_Point_to_Point( m_OS%HD%u(1)%Mesh, m_OS%MD_Mooring%u(1)%PtFairleadDisplacement, m_OS%HD_P_2_MD_P, errStat2, errMsg2 )
+
+      m_OS%mbdPtfmLoads%TranslationDisp(:,1) = m_OS%HD%u(1)%Mesh%TranslationDisp(:,1)
+
+      call Transfer_Point_to_Point( m_OS%HD%u(1)%Mesh, m_OS%MD_Mooring%u(1)%PtFairleadDisplacement(1), m_OS%HD_P_2_MD_P, errStat2, errMsg2 )
          call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
       if (errStat >= AbortErrLev ) return
 
@@ -1015,7 +1035,7 @@ subroutine Ass_Res_OffShore(t_c, isInitialTime_c, PtfmO_c, PtfmODCM_c, PtfmOv_c,
 
       ! Transfer fairlead loads to the MBDyn Platform loads mesh
       
-      call Transfer_Point_to_Point( m_OS%MD_Mooring%y%PtFairLeadLoad, m_OS%mbdPtfmLoads, m_OS%MD_M_P_2_MBD_P, errStat2, errMsg2, m_OS%MD_Mooring%u(1)%PtFairleadDisplacement, m_OS%mbdPtfmLoads )
+      call Transfer_Point_to_Point( m_OS%MD_Mooring%y%PtFairLeadLoad(1), m_OS%mbdPtfmLoads, m_OS%MD_M_P_2_MBD_P, errStat2, errMsg2, m_OS%MD_Mooring%u(1)%PtFairleadDisplacement(1), m_OS%mbdPtfmLoads )
          call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
       if (errStat >= AbortErrLev ) return
 
@@ -1112,13 +1132,15 @@ subroutine KFAST_OS_AssRes(t_c, isInitialTime_c, WindPt_c, WindPtVel_c, FusO_c, 
    real(ReKi)               :: IfW_ground(3)
    real(ReKi)               :: IfW_FusO(3)
    integer(IntKi)           :: numFairLeads
+   real(ReKi)               :: AnchorPt(3)
    
    errStat = ErrID_None
    errMsg  = ''
    t = t_c
    
    if ( p_OS%simMod < 3 ) then
-      call AssRes_OnShore( t_c, isInitialTime_c, WindPt_c, FusO_c, FusODCM_c, FusOv_c, FusOomegas_c, FusOacc_c, FusOalphas_c, numNodePts_c, nodePts_c, &
+      AnchorPt = real(GSRefPt_c, ReKi)
+      call AssRes_OnShore( t_c, isInitialTime_c, WindPt_c, WindPtVel_c, AnchorPt, FusO_c, FusODCM_c, FusOv_c, FusOomegas_c, FusOacc_c, FusOalphas_c, numNodePts_c, nodePts_c, &
                           nodeDCMs_c, nodeVels_c, nodeOmegas_c, nodeAccs_c,  numRtrPts_c, rtrPts_c, &
                           rtrDCMs_c, rtrVels_c, rtrOmegas_c, rtrAccs_c, rtrAlphas_c, nodeLoads_c, rtrLoads_c, errStat, errMsg ) 
       if (errStat >= AbortErrLev ) then
