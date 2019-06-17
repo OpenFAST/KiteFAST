@@ -507,6 +507,13 @@ int main(int argc, char *argv[])
     strcpy(KFC_FileName,        "D:\\DEV\\makani\\google-repo\\sandbox\\glue-codes\\kitefast\\test_cases\\m000\\libkitefastcontroller_controller.so");
     strcpy(MD_Mooring_FileName, "D:\\DEV\\makani\\google-repo\\sandbox\\glue-codes\\kitefast\\test_cases\\5MW_OC3Spar_DLL_WTurb_WavesIrr\\NRELOffshrBsline5MW_OC3Hywind_MoorDyn.dat");
     strcpy(HD_FileName,         "D:\\DEV\\makani\\google-repo\\sandbox\\glue-codes\\kitefast\\test_cases\\5MW_OC3Spar_DLL_WTurb_WavesIrr\\NRELOffshrBsline5MW_OC3Hywind_HydroDyn.dat");
+    // strcpy(outFileRoot, "/Users/rmudafor/Development/makani/makani_openfast/glue-codes/kitefast/test_cases/5MW_OC3Spar_DLL_WTurb_WavesIrr/KiteOSTest");
+    // strcpy(KAD_FileName, "/Users/rmudafor/Development/makani/makani_openfast/glue-codes/kitefast/test_cases/m000/simple_m000_model_AD.txt");
+    // strcpy(IfW_FileName, "/Users/rmudafor/Development/makani/makani_openfast/glue-codes/kitefast/test_cases/m000/kiteInflowWind.dat");
+    // strcpy(MD_FileName, "/Users/rmudafor/Development/makani/makani_openfast/glue-codes/kitefast/test_cases/m000/kiteTether.dat");
+    // strcpy(KFC_FileName, "/Users/rmudafor/Development/makani/makani_openfast/glue-codes/kitefast/test_cases/m000/libkitefastcontroller_controller.so");
+    // strcpy(MD_Mooring_FileName, "/Users/rmudafor/Development/makani/makani_openfast/glue-codes/kitefast/test_cases/5MW_OC3Spar_DLL_WTurb_WavesIrr/NRELOffshrBsline5MW_OC3Hywind_MoorDyn.dat");
+    // strcpy(HD_FileName, "/Users/rmudafor/Development/makani/makani_openfast/glue-codes/kitefast/test_cases/5MW_OC3Spar_DLL_WTurb_WavesIrr/NRELOffshrBsline5MW_OC3Hywind_HydroDyn.dat");
     pPtfmO[0] = 0.0;
     pPtfmO[1] = 0.0;
     pPtfmO[2] = 0.0;
@@ -698,6 +705,11 @@ int main(int argc, char *argv[])
         {
             printf("Node %d loads = %10.3e,%10.3e,%10.3e,%10.3e,%10.3e,%10.3e\n", n / 6, pNodeLoads[n], pNodeLoads[n  + 1], pNodeLoads[n + 2], pNodeLoads[n +3], pNodeLoads[n  + 4], pNodeLoads[n + 5]);
         }
+    }
+    n = 0;
+    if (fabs(pPtfmLoads[n]) > 0 || fabs(pPtfmLoads[n  + 1]) > 0 || fabs(pPtfmLoads[n + 2]) > 0 || fabs(pPtfmLoads[n +3]) > 0 || fabs(pPtfmLoads[n  + 4]) > 0 || fabs(pPtfmLoads[n  + 5]) > 0)
+    {
+        printf("Platform node loads = %10.3e,%10.3e,%10.3e,%10.3e,%10.3e,%10.3e\n", pPtfmLoads[n], pPtfmLoads[n  + 1], pPtfmLoads[n + 2], pPtfmLoads[n +3], pPtfmLoads[n  + 4], pPtfmLoads[n + 5]);
     }
     if (errStat != 0)
     {
