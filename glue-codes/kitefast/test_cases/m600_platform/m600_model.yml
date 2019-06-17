@@ -513,14 +513,14 @@ platform:
 
 wind_reference_station:
     location:
-        [-0.202, -1.627, 19.860]
+        [2.0, 2.0, 2.0]
 
 ground_station:
     location:
         # locates the weather station; this point is passed directly to
         # KiteFAST which uses it to interface with the controller
         # [x, y, z]
-        [-0.202, -1.627, 19.860]
+        [3.0, 3.0, 3.0]
 
 output:
     fuselage_nodes:
