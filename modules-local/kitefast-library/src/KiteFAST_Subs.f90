@@ -1370,13 +1370,13 @@ subroutine CreateMeshMappings(m, p, KAD, MD, errStat, errMsg)
          call SetErrStat( errStat2, errMsg2, errStat, errMsg, ' CreateMeshMappings: m%MD_L2_2_P' )     
                if (ErrStat>=AbortErrLev) return
       m%mbdWngMotions%RemapFlag = .false.
-      MD%u(1)%PtFairleadDisplacement%RemapFlag = .false.
+      MD%u(1)%PtFairleadDisplacement(1)%RemapFlag = .false.
       
          ! Need to transfer the MoorDyn bridle point loads back the to MBDyn wing mesh for loads
       call MeshMapCreate( MD%y%PtFairleadLoad(1), m%mbdWngLoads,  m%MD_P_2_P, errStat2, errMsg2 )
          call SetErrStat( errStat2, errMsg2, errStat, errMsg, ' CreateMeshMappings: m%MD_P_2_P' )     
                if (ErrStat>=AbortErrLev) return
-      MD%y%PtFairleadLoad%RemapFlag = .false.
+      MD%y%PtFairleadLoad(1)%RemapFlag = .false.
       m%mbdWngLoads%RemapFlag = .false.
       
    end if 
