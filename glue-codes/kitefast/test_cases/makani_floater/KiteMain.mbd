@@ -11,7 +11,7 @@ end: data;
 
 begin: initial value;
     initial time: 0.0;
-    final time: 8.0;
+    final time: 10.0;
     time step: 1e-3;
     tolerance: 1e-3;
     max iterations: 60;
@@ -53,14 +53,14 @@ begin: elements;
 
     gravity: uniform,   0.000,   0.000,   1.000, const, -9.81;
 
-    inertia: 1, body, all;
-
-    body: 1, platform_root_node, 7.130400E+05,
+    body: 1, platform_root_node,
+        7.130400E+05,
         reference, node,   0.000,   0.000,   -29.06151,
         sym,    2.452533E+08,      0.000,      0.000,
                             2.452513E+08,      0.000,
                                         1.534000E+06;
 
+    inertia: 1, body, all;
     joint: 1, total joint,
         platform_root_node + 0,
         platform_root_node + 1,
@@ -121,7 +121,7 @@ begin: elements;
         time_step,
             1e-3,
         time_max,
-            0.5,
+            10.0,
         gravity,
             9.81,
         kiteaerodyn_interpolation_order,
