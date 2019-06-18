@@ -195,8 +195,8 @@ MGDpth     MGThck       MGDens
 MemberID   NOutLoc    NodeLocs [NOutLoc < 10; node locations are normalized distance from the start of the member, and must be >=0 and <= 1] [unused if NMOutputs=0]
   (-)        (-)        (-)
 ---------------------- JOINT OUTPUT LIST ---------------------------------------
-             0   NJOutputs      - Number of joint outputs [Must be < 10]
-   0           JOutLst        - List of JointIDs which are to be output (-)[unused if NJOutputs=0]
+             1   NJOutputs      - Number of joint outputs [Must be < 10]
+   22           JOutLst        - List of JointIDs which are to be output (-)[unused if NJOutputs=0]
 ---------------------- OUTPUT --------------------------------------------------
 True             HDSum          - Output a summary file [flag]
 False            OutAll         - Output all user-specified member and joint loads (only at each member end, not interior locations) [flag]
@@ -204,11 +204,25 @@ False            OutAll         - Output all user-specified member and joint loa
 "ES11.4e2"       OutFmt         - Output format for numerical results (quoted string) [not checked for validity!]
 "A11"            OutSFmt        - Output format for header strings (quoted string) [not checked for validity!]
 ---------------------- OUTPUT CHANNELS -----------------------------------------
-"Wave1Elev"               - Wave elevation at the platform reference point (0,  0)
-"HydroFxi"               - Wave elevation at the platform reference point (0,  0)
-"HydroFyi"               - Wave elevation at the platform reference point (0,  0)
-"HydroFzi"               - Wave elevation at the platform reference point (0,  0)
-"HydroMxi"               - Wave elevation at the platform reference point (0,  0)
-"HydroMyi"               - Wave elevation at the platform reference point (0,  0)
-"HydroMzi"               - Wave elevation at the platform reference point (0,  0)
+"HydroFxi"
+"HydroFyi"
+"HydroFzi"
+"HydroMxi"
+"HydroMyi"
+"HydroMzi"
+"J1FDzi"
+"J1FIzi"
+"J1FAMzi"
+"WRPSurge"
+"WRPHeave"
+"WRPSway"
+"WRPRoll"
+"WRPPitch"
+"WRPYaw"
+"WRPTVxi"
+"WRPTVyi"
+"WRPTVzi"
+"WRPTaxi"
+"WRPTayi"
+"WRPTazi"
 END of output channels and end of file. (the word "END" must appear in the first 3 columns of this line)
