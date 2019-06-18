@@ -19,6 +19,8 @@ begin: initial value;
     derivatives max iterations: 200;
     derivatives coefficient: 1e-4;
     linear solver: naive, colamd, mt, 1, pivot factor, 1e-8;
+    # output: iterations;
+    # output: residual;
 end: initial value;
 
 
@@ -41,6 +43,7 @@ begin: control data;
     joints: 3;
     gravity;
     loadable elements: 1;
+    #forces: 1;
 end: control data;
 
 
@@ -61,6 +64,9 @@ begin: elements;
                                         1.534000E+06;
 
     inertia: 1, body, all;
+
+    #force: 1, absolute, platform_root_node, 0.0, 0.0, 1.0, null, const, 7.453E+06;
+
     joint: 1, total joint,
         platform_root_node + 0,
         platform_root_node + 1,
