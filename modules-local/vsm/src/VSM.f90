@@ -335,12 +335,12 @@ subroutine VSM_Compute_Influence(CtrlPtMod, KinVisc,  numVolElem, numElem, inPtA
       r0_hat = (inPtB(:,i) - inPtA(:,i)) / TwoNorm(inPtB(:,i) - inPtA(:,i))
       
       tmp2_v = cross_product(U_Inf_hat,r0_hat)
-      if ( dot_product(x_hat(:,i),tmp2_v) < 0 ) then
+      if ( dot_product(x_hat(:,i),tmp2_v) < 0 ) then  ! x_hat is normal to the chord
          !errMsg2 = 'Element is not properly oriented relative to free stream inflow vector'
          !errStat2 = ErrID_Fatal
          !call SetErrStat(errStat2,errMsg2,errStat,errMsg,RoutineName)  
          !return
-         !write(*,*) "Needed to reorder element #"//trim(num2lstr(i))
+         write(*,*) "Needed to reorder element #"//trim(num2lstr(i))
          PtA(:,i) = inPtB(:,i)
          PtB(:,i) = inPtA(:,i)
       else

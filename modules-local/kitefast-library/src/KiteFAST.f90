@@ -248,13 +248,19 @@ subroutine KFAST_AssRes(t_c, isInitialTime_c, WindPt_c, FusO_c, FusODCM_c, FusOv
    integer(IntKi)           :: errStat, errStat2              ! error status values
    character(ErrMsgLen)     :: errMsg, errMsg2                ! error messages
    character(*), parameter  :: routineName = 'KFAST_AssRes'
-   real(C_DOUBLE)           :: WindPtVel_c(3)
+   real(C_DOUBLE)           :: WindPtVel_c(3)                 ! In case we are using a moving platform and need to include motion at the wind measurement location.
+   real(C_DOUBLE)           :: ptfmLoads_c(6)                 ! In case we are using a moving platform and returning applied loads for the tether 'anchor'
+   real(ReKi)               :: PtfmO(3)                       ! Current timestep position of the Platform reference point, expressed in global coordinates. (m) 
+   real(ReKi)               :: PtfmOv(3)                      ! Current timestep velocity of the Platform reference point, expressed in global coordinates. (m/s)
+
    errStat = ErrID_None
    errMsg  = ''
    WindPtVel_c = (/0.0, 0.0, 0.0/)  ! The wind measurement station is not in motion in these simulations
+   PtfmO       = 0.0
+   PtfmOv      = 0.0
    call AssRes_OnShore( t_c, isInitialTime_c, WindPt_c, WindPtVel_c, p%anchorPt, FusO_c, FusODCM_c, FusOv_c, FusOomegas_c, FusOacc_c, FusOalphas_c, numNodePts_c, nodePts_c, &
                           nodeDCMs_c, nodeVels_c, nodeOmegas_c, nodeAccs_c,  numRtrPts_c, rtrPts_c, &
-                          rtrDCMs_c, rtrVels_c, rtrOmegas_c, rtrAccs_c, rtrAlphas_c, nodeLoads_c, rtrLoads_c, errStat, errMsg ) 
+                          rtrDCMs_c, rtrVels_c, rtrOmegas_c, rtrAccs_c, rtrAlphas_c, PtfmO, PtfmOv, nodeLoads_c, rtrLoads_c, ptfmLoads_c, errStat, errMsg ) 
 
    call TransferErrors(errStat, errMsg, errStat_c, errMsg_c)
    

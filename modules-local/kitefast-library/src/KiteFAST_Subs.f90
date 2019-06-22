@@ -44,6 +44,105 @@ end do
 
 end subroutine
 
+subroutine CreateMBDynPtfmMeshes(PtfmO, PtfmODCM, mbdPtfmMotions, mbdPtfmLoads, errStat, errMsg )
+   real(ReKi),                   intent(in   )  :: PtfmO(3)          !< Reference position for the platform reference point in global coordinates
+   real(R8Ki),                   intent(in   )  :: PtfmODCM(3,3)     !< DCM needed to transform into the platform reference axes
+   type(MeshType),               intent(  out)  :: mbdPtfmMotions    !< The resulting mesh 
+   type(MeshType),               intent(  out)  :: mbdPtfmLoads      !< The resulting mesh 
+   integer(IntKi),               intent(  out)  :: errStat           !< Error status of the operation
+   character(*),                 intent(  out)  :: errMsg            !< Error message if errStat /= ErrID_None
+
+   ! Local variables
+   real(reKi)                                   :: position(3)       ! node reference position
+   real(R8Ki)                                   :: orientation(3,3)  ! node reference orientation
+   integer(intKi)                               :: j                 ! counter for nodes
+   integer(intKi)                               :: errStat2          ! temporary Error status
+   character(ErrMsgLen)                         :: errMsg2           ! temporary Error message
+   character(*), parameter                      :: RoutineName = 'CreateMBDynPtLoadsMesh'
+
+      ! Initialize variables for this routine
+
+   errStat = ErrID_None
+   errMsg  = ""
+
+   if (errStat >= AbortErrLev) return
+   
+   !=====================================
+   ! MBDyn Platform Motions Mesh
+   !=====================================
+   call MeshCreate ( BlankMesh = mbdPtfmMotions     &
+                     ,IOS       = COMPONENT_INPUT &
+                     ,Nnodes    = 1               &
+                     ,errStat   = errStat2        &
+                     ,ErrMess   = errMsg2         &
+                     ,Orientation     = .true.    &
+                     ,TranslationDisp = .true.    &
+                     ,TranslationVel  = .true.    &
+                     ,RotationVel     = .true.    &
+                     )
+         call SetErrStat( errStat2, errMsg2, errStat, errMsg, RoutineName )
+   
+   if (errStat >= AbortErrLev) return
+            
+      ! set node initial position/orientation      
+   position =0.0_ReKi 
+
+   call MeshPositionNode(mbdPtfmMotions, 1, position, errStat2, errMsg2)  
+      call SetErrStat( errStat2, errMsg2, errStat, errMsg, RoutineName )
+         
+
+         
+   
+   call MeshConstructElement( mbdPtfmMotions, ELEMENT_POINT, errStat2, errMsg2, p1=1 )
+      call SetErrStat( errStat2, errMsg2, errStat, errMsg, RoutineName )
+  
+            
+   call MeshCommit(mbdPtfmMotions, errStat2, errMsg2 )
+      call SetErrStat( errStat2, errMsg2, errStat, errMsg, RoutineName )
+            
+   if (errStat >= AbortErrLev) return
+
+   mbdPtfmMotions%Orientation(:,:,1)     = PtfmODCM
+   mbdPtfmMotions%TranslationDisp(:,1)   = PtfmO
+     
+   mbdPtfmMotions%TranslationVel  = 0.0_ReKi
+   mbdPtfmMotions%RotationVel     = 0.0_ReKi
+   
+   
+   !=====================================
+   ! MBDyn Platform Loads Mesh
+   !=====================================
+
+   call MeshCreate ( BlankMesh = mbdPtfmLoads     &
+                     ,IOS         = COMPONENT_OUTPUT &
+                     ,Nnodes      = 1               &
+                     ,errStat     = errStat2        &
+                     ,ErrMess     = errMsg2         &
+                     ,force       = .true.          &
+                     ,moment      = .true.          &
+                     ,translationdisp = .true.      &
+                     )
+      call SetErrStat( errStat2, errMsg2, errStat, errMsg, RoutineName )
+
+   if (errStat >= AbortErrLev) return
+         ! set node initial position/orientation
+   
+   call MeshPositionNode(mbdPtfmLoads, 1, position, errStat2, errMsg2, orientation)  
+      call SetErrStat( errStat2, errMsg2, errStat, errMsg, RoutineName )
+   call MeshConstructElement( mbdPtfmLoads, ELEMENT_POINT, errStat2, errMsg2, p1=1 )
+      call SetErrStat( errStat2, errMsg2, errStat, errMsg, RoutineName )   
+       
+   call MeshCommit(mbdPtfmLoads, errStat2, errMsg2 )
+      call SetErrStat( errStat2, errMsg2, errStat, errMsg, RoutineName )
+            
+   if (errStat >= AbortErrLev) return
+      
+   mbdPtfmLoads%Force           = 0.0_ReKi
+   mbdPtfmLoads%Moment          = 0.0_ReKi
+   mbdPtfmLoads%TranslationDisp(:,1)   = PtfmO  - mbdPtfmLoads%Position(:,1)
+
+
+end subroutine CreateMBDynPtfmMeshes
 
 subroutine SetupSim(dt, modFlags, gravity, outFileRoot_c, numOutChan_c, chanlist_c, chanlist_len_c, p, OutList, errStat, errMsg)
 
@@ -2974,8 +3073,32 @@ subroutine Init_KiteSystem(dt_c, numFlaps, numPylons, numComp, numCompNds, modFl
             return
          end if
       end if
-   
-      p%anchorPt = MD_InitOut%Anchs(:,1)  
+      if (MD_InitOut%NAnchs == 1 ) then
+         p%anchorPt = MD_InitOut%Anchs(:,1)  
+      else
+         p%anchorPt = 0.0_ReKi
+         if (size(m%MD_Tether%u(1)%PtFairleadDisplacement,1 ) == 2 ) then
+            
+                     ! Create the necessary Meshes to transfer motions and loads between the Platform reference point and the Mooring Platform Fairleads
+            call CreateMBDynPtfmMeshes(MD_InitInp%PtfmPos(:,2), real(MD_InitInp%PtfmDCM(:,:,2),R8Ki), m%mbdPtfmMotions, m%mbdPtfmLoads, errStat, errMsg )   
+               if (errStat>=AbortErrLev) return
+         
+        
+               ! Need to transfer the MBDyn platform reference point motions to MoorDyn_Tether module
+            call MeshMapCreate( m%mbdPtfmMotions, m%MD_Tether%u(1)%PtFairleadDisplacement(2), m%mbdPtfm_P_2_MD_P, errStat2, errMsg2 )
+               call SetErrStat( errStat2, errMsg2, errStat, errMsg, ' CreateMeshMappings: m%mbdPtfm_P_2_MD_P' )     
+                     if (errStat>=AbortErrLev) return
+            m%mbdPtfmMotions%RemapFlag = .false.
+            m%MD_Tether%u(1)%PtFairleadDisplacement(2)%RemapFlag = .false.
+            
+               ! Need to transfer the MoorDyn Platform loads to the MBDyn platform reference point loads mesh        
+            call MeshMapCreate( m%MD_Tether%y%PtFairleadLoad(2), m%mbdPtfmLoads,  m%MD_P_2_mbdPtfm_P, errStat2, errMsg2 )
+               call SetErrStat( errStat2, errMsg2, errStat, errMsg, ' CreateMeshMappings: m%MD_P_2_mbdPtfm_P' )     
+                     if (ErrStat>=AbortErrLev) return
+            m%MD_Tether%y%PtFairleadLoad(2)%RemapFlag = .false.
+            m%mbdWngLoads%RemapFlag = .false.
+         end if
+      end if
    else
       p%anchorPt = 0.0_ReKi
    end if
@@ -3191,7 +3314,7 @@ subroutine Init_KiteSystem(dt_c, numFlaps, numPylons, numComp, numCompNds, modFl
             call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
          call AllocAry( m%SHSNdDCMs, 3, 3, p%numSHSNds, 'SHSNdDCMs', errStat2, errMsg2 )
             call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
-         call AllocAry( m%PHSNdDCMs, 3, 3, p%numFusNds, 'PHSNdDCMs', errStat2, errMsg2 )
+         call AllocAry( m%PHSNdDCMs, 3, 3, p%numPHSNds, 'PHSNdDCMs', errStat2, errMsg2 )
             call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
          call AllocAry( m%SPyNdDCMs, 3, 3, maxSPyNds, p%numPylons, 'SPyNdDCMs', errStat2, errMsg2 )
             call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
@@ -3208,7 +3331,7 @@ subroutine Init_KiteSystem(dt_c, numFlaps, numPylons, numComp, numCompNds, modFl
             call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
          call AllocAry( m%SHSPts, 3, p%numSHSNds, 'SHSPts', errStat2, errMsg2 )
             call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
-         call AllocAry( m%PHSPts, 3, p%numFusNds, 'PHSPts', errStat2, errMsg2 )
+         call AllocAry( m%PHSPts, 3, p%numPHSNds, 'PHSPts', errStat2, errMsg2 )
             call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
          call AllocAry( m%SPyPts, 3, maxSPyNds, p%numPylons, 'SPyPts', errStat2, errMsg2 )
             call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
@@ -3225,7 +3348,7 @@ subroutine Init_KiteSystem(dt_c, numFlaps, numPylons, numComp, numCompNds, modFl
             call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
          call AllocAry( m%SHSVels, 3, p%numSHSNds, 'SHSVels', errStat2, errMsg2 )
             call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
-         call AllocAry( m%PHSVels, 3, p%numFusNds, 'PHSVels', errStat2, errMsg2 )
+         call AllocAry( m%PHSVels, 3, p%numPHSNds, 'PHSVels', errStat2, errMsg2 )
             call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
          call AllocAry( m%SPyVels, 3, maxSPyNds, p%numPylons, 'SPyVels', errStat2, errMsg2 )
             call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
@@ -3242,7 +3365,7 @@ subroutine Init_KiteSystem(dt_c, numFlaps, numPylons, numComp, numCompNds, modFl
             call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
          call AllocAry( m%SHSOmegas, 3, p%numSHSNds, 'SHSOmegas', errStat2, errMsg2 )
             call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
-         call AllocAry( m%PHSOmegas, 3, p%numFusNds, 'PHSOmegas', errStat2, errMsg2 )
+         call AllocAry( m%PHSOmegas, 3, p%numPHSNds, 'PHSOmegas', errStat2, errMsg2 )
             call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
          call AllocAry( m%SPyOmegas, 3, maxSPyNds, p%numPylons, 'SPyOmegas', errStat2, errMsg2 )
             call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
@@ -3259,7 +3382,7 @@ subroutine Init_KiteSystem(dt_c, numFlaps, numPylons, numComp, numCompNds, modFl
             call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
          call AllocAry( m%SHSAccs, 3, p%numSHSNds, 'SHSAccs', errStat2, errMsg2 )
             call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
-         call AllocAry( m%PHSAccs, 3, p%numFusNds, 'PHSAccs', errStat2, errMsg2 )
+         call AllocAry( m%PHSAccs, 3, p%numPHSNds, 'PHSAccs', errStat2, errMsg2 )
             call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
          call AllocAry( m%SPyAccs, 3, maxSPyNds, p%numPylons, 'SPyAccs', errStat2, errMsg2 )
             call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
@@ -3363,7 +3486,7 @@ end subroutine Init_KiteSystem
     
 subroutine AssRes_OnShore( t_c, isInitialTime_c, WindPt_c, WindPtVel_c, AnchorPt, FusO_c, FusODCM_c, FusOv_c, FusOomegas_c, FusOacc_c, FusOalphas_c, numNodePts_c, nodePts_c, &
                           nodeDCMs_c, nodeVels_c, nodeOmegas_c, nodeAccs_c,  numRtrPts_c, rtrPts_c, &
-                          rtrDCMs_c, rtrVels_c, rtrOmegas_c, rtrAccs_c, rtrAlphas_c, nodeLoads_c, rtrLoads_c, errStat, errMsg ) 
+                          rtrDCMs_c, rtrVels_c, rtrOmegas_c, rtrAccs_c, rtrAlphas_c, PtfmO, PtfmOv, nodeLoads_c, rtrLoads_c, ptfmLoads_c, errStat, errMsg ) 
 
    real(C_DOUBLE),         intent(in   ) :: t_c                          !  simulation time for the current timestep (s)
    integer(C_INT),         intent(in   ) :: isInitialTime_c              !  1 = first time KFAST_AssRes has been called for this particular timestep, 0 = otherwise
@@ -3393,9 +3516,13 @@ subroutine AssRes_OnShore( t_c, isInitialTime_c, WindPt_c, WindPtVel_c, AnchorPt
    real(C_DOUBLE),         intent(in   ) :: rtrVels_c(numRtrPts_c*3)     !  Translational velocity of the nacelle (RRP) in global coordinates. (m/s)
    real(C_DOUBLE),         intent(in   ) :: rtrOmegas_c(numRtrPts_c*3)   !  Rotational velocity of the nacelle (RRP) in global coordinates. (rad/s)
    real(C_DOUBLE),         intent(in   ) :: rtrAccs_c(numRtrPts_c*3)     !  Translational accelerations of the nacelle (RRP) in global coordinates. (m/s^2)
-   real(C_DOUBLE),         intent(in   ) :: rtrAlphas_c(numRtrPts_c*3)   !  Rotational accelerations of the nacelle (RRP) in global coordinates. (rad/s^2)
+   real(C_DOUBLE),         intent(in   ) :: rtrAlphas_c(numRtrPts_c*3)   !  Rotational accelerations of the nacelle (RRP) in global coordinates. (rad/s^2)  
+   real(ReKi),             intent(in   ) :: PtfmO(3)                     !  Current timestep position of the Platform reference point, expressed in global coordinates. (m) 
+   real(ReKi),             intent(in   ) :: PtfmOv(3)                    !  Current timestep velocity of the Platform reference point, expressed in global coordinates. (m/s)
+
    real(C_DOUBLE),         intent(  out) :: nodeLoads_c(numNodePts_c*6)  !  KiteFAST loads (3 forces + 3 moments) in global coordinates ( N, N-m ) at the MBDyn structural nodes.  Sequence follows the pattern used for MBDyn structural node array.  Returned from KiteFAST to MBDyn.
    real(C_DOUBLE),         intent(  out) :: rtrLoads_c(numRtrPts_c*6)    !  Concentrated reaction loads at the nacelles on the pylons at the RRPs in global coordinates.  Length is 6 loads per rotor * number of RRPs. Returned from KiteFAST to MBDyn.
+   real(C_DOUBLE),         intent(inout) :: ptfmLoads_c(6)               !  Concentrated loads at the plaform reference pont in global coordinates.  Returned from KiteFAST to MBDyn.
    integer(IntKi),         intent(inout) :: errStat                      ! Error code coming from KiteFAST
    character(ErrMsgLen),   intent(inout) :: errMsg                       ! Error message
    
@@ -3584,7 +3711,19 @@ subroutine AssRes_OnShore( t_c, isInitialTime_c, WindPt_c, WindPtVel_c, AnchorPt
       call Transfer_Line2_to_Point( m%mbdWngMotions, m%MD_Tether%u(1)%PtFairleadDisplacement(1), m%MD_L2_2_P, errStat2, errMsg )
          if (errStat >= AbortErrLev ) return
 
+      if ( size(m%MD_Tether%u(1)%PtFairleadDisplacement,1) == 2 ) then
+         
+         ! Transfer Platform body motions to the tether fairlead attached to that platform
+         m%mbdPtfmMotions%TranslationDisp(:,1) = PtfmO - m%mbdPtfmMotions%Position(:,1)
+         m%mbdPtfmMotions%TranslationVel (:,1) = PtfmOv       
+         m%mbdPtfmLoads%TranslationDisp  (:,1) = m%mbdPtfmMotions%TranslationDisp(:,1)
 
+         call Transfer_Point_to_Point( m%mbdPtfmMotions, m%MD_Tether%u(1)%PtFairleadDisplacement(2), m%mbdPtfm_P_2_MD_P, errStat2, errMsg2 )
+            call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
+         if (errStat >= AbortErrLev ) return
+         
+      end if
+         
       call MD_CopyContState( OtherSt%MD_Tether%x, OtherSt%MD_Tether%x_copy, MESH_NEWCOPY, errStat2, errMsg2 )
             call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
 
@@ -3598,7 +3737,8 @@ subroutine AssRes_OnShore( t_c, isInitialTime_c, WindPt_c, WindPtVel_c, AnchorPt
 
 !print *, "Beginning MD_CalcOutput"  
 !print *, " at time="//trim(num2lstr(t))
-!print *, "m%MD_Tether%u(1)%PtFairLeadDisplacement%Position(1,1): "//trim(num2lstr(m%MD_Tether%u(1)%PtFairLeadDisplacement%Position(1,1)))//", m%MD_Tether%u(1)%PtFairLeadDisplacement%Position(2,1): "//trim(num2lstr(m%MD_Tether%u(1)%PtFairLeadDisplacement%Position(2,1)))//", m%MD_Tether%u(1)%PtFairLeadDisplacement%Position(3,1): "//trim(num2lstr(m%MD_Tether%u(1)%PtFairLeadDisplacement%Position(3,1)))
+!print *, "m%MD_Tether%u(1)%PtFairLeadDisplacement%Position(1,1): "//trim(num2l
+ !     str(m%MD_Tether%u(1)%PtFairLeadDisplacement%Position(1,1)))//", m%MD_Tether%u(1)%PtFairLeadDisplacement%Position(2,1): "//trim(num2lstr(m%MD_Tether%u(1)%PtFairLeadDisplacement%Position(2,1)))//", m%MD_Tether%u(1)%PtFairLeadDisplacement%Position(3,1): "//trim(num2lstr(m%MD_Tether%u(1)%PtFairLeadDisplacement%Position(3,1)))
 !print *, "m%MD_Tether%u(1)%PtFairLeadDisplacement%Position(1,2): "//trim(num2lstr(m%MD_Tether%u(1)%PtFairLeadDisplacement%Position(1,2)))//", m%MD_Tether%u(1)%PtFairLeadDisplacement%Position(2,2): "//trim(num2lstr(m%MD_Tether%u(1)%PtFairLeadDisplacement%Position(2,2)))//", m%MD_Tether%u(1)%PtFairLeadDisplacement%Position(3,2): "//trim(num2lstr(m%MD_Tether%u(1)%PtFairLeadDisplacement%Position(3,2)))
 !print *, "m%MD_Tether%u(1)%PtFairLeadDisplacement%TranslationDisp(1,1): "//trim(num2lstr(m%MD_Tether%u(1)%PtFairLeadDisplacement%TranslationDisp(1,1)))//", m%MD_Tether%u(1)%PtFairLeadDisplacement%TranslationDisp(2,1): "//trim(num2lstr(m%MD_Tether%u(1)%PtFairLeadDisplacement%TranslationDisp(2,1)))//", m%MD_Tether%u(1)%PtFairLeadDisplacement%TranslationDisp(3,1): "//trim(num2lstr(m%MD_Tether%u(1)%PtFairLeadDisplacement%TranslationDisp(3,1)))
 !print *, "m%MD_Tether%u(1)%PtFairLeadDisplacement%TranslationDisp(1,2): "//trim(num2lstr(m%MD_Tether%u(1)%PtFairLeadDisplacement%TranslationDisp(1,2)))//", m%MD_Tether%u(1)%PtFairLeadDisplacement%TranslationDisp(2,2): "//trim(num2lstr(m%MD_Tether%u(1)%PtFairLeadDisplacement%TranslationDisp(2,2)))//", m%MD_Tether%u(1)%PtFairLeadDisplacement%TranslationDisp(3,2): "//trim(num2lstr(m%MD_Tether%u(1)%PtFairLeadDisplacement%TranslationDisp(3,2)))
@@ -3615,6 +3755,16 @@ subroutine AssRes_OnShore( t_c, isInitialTime_c, WindPt_c, WindPtVel_c, AnchorPt
          OtherSt%totalFairLeadLoads = 0.0_ReKi
          do i = 1, numFairLeads
             OtherSt%totalFairLeadLoads = OtherSt%totalFairLeadLoads + m%MD_Tether%y%PtFairLeadLoad(1)%Force(:,i) 
+         end do
+      end if
+      if ( size(m%MD_Tether%u(1)%PtFairleadDisplacement,1) == 2 ) then
+         ! Platform body loads from tether system
+         call Transfer_Point_to_Point( m%MD_Tether%y%PtFairLeadLoad(2), m%mbdPtfmLoads, m%MD_P_2_mbdPtfm_P, errStat2, errMsg2, m%MD_Tether%u(1)%PtFairleadDisplacement(2), m%mbdPtfmLoads )
+            call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
+         if (errStat >= AbortErrLev ) return
+         do i = 1,3
+             ptfmLoads_c(i)   = ptfmLoads_c(i)   + m%mbdPtfmLoads%Force(i,1) 
+             ptfmLoads_c(i+3) = ptfmLoads_c(i+3) + m%mbdPtfmLoads%Moment(i,1) 
          end do
       end if
       

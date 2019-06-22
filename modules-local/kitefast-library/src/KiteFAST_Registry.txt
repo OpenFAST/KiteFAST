@@ -84,6 +84,8 @@ typedef   ^    MiscVarType    MeshType         mbdSHSLoads      -    -   -  "" -
 typedef   ^    MiscVarType    MeshType         mbdPHSLoads      -    -   -  "" -
 typedef   ^    MiscVarType    MeshType         mbdSPyLoads     {:}   -   -  "" -
 typedef   ^    MiscVarType    MeshType         mbdPPyLoads     {:}   -   -  "" -
+typedef   ^    MiscVarType    MeshType         mbdPtfmMotions   -    -   -  "" -
+typedef   ^    MiscVarType    MeshType         mbdPtfmLoads     -    -   -  "" -
 typedef   ^    MiscVarType    MeshMapType      Fus_L2_L2        -    -   -  "" - 
 typedef   ^    MiscVarType    MeshMapType      SWn_L2_L2        -    -   -  "" - 
 typedef   ^    MiscVarType    MeshMapType      PWn_L2_L2        -    -   -  "" - 
@@ -102,6 +104,8 @@ typedef   ^    MiscVarType    MeshMapType      SPy_P_P         {:}   -   -  "" -
 typedef   ^    MiscVarType    MeshMapType      PPy_P_P         {:}   -   -  "" - 
 typedef   ^    MiscVarType    MeshMapType      MD_L2_2_P        -    -  - "" -
 typedef   ^    MiscVarType    MeshMapType      MD_P_2_P         -    -  - "" -
+typedef   ^    MiscVarType    MeshMapType      mbdPtfm_P_2_MD_P -    -  - "" -
+typedef   ^    MiscVarType    MeshMapType      MD_P_2_mbdPtfm_P -    -  - "" -
 typedef   ^    MiscVarType    ReKi             FusO          {3}     -  - "" m
 typedef   ^    MiscVarType    ReKi             SWnO          {3}     -  - "" m
 typedef   ^    MiscVarType    ReKi             PWnO          {3}     -  - "" m
