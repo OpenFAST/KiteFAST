@@ -941,6 +941,33 @@ void ModuleKiteFASTOS::_AssRes(doublereal *node_loads, doublereal *rotor_loads, 
   ground_station_accs[1] = vec3_ground_station_accs[1];
   ground_station_accs[2] = vec3_ground_station_accs[2];
 
+#ifdef DEBUGUDE
+  silent_cout("****** inputs to KFAST_OS_AssRes" << std::endl);
+  silent_cout("platform_position: " << platform_position[0] << "\t" << platform_position[1] << "\t" << platform_position[2] << std::endl);
+  silent_cout("platform_dcm: " << platform_dcm[0] << "\t" << platform_dcm[1] << "\t" << platform_dcm[2] << std::endl);
+  silent_cout("              " << platform_dcm[3] << "\t" << platform_dcm[4] << "\t" << platform_dcm[5] << std::endl);
+  silent_cout("              " << platform_dcm[6] << "\t" << platform_dcm[7] << "\t" << platform_dcm[8] << std::endl);
+  silent_cout("platform_vels: " << platform_vels[0] << "\t" << platform_vels[1] << "\t" << platform_vels[2] << std::endl);
+  silent_cout("platform_omegas: " << platform_omegas[0] << "\t" << platform_omegas[1] << "\t" << platform_omegas[2] << std::endl);
+  silent_cout("platform_accs: " << platform_accs[0] << "\t" << platform_accs[1] << "\t" << platform_accs[2] << std::endl);
+  silent_cout("platform_alphas: " << platform_alphas[0] << "\t" << platform_alphas[1] << "\t" << platform_alphas[2] << std::endl);
+  silent_cout("platform_imu_position: " << platform_imu_position[0] << "\t" << platform_imu_position[1] << "\t" << platform_imu_position[2] << std::endl);
+  silent_cout("platform_imu_dcm: " << platform_imu_dcm[0] << "\t" << platform_imu_dcm[1] << "\t" << platform_imu_dcm[2] << std::endl);
+  silent_cout("                  " << platform_imu_dcm[3] << "\t" << platform_imu_dcm[4] << "\t" << platform_imu_dcm[5] << std::endl);
+  silent_cout("                  " << platform_imu_dcm[6] << "\t" << platform_imu_dcm[7] << "\t" << platform_imu_dcm[8] << std::endl);
+  silent_cout("platform_imu_vels: " << platform_imu_vels[0] << "\t" << platform_imu_vels[1] << "\t" << platform_imu_vels[2] << std::endl);
+  silent_cout("platform_imu_omegas: " << platform_imu_omegas[0] << "\t" << platform_imu_omegas[1] << "\t" << platform_imu_omegas[2] << std::endl);
+  silent_cout("platform_imu_accs: " << platform_imu_accs[0] << "\t" << platform_imu_accs[1] << "\t" << platform_imu_accs[2] << std::endl);
+  silent_cout("ground_station_position: " << ground_station_position[0] << "\t" << ground_station_position[1] << "\t" << ground_station_position[2] << std::endl);
+  silent_cout("ground_station_dcm: " << ground_station_dcm[0] << "\t" << ground_station_dcm[1] << "\t" << ground_station_dcm[2] << std::endl);
+  silent_cout("ground_station_dcm: " << ground_station_dcm[0] << "\t" << ground_station_dcm[1] << "\t" << ground_station_dcm[2] << std::endl);
+  silent_cout("                    " << ground_station_dcm[3] << "\t" << ground_station_dcm[4] << "\t" << ground_station_dcm[5] << std::endl);
+  silent_cout("                    " << ground_station_dcm[6] << "\t" << ground_station_dcm[7] << "\t" << ground_station_dcm[8] << std::endl);
+  silent_cout("ground_station_vels: " << ground_station_vels[0] << "\t" << ground_station_vels[1] << "\t" << ground_station_vels[2] << std::endl);
+  silent_cout("ground_station_omegas: " << ground_station_omegas[0] << "\t" << ground_station_omegas[1] << "\t" << ground_station_omegas[2] << std::endl);
+  silent_cout("ground_station_accs: " << ground_station_accs[0] << "\t" << ground_station_accs[1] << "\t" << ground_station_accs[2] << std::endl);
+#endif
+
   int error_status;
   char error_message[INTERFACE_STRING_LENGTH];
   KFAST_OS_AssRes(&t,
@@ -1060,12 +1087,16 @@ SubVectorHandler &ModuleKiteFASTOS::AssRes(SubVectorHandler &WorkVec, doublereal
     WorkVec.Add(6 * node_count_no_rotors + 6 * i + 4, moment);
   }
 
+#ifdef DEBUGUDE
+  silent_cout("****** outputs from KFAST_OS_AssRes" << std::endl);
+  silent_cout("platform_loads: " << platform_loads[0] << "\t" << platform_loads[1] << "\t" << platform_loads[2] << "\t" << platform_loads[3] << "\t" << platform_loads[4] << "\t" << platform_loads[5] << std::endl);
+#endif
+
   integer first_index = platform_node.pNode->iGetFirstMomentumIndex();
   for (int j = 1; j <= 6; j++)
   {
     WorkVec.PutRowIndex(6 * (node_count_no_rotors + n_rotor_points) + j, first_index + j);
   }
-  silent_cout("platform_loads: " << platform_loads[0] << "\t" << platform_loads[1] << "\t" << platform_loads[2] << std::endl);
   Vec3 force = Vec3(platform_loads[0], platform_loads[1], platform_loads[2]);
   Vec3 moment = Vec3(platform_loads[3], platform_loads[4], platform_loads[5]);
   WorkVec.Add(6 * (node_count_no_rotors + n_rotor_points) + 1, force);

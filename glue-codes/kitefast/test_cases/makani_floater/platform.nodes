@@ -8,19 +8,19 @@ structural: platform_root_node + 0, dynamic,
     reference, global,   0.000,   0.000,   0.000;
 
 structural: platform_root_node + 1, dynamic,
-    reference, global,   1.000,   1.000,   1.000,
+    reference, global,   0.000,   0.000,   0.000,
     reference, global,eye,
     reference, global,   0.000,   0.000,   0.000,
     reference, global,   0.000,   0.000,   0.000;
 
 structural: platform_root_node + 2, dynamic,
-    reference, global,   2.000,   2.000,   2.000,
+    reference, global,   0.000,   0.000,   0.000,
     reference, global,eye,
     reference, global,   0.000,   0.000,   0.000,
     reference, global,   0.000,   0.000,   0.000;
 
 structural: platform_root_node + 3, dynamic,
-    reference, global,   3.000,   3.000,   3.000,
+    reference, global,   0.000,   0.000,   0.000,
     reference, global,eye,
     reference, global,   0.000,   0.000,   0.000,
     reference, global,   0.000,   0.000,   0.000;

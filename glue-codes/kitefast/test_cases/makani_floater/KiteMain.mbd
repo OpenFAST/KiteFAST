@@ -11,7 +11,7 @@ end: data;
 
 begin: initial value;
     initial time: 0.0;
-    final time: 0.5;
+    final time: 10.0;
     time step: 1e-3;
     tolerance: 1e-3;
     max iterations: 60;
@@ -19,6 +19,8 @@ begin: initial value;
     derivatives max iterations: 200;
     derivatives coefficient: 1e-4;
     linear solver: naive, colamd, mt, 1, pivot factor, 1e-8;
+    # output: iterations;
+    # output: residual;
 end: initial value;
 
 
@@ -41,6 +43,7 @@ begin: control data;
     joints: 3;
     gravity;
     loadable elements: 1;
+    #forces: 1;
 end: control data;
 
 
@@ -53,13 +56,16 @@ begin: elements;
 
     gravity: uniform,   0.000,   0.000,   1.000, const, -9.81;
 
+    body: 1, platform_root_node,
+        7.130400E+05,
+        reference, node,   0.000,   0.000,   -29.06151,
+        sym,    2.452533E+08,      0.000,      0.000,
+                            2.452513E+08,      0.000,
+                                        1.534000E+06;
+
     inertia: 1, body, all;
 
-    body: 1, platform_root_node, 1.0,
-        reference, node,   0.000,   0.000,   0.000,
-        sym,    1.000,      0.000,      0.000,
-                            1.000,      0.000,
-                                        1.000;
+    #force: 1, absolute, platform_root_node, 0.0, 0.0, 1.0, null, const, 7.453E+06;
 
     joint: 1, total joint,
         platform_root_node + 0,
@@ -101,7 +107,7 @@ begin: elements;
         simulation_type,
             3,
         fast_submodule_flags,
-            1,
+            0,
             0,
             0,
             0,
@@ -112,8 +118,8 @@ begin: elements;
             "kiteInflowWind.dat",
             "m600-MoorDyn.dat",
             "../../../../build/modules-local/kitefast-controller/libkitefastcontroller_controller.so",
-            "../5MW_OC3Spar_DLL_WTurb_WavesIrr/NRELOffshrBsline5MW_OC3Hywind_HydroDyn.dat",
-            "",
+            "hydrodyn.inp",
+            "moordyn_mooring.inp",
         output_file_root,
             "KiteFast",
         print_kitefast_summary_file,
@@ -121,7 +127,7 @@ begin: elements;
         time_step,
             1e-3,
         time_max,
-            0.5,
+            10.0,
         gravity,
             9.81,
         kiteaerodyn_interpolation_order,
