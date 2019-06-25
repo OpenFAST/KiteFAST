@@ -13,7 +13,7 @@ begin: initial value;
     initial time: 0.0;
     final time: 60.0;
     time step: 1e-3;
-    tolerance: 1e-3;
+    tolerance: 10;
     max iterations: 10, at most;
     derivatives tolerance: 10e0;
     derivatives max iterations: 200;

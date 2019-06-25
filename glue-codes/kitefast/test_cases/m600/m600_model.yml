@@ -40,7 +40,7 @@ simulation_controls:
             0.5
 
     tolerance:
-        1e-3
+        10
 
     max_iterations:
         60
