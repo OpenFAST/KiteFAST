@@ -285,6 +285,7 @@ subroutine VSM_Compute_Influence(CtrlPtMod, KinVisc,  numVolElem, numElem, inPtA
    real(ReKi)  :: alpha0, r1, r2, Factor2D, e11,  e12,  r1_prime, r2_prime,  Factor1, Factor2, FactorAB, r1p, r2p
    real(ReKi)  :: tmp1cZeta, tmp2cZeta, tmp1c0,tmp1c2, U_Inf_hat(3), U_Inf_ave(3)
    integer(IntKi)                           :: errStat2
+   logical     :: EnabUABCor
    character(ErrMsgLen)                     :: errMsg2
    character(*), parameter                  :: routineName = 'VSM_Compute'
 
@@ -510,15 +511,23 @@ subroutine VSM_Compute_Influence(CtrlPtMod, KinVisc,  numVolElem, numElem, inPtA
          
             tmp1c0_v = cross_product(r1_v,r0_v)
             tmp1c0   = TwoNorm(tmp1c0_v)
+
+            !Check if the vortex core correction will be enabled for the bound vortex
+            EnabUABCor = .FALSE.
+            IF ((TwoNorm(r2_v) < e2) .OR. (TwoNorm(r1_v) < e2)) THEN 
+               EnabUABCor = .TRUE.
+            ELSEIF ( (dot_product(r1_v,r0_v) > 0 ) .AND. (dot_product(r2_v,r0_v) < 0 ) .AND. ( TwoNorm(cross_product( r1_v, r0_v ))/r0 < e2 ) ) THEN
+               EnabUABCor = .TRUE.
+            ENDIF
       
-            if ( tmp1c0  > r0*e2 ) then
+            if ( EnabUABCor .eqv. .FALSE. ) then
                tmp1c2_v = cross_product(r1_v,r2_v)
                tmp1c2   = dot_product(tmp1c2_v,tmp1c2_v)
                Phi_AB_v = ( (dot_product( r0_v, (r1_hat - r2_hat) ) ) / (4.0*Pi*tmp1c2) ) * tmp1c2_v  
             else if ( EqualRealNos(tmp1c0, 0.0_ReKi) ) then
                Phi_AB_v = 0.0_ReKi
             else
-            
+               r0_hat          = r0_v/TwoNorm(r0_v)
                r1p_prime_v     = dot_product(r1_v,r0_hat)*r0_hat
                cp_v            = cross_product(r1_v,r0_v)
                tmp             = TwoNorm(cp_v)
