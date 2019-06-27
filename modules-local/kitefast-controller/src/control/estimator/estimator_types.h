@@ -590,10 +590,10 @@ typedef struct {
   // Tether force estimate in Cartesian coordinates [N].
   Vec3 vector;
   // Tether force estimate in spherical coordinates.
-  TetherForceSph sph;
+  TetherForceSph sph; // <- THIS MATTERS
   // Low-pass filtered tension [N].
-  double tension_f;
-  Vec3 vector_f;
+  double tension_f; 
+  Vec3 vector_f; 
   // Port bridle force estimate in Cartesian coordinates [N].
   Vec3 bridle_port_vector;
   // Starboard bridle force estimate in Cartesian coordinates [N].

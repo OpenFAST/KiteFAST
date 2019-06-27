@@ -16,21 +16,44 @@
 // ControlGlobal is a work around to avoid having to store variables in Kitefast
 // The control global struct is defined in the init function, and then called throughout the step function
 // Control Global comprises of existing CSim structrues (StateEstimate, ControlState, ControlOutput, FlightStatus)
-ControlGlobal controlglob = {	.flight_status = {	
+ControlGlobal controlglob = {	.state_est = {
+									.dcm_g2b = {-0.8610, 0.2349, 0.4511,0.1192, -0.7690, 0.6280,0.4944, 0.5945, 0.6341}, //first step of crosswind
+    								.pqr_f = {0.2524, 0.3759, -0.0398},
+    								.acc_norm_f = 21.00,
+    								.Xg = {-125.4900, -378.4510, -171.1080},
+    								.Vg = {-53.9010, 3.3290, 29.7070},
+    								.Vb = {61.4940, 2.4386, -3.3843},
+    								.Ag = {-0.2503,-2.3947,0.2594},
+    								.Ab_f = {-0.4016,-0.6470,-1.0060},
+    								.rho = 1.0750,
+    								.apparent_wind.sph_f.v = 54.46,
+									.apparent_wind.sph_f.alpha = 0.0810,
+									.apparent_wind.sph_f.beta = -0.414,
+									.tether_force_b.vector_f.x = 4176.1,
+									.tether_force_b.vector_f.y = -48042,
+									.tether_force_b.vector_f.z =129857.48,
+									.tether_force_b.valid = true,
+    								.tether_force_b.sph.tension = 139964.4471,
+									.tether_force_b.sph.roll = 0.3534,
+									.tether_force_b.sph.pitch = 0.0338,
+    								.wind_g.vector.x = -7.6604,
+									.wind_g.vector.y = -6.4279,
+									.wind_g.vector.z = 0.000,
+									.wind_g.dir_f = -2.4435,
+								},
+								.flight_status = {	
 									.flight_mode = kFlightModeCrosswindNormal,
 								  	.last_flight_mode = kFlightModeCrosswindNormal,
 									.flight_mode_first_entry = false },
 								.state = {
 									.motor_state = {
-  										.rotor_omegas = {30.0, -30.0, 30.0, -30.0, 30.0, -30.0, 30.0, -30.0},
-  										.rotor_torques = {0},
+  										//.rotor_omegas = {30.0, -30.0, 30.0, -30.0, 30.0, -30.0, 30.0, -30.0},
+  										.rotor_omegas = {-220, 200, 150, -75, -150, 240, 175, -100},
+  										.rotor_torques = {-150, 200, 150, -75, -160, 240, 175, -100},
 									}
 								},
 								.raw_control_output = {
-									.rotors = {
-										0,1,2,3,4,5,6,7
-									}
-
+									.rotors = {0.0000, -0.0528, -0.0528, 0.0000, -0.1472, -0.1472, -0.2684, -0.2684}
 								}
 							}; 
 // controller Init function -> Highest Level of Shared library
@@ -139,8 +162,6 @@ void controller_init(double Requested_dT, int numFlaps, int numPylons, double ge
 // TODO:
 // 		- Fill in kFlapA_c summary above
 // 		- Connect with new Inputs/Outputs from Kitefast (waiting on Update)
-
-
 void controller_step(double t, double dcm_g2b_c[], double pqr_c[], double *acc_norm_c,
 					 double Xg_c[], double Vg_c[], double Vb_c[], double Ag_c[],
 					 double Ab_c[], double *rho_c, double apparent_wind_c[],
@@ -159,8 +180,7 @@ void controller_step(double t, double dcm_g2b_c[], double pqr_c[], double *acc_n
 	//Convert the inputs from controller_step and assins the values that correspond to the inputs of CSim
 
 #ifdef DEBUG //DEBUG preproc found in kfc.h
-	printf(" debug - t = %f\n",t);
-    printf(" debug - ACTUALLY STEPPING \n");
+	printf(" \n\ndebug - t = %f\n",t);
 #endif
 
 	AssignInputs(dcm_g2b_c, pqr_c, acc_norm_c,
@@ -172,16 +192,16 @@ void controller_step(double t, double dcm_g2b_c[], double pqr_c[], double *acc_n
 
 	ControlLog control_log;
 	control_log.time = t;
-	control_log.stateEstLog = controlglob.state_est; 
+	control_log.stateEstLogPreStep = controlglob.state_est; 
 	// Other modes to be added here
-	#if DEBUG
-		printf("   debug marker - pre crosswindstep \n");
-	#endif
+	//#if DEBUG
+	//	printf("   debug marker - pre crosswindstep \n");
+	//#endif
 	CrosswindStep(&controlglob.flight_status, &controlglob.state_est, &GetControlParamsUnsafe()->crosswind,
 				  &controlglob.state.crosswind, &controlglob.raw_control_output);
-	#if DEBUG
-		printf("   debug marker - post crosswindstep \n");
-	#endif
+	//#if DEBUG
+	//	printf("   debug marker - post crosswindstep \n");
+	//#endif
 	// Motor Control Step
 	MotorControlStep(GetMotorParamsUnsafe(), 
 		&(GetSystemParamsUnsafe()->rotors[0]), 
@@ -201,6 +221,7 @@ void controller_step(double t, double dcm_g2b_c[], double pqr_c[], double *acc_n
 	// Saves all variables for this time step in ControlLog struct to txt file for analysis
 	control_log.controlOutputLog = controlglob.raw_control_output;
 	control_log.motor_state = controlglob.state.motor_state;
+	control_log.stateEstLogPostStep = controlglob.state_est;
 	ControlLogEntry(&control_log);
 
 	// Connects values that are in ControlOutput data struct to the final outputs that Kitefast is expecting.

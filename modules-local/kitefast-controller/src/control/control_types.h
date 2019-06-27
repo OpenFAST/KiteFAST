@@ -133,6 +133,10 @@ typedef struct {
   // When this is set by one of the controllers, ControlOutputStep will hold the
   // value of gs_azi_cmd.
   bool hold_gs_azi_cmd;
+
+  double loop_angle;
+  LoopDirection loop_dir;
+
 } ControlOutput;
 
 // Common parameters.
