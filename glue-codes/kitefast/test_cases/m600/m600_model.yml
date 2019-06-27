@@ -11,7 +11,7 @@ simulation_controls:
     fast_submodules:
         kiteaerodyn: true
         inflowwind: true
-        moordyn: false
+        moordyn: true 
         controller: true
 
     fast_submodule_input_files:
@@ -37,7 +37,7 @@ simulation_controls:
             1e-3
 
         final:
-            0.5
+            60
 
     tolerance:
         10
@@ -81,8 +81,9 @@ simulation_controls:
 
         orientation:
             # [roll, pitch, yaw]
-            [136.84688687, -29.63091069, -7.88157559]
-
+            #[-43.1531, -29.63091069, 7.88157559]
+            [-135.2768,-26.8122,15.2612]
+            #[3.8921,0.5236,0.1375]
         velocity:
             translational:
                 # [x, y, z]
@@ -90,7 +91,7 @@ simulation_controls:
 
             rotational:
                 # [roll, pitch, yaw]
-                [0.01984969, -0.003768248, 0.002413641]
+                [0.1474, -0.2842, -0.3232]
 
 keypoints:
     # component label                    X      Y      Z
@@ -123,7 +124,7 @@ fuselage:
         - [-6.917, 0.0, stabilizer/vertical, 0.0]    # aft
 
     proportional_stiffness_constant:
-        0.01
+        0.00
 
     stiffness_matrix:
         #  EA                                                                         GJ             EIcc      EInn
@@ -536,3 +537,6 @@ output:
         - "SWn1TDy"
         - "SWn1TDz"
         - "PP12FRc"
+        - "KiteRoll"
+        - "KitePitch"
+        - "KiteYaw"
