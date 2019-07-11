@@ -745,7 +745,7 @@ subroutine VSM_Solve( t, n, u, p, z, OtherState, m, errStat, errMsg )
    
    integer(IntKi)   :: i, k
    real(ReKi)       :: dz
-   type(VSM_ConstraintStateType)  :: zPerturb, z_residual, z_resPerturb
+   type(VSM_ConstraintStateType)  :: z_tmp, zPerturb, z_residual, z_resPerturb
    real(ReKi)       :: deltazMag
    real(ReKi), allocatable      :: deltaz(:)
    real(ReKi), allocatable      :: dZdz(:,:), dZdz_factor(:,:)
@@ -777,11 +777,15 @@ subroutine VSM_Solve( t, n, u, p, z, OtherState, m, errStat, errMsg )
       return
    end if
    
+      ! Obtain copy of states in case the solution does not converge, that way the previous solution will be used for the current time step.
+   call VSM_CopyConstrState( z, z_tmp, 0, errStat, errMsg )
+   
    do 
       if ( k == p%VSMMaxIter ) then
          ErrStat = ErrID_Warn
-         errMsg  = 'VSM_UpdateStates: Maximum number of Newton iterations of '//trim(num2lstr(p%VSMMaxIter))//' has been reached before convergence.  The residual, '//trim(num2lstr(deltazMag))//', is larger than the target threshold of, '//trim(num2lstr(p%VSMToler))//'.'         
+         errMsg  = 'VSM_UpdateStates: Maximum number of Newton iterations of '//trim(num2lstr(p%VSMMaxIter))//' has been reached before convergence.  The residual, '//trim(num2lstr(deltazMag))//', is larger than the target threshold of, '//trim(num2lstr(p%VSMToler))//'. Using solution from previous timestep.'         
          call WrScr(errMsg)
+         call VSM_CopyConstrState( z_tmp, z, 0, errStat, errMsg )
          exit
       end if 
       
