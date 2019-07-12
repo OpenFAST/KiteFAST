@@ -8,7 +8,8 @@
 typedef struct {
     double time;
     ControlOutput controlOutputLog;
-    StateEstimate stateEstLog;
+    StateEstimate stateEstLogPreStep;
+    StateEstimate stateEstLogPostStep;
     MotorState motor_state;
 
 } ControlLog;

@@ -30,10 +30,10 @@ import matplotlib.pyplot as plt
 
 # user inputs
 plot_vars = ["Xg.x","Xg.y","Xg.z"] #variables to be plotted
-file_name = "unconstrained_data/controller_save_data.csv" #file name of data file
+file_name = "controller_save_data_m600.csv" #file name of data file
 time_val = 0 #inital time of data/plots
 dT = 0.01 #sec (time step)
-row_count = 451 # total rows found in .csv
+row_count = 6004 # total rows found in .csv
 header_count = 4 # total number of rows that are headers
 
 # initialize variables

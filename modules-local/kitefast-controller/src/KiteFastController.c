@@ -48,9 +48,9 @@ void kfc_dll_step(double t_c, double dcm_g2b_c[], double pqr_c[], double *acc_no
                   double CtrlSettings[],
                   int *errStat, char *errMsg)
 {
-    #ifdef DEBUG //DEBUG preproc found in kfc.h
-        printf("  debug marker - pre controller_step() \n");
-    #endif
+    //#ifdef DEBUG //DEBUG preproc found in kfc.h
+    //    printf("  debug marker - pre controller_step() \n");
+    //#endif
     //double AeroTorque[] = {};
     // Step call to Shared Library
     controller_step(t_c, dcm_g2b_c, pqr_c, acc_norm_c, 
@@ -62,7 +62,7 @@ void kfc_dll_step(double t_c, double dcm_g2b_c[], double pqr_c[], double *acc_no
                  RotorSpeed, AeroTorque,
                  errStat, errMsg);
 
-    #ifdef DEBUG //DEBUG preproc found in kfc.h
-        printf("  debug marker - post controller_step() \n");
-    #endif
+    //#ifdef DEBUG //DEBUG preproc found in kfc.h
+    //    printf("  debug marker - post controller_step() \n");
+    //#endif
 }

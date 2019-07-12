@@ -272,6 +272,8 @@ void CrosswindOutputStep(LoopDirection loop_dir, double loop_angle,
   control_output->sync.sequence = 0U;
   control_output->sync.flight_mode = -1;
 
+  control_output->loop_angle = loop_angle;
+  control_output->loop_dir = loop_dir;
   // Update telemetry.
   // ControlTelemetry *ct = GetControlTelemetry();
   // ct->crosswind.deltas = *deltas;

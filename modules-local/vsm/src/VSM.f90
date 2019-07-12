@@ -285,6 +285,7 @@ subroutine VSM_Compute_Influence(CtrlPtMod, KinVisc,  numVolElem, numElem, inPtA
    real(ReKi)  :: alpha0, r1, r2, Factor2D, e11,  e12,  r1_prime, r2_prime,  Factor1, Factor2, FactorAB, r1p, r2p
    real(ReKi)  :: tmp1cZeta, tmp2cZeta, tmp1c0,tmp1c2, U_Inf_hat(3), U_Inf_ave(3)
    integer(IntKi)                           :: errStat2
+   logical     :: EnabUABCor
    character(ErrMsgLen)                     :: errMsg2
    character(*), parameter                  :: routineName = 'VSM_Compute'
 
@@ -510,15 +511,23 @@ subroutine VSM_Compute_Influence(CtrlPtMod, KinVisc,  numVolElem, numElem, inPtA
          
             tmp1c0_v = cross_product(r1_v,r0_v)
             tmp1c0   = TwoNorm(tmp1c0_v)
+
+            !Check if the vortex core correction will be enabled for the bound vortex
+            EnabUABCor = .FALSE.
+            IF ((TwoNorm(r2_v) < e2) .OR. (TwoNorm(r1_v) < e2)) THEN 
+               EnabUABCor = .TRUE.
+            ELSEIF ( (dot_product(r1_v,r0_v) > 0 ) .AND. (dot_product(r2_v,r0_v) < 0 ) .AND. ( TwoNorm(cross_product( r1_v, r0_v ))/r0 < e2 ) ) THEN
+               EnabUABCor = .TRUE.
+            ENDIF
       
-            if ( tmp1c0  > r0*e2 ) then
+            if ( EnabUABCor .eqv. .FALSE. ) then
                tmp1c2_v = cross_product(r1_v,r2_v)
                tmp1c2   = dot_product(tmp1c2_v,tmp1c2_v)
                Phi_AB_v = ( (dot_product( r0_v, (r1_hat - r2_hat) ) ) / (4.0*Pi*tmp1c2) ) * tmp1c2_v  
             else if ( EqualRealNos(tmp1c0, 0.0_ReKi) ) then
                Phi_AB_v = 0.0_ReKi
             else
-            
+               r0_hat          = r0_v/TwoNorm(r0_v)
                r1p_prime_v     = dot_product(r1_v,r0_hat)*r0_hat
                cp_v            = cross_product(r1_v,r0_v)
                tmp             = TwoNorm(cp_v)
@@ -736,7 +745,7 @@ subroutine VSM_Solve( t, n, u, p, z, OtherState, m, errStat, errMsg )
    
    integer(IntKi)   :: i, k
    real(ReKi)       :: dz
-   type(VSM_ConstraintStateType)  :: zPerturb, z_residual, z_resPerturb
+   type(VSM_ConstraintStateType)  :: z_tmp, zPerturb, z_residual, z_resPerturb
    real(ReKi)       :: deltazMag
    real(ReKi), allocatable      :: deltaz(:)
    real(ReKi), allocatable      :: dZdz(:,:), dZdz_factor(:,:)
@@ -768,11 +777,15 @@ subroutine VSM_Solve( t, n, u, p, z, OtherState, m, errStat, errMsg )
       return
    end if
    
+      ! Obtain copy of states in case the solution does not converge, that way the previous solution will be used for the current time step.
+   call VSM_CopyConstrState( z, z_tmp, 0, errStat, errMsg )
+   
    do 
       if ( k == p%VSMMaxIter ) then
          ErrStat = ErrID_Warn
-         errMsg  = 'VSM_UpdateStates: Maximum number of Newton iterations of '//trim(num2lstr(p%VSMMaxIter))//' has been reached before convergence.  The residual, '//trim(num2lstr(deltazMag))//', is larger than the target threshold of, '//trim(num2lstr(p%VSMToler))//'.'         
+         errMsg  = 'VSM_UpdateStates: Maximum number of Newton iterations of '//trim(num2lstr(p%VSMMaxIter))//' has been reached before convergence.  The residual, '//trim(num2lstr(deltazMag))//', is larger than the target threshold of, '//trim(num2lstr(p%VSMToler))//'. Using solution from previous timestep.'         
          call WrScr(errMsg)
+         call VSM_CopyConstrState( z_tmp, z, 0, errStat, errMsg )
          exit
       end if 
       

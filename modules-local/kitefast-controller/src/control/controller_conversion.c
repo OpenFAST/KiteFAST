@@ -19,13 +19,13 @@ void AssignInputs(double dcm_g2b_c[], double pqr_c[], double *acc_norm_c,
 		printf("  dcm_g2b_c = [%0.4f, %0.4f, %0.4f],[%0.4f, %0.4f, %0.4f],[%0.4f, %0.4f, %0.4f] \n",
 					dcm_g2b_c[0], dcm_g2b_c[1], dcm_g2b_c[2], dcm_g2b_c[3], dcm_g2b_c[4], dcm_g2b_c[5], dcm_g2b_c[6], dcm_g2b_c[7], dcm_g2b_c[8]);
 		printf("  pqr_c = [%0.4f, %0.4f, %0.4f] \n",pqr_c[0],pqr_c[1],pqr_c[2]);
-		printf("  acc_norm_c = %0.4f \n", acc_norm_c);
+		printf("  acc_norm_c = %0.4f \n", *(double*)acc_norm_c);
 		printf("  Xg_c = [%0.4f, %0.4f, %0.4f] \n",Xg_c[0],Xg_c[1],Xg_c[2]);
 		printf("  Vg_c = [%0.4f, %0.4f, %0.4f] \n",Vg_c[0],Vg_c[1],Vg_c[2]);
 		printf("  Vb_c = [%0.4f, %0.4f, %0.4f] \n",Vb_c[0],Vb_c[1],Vb_c[2]);
 		printf("  Ag_c = [%0.4f, %0.4f, %0.4f] \n",Ag_c[0],Ag_c[1],Ag_c[2]);
 		printf("  Ab_c = [%0.4f, %0.4f, %0.4f] \n",Ab_c[0],Ab_c[1],Ab_c[2]);
-		printf("  rho_c = %0.4f \n", rho_c);
+		printf("  rho_c = %0.4f \n", *(double*)rho_c);
 		printf("  apparent_wind_c = [%0.4f, %0.4f, %0.4f] \n",apparent_wind_c[0],apparent_wind_c[1],apparent_wind_c[2]);
 		printf("  tether_force_c = [%0.4f, %0.4f, %0.4f] \n",tether_force_c[0],tether_force_c[1],tether_force_c[2]);
 		printf("  wind_g_c = [%0.4f, %0.4f, %0.4f] \n",wind_g_c[0],wind_g_c[1],wind_g_c[2]);
@@ -35,6 +35,7 @@ void AssignInputs(double dcm_g2b_c[], double pqr_c[], double *acc_norm_c,
 	const Mat3 dcm_g2b_tmp = { { { dcm_g2b_c[0], dcm_g2b_c[1], dcm_g2b_c[2] },
 		                     { dcm_g2b_c[3], dcm_g2b_c[4], dcm_g2b_c[5] },
 		                     { dcm_g2b_c[6], dcm_g2b_c[7], dcm_g2b_c[8] } } };
+			 
 	Mat3 dcm_g2b_t;
 	Mat3Trans(&dcm_g2b_tmp, &dcm_g2b_t);
 	memcpy(&state_est->dcm_g2b, &dcm_g2b_t, sizeof(state_est->dcm_g2b));
@@ -42,6 +43,7 @@ void AssignInputs(double dcm_g2b_c[], double pqr_c[], double *acc_norm_c,
 	//pqr_c - convert and copy value into state_est->pqr_c
 	Vec3 pqr_c_tmp = { pqr_c[0], pqr_c[1], pqr_c[2] };
 	memcpy(&state_est->pqr_f, &pqr_c_tmp, sizeof(state_est->pqr_f));
+
 
 	//acc_norm_c - convert and copy value into state_est->acc_norm_f
 	double acc_norm_f_tmp = *acc_norm_c;
@@ -77,11 +79,9 @@ void AssignInputs(double dcm_g2b_c[], double pqr_c[], double *acc_norm_c,
 	// Ab_f - convert and copy value into state_est->Ab_f
 	Vec3 Ab_tmp = { -Ab_c[0] , -Ab_c[1] , -Ab_c[2] };
 	memcpy(&state_est->Ab_f, &Ab_tmp, sizeof(state_est->Ab_f));
-
 	// rho - convert and copy value into state_est->rho
 	double rho_tmp = *rho_c;
 	memcpy(&state_est->rho, &rho_tmp, sizeof(state_est->rho));
-
 	//apparent_wind_c_v
 	// TODO - Check reference frames of kitefast vs CSim- Airspeed is coming in (-), assertions fail if airspeed is (-)
 	/*
@@ -94,7 +94,7 @@ void AssignInputs(double dcm_g2b_c[], double pqr_c[], double *acc_norm_c,
 	Mat3Vec3Mult(&dcm_g2b_t, &V_wind_tmp, &V_wind_b);
 	state_est->apparent_wind.sph_f.v = Sqrt(Square(V_wind_b.x)+Square(V_wind_b.y)+Square(V_wind_b.z));
 	state_est->apparent_wind.sph_f.alpha = atan(V_wind_b.z/V_wind_b.x);
-	state_est->apparent_wind.sph_f.beta = -asin(V_wind_b.y/state_est->apparent_wind.sph_f.v);
+	state_est->apparent_wind.sph_f.beta = -asin(V_wind_b.y/state_est->apparent_wind.sph_f.v); // remove (-) and test
 	/*
 	state_est->apparent_wind.sph_f.v = apparent_wind_c[0];
 	state_est->apparent_wind.sph_f.alpha = apparent_wind_c[1];
@@ -102,14 +102,21 @@ void AssignInputs(double dcm_g2b_c[], double pqr_c[], double *acc_norm_c,
 	state_est->apparent_wind.solution_type = kApparentWindSolutionTypePitot; // Done to clear alpha/beta fault in GetFlags()
 	*/
 	//tether_force_c
-	state_est->tether_force_b.vector_f.x = tether_force_c[0];
-	state_est->tether_force_b.vector_f.y = tether_force_c[1];
-	state_est->tether_force_b.vector_f.z = tether_force_c[2];
-	state_est->tether_force_b.valid = false;
-	// assumed tension is magnitude of tether force inputs - Jmiller - STI
-	state_est->tether_force_b.sph.tension = sqrt(pow(tether_force_c[0],2) + pow(tether_force_c[1],2) + pow(tether_force_c[2],2));
-	//wind_g_c
+	// calculate tether roll angle using force vector components:
+	double Tx = tether_force_c[0];
+	double Ty = tether_force_c[1];
+	double Tz = tether_force_c[2];
 
+	state_est->tether_force_b.sph.roll = acos((pow(Tx,2)+pow(Tz,2))/(sqrt(pow(Tx,2)+pow(Tz,2))*sqrt(pow(Tx,2)+pow(Ty,2)+pow(Tz,2))));
+	printf("  Tether Roll Angle (rad): = [%0.4f] \n",state_est->tether_force_b.sph.roll);
+	state_est->tether_force_b.vector_f.x = Tx;
+	state_est->tether_force_b.vector_f.y = Ty;
+	state_est->tether_force_b.vector_f.z = Tz;
+	state_est->tether_force_b.valid = true; 
+	// assumed tension is magnitude of tether force inputs - Jmiller - STI
+	state_est->tether_force_b.sph.tension = sqrt(pow(Tx,2) + pow(Ty,2) + pow(Tz,2));
+	printf("  Tether Tension (N): = [%0.4f] \n",state_est->tether_force_b.sph.tension);
+	//wind_g_c
 	Vec3 wind_g_csim = {wind_g_c[0],wind_g_c[1],wind_g_c[2]};
 	//Vec3 wind_g_c_csim;
 	//Mat3Vec3Mult(&dcm_kfast2csim_ground, &wind_g_c_kfast, &wind_g_c_csim);
@@ -206,7 +213,6 @@ void AssignOutputs(double CtrlSettings[], double Gen_Torque[],
 	Rotor_Speed[6] = motor_state->rotor_omegas[kMotor5];
 	Rotor_Speed[7] = motor_state->rotor_omegas[kMotor4];
 
-	double test = raw_control_output->rotors[kMotor7];
 	#if DEBUG
 		printf("  kFlapA_c = [%0.4f, %0.4f, %0.4f, %0.4f, %0.4f, %0.4f, %0.4f, %0.4f] \n",
 					CtrlSettings[0],
@@ -226,5 +232,14 @@ void AssignOutputs(double CtrlSettings[], double Gen_Torque[],
 					Gen_Torque[5],
 					Gen_Torque[6],
 					Gen_Torque[7]);
+		printf("  Rotor_Speed = [%0.4f, %0.4f, %0.4f, %0.4f, %0.4f, %0.4f, %0.4f, %0.4f] \n",
+					Rotor_Speed[0],
+					Rotor_Speed[1],
+					Rotor_Speed[2],
+					Rotor_Speed[3],
+					Rotor_Speed[4],
+					Rotor_Speed[5],
+					Rotor_Speed[6],
+					Rotor_Speed[7]);
 	#endif
 }

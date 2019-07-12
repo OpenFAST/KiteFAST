@@ -234,7 +234,7 @@ void CrosswindStep(const FlightStatus *flight_status,
   // as a fallback to the loadcell-based tether roll calculation.
   double tether_roll = state_est->tether_force_b.sph.roll;
   // tether_roll = -0.0072; // Added - jmiller
-  if (flags.loadcell_fault) {
+  if (flags.loadcell_fault) { 
    tether_roll = CurvatureToTetherRoll(
        k_aero_curr, AlphaToCL(state_est->apparent_wind.sph_f.alpha,
                               g_cont.simple_aero_model),
