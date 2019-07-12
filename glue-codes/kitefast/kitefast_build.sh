@@ -82,11 +82,11 @@ sudo apt-get autoremove
 # build KiteFAST
 if [ -d $openfast_directory ]; then
   cd $openfast_directory
-  git checkout dev
-  git pull origin dev
+  git checkout dev-offshore
+  git pull origin dev-offshore
 else
   git config --global http.sslVerify false
-  git clone -b dev https://makani-private.googlesource.com/kite_fast/sandbox
+  git clone -b dev-offshore https://makani-private.googlesource.com/kite_fast/sandbox
 fi
 if [ ! -d $openfast_directory ]; then
    echo "openfast_directory does not exist as given: "$openfast_directory
