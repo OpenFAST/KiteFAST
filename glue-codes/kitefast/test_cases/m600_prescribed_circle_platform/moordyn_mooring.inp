@@ -1,0 +1,53 @@
+--------------------- MoorDyn Input File ------------------------------------
+UMaine semi-submersible platform with MARIN Stock Turbine. Model developed at NREL for IEA Wind Research Task 30, OC5 Phase II  !!!!!!!PRELIMINARY TEST VERSION!!!!!!!
+False   Echo      - echo the input file data (flag)
+----------------------- LINE TYPES ------------------------------------------
+2        NTypes    - number of LineTypes
+Name     Diam      MassDen      EA                    BA     Can   Cat   Cdn   Cdt
+(-)       (m)      (kg/m)       (N)                 (N-s)   (-)   (-)   (-)   (-)
+wire     0.056      0.02E3     197.960E6           1e5    1.0    0.5   1.2   0.008
+chain    0.144      0.126E3    583.376E6           1e5    1.0    0.5   2.6   0.008
+---------------------- CONNECTION PROPERTIES --------------------------------
+9       NConnects - number of connections including anchors and fairleads
+Node    Type      X        Y          Z       M     V      FX   FY   FZ   CdA  CA
+(-)     (-)      (m)      (m)        (m)     (kg)  (m^3)  (kN) (kN) (kN) (m^2) (-)
+1    fixed    -460.0       0        -217.25   0     0     0     0     0    0    0  
+2    connect   -25.7538       0      -122.4496      0     0     0     0     0    0    0  
+3    vessel1   -4.250       0        -45.5     0     0     0     0     0    0    0
+4    fixed     230.0    398.370     -217.25   0     0     0     0     0    0    0  
+5    connect    13.2406     22.4945    -122.5593      0     0     0     0     0    0    0    
+6    vessel1    2.125      3.681     -45.5     0     0     0     0     0    0    0
+7    fixed     230.0   -398.37      -217.25   0     0     0     0     0    0    0  
+8    connect  13.2406    -22.4944    -122.5593      0     0     0     0     0    0    0   
+9    vessel1    2.125     -3.681     -45.5   0     0     0     0     0    0    0
+---------------------- LINE PROPERTIES --------------------------------------
+6        NLines    - number of line objects
+Line    LineType  UnstrLen  NumSegs   NodeAnch  NodeFair  Flags/Outputs
+(-)       (-)       (m)       (-)       (-)       (-)         (-)
+1         wire      80.0       10        2         3          p
+2         chain     490.0      20        1         2          p
+3         wire      80.0       10        5         6          p
+4         chain     490.0      20        4         5          p
+5         wire      80.0       10        8         9          p
+6         chain     490.0      20        7         8          p
+---------------------- SOLVER OPTIONS ---------------------------------------
+0.001     dtM       - time step to use in mooring integration (s)
+3.0e6    kbot      - bottom stiffness (Pa/m)
+3.0e8 3.0e5    cbot      - bottom damping (Pa-s/m)
+220     WtrDpth   - water depth (m)
+0.001      dtIC      - time interval for analyzing convergence during IC gen (s)
+60.0     TmaxIC    - max time for ic gen (s)
+4.0      CdScaleIC - factor by which to scale drag coefficients during dynamic relaxation (-)
+0.01    threshIC  - threshold for IC convergence (-)
+------------------------ OUTPUTS --------------------------------------------
+FairTen1
+FairTen2
+FairTen3
+FairTen4
+FairTen5
+FairTen6
+AnchTen1
+AnchTen2
+AnchTen3
+END
+------------------------- need this line --------------------------------------

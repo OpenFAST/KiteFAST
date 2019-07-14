@@ -1,0 +1,15 @@
+# Structural nodes for the rotor_assembly_port_2_upper
+
+# *** nodes ***
+structural: rotor_assembly_port_2_upper_root_node + 0, dynamic,
+    reference, mip_rf,   1.861,  -3.639,  -1.221,
+    reference, mip_rf,eye,
+    reference, mip_rf,   0.000,   0.000,   0.000,
+    reference, mip_rf,   0.000,   0.000,   0.000;
+
+structural: rotor_assembly_port_2_upper_root_node + 1, dynamic,
+    reference, mip_rf,   1.861,  -3.639,  -1.221,
+    reference, mip_rf,eye,
+    reference, mip_rf,   0.000,   0.000,   0.000,
+    reference, mip_rf,   0.000,   0.000,   0.000;
+
