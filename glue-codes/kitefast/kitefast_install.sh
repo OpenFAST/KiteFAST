@@ -106,7 +106,7 @@ if [ ! -d build ]; then
   mkdir build
 fi
 cd build
-cmake ..
+cmake .. -DDOUBLE_PRECISION=OFF
 make -j 2 kitefastlib kitefastoslib kitefastcontroller_controller
 
 # download mbdyn, configure, and build
