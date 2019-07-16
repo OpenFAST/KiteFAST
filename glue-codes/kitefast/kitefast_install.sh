@@ -133,6 +133,7 @@ destination_directory="$mbdyn_directory/modules/module-kitefastmbd"
 create_link $openfast_directory/glue-codes/kitefast/module-kitefastmbd/Makefile.inc $destination_directory/Makefile.inc
 create_link $openfast_directory/glue-codes/kitefast/module-kitefastmbd/module-kitefastmbd.cc $destination_directory/module-kitefastmbd.cc
 create_link $openfast_directory/glue-codes/kitefast/module-kitefastmbd/module-kitefastmbd.h $destination_directory/module-kitefastmbd.h
+create_link $openfast_directory/build/modules-local/kitefast-library/libkitefastlib.a $destination_directory/libkitefastlib.a
 create_link $openfast_directory/build/modules-local/nwtc-library/libnwtclibs.a $destination_directory/libnwtclibs.a
 create_link $openfast_directory/build/modules-ext/moordyn/libmoordynlib.a $destination_directory/libmoordynlib.a
 create_link $openfast_directory/build/modules-local/kiteaerodyn/libkiteaerodynlib.a $destination_directory/libkiteaerodynlib.a
