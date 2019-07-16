@@ -1,23 +1,17 @@
 title:
     simple m600 model
 
-constants:
-    gravity:
-        # SI units, global reference frame
-        # [x, y, z]
-        [0.0, 0.0, -9.81]
-
 simulation_controls:
     fast_submodules:
         kiteaerodyn: true
         inflowwind: true
-        moordyn: true 
+        moordyn_tether: true 
         controller: true
 
     fast_submodule_input_files:
         kiteaerodyn_input: "simple_m600_model.inp"
         inflowwind_input: "kiteInflowWind.dat"
-        moordyn_input: "m600-MoorDyn.dat"
+        moordyn_tether_input: "m600-MoorDyn.dat"
         controller_input: "../../../../build/modules-local/kitefast-controller/libkitefastcontroller_controller.so"
 
     print_kitefast_summary_file:
@@ -31,6 +25,12 @@ simulation_controls:
         # 1 = Linearly interpolate outputs
         # 2 = 2nd order interpolation of outputs
         0
+    
+    constants:
+        gravity:
+            # SI units, global reference frame
+            # [x, y, z]
+            [0.0, 0.0, -9.81]
 
     time:
         timestep:

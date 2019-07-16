@@ -44,6 +44,10 @@ class Input():
     def __init__(self, input_name):
         self.input_dict = yaml.load(open(input_name, "r"), Loader=yaml.FullLoader)
         self.simulation_dict = self._parse_simulation_dict(self.input_dict)
+        if "simulation_type" in self.simulation_dict:
+            self.simulation_type = self.simulation_dict["simulation_type"]
+        else:
+            self.simulation_type = 1
         self.model_dict = self._parse_model_dict(self.input_dict)
 
     def _string_to_list(self, string, delimiter=" "):
@@ -52,13 +56,9 @@ class Input():
         return list(clean)
 
     def _parse_simulation_dict(self, input_dict):
-        constants = input_dict["constants"]
         simulation_controls = input_dict["simulation_controls"]
         simulation_dict = {
             "title": input_dict["title"],
-            "constants": {
-                "gravity": constants["gravity"]
-            },
             "output": input_dict["output"]
         }
         simulation_dict.update(simulation_controls)
@@ -138,84 +138,86 @@ class Input():
                 "inertias": inertias
             }
         
-        model_dict["fuselage"] = _unpack_component_info(["fuselage"])
-        model_dict["wing"] = {
-            "number_of_flaps_per_wing": _deep_get(input_dict, ["wing", "number_of_flaps_per_wing"]),
-            "starboard": _unpack_component_info(["wing", "starboard"]),
-            "port": _unpack_component_info(["wing", "port"])
-        }
-        model_dict["horizontal_stabilizer"] = {
-            "starboard": _unpack_component_info(["stabilizer", "horizontal", "starboard"]),
-            "port": _unpack_component_info(["stabilizer", "horizontal", "port"])
-        }
-        model_dict["vertical_stabilizer"] = _unpack_component_info(["stabilizer", "vertical"])
+        if self.simulation_type < 3:
+            model_dict["fuselage"] = _unpack_component_info(["fuselage"])
+            model_dict["wing"] = {
+                "number_of_flaps_per_wing": _deep_get(input_dict, ["wing", "number_of_flaps_per_wing"]),
+                "starboard": _unpack_component_info(["wing", "starboard"]),
+                "port": _unpack_component_info(["wing", "port"])
+            }
+            model_dict["horizontal_stabilizer"] = {
+                "starboard": _unpack_component_info(["stabilizer", "horizontal", "starboard"]),
+                "port": _unpack_component_info(["stabilizer", "horizontal", "port"])
+            }
+            model_dict["vertical_stabilizer"] = _unpack_component_info(["stabilizer", "vertical"])
 
-        pylon = {}
-        component = "pylon"
-        for direction in ["starboard", "port"]:
-            this_side = _deep_get(input_dict, [component, direction])
-            if this_side == None:
-                pylon[direction] = None
-            else:
-                pylon[direction] = {}
-                for position_number in this_side.keys():
-                    path = [component, direction, position_number]
-                    pylon[direction][position_number] = _unpack_component_info(path)
-        model_dict[component] = pylon
+            pylon = {}
+            component = "pylon"
+            for direction in ["starboard", "port"]:
+                this_side = _deep_get(input_dict, [component, direction])
+                if this_side == None:
+                    pylon[direction] = None
+                else:
+                    pylon[direction] = {}
+                    for position_number in this_side.keys():
+                        path = [component, direction, position_number]
+                        pylon[direction][position_number] = _unpack_component_info(path)
+            model_dict[component] = pylon
 
-        component = "rotor_assembly"
-        rotor_assembly = {}
-        for direction in ["starboard", "port"]:
-            this_side = _deep_get(input_dict, [component, direction])
-            if this_side == None:
-                rotor_assembly[direction] = None
-            else:
-                rotor_assembly[direction] = {}
-                for position in this_side:
-                    this_position = this_side[position]
-                    rotor_assembly[direction][position] = {}
-                    for level in ["upper", "lower"]:
-                        this_component = this_position[level]
+            component = "rotor_assembly"
+            rotor_assembly = {}
+            for direction in ["starboard", "port"]:
+                this_side = _deep_get(input_dict, [component, direction])
+                if this_side == None:
+                    rotor_assembly[direction] = None
+                else:
+                    rotor_assembly[direction] = {}
+                    for position in this_side:
+                        this_position = this_side[position]
+                        rotor_assembly[direction][position] = {}
+                        for level in ["upper", "lower"]:
+                            this_component = this_position[level]
 
-                        keypoint = model_dict["keypoints"]["rotor_assembly"
-                                                        + "/" + direction
-                                                        + "/" + str(position)
-                                                        + "/" + level]
+                            keypoint = model_dict["keypoints"]["rotor_assembly"
+                                                            + "/" + direction
+                                                            + "/" + str(position)
+                                                            + "/" + level]
 
-                        rotor_mass_props = this_component["rotor"]["mass_properties"]
-                        rotor_mass = float(rotor_mass_props[0])
-                        rotor_cm_offset = float(rotor_mass_props[1])
-                        rotor_rot_inertia = float(rotor_mass_props[2])
-                        rotor_trans_inertia = float(rotor_mass_props[3])
+                            rotor_mass_props = this_component["rotor"]["mass_properties"]
+                            rotor_mass = float(rotor_mass_props[0])
+                            rotor_cm_offset = float(rotor_mass_props[1])
+                            rotor_rot_inertia = float(rotor_mass_props[2])
+                            rotor_trans_inertia = float(rotor_mass_props[3])
 
-                        nacelle_mass_props = this_component["nacelle"]["mass_properties"]
-                        nacelle_mass = float(nacelle_mass_props[0])
-                        nacelle_cm_offset = [float(m) for m in nacelle_mass_props[1:4]]
-                        nacelle_inertias = [float(m) for m in nacelle_mass_props[4:10]]
+                            nacelle_mass_props = this_component["nacelle"]["mass_properties"]
+                            nacelle_mass = float(nacelle_mass_props[0])
+                            nacelle_cm_offset = [float(m) for m in nacelle_mass_props[1:4]]
+                            nacelle_inertias = [float(m) for m in nacelle_mass_props[4:10]]
 
-                        rotor_assembly[direction][position][level] = {
-                            "keypoint": keypoint,
-                            "rotor": {
-                                "mass": rotor_mass,
-                                "cm_offset": rotor_cm_offset,
-                                "rotational_inertia": rotor_rot_inertia,
-                                "translational_inertia": rotor_trans_inertia
-                            },
-                            "nacelle": {
-                                "mass": nacelle_mass,
-                                "cm_offset": nacelle_cm_offset,
-                                "inertia": nacelle_inertias
+                            rotor_assembly[direction][position][level] = {
+                                "keypoint": keypoint,
+                                "rotor": {
+                                    "mass": rotor_mass,
+                                    "cm_offset": rotor_cm_offset,
+                                    "rotational_inertia": rotor_rot_inertia,
+                                    "translational_inertia": rotor_trans_inertia
+                                },
+                                "nacelle": {
+                                    "mass": nacelle_mass,
+                                    "cm_offset": nacelle_cm_offset,
+                                    "inertia": nacelle_inertias
+                                }
                             }
-                        }
-        model_dict[component] = rotor_assembly
+            model_dict[component] = rotor_assembly
 
-        model_dict["platform"] = {
-            "mass": input_dict["platform"]["mass_properties"][0],
-            "inertia": input_dict["platform"]["mass_properties"][1:4],
-            "node_location": input_dict["platform"]["node_location"],
-            "imu_location": input_dict["platform"]["imu_location"],
-            "wind_reference_station_location": input_dict["wind_reference_station"]["location"],
-            "ground_station_location": input_dict["ground_station"]["location"]
-        }
+        if self.simulation_type > 1:
+            model_dict["platform"] = {
+                "mass": input_dict["platform"]["mass_properties"][0],
+                "inertia": input_dict["platform"]["mass_properties"][1:4],
+                "node_location": input_dict["platform"]["node_location"],
+                "imu_location": input_dict["platform"]["imu_location"],
+                "wind_reference_station_location": input_dict["wind_reference_station"]["location"],
+                "ground_station_location": input_dict["ground_station"]["location"]
+            }
 
         return model_dict

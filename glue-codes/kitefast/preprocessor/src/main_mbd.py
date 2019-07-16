@@ -131,6 +131,7 @@ class MainMBD():
             output.write_line("    output: residual;")
         output.write_line("end: initial value;")
         output.write_empty_line()
+
         output.write_empty_line()
         output.write_line("begin: control data;")
         output.write_line("    print: all;")
@@ -139,31 +140,31 @@ class MainMBD():
         output.write_line("    include: \"KiteMain.set\";")
         output.write_empty_line()
         output.write_line("    structural nodes:")
-        for component in self.component_list:
-            output.write_line("      + {}_node_count".format(component.component_name))
-        output.write_line("      + {}  # 1 for each rotor".format(str(len(self.starboard_rotors) + len(self.port_rotors))))
-        output.write_line("      + {}  # 1 for each nacelle".format(str(len(self.starboard_rotors) + len(self.port_rotors))))
-        output.write_line("      + {}  # platform".format(str(len(self.platform.nodes))))
-        output.write_line("    ;")
-        output.write_empty_line()
-        output.write_line("    set: integer body_count =")
-        for component in self.component_list:
-            output.write_line(
-                "      + {}_body_count".format(component.component_name))
-        output.write_line("    ;")
-        output.write_empty_line()
-        output.write_line("    set: integer beam_count =")
-        for component in self.component_list:
-            output.write_line("      + {}_beam_count".format(component.component_name))
+        if self.simulation_type < 3:
+            for component in self.component_list:
+                output.write_line("      + {}_node_count".format(component.component_name))
+            output.write_line("      + {}  # 1 for each rotor".format(str(len(self.starboard_rotors) + len(self.port_rotors))))
+            output.write_line("      + {}  # 1 for each nacelle".format(str(len(self.starboard_rotors) + len(self.port_rotors))))
+        if self.simulation_type > 1:
+            output.write_line("      + {}  # platform".format(str(len(self.platform.nodes))))
         output.write_line("    ;")
         output.write_empty_line()
         output.write_line("    rigid bodies:")
-        output.write_line("      + body_count")
-        output.write_line("      + {}  # 1 for each rotor".format(str(len(self.starboard_rotors) + len(self.port_rotors))))
-        output.write_line("      + {}  # 1 for each nacelle".format(str(len(self.starboard_rotors) + len(self.port_rotors))))
-        output.write_line("      + 1  # 1 for platform")
+        if self.simulation_type < 3:
+            for component in self.component_list:
+                output.write_line("      + {}_body_count".format(component.component_name))
+            output.write_line("      + {}  # 1 for each rotor".format(str(len(self.starboard_rotors) + len(self.port_rotors))))
+            output.write_line("      + {}  # 1 for each nacelle".format(str(len(self.starboard_rotors) + len(self.port_rotors))))
+        if self.simulation_type > 1:
+            output.write_line("      + 1  # 1 for platform")
         output.write_line("    ;")
-        output.write_line("    beams: beam_count;")
+        output.write_empty_line()
+        if self.simulation_type < 3:
+            output.write_line("    beams:")
+            for component in self.component_list:
+                output.write_line("      + {}_beam_count".format(component.component_name))
+            output.write_line("    ;")
+        output.write_empty_line()
         output.write_line("    joints: {};".format(str(len(self.joints))))
         output.write_line("    gravity;")
         output.write_line("    loadable elements: 1;")
@@ -171,11 +172,13 @@ class MainMBD():
         output.write_empty_line()
         output.write_empty_line()
         output.write_line("begin: nodes;")
-        for component in self.component_list:
-            output.write_line("    include: \"{}.nodes\";".format(component.component_name))
-        for rotor in self.starboard_rotors + self.port_rotors:
-            output.write_line("    include: \"{}.nodes\";".format(rotor.component_name))
-        output.write_line("    include: \"{}.nodes\";".format(self.platform.component_name))
+        if self.simulation_type < 3:
+            for component in self.component_list:
+                output.write_line("    include: \"{}.nodes\";".format(component.component_name))
+            for rotor in self.starboard_rotors + self.port_rotors:
+                output.write_line("    include: \"{}.nodes\";".format(rotor.component_name))
+        if self.simulation_type > 1:
+            output.write_line("    include: \"{}.nodes\";".format(self.platform.component_name))
         output.write_line("end: nodes;")
         output.write_empty_line()
         output.write_empty_line()
@@ -185,46 +188,59 @@ class MainMBD():
         output.write_empty_line()
         for joint in self.joints:
             output.write_line(str(joint))
-            output.write_line("        ")
-        for component in self.component_list:
-            output.write_line("    include: \"{}.structural\";".format(component.component_name))
-        for component in self.component_list:
-            output.write_line("    include: \"{}.body\";".format(component.component_name))
-        for component in self.starboard_rotors + self.port_rotors:
-            output.write_line("    include: \"{}.elements\";".format(component.component_name))
-        output.write_line("    include: \"{}.elements\";".format(self.platform.component_name))
+            # output.write_line("        ")
+            output.write_empty_line()
+        if self.simulation_type < 3:
+            for component in self.component_list:
+                output.write_line("    include: \"{}.structural\";".format(component.component_name))
+            for component in self.component_list:
+                output.write_line("    include: \"{}.body\";".format(component.component_name))
+            for component in self.starboard_rotors + self.port_rotors:
+                output.write_line("    include: \"{}.elements\";".format(component.component_name))
+        if self.simulation_type > 1:
+            output.write_line("    include: \"{}.elements\";".format(self.platform.component_name))
         output.write_empty_line()
         output.write_line("    inertia: 1, body, all;")
         output.write_empty_line()
-        output.write_line("    user defined: 1, ModuleKiteFASTOS,")
-        output.write_line("        simulation_type,")
-        output.write_line("            {},".format(self.simulation_type))
+        if self.simulation_type == 1:
+            output.write_line("    user defined: 1, ModuleKiteFAST,")
+        else:
+            output.write_line("    user defined: 1, ModuleKiteFASTOS,")
+        if self.simulation_type > 1:
+            output.write_line("        simulation_type,")
+            output.write_line("            {},".format(self.simulation_type))
         output.write_line("        fast_submodule_flags,")
         output.write_line("            {},".format(1 if self.fast_submodules["kiteaerodyn"] is True else 0))
         output.write_line("            {},".format(1 if self.fast_submodules["inflowwind"] is True else 0))
         output.write_line("            {},".format(1 if self.fast_submodules["moordyn_tether"] is True else 0))
         output.write_line("            {},".format(1 if self.fast_submodules["controller"] is True else 0))
-        output.write_line("            {},".format(1 if self.fast_submodules["hydrodyn"] is True else 0))
-        output.write_line("            {},".format(1 if self.fast_submodules["moordyn_mooring"] is True else 0))
+        if self.simulation_type > 1:
+            output.write_line("            {},".format(1 if self.fast_submodules["hydrodyn"] is True else 0))
+            output.write_line("            {},".format(1 if self.fast_submodules["moordyn_mooring"] is True else 0))
         output.write_line("        fast_submodule_input_files,")
         output.write_line("            \"{}\",".format(self.fast_submodule_input_files["kiteaerodyn_input"]))
         output.write_line("            \"{}\",".format(self.fast_submodule_input_files["inflowwind_input"]))
         output.write_line("            \"{}\",".format(self.fast_submodule_input_files["moordyn_tether_input"]))
         output.write_line("            \"{}\",".format(self.fast_submodule_input_files["controller_input"]))
-        output.write_line("            \"{}\",".format(self.fast_submodule_input_files["hydrodyn_input"]))
-        output.write_line("            \"{}\",".format(self.fast_submodule_input_files["moordyn_mooring_input"]))
+        if self.simulation_type > 1:
+            output.write_line("            \"{}\",".format(self.fast_submodule_input_files["hydrodyn_input"]))
+            output.write_line("            \"{}\",".format(self.fast_submodule_input_files["moordyn_mooring_input"]))
         output.write_line("        output_file_root,")
         output.write_line("            \"{}\",".format(self.kitefast_output_file_root_name))
         output.write_line("        print_kitefast_summary_file,")
         output.write_line("            {},".format(1 if self.print_kitefast_summary_file is True else 0))
         output.write_line("        time_step,")
         output.write_line("            {},".format(self.timestep))
-        output.write_line("        time_max,")
-        output.write_line("            {},".format(self.final_time))
+        if self.simulation_type > 1:
+            output.write_line("        time_max,")
+            output.write_line("            {},".format(self.final_time))
         output.write_line("        gravity,")
         output.write_line("            {},".format(-1 * self.gravity.x3))
         output.write_line("        kiteaerodyn_interpolation_order,")
         output.write_line("            {},".format(self.kiteaerodyn_interpolation_order))
+        if self.simulation_type == 1:
+            output.write_line("        ground_weather_station_location,")
+            output.write_line("            {},".format(self.ground_weather_station_location))
         output.write_line("        number_of_flaps_per_wing,")
         output.write_line("            {},".format(self.number_of_flaps_per_wing))
         output.write_line("        number_of_pylons_per_wing,")
@@ -232,54 +248,57 @@ class MainMBD():
         output.write_line("        number_of_kite_components,")
         output.write_line("            {},".format(self.number_of_kite_components))
         output.write_line("        keypoints,")
-        output.write_line("         {},".format(self.initial_position))
-        output.write_line("         {},".format(self.keypoints["wing/starboard"]))
-        output.write_line("         {},".format(self.keypoints["wing/port"]))
-        output.write_line("         {},".format(self.keypoints["stabilizer/vertical"]))
-        output.write_line("         {},".format(self.keypoints["stabilizer/horizontal/starboard"]))
-        output.write_line("         {},".format(self.keypoints["stabilizer/horizontal/port"]))
-        for i, _ in enumerate(self.starboard_pylons):
-            output.write_line("         {},".format(self.keypoints["pylon/starboard/{}".format(str(i + 1))]))
-        for i, _ in enumerate(self.port_pylons):
-            output.write_line("         {},".format(self.keypoints["pylon/port/{}".format(str(i + 1))]))
+        if self.simulation_type < 3:
+            output.write_line("         {},".format(self.initial_position))
+            output.write_line("         {},".format(self.keypoints["wing/starboard"]))
+            output.write_line("         {},".format(self.keypoints["wing/port"]))
+            output.write_line("         {},".format(self.keypoints["stabilizer/vertical"]))
+            output.write_line("         {},".format(self.keypoints["stabilizer/horizontal/starboard"]))
+            output.write_line("         {},".format(self.keypoints["stabilizer/horizontal/port"]))
+            for i, _ in enumerate(self.starboard_pylons):
+                output.write_line("         {},".format(self.keypoints["pylon/starboard/{}".format(str(i + 1))]))
+            for i, _ in enumerate(self.port_pylons):
+                output.write_line("         {},".format(self.keypoints["pylon/port/{}".format(str(i + 1))]))
         output.write_line("        mip_node,")
         output.write_line("            {},".format(self.mip_id))
-        output.write_line("        platform_node,")
-        output.write_line("            {},".format(self.platform.nodes[0].id))
-        output.write_line("        platform_imu_node,")
-        output.write_line("            {},".format(self.platform.nodes[1].id))
-        output.write_line("        wind_reference_station_node,")
-        output.write_line("            {},".format(self.platform.nodes[2].id))
-        output.write_line("        ground_station_node,")
-        output.write_line("            {},".format(self.platform.nodes[3].id))
-        for component in self.component_list:
-            output.write_line("        {},".format(component.component_name))
-            output.write_line("            {}_node_count,".format(component.component_name))
-            for i in range(component.node_count):
-                output.write_line("            {}_root_node + {},".format(component.component_name, i))
-            output.write_line("            {}_beam_count,".format(component.component_name))
-            for i in range(component.beam_count):
-                output.write_line("            {}_beam + {},".format(component.component_name, 10 * i))
-        output.write_line("        starboard_rotors,")
-        output.write_line("            {},".format(str(len(self.starboard_rotors))))
-        for component in self.starboard_rotors:
-            output.write_line("            {}_root_node + 0,".format(component.component_name))
-        output.write_line("        port_rotors,")
-        output.write_line("            {},".format(str(len(self.port_rotors))))
-        for i, component in enumerate(self.port_rotors):
-            output.write_line("            {}_root_node + 0,".format(component.component_name))
-        output.write_line("        starboard_rotor_properties,")
-        for component in self.starboard_rotors:
-            output.write_line("            {},".format(component.rotor_mass))
-            output.write_line("            {},".format(component.rotor_rot_inertia))
-            output.write_line("            {},".format(component.rotor_trans_inertia))
-            output.write_line("            {},".format(component.rotor_cm_offset))
-        output.write_line("        port_rotor_properties,")
-        for component in self.starboard_rotors:
-            output.write_line("            {},".format(component.rotor_mass))
-            output.write_line("            {},".format(component.rotor_rot_inertia))
-            output.write_line("            {},".format(component.rotor_trans_inertia))
-            output.write_line("            {},".format(component.rotor_cm_offset))
+        if self.simulation_type > 1:
+            output.write_line("        platform_node,")
+            output.write_line("            {},".format(self.platform.nodes[0].id))
+            output.write_line("        platform_imu_node,")
+            output.write_line("            {},".format(self.platform.nodes[1].id))
+            output.write_line("        wind_reference_station_node,")
+            output.write_line("            {},".format(self.platform.nodes[2].id))
+            output.write_line("        ground_station_node,")
+            output.write_line("            {},".format(self.platform.nodes[3].id))
+        if self.simulation_type < 3:
+            for component in self.component_list:
+                output.write_line("        {},".format(component.component_name))
+                output.write_line("            {}_node_count,".format(component.component_name))
+                for i in range(component.node_count):
+                    output.write_line("            {}_root_node + {},".format(component.component_name, i))
+                output.write_line("            {}_beam_count,".format(component.component_name))
+                for i in range(component.beam_count):
+                    output.write_line("            {}_beam + {},".format(component.component_name, 10 * i))
+            output.write_line("        starboard_rotors,")
+            output.write_line("            {},".format(str(len(self.starboard_rotors))))
+            for component in self.starboard_rotors:
+                output.write_line("            {}_root_node + 0,".format(component.component_name))
+            output.write_line("        port_rotors,")
+            output.write_line("            {},".format(str(len(self.port_rotors))))
+            for i, component in enumerate(self.port_rotors):
+                output.write_line("            {}_root_node + 0,".format(component.component_name))
+            output.write_line("        starboard_rotor_properties,")
+            for component in self.starboard_rotors:
+                output.write_line("            {},".format(component.rotor_mass))
+                output.write_line("            {},".format(component.rotor_rot_inertia))
+                output.write_line("            {},".format(component.rotor_trans_inertia))
+                output.write_line("            {},".format(component.rotor_cm_offset))
+            output.write_line("        port_rotor_properties,")
+            for component in self.starboard_rotors:
+                output.write_line("            {},".format(component.rotor_mass))
+                output.write_line("            {},".format(component.rotor_rot_inertia))
+                output.write_line("            {},".format(component.rotor_trans_inertia))
+                output.write_line("            {},".format(component.rotor_cm_offset))
 
         def _write_output_lines(nodes, header):
             output.write_line("        {},".format(header))

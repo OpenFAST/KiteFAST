@@ -72,36 +72,6 @@ class BaseModel():
             if self._deep_get(model_dict, path) is None:
                 raise ModelException(path, "expected component not given")
 
-    def _preprocess_model_dict(self, model_dict):
-        keypoints = model_dict["keypoints"]
-        for keypoint in keypoints:
-            keypoints[keypoint] = self._list_to_vec3(keypoints[keypoint])
-        model_dict["keypoints"] = keypoints
-
-        for component_path in self.required_components:
-            component_dict = self._deep_get(model_dict, component_path)
-            keypoint = self._list_to_vec3(component_dict["keypoint"])
-            self._deep_put(model_dict, component_path + ["keypoint"], keypoint)
-        
-        reference_point_paths = [
-            ["platform", "node_location"],
-            ["platform", "imu_location"],
-            ["platform", "wind_reference_station_location"],
-            ["platform", "ground_station_location"]
-        ]
-        for path in reference_point_paths:
-            point = self._deep_get(model_dict, path)
-            self._deep_put(model_dict, path, self._list_to_vec3(point))
-
-        return model_dict
-
-    def _preprocess_simulation_dict(self, simulation_dict):
-        simulation_dict["initial_conditions"]["location"] = self._list_to_vec3(simulation_dict["initial_conditions"]["location"])
-        simulation_dict["initial_conditions"]["orientation"] = self._list_to_vec3(simulation_dict["initial_conditions"]["orientation"])
-        simulation_dict["initial_conditions"]["velocity"]["translational"] = self._list_to_vec3(simulation_dict["initial_conditions"]["velocity"]["translational"])
-        simulation_dict["initial_conditions"]["velocity"]["rotational"] = self._list_to_vec3(simulation_dict["initial_conditions"]["velocity"]["rotational"])
-        return simulation_dict
-
     def print_model_info(self):
         """
         Calculates the total mass and center of mass of the model and exports 
