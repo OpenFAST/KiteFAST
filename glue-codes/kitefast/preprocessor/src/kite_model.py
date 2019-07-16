@@ -39,43 +39,47 @@ class KiteModel(BaseModel):
 
         self.simulation_type = simulation_type
 
-        # unpack and derive model constants
-        number_of_pylons_per_wing = 0
-        for key in model_dict["keypoints"].keys():
-            if "pylon" in key:
-                number_of_pylons_per_wing += 1
-        self.number_of_pylons_per_wing = int(number_of_pylons_per_wing / 2)
-        number_of_kite_components = 6 + 2 * self.number_of_pylons_per_wing
-        number_of_flaps_per_wing = model_dict["wing"]["number_of_flaps_per_wing"]
+        self.number_of_pylons_per_wing = 0
+        number_of_kite_components = 0
+        number_of_flaps_per_wing = 0
+        if self.simulation_type < 3:
+            # unpack and derive model constants
+            number_of_pylons_per_wing = 0
+            for key in model_dict["keypoints"].keys():
+                if "pylon" in key:
+                    number_of_pylons_per_wing += 1
+            self.number_of_pylons_per_wing = int(number_of_pylons_per_wing / 2)
+            number_of_kite_components = 6 + 2 * self.number_of_pylons_per_wing
+            number_of_flaps_per_wing = model_dict["wing"]["number_of_flaps_per_wing"]
 
-        # verify required components exist
-        self.required_components = [
-            ["fuselage"],
-            ["wing", "starboard"],
-            ["wing", "port"],
-            ["horizontal_stabilizer", "starboard"],
-            ["horizontal_stabilizer", "port"],
-            ["vertical_stabilizer"]
-        ]
-        for i in range(self.number_of_pylons_per_wing):
-            self.required_components.append(["pylon", "starboard", i + 1])    
-            self.required_components.append(["pylon", "port", i + 1])
-            self.required_components.append(["rotor_assembly", "starboard", i + 1, "upper"])
-            self.required_components.append(["rotor_assembly", "starboard", i + 1, "lower"])
-            self.required_components.append(["rotor_assembly", "port", i + 1, "upper"])
-            self.required_components.append(["rotor_assembly", "port", i + 1, "lower"])
-        self._verify_component_list(model_dict)
+            # verify required components exist
+            self.required_components = [
+                ["fuselage"],
+                ["wing", "starboard"],
+                ["wing", "port"],
+                ["horizontal_stabilizer", "starboard"],
+                ["horizontal_stabilizer", "port"],
+                ["vertical_stabilizer"]
+            ]
+            for i in range(self.number_of_pylons_per_wing):
+                self.required_components.append(["pylon", "starboard", i + 1])    
+                self.required_components.append(["pylon", "port", i + 1])
+                self.required_components.append(["rotor_assembly", "starboard", i + 1, "upper"])
+                self.required_components.append(["rotor_assembly", "starboard", i + 1, "lower"])
+                self.required_components.append(["rotor_assembly", "port", i + 1, "upper"])
+                self.required_components.append(["rotor_assembly", "port", i + 1, "lower"])
+            self._verify_component_list(model_dict)
 
-        # do any additional data preprocessing of the inputs
-        keypoints = model_dict["keypoints"]
-        for keypoint in keypoints:
-            keypoints[keypoint] = self._list_to_vec3(keypoints[keypoint])
-        model_dict["keypoints"] = keypoints
+            # do any additional data preprocessing of the inputs
+            keypoints = model_dict["keypoints"]
+            for keypoint in keypoints:
+                keypoints[keypoint] = self._list_to_vec3(keypoints[keypoint])
+            model_dict["keypoints"] = keypoints
 
-        for component_path in self.required_components:
-            component_dict = self._deep_get(model_dict, component_path)
-            keypoint = self._list_to_vec3(component_dict["keypoint"])
-            self._deep_put(model_dict, component_path + ["keypoint"], keypoint)
+            for component_path in self.required_components:
+                component_dict = self._deep_get(model_dict, component_path)
+                keypoint = self._list_to_vec3(component_dict["keypoint"])
+                self._deep_put(model_dict, component_path + ["keypoint"], keypoint)
 
         if self.simulation_type == 1:
             reference_point_paths = [
@@ -130,8 +134,11 @@ class KiteModel(BaseModel):
 
         self.joints = self._build_joints()
 
-        # the mip node is the fuselage node which connects to the wing
-        self.mip_node = self.fuselage.nodes[2 * self.fuselage.component.index("wing")]
+        if self.simulation_type < 3:
+            # the mip node is the fuselage node which connects to the wing
+            self.mip_node = self.fuselage.nodes[2 * self.fuselage.component.index("wing")]
+        elif self.simulation_type == 3:
+            self.mip_node = self.platform.nodes[0]
 
         self._validate_model()
 

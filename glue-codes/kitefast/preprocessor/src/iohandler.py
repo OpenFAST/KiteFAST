@@ -71,8 +71,9 @@ class Input():
                 "fuselage": [0.000, 0.000, 0.000]
             }
         }
-        for key, value in input_dict["keypoints"].items():
-            model_dict["keypoints"][key] = value
+        if self.simulation_type < 3:
+            for key, value in input_dict["keypoints"].items():
+                model_dict["keypoints"][key] = value
 
         # unpack component info
         # component = {
