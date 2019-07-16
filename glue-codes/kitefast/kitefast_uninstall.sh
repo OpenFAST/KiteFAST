@@ -12,7 +12,7 @@ mbdyn_directory=$source_code_parent_directory"/mbdyn-1.7.3"
 openfast_directory=$source_code_parent_directory"/sandbox"
 
 # set the fortran compiler path
-$fortran_compiler="/usr/bin/gfortran"
+fortran_compiler="/usr/bin/gfortran"
 
 #####
 

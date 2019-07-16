@@ -12,7 +12,7 @@ mbdyn_directory=$source_code_parent_directory"/mbdyn-1.7.3"
 openfast_directory=$source_code_parent_directory"/sandbox"
 
 # set the fortran compiler path
-$fortran_compiler="/usr/bin/gfortran"
+fortran_compiler="/usr/bin/gfortran"
 
 #####
 
@@ -51,9 +51,11 @@ function install_package {
 }
 
 function create_link {
-  if [ ! -L $2 ]; then
-    ln -s $1 $2
+  if [ -e "$2" ]; then
+    mv $2 $2.back
+    print "Symlink exists so its been saved as "$2".back"
   fi
+  ln -s $1 $2
 }
 
 # update apt-get repo
@@ -84,7 +86,7 @@ fi
 cd $source_code_parent_directory
 
 # build KiteFAST
-$git_branch="dev-offshore"
+git_branch="dev-offshore"
 if [ -d $openfast_directory ]; then
   cd $openfast_directory
   git checkout $git_branch
@@ -127,37 +129,38 @@ fi
 if [ ! -d $mbdyn_directory/modules/module-kitefastmbd ]; then
   mkdir $mbdyn_directory/modules/module-kitefastmbd
 fi
-destination_directory="$mbdyn_directory/modules/module-kitefastmbd/."
-create_link $openfast_directory/glue-codes/kitefast/module-kitefastmbd/Makefile.inc $destination_directory
-create_link $openfast_directory/glue-codes/kitefast/module-kitefastmbd/module-kitefastmbd.cc $destination_directory
-create_link $openfast_directory/glue-codes/kitefast/module-kitefastmbd/module-kitefastmbd.h $destination_directory
-create_link $openfast_directory/build/modules-local/nwtc-library/libnwtclibs.a $destination_directory
-create_link $openfast_directory/build/modules-ext/moordyn/libmoordynlib.a $destination_directory
-create_link $openfast_directory/build/modules-local/kiteaerodyn/libkiteaerodynlib.a $destination_directory
-create_link $openfast_directory/build/modules-local/vsm/libvsmlib.a $destination_directory
-create_link $openfast_directory/build/modules-local/actuatordisk/libactuatordisklib.a $destination_directory
-create_link $openfast_directory/build/modules-local/aerodyn/libairfoilinfolib.a $destination_directory
-create_link $openfast_directory/build/modules-local/inflowwind/libifwlib.a $destination_directory
-create_link $openfast_directory/build/modules-local/kitefast-controller/libkitefastcontrollerlib.a $destination_directory
+destination_directory="$mbdyn_directory/modules/module-kitefastmbd"
+create_link $openfast_directory/glue-codes/kitefast/module-kitefastmbd/Makefile.inc $destination_directory/Makefile.inc
+create_link $openfast_directory/glue-codes/kitefast/module-kitefastmbd/module-kitefastmbd.cc $destination_directory/module-kitefastmbd.cc
+create_link $openfast_directory/glue-codes/kitefast/module-kitefastmbd/module-kitefastmbd.h $destination_directory/module-kitefastmbd.h
+create_link $openfast_directory/build/modules-local/nwtc-library/libnwtclibs.a $destination_directory/libnwtclibs.a
+create_link $openfast_directory/build/modules-ext/moordyn/libmoordynlib.a $destination_directory/libmoordynlib.a
+create_link $openfast_directory/build/modules-local/kiteaerodyn/libkiteaerodynlib.a $destination_directory/libkiteaerodynlib.a
+create_link $openfast_directory/build/modules-local/vsm/libvsmlib.a $destination_directory/libvsmlib.a
+create_link $openfast_directory/build/modules-local/actuatordisk/libactuatordisklib.a $destination_directory/libactuatordisklib.a
+create_link $openfast_directory/build/modules-local/aerodyn/libairfoilinfolib.a $destination_directory/libairfoilinfolib.a
+create_link $openfast_directory/build/modules-local/inflowwind/libifwlib.a $destination_directory/libifwlib.a
+create_link $openfast_directory/build/modules-local/kitefast-controller/libkitefastcontrollerlib.a $destination_directory/libkitefastcontrollerlib.a
 
 # create the links for the offshore module
 if [ ! -d $mbdyn_directory/modules/module-kitefastmbd-os ]; then
   mkdir $mbdyn_directory/modules/module-kitefastmbd-os
 fi
-destination_directory="$mbdyn_directory/modules/module-kitefastmbd-os/."
-create_link $openfast_directory/glue-codes/kitefast/module-kitefastmbd-os/Makefile.inc $destination_directory
-create_link $openfast_directory/glue-codes/kitefast/module-kitefastmbd-os/module-kitefastmbd-os.cc $destination_directory
-create_link $openfast_directory/glue-codes/kitefast/module-kitefastmbd-os/module-kitefastmbd-os.h $destination_directory
-create_link $openfast_directory/build/modules-local/kitefast-library/libkitefastoslib.a $destination_directory
-create_link $openfast_directory/build/modules-local/nwtc-library/libnwtclibs.a $destination_directory
-create_link $openfast_directory/build/modules-ext/moordyn/libmoordynlib.a $destination_directory
-create_link $openfast_directory/build/modules-local/kiteaerodyn/libkiteaerodynlib.a $destination_directory
-create_link $openfast_directory/build/modules-local/vsm/libvsmlib.a $destination_directory
-create_link $openfast_directory/build/modules-local/actuatordisk/libactuatordisklib.a $destination_directory
-create_link $openfast_directory/build/modules-local/aerodyn/libairfoilinfolib.a $destination_directory
-create_link $openfast_directory/build/modules-local/inflowwind/libifwlib.a $destination_directory
-create_link $openfast_directory/build/modules-local/kitefast-controller/libkitefastcontrollerlib.a $destination_directory
-create_link $openfast_directory/build/modules-local/hydrodyn/libhydrodynlib.a $destination_directory
+destination_directory="$mbdyn_directory/modules/module-kitefastmbd-os"
+create_link $openfast_directory/glue-codes/kitefast/module-kitefastmbd-os/Makefile.inc $destination_directory/Makefile.inc
+create_link $openfast_directory/glue-codes/kitefast/module-kitefastmbd-os/module-kitefastmbd-os.cc $destination_directory/module-kitefastmbd-os.cc
+create_link $openfast_directory/glue-codes/kitefast/module-kitefastmbd-os/module-kitefastmbd-os.h $destination_directory/module-kitefastmbd-os.h
+create_link $openfast_directory/glue-codes/kitefast/module-kitefastmbd-os/KiteFASTNode.cc $destination_directory/KiteFASTNode.cc
+create_link $openfast_directory/build/modules-local/kitefast-library/libkitefastoslib.a $destination_directory/libkitefastoslib.a
+create_link $openfast_directory/build/modules-local/nwtc-library/libnwtclibs.a $destination_directory/libnwtclibs.a
+create_link $openfast_directory/build/modules-ext/moordyn/libmoordynlib.a $destination_directory/libmoordynlib.a
+create_link $openfast_directory/build/modules-local/kiteaerodyn/libkiteaerodynlib.a $destination_directory/libkiteaerodynlib.a
+create_link $openfast_directory/build/modules-local/vsm/libvsmlib.a $destination_directory/libvsmlib.a
+create_link $openfast_directory/build/modules-local/actuatordisk/libactuatordisklib.a $destination_directory/libactuatordisklib.a
+create_link $openfast_directory/build/modules-local/aerodyn/libairfoilinfolib.a $destination_directory/libairfoilinfolib.a
+create_link $openfast_directory/build/modules-local/inflowwind/libifwlib.a $destination_directory/libifwlib.a
+create_link $openfast_directory/build/modules-local/kitefast-controller/libkitefastcontrollerlib.a $destination_directory/libkitefastcontrollerlib.a
+create_link $openfast_directory/build/modules-local/hydrodyn/libhydrodynlib.a $destination_directory/libhydrodynlib.a
 
 # # configure and build mbdyn
 export LDFLAGS=-rdynamic

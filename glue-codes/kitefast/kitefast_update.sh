@@ -8,7 +8,7 @@ set -e
 source_code_parent_directory="/home/parallels/Desktop"
 mbdyn_directory=$source_code_parent_directory"/mbdyn-1.7.3"
 openfast_directory=$source_code_parent_directory"/sandbox"
-$git_branch="dev-offshore"
+git_branch="dev-offshore"
 
 #####
 
