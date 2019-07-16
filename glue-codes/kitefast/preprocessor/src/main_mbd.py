@@ -20,24 +20,44 @@ from .mbdyn_types import Vec3
 class MainMBD():
 
     def __init__(self,
+                 simulation_type,
                  simulation_controls,
                  mip_id,
                  keypoints,
                  joints,
-                 fuselage,
-                 starboard_wing, port_wing,
-                 starboard_hstab, port_hstab,
-                 vstab,
-                 starboard_pylons, port_pylons,
-                 starboard_rotors, port_rotors,
-                 platform,
+                 components,
                  number_of_flaps_per_wing,
                  number_of_pylons_per_wing,
                  number_of_kite_components):
 
+        self.simulation_type = simulation_type
+        if self.simulation_type < 3:
+            self.fuselage = components[0]
+            self.starboard_wing = components[1]
+            self.port_wing = components[2]
+            self.vstab = components[3]
+            self.starboard_hstab = components[4]
+            self.port_hstab = components[5]
+            self.starboard_pylons = components[6]  # this is [Pylon]
+            self.port_pylons = components[7]       # this is [Pylon]
+            self.starboard_rotors = components[8]  # this is [Rotor]
+            self.port_rotors = components[9]       # this is [Rotor]
+            self.component_list = [
+                self.fuselage,
+                self.starboard_wing,
+                self.port_wing,
+                self.vstab,
+                self.starboard_hstab,
+                self.port_hstab
+            ]
+            self.component_list += self.starboard_pylons
+            self.component_list += self.port_pylons
+
+        if self.simulation_type > 1:
+            self.platform = components[-1]
+
         self.initial_position = simulation_controls["initial_conditions"]["location"]
         constants = simulation_controls["constants"]
-        self.simulation_type = simulation_controls["simulation_type"]
         self.gravity = Vec3(constants["gravity"])
         self.fast_submodules = simulation_controls["fast_submodules"]
         self.fast_submodule_input_files = simulation_controls["fast_submodule_input_files"]
@@ -67,29 +87,13 @@ class MainMBD():
         self.pylon_outputs = output["pylon_outputs"]
         self.output_channels = [] if output["output_channels"] is None else output["output_channels"]
 
+        if self.simulation_type == 1:
+            ground_weather_station = simulation_controls["ground_weather_station"]
+            self.ground_weather_station_location = ground_weather_station["location"]
+
         self.keypoints = keypoints
 
         self.joints = joints
-        self.fuselage = fuselage
-        self.starboard_wing = starboard_wing
-        self.port_wing = port_wing
-        self.starboard_hstab = starboard_hstab
-        self.port_hstab = port_hstab
-        self.vstab = vstab
-        self.starboard_pylons = starboard_pylons  # this is [Pylon]
-        self.port_pylons = port_pylons            # this is [Pylon]
-        self.starboard_rotors = starboard_rotors  # this is [Rotor]
-        self.port_rotors = port_rotors            # this is [Rotor]
-        self.platform = platform
-
-        self.component_list = [self.fuselage,
-                               self.starboard_wing,
-                               self.port_wing,
-                               self.vstab,
-                               self.starboard_hstab,
-                               self.port_hstab] \
-                             + self.starboard_pylons \
-                             + self.port_pylons
 
         self.number_of_flaps_per_wing = number_of_flaps_per_wing
         self.number_of_pylons_per_wing = number_of_pylons_per_wing
@@ -106,7 +110,10 @@ class MainMBD():
         output.write_line("# KiteMain.mbd")
         output.write_empty_line()
         output.write_empty_line()
-        output.write_line("module load: \"libmodule-kitefastmbd-os\";")
+        if self.simulation_type == 1:
+            output.write_line("module load: \"libmodule-kitefastmbd\";")
+        else:
+            output.write_line("module load: \"libmodule-kitefastmbd-os\";")
         output.write_empty_line()
         output.write_empty_line()
         output.write_line("begin: data;")
