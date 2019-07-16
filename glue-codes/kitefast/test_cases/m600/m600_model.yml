@@ -124,7 +124,7 @@ fuselage:
         - [-6.917, 0.0, stabilizer/vertical, 0.0]    # aft
 
     proportional_stiffness_constant:
-        0.00
+        0.01
 
     stiffness_matrix:
         #  EA                                                                         GJ             EIcc      EInn
