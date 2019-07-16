@@ -1,27 +1,20 @@
-# Build script for all KiteFAST related components on Debian Stretch (9)
+# Uninstall script for all KiteFAST related components on Debian Stretch (9)
 
-### configuration
+# exit on error
+set -e
 
-source_code_parent_directory="/home/makani/Desktop/"
-if [ ! -d $source_code_parent_directory ]; then
-  echo "source_code_parent_directory does not exist as given: "$source_code_parent_directory
-  exit 1
-fi
-cd $source_code_parent_directory
+##### configuration
 
-mbdyn_directory=$source_code_parent_directory"/mbdyn-1.7.3/"
-if [ ! -d $mbdyn_directory ]; then
-  echo "mbdyn_directory does not exist as given: "$mbdyn_directory
-  exit 1
-fi
+# set the directories in the variables below. these are the 
+# directories where kitefast and mbdyn will ultimately go
+source_code_parent_directory="/Users/rmudafor/Development/makani"
+mbdyn_directory=$source_code_parent_directory"/mbdyn-1.7.3"
+openfast_directory=$source_code_parent_directory"/sandbox"
 
-openfast_directory=$source_code_parent_directory"/sandbox/"
-if [ ! -d $openfast_directory ]; then
-  echo "openfast_directory does not exist as given: "$openfast_directory
-  exit 1
-fi
+# set the fortran compiler path
+$fortran_compiler="/usr/bin/gfortran"
 
-###
+#####
 
 ### install required software
 packages=`apt -qq list --installed`
@@ -63,7 +56,7 @@ sudo apt-get autoremove -y
 rm -rf $openfast_directory/build
 
 # remove the mbdyn external module from mbdyn
-sudo rm -rf $mbdyn_directory/modules/module-kitefastmbd
+sudo rm -rf $mbdyn_directory/modules/module-kitefastmbd*
 
 # clean the mbdyn build
 cd $mbdyn_directory

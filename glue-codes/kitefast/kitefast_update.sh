@@ -8,6 +8,7 @@ set -e
 source_code_parent_directory="/home/parallels/Desktop"
 mbdyn_directory=$source_code_parent_directory"/mbdyn-1.7.3"
 openfast_directory=$source_code_parent_directory"/sandbox"
+$git_branch="dev-offshore"
 
 #####
 
@@ -71,11 +72,11 @@ fi
 # rebuild kitefast
 cd $openfast_directory
 require_clean_work_tree "git checkout"
-git checkout dev
-git pull origin dev
+git checkout $git_branch
+git pull origin $git_branch
 cd build
 cmake ..
-make -j 2 kitefastlib kitefastcontroller_controller
+make -j 2 kitefastlib kitefastoslib kitefastcontroller_controller
 
 # rebuild the mbdyn user module
 cd $mbdyn_directory/modules

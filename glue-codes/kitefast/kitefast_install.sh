@@ -1,4 +1,4 @@
-# Build script for all KiteFAST related components on Debian Strech (9)
+# Install script for all KiteFAST related components on Debian Stretch (9)
 
 # exit on error
 set -e
@@ -11,11 +11,8 @@ source_code_parent_directory="/Users/rmudafor/Development/makani"
 mbdyn_directory=$source_code_parent_directory"/mbdyn-1.7.3"
 openfast_directory=$source_code_parent_directory"/sandbox"
 
-if [ ! -d $source_code_parent_directory ]; then
-  echo "source_code_parent_directory does not exist as given: "$source_code_parent_directory
-  exit 1
-fi
-cd $source_code_parent_directory
+# set the fortran compiler path
+$fortran_compiler="/usr/bin/gfortran"
 
 #####
 
@@ -79,21 +76,29 @@ install_if_not_found "python3-pip"   # used in the STI controller
 # remove lingering packages
 sudo apt-get autoremove
 
+# move into the parent directory
+if [ ! -d $source_code_parent_directory ]; then
+  echo "source_code_parent_directory does not exist as given: "$source_code_parent_directory
+  exit 1
+fi
+cd $source_code_parent_directory
+
 # build KiteFAST
+$git_branch="dev-offshore"
 if [ -d $openfast_directory ]; then
   cd $openfast_directory
-  git checkout dev-offshore
-  git pull origin dev-offshore
+  git checkout $git_branch
+  git pull origin $git_branch
 else
   git config --global http.sslVerify false
-  git clone -b dev-offshore https://makani-private.googlesource.com/kite_fast/sandbox
+  git clone -b $git_branch https://makani-private.googlesource.com/kite_fast/sandbox
 fi
 if [ ! -d $openfast_directory ]; then
    echo "openfast_directory does not exist as given: "$openfast_directory
    exit 1
 fi
 
-export FC=/usr/bin/gfortran
+export FC=$fortran_compiler
 cd $openfast_directory
 if [ ! -d build ]; then
   mkdir build
@@ -118,26 +123,41 @@ if [ ! -d $mbdyn_directory ]; then
   exit 1
 fi
 
-# put the module files in the appropriate place
+# create the links for the onshore module
+if [ ! -d $mbdyn_directory/modules/module-kitefastmbd ]; then
+  mkdir $mbdyn_directory/modules/module-kitefastmbd
+fi
+destination_directory="$mbdyn_directory/modules/module-kitefastmbd/."
+create_link $openfast_directory/glue-codes/kitefast/module-kitefastmbd/Makefile.inc $destination_directory
+create_link $openfast_directory/glue-codes/kitefast/module-kitefastmbd/module-kitefastmbd.cc $destination_directory
+create_link $openfast_directory/glue-codes/kitefast/module-kitefastmbd/module-kitefastmbd.h $destination_directory
+create_link $openfast_directory/build/modules-local/nwtc-library/libnwtclibs.a $destination_directory
+create_link $openfast_directory/build/modules-ext/moordyn/libmoordynlib.a $destination_directory
+create_link $openfast_directory/build/modules-local/kiteaerodyn/libkiteaerodynlib.a $destination_directory
+create_link $openfast_directory/build/modules-local/vsm/libvsmlib.a $destination_directory
+create_link $openfast_directory/build/modules-local/actuatordisk/libactuatordisklib.a $destination_directory
+create_link $openfast_directory/build/modules-local/aerodyn/libairfoilinfolib.a $destination_directory
+create_link $openfast_directory/build/modules-local/inflowwind/libifwlib.a $destination_directory
+create_link $openfast_directory/build/modules-local/kitefast-controller/libkitefastcontrollerlib.a $destination_directory
+
+# create the links for the offshore module
 if [ ! -d $mbdyn_directory/modules/module-kitefastmbd-os ]; then
   mkdir $mbdyn_directory/modules/module-kitefastmbd-os
 fi
-create_link $openfast_directory/glue-codes/kitefast/module-kitefastmbd-os/Makefile.inc $mbdyn_directory/modules/module-kitefastmbd-os/.
-create_link $openfast_directory/glue-codes/kitefast/module-kitefastmbd-os/module-kitefastmbd-os.cc $mbdyn_directory/modules/module-kitefastmbd-os/.
-create_link $openfast_directory/glue-codes/kitefast/module-kitefastmbd-os/module-kitefastmbd-os.h $mbdyn_directory/modules/module-kitefastmbd-os/.
-create_link $openfast_directory/glue-codes/kitefast/module-kitefastmbd-os/KiteFASTNode.cc $mbdyn_directory/modules/module-kitefastmbd-os/.
-
-# # link kitefast lib and its module file to the module-kitefastmbd directory
-create_link $openfast_directory/build/modules-local/kitefast-library/libkitefastoslib.a $mbdyn_directory/modules/module-kitefastmbd-os/libkitefastoslib.a
-create_link $openfast_directory/build/modules-local/nwtc-library/libnwtclibs.a $mbdyn_directory/modules/module-kitefastmbd-os/libnwtclibs.a
-create_link $openfast_directory/build/modules-ext/moordyn/libmoordynlib.a $mbdyn_directory/modules/module-kitefastmbd-os/libmoordynlib.a
-create_link $openfast_directory/build/modules-local/kiteaerodyn/libkiteaerodynlib.a $mbdyn_directory/modules/module-kitefastmbd-os/libkiteaerodynlib.a
-create_link $openfast_directory/build/modules-local/vsm/libvsmlib.a $mbdyn_directory/modules/module-kitefastmbd-os/libvsmlib.a
-create_link $openfast_directory/build/modules-local/actuatordisk/libactuatordisklib.a $mbdyn_directory/modules/module-kitefastmbd-os/libactuatordisklib.a
-create_link $openfast_directory/build/modules-local/aerodyn/libairfoilinfolib.a $mbdyn_directory/modules/module-kitefastmbd-os/libairfoilinfolib.a
-create_link $openfast_directory/build/modules-local/inflowwind/libifwlib.a $mbdyn_directory/modules/module-kitefastmbd-os/libifwlib.a
-create_link $openfast_directory/build/modules-local/kitefast-controller/libkitefastcontrollerlib.a $mbdyn_directory/modules/module-kitefastmbd-os/libkitefastcontrollerlib.a
-create_link $openfast_directory/build/modules-local/hydrodyn/libhydrodynlib.a $mbdyn_directory/modules/module-kitefastmbd-os/libhydrodynlib.a
+destination_directory="$mbdyn_directory/modules/module-kitefastmbd-os/."
+create_link $openfast_directory/glue-codes/kitefast/module-kitefastmbd-os/Makefile.inc $destination_directory
+create_link $openfast_directory/glue-codes/kitefast/module-kitefastmbd-os/module-kitefastmbd-os.cc $destination_directory
+create_link $openfast_directory/glue-codes/kitefast/module-kitefastmbd-os/module-kitefastmbd-os.h $destination_directory
+create_link $openfast_directory/build/modules-local/kitefast-library/libkitefastoslib.a $destination_directory
+create_link $openfast_directory/build/modules-local/nwtc-library/libnwtclibs.a $destination_directory
+create_link $openfast_directory/build/modules-ext/moordyn/libmoordynlib.a $destination_directory
+create_link $openfast_directory/build/modules-local/kiteaerodyn/libkiteaerodynlib.a $destination_directory
+create_link $openfast_directory/build/modules-local/vsm/libvsmlib.a $destination_directory
+create_link $openfast_directory/build/modules-local/actuatordisk/libactuatordisklib.a $destination_directory
+create_link $openfast_directory/build/modules-local/aerodyn/libairfoilinfolib.a $destination_directory
+create_link $openfast_directory/build/modules-local/inflowwind/libifwlib.a $destination_directory
+create_link $openfast_directory/build/modules-local/kitefast-controller/libkitefastcontrollerlib.a $destination_directory
+create_link $openfast_directory/build/modules-local/hydrodyn/libhydrodynlib.a $destination_directory
 
 # # configure and build mbdyn
 export LDFLAGS=-rdynamic
@@ -159,14 +179,10 @@ pip3 install -r $openfast_directory/glue-codes/kitefast/preprocessor/requirement
 
 # add the mbdyn installation directory to your .bashrc
 echo -e '\nPATH="/usr/local/mbdyn/bin:$PATH"\n' >> ~/.bashrc
-source ~/.bashrc
+# close and reopen the terminal
 
 ### optional
 # visualization / post processing
 # install_package blender
 # wget https://github.com/zanoni-mbdyn/blendyn/archive/master.zip
 # see instructions at https://github.com/zanoni-mbdyn/blendyn/wiki/Installation
-
-# controller specific:
-# set LD_LIBRARY_PATH to the kitefast controller build directory
-#export LD_LIBRARY_PATH="/home/raf/Desktop/makani/makani_openfast/build/modules-local/kitefast-controller"
