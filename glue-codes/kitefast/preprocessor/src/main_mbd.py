@@ -195,7 +195,6 @@ class MainMBD():
         output.write_empty_line()
         for joint in self.joints:
             output.write_line(str(joint))
-            # output.write_line("        ")
             output.write_empty_line()
         if self.simulation_type < 3:
             for component in self.component_list:
@@ -306,6 +305,25 @@ class MainMBD():
                 output.write_line("            {},".format(component.rotor_rot_inertia))
                 output.write_line("            {},".format(component.rotor_trans_inertia))
                 output.write_line("            {},".format(component.rotor_cm_offset))
+        else:
+            output.write_line("        fuselage,")
+            output.write_line("            0,")
+            output.write_line("        wing_starboard,")
+            output.write_line("            0,")
+            output.write_line("        wing_port,")
+            output.write_line("            0,")
+            output.write_line("        vertical_stabilizer,")
+            output.write_line("            0,")
+            output.write_line("        horizontal_stabilizer_starboard,")
+            output.write_line("            0,")
+            output.write_line("        horizontal_stabilizer_port,")
+            output.write_line("            0,")
+            output.write_line("        starboard_rotors,")
+            output.write_line("            0,")
+            output.write_line("        port_rotors,")
+            output.write_line("            0,")
+            output.write_line("        starboard_rotor_properties,")
+            output.write_line("        port_rotor_properties,")
 
         def _write_output_lines(nodes, header):
             output.write_line("        {},".format(header))
