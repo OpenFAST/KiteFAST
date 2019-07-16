@@ -1,12 +1,6 @@
 title:
     simple m600 model with platform
 
-constants:
-    gravity:
-        # SI units, global reference frame
-        # [x, y, z]
-        [0.0, 0.0, -9.81]
-
 simulation_controls:
     simulation_type:
         # 1: onshore
@@ -41,6 +35,12 @@ simulation_controls:
         # 1 = Linearly interpolate outputs
         # 2 = 2nd order interpolation of outputs
         0
+
+    constants:
+        gravity:
+            # SI units, global reference frame
+            # [x, y, z]
+            [0.0, 0.0, -9.81]
 
     time:
         timestep:
