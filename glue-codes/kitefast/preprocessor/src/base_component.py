@@ -138,6 +138,16 @@ class BaseComponent():
         self._preprocess()
         self._postprocess()
 
+        # Store a local orientation with respect to the global reference frame
+        #   so that the beam can be defined appropriately
+        # TODO: Make this permanent
+        if self.primary_axis == "x1":
+            self.local_orientation = "1, 1.0, 0.0, 0.0, 3, 0.0, 0.0, 1.0,"
+        elif self.primary_axis == "x2":
+            self.local_orientation = "1, 0.0, 1.0, 0.0, 3, 0.0, 0.0, 1.0,"
+        elif self.primary_axis == "x3":
+            self.local_orientation = "1, 0.0, 0.0, 1.0, 2, 0.0, 1.0, 0.0,"
+
     def _preprocess(self):
         self.nodes, self.node_count = self._preprocess_nodes()
         self.bodies, self.body_count, self.beams, self.beam_count = self._preprocess_bodies_beams()
@@ -785,7 +795,7 @@ class BaseComponent():
         output.write_line("    beam_node1, reference, node, null,")
         output.write_line("    beam_node2, reference, node, null,")
         output.write_line("    beam_node3, reference, node, null,")
-        output.write_line("    reference, mip_rf, eye,")
+        output.write_line("    reference, mip_rf, {}".format(self.local_orientation))
         output.write_line("    linear time variant viscoelastic generic, sym,")
         output.write_line("        k1_11, k1_12, k1_13, k1_14, k1_15, k1_16,")
         output.write_line("               k1_22, k1_23, k1_24, k1_25, k1_26,")
@@ -796,7 +806,7 @@ class BaseComponent():
         output.write_line("    const, 1.0,")
         output.write_line("    proportional, {},".format(self.stiffness_constant))
         output.write_line("    ramp, 1.0, 0.0, 1.0, 0.0,")
-        output.write_line("    reference, mip_rf, eye,")
+        output.write_line("    reference, mip_rf, {}".format(self.local_orientation))
         output.write_line("    linear time variant viscoelastic generic, sym,")
         output.write_line("        k2_11, k2_12, k2_13, k2_14, k2_15, k2_16,")
         output.write_line("               k2_22, k2_23, k2_24, k2_25, k2_26,")
