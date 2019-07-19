@@ -17,29 +17,54 @@
 // The control global struct is defined in the init function, and then called throughout the step function
 // Control Global comprises of existing CSim structrues (StateEstimate, ControlState, ControlOutput, FlightStatus)
 ControlGlobal controlglob = {	.state_est = {
-									.dcm_g2b = {-0.8610, 0.2349, 0.4511,0.1192, -0.7690, 0.6280,0.4944, 0.5945, 0.6341}, //first step of crosswind
-    								.pqr_f = {0.2524, 0.3759, -0.0398},
-    								.acc_norm_f = 21.00,
-    								.Xg = {-125.4900, -378.4510, -171.1080},
-    								.Vg = {-53.9010, 3.3290, 29.7070},
-    								.Vb = {61.4940, 2.4386, -3.3843},
-    								.Ag = {-0.2503,-2.3947,0.2594},
-    								.Ab_f = {-0.4016,-0.6470,-1.0060},
-    								.rho = 1.0750,
-    								.apparent_wind.sph_f.v = 54.46,
-									.apparent_wind.sph_f.alpha = 0.0810,
-									.apparent_wind.sph_f.beta = -0.414,
-									.tether_force_b.vector_f.x = 4176.1,
-									.tether_force_b.vector_f.y = -48042,
-									.tether_force_b.vector_f.z =129857.48,
+    								.dcm_g2b = {-0.8610, 0.2591, 0.4334, 0.0989, -0.7549, 0.6483, 0.4952, 0.6025, 0.6260}, //first step of crosswind
+    								.pqr = {-0.0123990127972087, -0.0151541961692367, -0.399352003359697},
+									.pqr_f = {-0.0123990127972087, -0.0151541961692367, -0.399352003359697},
+									.pqr_f_lpf = {-0.0123990127972087, -0.0151541961692367, -0.399352003359697},
+									.acc_norm_f = 28.7353794996801,
+    								.Xg = {-123.019582521654, -380.857880206475, -173.798923573997},
+    								.Vg_f = {-53.9007723439951, 3.32946946341383, 29.7069230287192},
+									.Vg = {-53.9007723439951, 3.32946946341383, 29.7069230287192},
+    								.Vb_f = {61.5573534961638,1.65877222531134, -2.61162923749005},
+									.Vb = {61.5573534961638,1.65877222531134, -2.61162923749005},
+    								.Ag = {-4.10429877138525, 18.8476886549997, -10.3879191238667},
+    								.Ab_f = {0.160085873782321, -22.5059243248619, 0.695634407713604},
+    								.rho = 1.0747,
+    								.apparent_wind.sph_f.v = 54.4623229188392,
+									.apparent_wind.sph_f.alpha = 0.0809881150728984,
+									.apparent_wind.sph_f.beta = -0.0413704345112544,
+									.apparent_wind.sph_f.alpha_lpf = 0.0809881150728984,
+									.apparent_wind.sph_f.beta_lpf = -0.0413704345112544,
+									.tether_force_b.vector_f.x = 4158.1,
+									.tether_force_b.vector_f.y = -48016,
+									.tether_force_b.vector_f.z = 129764.48,
 									.tether_force_b.valid = true,
     								.tether_force_b.sph.tension = 139964.4471,
 									.tether_force_b.sph.roll = 0.3534,
-									.tether_force_b.sph.pitch = 0.0338,
+									.tether_force_b.sph.roll_lpf = 0.3534,
+									// .tether_force_b.sph.pitch = 0.9995,
     								.wind_g.vector.x = -7.6604,
 									.wind_g.vector.y = -6.4279,
-									.wind_g.vector.z = 0.000,
+									.wind_g.vector.z = 1.3732,
+									.wind_aloft_g.vector_f.x = -7.6604,
+									.wind_aloft_g.vector_f.y = -6.4279,
+									.wind_aloft_g.vector_f.z = 1.3732,
+									.wind_g.vector_f.x = -7.6604,
+									.wind_g.vector_f.y = -6.4279,
+									.wind_g.vector_f.z = 1.3732,
 									.wind_g.dir_f = -2.4435,
+									.wind_aloft_g.speed_f_playbook = 10.0743,
+									//adding joystick throttle value: - 6/27/19
+									.joystick.throttle_f = 0.81,
+									.joystick.valid = 1,
+									.joystick.pitch_f = 0,
+									.joystick.data.throttle = 0.81,
+									.joystick.data.roll = 0,
+									.joystick.data.pitch = 0,
+									.joystick.data.yaw = 0,
+									.joystick.data.switch_position = 1,
+									.joystick.data.release = 0,
+									.joystick.data.engage_auto_glide = 0,
 								},
 								.flight_status = {	
 									.flight_mode = kFlightModeCrosswindNormal,
@@ -48,14 +73,16 @@ ControlGlobal controlglob = {	.state_est = {
 								.state = {
 									.motor_state = {
   										//.rotor_omegas = {30.0, -30.0, 30.0, -30.0, 30.0, -30.0, 30.0, -30.0},
-  										.rotor_omegas = {-220, 200, 150, -75, -150, 240, 175, -100},
-  										.rotor_torques = {-150, 200, 150, -75, -160, 240, 175, -100},
+  										.rotor_omegas = {148.97, 144, 139, 134, 173, 178, 183, 188}
+  										//.rotor_torques = {-150, 200, 150, -75, -160, 240, 175, -100},
 									}
 								},
 								.raw_control_output = {
-									.rotors = {0.0000, -0.0528, -0.0528, 0.0000, -0.1472, -0.1472, -0.2684, -0.2684}
+									.flaps = {-0.2682,-0.2682, 0, 0, 0.0682, 0.0682, 0.0682},
+									.rotors = {148.97, 144, 139, 134, 173, 178, 183, 188}
 								}
 							}; 
+
 // controller Init function -> Highest Level of Shared library
 // controller_init
 // 		- Initializes controller modules (crosswind, motor control) and loads in controller params
@@ -115,15 +142,18 @@ void controller_init(double Requested_dT, int numFlaps, int numPylons, double ge
 	ControlLogInit((char*)controllerVerNumber);
 
 	// Give inital guesses:
-	for (int i=0; i<kNumMotors; i++){
-		genTorq[i]	  = 0;
-		rotorSpeed[i] = 0;
-		rotorAccel[i] = 0;
-		rotorBlPit[i] = 0;
-	}
-	for (int i=0; i<kNumFlaps; i++){
-		ctrlSettings[i] = 0;
-	}
+		// convert outputs from controller to the kitefast frame
+	AssignOutputs(ctrlSettings, genTorq, rotorAccel, rotorSpeed, rotorBlPit,
+	errStat, errMsg, &controlglob.raw_control_output, &controlglob.state.motor_state);
+	// for (int i=0; i<kNumMotors; i++){
+	// 	genTorq[i]	  = controlglob.state.motor_state.rotor_torques[i];
+	// 	rotorSpeed[i] = 0;
+	// 	rotorAccel[i] = 0;
+	// 	rotorBlPit[i] = 0;
+	// }
+	// for (int i=0; i<kNumFlaps; i++){
+	// 	ctrlSettings[i] = 0;
+	// }
 
 	char tmp[] = "   controller initializing";
 	int i;
@@ -162,7 +192,7 @@ void controller_init(double Requested_dT, int numFlaps, int numPylons, double ge
 // TODO:
 // 		- Fill in kFlapA_c summary above
 // 		- Connect with new Inputs/Outputs from Kitefast (waiting on Update)
-void controller_step(double t, double dcm_g2b_c[], double pqr_c[], double *acc_norm_c,
+__attribute__((optimize(0)))  void controller_step(double t, double dcm_g2b_c[], double pqr_c[], double *acc_norm_c,
 					 double Xg_c[], double Vg_c[], double Vb_c[], double Ag_c[],
 					 double Ab_c[], double *rho_c, double apparent_wind_c[],
 					 double tether_force_c[], double wind_g_c[],
@@ -186,13 +216,13 @@ void controller_step(double t, double dcm_g2b_c[], double pqr_c[], double *acc_n
 	AssignInputs(dcm_g2b_c, pqr_c, acc_norm_c,
 				 Xg_c, Vg_c, Vb_c, Ag_c,
 				 Ab_c, rho_c, apparent_wind_c,
-				 tether_force_c, wind_g_c,
+				 tether_force_c, wind_g_c, AeroTorque,
 				 errStat, errMsg, &controlglob.state_est,
 				 &controlglob.state.motor_state);
 
 	ControlLog control_log;
 	control_log.time = t;
-	control_log.stateEstLogPreStep = controlglob.state_est; 
+	control_log.stateEstLogPreStep = controlglob.state_est; // 
 	// Other modes to be added here
 	//#if DEBUG
 	//	printf("   debug marker - pre crosswindstep \n");
@@ -224,12 +254,7 @@ void controller_step(double t, double dcm_g2b_c[], double pqr_c[], double *acc_n
 	control_log.stateEstLogPostStep = controlglob.state_est;
 	ControlLogEntry(&control_log);
 
-	// Connects values that are in ControlOutput data struct to the final outputs that Kitefast is expecting.
-	// double Gen_Torque[kNumMotors]  = {}; // placeholder for new input
-	// double Rotor_Accel[kNumMotors] = {}; // placeholder for new input
-	// double Rotor_Speed[kNumMotors] = {}; // placeholder for new input
-	// double Blade_Pitch[kNumMotors] = {}; // placeholder for new input
-
+	// convert outputs from controller to the kitefast frame
 	AssignOutputs(CtrlSettings, GenTorque, RotorAccel, RotorSpeed, RotorBladePitch,
 	errStat, errMsg, &controlglob.raw_control_output, &controlglob.state.motor_state);
 }

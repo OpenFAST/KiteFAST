@@ -274,6 +274,7 @@ void CrosswindOutputStep(LoopDirection loop_dir, double loop_angle,
 
   control_output->loop_angle = loop_angle;
   control_output->loop_dir = loop_dir;
+  control_output->path_center_g = *path_center_g;
   // Update telemetry.
   // ControlTelemetry *ct = GetControlTelemetry();
   // ct->crosswind.deltas = *deltas;

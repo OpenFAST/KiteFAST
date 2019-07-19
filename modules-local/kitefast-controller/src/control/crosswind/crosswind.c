@@ -49,7 +49,11 @@ void CrosswindInit(const StateEstimate *state_est, const double *flaps_z1,
   // Calculate the initial loop angle.
   Vec3 path_center_g;
   CrosswindPowerGetPathCenter(&state->power, &path_center_g);
+  // path_center_g.x = -170.6151;
+  // path_center_g.y = -267.3352;
+  // path_center_g.z = -284.1268; // need to ask about path_center_g
   const double loop_angle = CalcLoopAngle(&path_center_g, &state_est->Xg);
+  printf("   loop_angle: %0.4f \n", loop_angle);
   CrosswindPathInit(state_est, &params->path, playbook_entry.path_radius_target,
                    &state->path);
   CrosswindCurvatureInit(state_est->tether_force_b.sph.tension,
@@ -57,7 +61,7 @@ void CrosswindInit(const StateEstimate *state_est, const double *flaps_z1,
                         state_est->apparent_wind.sph_f.beta,
                         &params->curvature, &state->curvature);
 
-  // Calculate the aileron, elevator, and rudder commands that produce
+  // Calculate the aileron,p elevator, and rudder commands that produce
   // equivalent deflections to the final deflections from the
   // transition-in controller.
   Deltas deltas_0 = {
@@ -83,7 +87,7 @@ void CrosswindInit(const StateEstimate *state_est, const double *flaps_z1,
 }
 
 // bool CrosswindIsReadyForMode(FlightMode proposed_flight_mode,
-//                             const FlightStatus *flight_status,
+//                             const FlightStatus *floop_anglelight_status,
 //                             const StateEstimate *state_est,
 //                             const CrosswindParams *params,
 //                             const CrosswindState *state) {
@@ -168,7 +172,7 @@ static void UpdateExperimentalConfig(uint8_t config_index, double pitch_f,
  //cwt->experimental_config_active = exp_state->mode_active;
 }
 
-void CrosswindStep(const FlightStatus *flight_status,
+__attribute__((optimize(0))) void CrosswindStep(const FlightStatus *flight_status,
                    const StateEstimate *state_est,
                    const CrosswindParams *params, CrosswindState *state,
                    ControlOutput *control_output) {
@@ -207,6 +211,11 @@ void CrosswindStep(const FlightStatus *flight_status,
                      &playbook_entry, &state->power, &path_type, &path_center_g,
                      &airspeed_cmd, &d_airspeed_d_loopangle, &alpha_nom,
                      &beta_nom);
+  // added to plotting routine to monitor outputs of powerstep (7/16/19)
+  control_output->airspeed_cmd_power_out = airspeed_cmd;
+  control_output->d_airspeed_d_loopangle_power_out = d_airspeed_d_loopangle;
+  control_output->alpha_nom_power_out = alpha_nom;
+  control_output->beta_nom_power_out = beta_nom;
 
   double loop_angle = CalcLoopAngle(&path_center_g, &state_est->Xg);
 
@@ -215,10 +224,13 @@ void CrosswindStep(const FlightStatus *flight_status,
                     state_est, &playbook_entry, &params->path, &state->path,
                     &k_aero_cmd, &k_geom_cmd, &k_aero_curr, &k_geom_curr);
 
+  // added to plotting routine to monitor outputs of pathrstep (7/16/19)
+  control_output->k_aero_cmd_path_out = k_aero_cmd;
+  control_output->k_geom_cmd_path_out = k_geom_cmd;
+  control_output->k_aero_curr_path_out = k_aero_curr;
+  control_output->k_geom_curr_path_out = k_geom_curr;
+
   Vec3 pqr_cmd;
-  // pqr_cmd.x = 0; // added by JMiller - STI
-  // pqr_cmd.y = -0.0845; // added by JMiller - STI
-  // pqr_cmd.z = -0.1711; // added by JMiller - STI
   double dCL_cmd, alpha_cmd, beta_cmd, tether_roll_cmd;
 
   bool flaring = false;
@@ -229,7 +241,14 @@ void CrosswindStep(const FlightStatus *flight_status,
       path_type, &state_est->Vg, flight_status, &flags, &params->curvature,
       &state->curvature, &pqr_cmd, &flaring, &alpha_cmd, &dCL_cmd, &beta_cmd,
       &tether_roll_cmd);
-  
+  // added to plotting routine to monitor outputs of pathrstep (7/16/19)
+  control_output->pqr_cmd_curv_out = pqr_cmd;
+  control_output->flaring_curv_out = flaring;
+  control_output->alpha_cmd_curv_out = alpha_cmd;
+  control_output->beta_cmd_curv_out = beta_cmd;
+  control_output->tether_roll_cmd_curv_out = tether_roll_cmd;
+  control_output->dCL_cmd_curv_out = dCL_cmd;
+
   // TODO(kennyjensen): Eventually, this should go in state_estimation
   // as a fallback to the loadcell-based tether roll calculation.
   double tether_roll = state_est->tether_force_b.sph.roll;
@@ -243,8 +262,7 @@ void CrosswindStep(const FlightStatus *flight_status,
   }
 
   const double path_radius = playbook_entry.path_radius_target;
-
-  // Calculate the required acceleration to track the airspeed schedule.
+  control_output->path_radius_playbook_out = path_radius;  // Calculate the required acceleration to track the airspeed schedule.
   // TODO(tfricke): Check that wind_g is valid and do something
   // sensible if it is not.
   Vec3 wing_vel_g;
@@ -253,7 +271,8 @@ void CrosswindStep(const FlightStatus *flight_status,
   const double kite_accel_ff = CalcLoopKinematics(
       &state_est->wind_g.vector_f, &path_center_g, loop_angle, path_radius,
       airspeed_cmd, d_airspeed_d_loopangle, &wing_vel_g, NULL);
-
+  
+  control_output->kite_accel_ff_loop_kin_out = kite_accel_ff;
   // TODO(tfricke): Estimate the derivative of the tether roll command
   // analytically instead of numerically.
   const double tether_roll_dot =
@@ -265,7 +284,7 @@ void CrosswindStep(const FlightStatus *flight_status,
                    path_radius, tether_roll, tether_roll_dot, alpha_cmd,
                    beta_cmd, airspeed_cmd, d_airspeed_d_loopangle, kitespeed,
                    &pqr_cmd_new);
-
+  control_output->pqr_cmd_new_cross_pqr_out = pqr_cmd_new;
   //GetCrosswindTelemetry()->pqr_cmd_old = pqr_cmd;
   //GetCrosswindTelemetry()->pqr_cmd_new = pqr_cmd_new;
   //if (params->enable_new_pqr_cmd) {
@@ -291,21 +310,8 @@ void CrosswindStep(const FlightStatus *flight_status,
 
   Deltas deltas;
   ThrustMoment thrust_moment;
-  // thrust_moment.thrust = 27850; // Added - jmiller
-  // thrust_moment.moment.x = 0; // Added - jmiller
-  // thrust_moment.moment.y = -211.4173; // Added - jmiller
-  // thrust_moment.moment.z = 5314.1; // Added - jmiller
-
   double lateral_gains[kNumCrosswindLateralInputs][kNumCrosswindLateralStates];
 
-	// airspeed_cmd = 38.7523;	   // added by JMiller - STI
-	// alpha_cmd	 = -0.0381;	   // added by JMiller - STI
-	// beta_cmd	 = -0.0256;	   // added by JMiller - STI
-	// dCL_cmd 	 = -0.0025;	   // added by JMiller - STI
-	// tether_roll_cmd = 0.0; // added by JMiller - STI
-#ifdef DEBUG //DEBUG preproc found in kfc.h
-  // printf("    debug marker - pre crosswind_inner \n");
-#endif
   CrosswindInnerStep(
       tether_roll_cmd, tether_roll, alpha_cmd,
       state_est->apparent_wind.sph_f.alpha, dCL_cmd, beta_cmd,
@@ -315,10 +321,9 @@ void CrosswindStep(const FlightStatus *flight_status,
       &state->experimental_crosswind.current_config, &params->inner,
       &state->inner, lateral_gains, &deltas, &thrust_moment);
 
-#ifdef DEBUG //DEBUG preproc found in kfc.h
-    //		printf("   controller_step\n");
-#endif
-
+  control_output->thrust_moment_inner_out = thrust_moment;
+  control_output->delta_inner_out = deltas;
+  
   // Convert control variables to actuator commands.
   CrosswindOutputStep(params->loop_dir, loop_angle, flaring, &thrust_moment,
                      &deltas, state_est, &path_center_g, &params->output,
@@ -332,6 +337,8 @@ void CrosswindStep(const FlightStatus *flight_status,
      delta_aileron_avail, deltas.aileron, delta_rudder_avail, deltas.rudder,
      lateral_gains, &params->inner, &state->inner.int_tether_roll_error,
      &state->inner.int_beta_error);
+
+  
   //GetCrosswindTelemetry()->int_tether_roll_error =
   //    state->inner.int_tether_roll_error;
   //GetCrosswindTelemetry()->int_beta_error = state->inner.int_beta_error;
