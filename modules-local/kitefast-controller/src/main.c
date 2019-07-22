@@ -9,41 +9,37 @@
     double t_c = dT;
     int numFlaps = 8;
     int numPylons = 2;
-    double dcm_g2b_c[9] = {-0.8610, 0.2349, 0.4511,0.1192, -0.7690, 0.6280,0.4944, 0.5945, 0.6341}; //first step of crosswind
-    double pqr_c[3]= {0.2524, 0.3759, -0.0398};
-    double acc_norm_c = 21.00;
-    double Xg_c[3]= {-125.4900, -378.4510, -171.1080};
-    double Vg_c[3] = {-53.9010, 3.3290, 29.7070};
-    double Vb_c[3] = {61.4940, 2.4386, -3.3843};
-    double Ag_c[3] = {-0.2503,-2.3947,0.2594};
-    double Ab_c[3] = {-0.4016,-0.6470,-1.0060};
-    double rho_c = 1.0750;
-    double apparent_wind_c[3]= {46.2406, -9.7569, -29.7070};
-    double tether_force_c[3]= {2664.8407, -66441.2279, 157789.4866};
-    double wing_g_c[3]= {-7.6604, -6.4279, 0.0000};
-    double genTorq[8] = {1,2,3,4,5,6,7,8};
-    // double AeroTorque[8] = {1,2,3,4,5,6,7,8};
-    double rotorSpeed[8]={1,2,3,4,5,6,7,8};
-    double rotorAccel[8]={1,2,3,4,5,6,7,8};
-    double rotorBlPit[8]={1,2,3,4,5,6,7,8};
-    double ctrlSettins[8]={1,2,3,4,5,6,7,8};
-    double i_rot[8]={1,2,3,4,5,6,7,8};
-    double CtrlSettings[3]= {0,0,0};
-    // double Motor_c[8]= {0,0,0,0,0,0,0,0};
+    double dcm_g2b_c[9] = {-0.8610, 0.2591, 0.4334, 0.0989, -0.7549, 0.6483, 0.4952, 0.6025, 0.6260}; //first step of crosswind
+    double pqr_c[3]= {-0.0120, 0.166, -0.4127};  
+    double acc_norm_c = 28.7601;
+    double Xg_c[3]= {-122.4417, -380.4510, -174.0961};
+    double Vg_c[3] = {-53.8786, 3.2314, 29.6990};
+    double Vb_c[3] = {61.5307, 1.4932, -2.6675};
+    double Ag_c[3] = {5.6324, -17.8906 , 12.6850};
+    double Ab_c[3] = {-0.1684, 22.5354, -0.9354};
+    double rho_c = 1.0747;
+    double apparent_wind_c[3]= {-54.2207, 2.2447, -4.4018};
+    double tether_force_c[3]= {4158.6, -48016, 129764.69};
+    double wing_g_c[3]= {-7.6604, -6.4279, 1.3732};
+    double genTorq[8]       ={0,0,0,0,0,0,0,0};
+    double rotorSpeed[8]    ={0,0,0,0,0,0,0,0};
+    double rotorAccel[8]    ={0,0,0,0,0,0,0,0};
+    double rotorBlPit[8]    ={0,0,0,0,0,0,0,0};
+    double ctrlSettings[12]  ={0,0,0,0,0,0,0,0,0,0,0,0};
+    double i_rot[8]={0,0,0,0,0,0,0,0};
     double AeroTorque[8] = {0,0,0,0,0,0,0,0};
 
     kfc_dll_init(dT, numFlaps, numPylons, 
-                  i_rot, genTorq, rotorSpeed,
-                  rotorAccel, rotorBlPit, 
-                  ctrlSettins,
-                  &errStat, &errMsg); 
+        i_rot, genTorq, rotorSpeed,
+        rotorAccel, rotorBlPit, 
+        ctrlSettings,
+        &errStat, &errMsg); 
 
     kfc_dll_step(t_c, dcm_g2b_c, pqr_c, &acc_norm_c,
         Xg_c, Vg_c, Vb_c, Ag_c,
         Ab_c, &rho_c, apparent_wind_c,  
         tether_force_c, wing_g_c, AeroTorque, genTorq,
-        rotorSpeed, rotorAccel, rotorBlPit,
-        CtrlSettings,
+        rotorSpeed, rotorAccel, rotorBlPit, ctrlSettings,
         &errStat, &errMsg);
 
     kfc_dll_end(&errStat, &errMsg); 

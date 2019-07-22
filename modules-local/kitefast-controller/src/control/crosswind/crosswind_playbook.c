@@ -56,7 +56,7 @@ static void CrossfadePlaybookEntries(const PlaybookEntry *pb_entry_lower,
 
 // Given the playbook and a wind speed [m/s], interpolate between playbook
 // entries to find the flight parameters for the current wind speed.
-static void GetNominalPlaybookEntry(const Playbook *playbook, double wind_speed,
+__attribute__((optimize(0)))  static void GetNominalPlaybookEntry(const Playbook *playbook, double wind_speed,
                                     PlaybookEntry *pb_entry_interp) {
   assert(playbook != NULL);
   assert(pb_entry_interp != NULL);
@@ -106,7 +106,7 @@ void GetPlaybookEntry(const Playbook *playbook, const PlaybookEntry *fallback,
 
 // Returns a crosswind path center azimuth such that the entire path will not
 // violate azimuth limits.
-double GetPlaybookEntryAzimuthWithLimits(double wind_dir,
+__attribute__((optimize(0)))  double GetPlaybookEntryAzimuthWithLimits(double wind_dir,
                                          const PlaybookEntry *playbook_entry) {
   double azi_path_center = Wrap(wind_dir + playbook_entry->azi_offset, -PI, PI);
 

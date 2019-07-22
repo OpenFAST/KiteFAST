@@ -9,7 +9,7 @@
 void AssignInputs(double dcm_g2b_c[], double pqr_c[], double *acc_norm_c,
 	double Xg_c[], double Vg_c[], double Vb_c[], double Ag_c[],
 	double Ab_c[], double *rho_c, double apparent_wind_c[],
-	double tether_force_c[], double wind_g_c[],	int *errStat, char *errMsg,
+	double tether_force_c[], double wind_g_c[], double AeroTorque[], int *errStat, char *errMsg,
 	StateEstimate *state_est, MotorState *motor_state);
 	
 void AssignOutputs(double CtrlSettings[], double Gen_Torque[],
