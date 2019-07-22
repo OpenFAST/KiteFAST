@@ -55,7 +55,7 @@ class BaseModel():
 
         returns the modified input dictionary
 
-        NOTE: this takes advantage of the face that Python stores values by
+        NOTE: this takes advantage of the fact that Python stores values by
         reference. Since `traverse_dict` is referencing the same memory as the
         input `_dict`, modifying it also modifies `_dict`.
         """

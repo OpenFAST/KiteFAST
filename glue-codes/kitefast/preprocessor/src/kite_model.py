@@ -20,7 +20,6 @@ from .main_mbd import MainMBD
 from .main_set import MainSet
 from .components import Fuselage
 from .components import Wing
-from .components import VerticalStabilizer
 from .components import HorizontalStabilizer
 from .components import VerticalStabilizer
 from .components import Pylon
