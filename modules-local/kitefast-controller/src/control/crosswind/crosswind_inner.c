@@ -90,11 +90,8 @@ static double CalcLongitudinalFeedback(
   double delta_elevator_fb = 0.0;
   *moment_y = 0.0;
   for (int32_t i = 0; i < kNumCrosswindLongitudinalStates; ++i) {
-    delta_elevator_fb +=
-        longitudinal_gains[kCrosswindLongitudinalInputElevator][i] *
-        state_error[i];
-    *moment_y += longitudinal_gains[kCrosswindLongitudinalInputMotorPitch][i] *
-                 state_error[i];
+    delta_elevator_fb += longitudinal_gains[kCrosswindLongitudinalInputElevator][i] * state_error[i];
+    *moment_y += longitudinal_gains[kCrosswindLongitudinalInputMotorPitch][i] * state_error[i];
   }
 
   return delta_elevator_fb;
@@ -623,9 +620,7 @@ void CrosswindInnerStep(double tether_roll_cmd, double tether_roll,
                  &state->alt_lateral_gains_0);
 
   double delta_spoiler;
-  thrust_moment->thrust =
-      ControlAirspeed(airspeed_cmd, airspeed, dcm_g2b, kite_accel_ff, flags,
-                      params, state, &delta_spoiler);
+  thrust_moment->thrust = ControlAirspeed(airspeed_cmd, airspeed, dcm_g2b, kite_accel_ff, flags, params, state, &delta_spoiler);
 
   deltas->inboard_flap += delta_spoiler;
   deltas->midboard_flap = 0.0;

@@ -21,7 +21,7 @@ void ControlLogInit(char* controllerVerNumber){
 	fprintf(fp, "loop_angle, path_center_g_x, path_center_g_y, path_center_g_z, tether_roll_post, tether_roll_pre, tether_pit, speed_f_playbook, wind_g_dir_f, ");   // 64
 	fprintf(fp, "path_radius_playbook_out, airspeed_cmd_power_out, d_airspeed_d_loopangle_power_out, alpha_nom_power_out, beta_nom_power_out, k_aero_cmd_path_out, pqr_cmd_new_cross_pqr_out_x, pqr_cmd_new_cross_pqr_out_y, pqr_cmd_new_cross_pqr_out_z, kite_accel_ff_loop_kin_out, "); //74
     fprintf(fp, "k_geom_cmd_path_out, k_aero_curr_path_out, k_geom_curr_path_out, pqr_cmd_curv_out_x, pqr_cmd_curv_out_y, pqr_cmd_curv_out_z, flaring_curv_out, alpha_cmd_curv_out, beta_cmd_curv_out, tether_roll_cmd_curv_out, "); // 84
-	fprintf(fp, "dCL_cmd_curv_out, aileron, inboard_flap, midboard_flap, outboard_flap, elevator, rudder"); // 85
+	fprintf(fp, "dCL_cmd_curv_out, aileron, inboard_flap, midboard_flap, outboard_flap, elevator, rudder, thrust, moment_x, moment_y, moment_z"); // 85
 	fprintf(fp, "\n");
 	fclose(fp);
 #ifdef DEBUG
@@ -131,14 +131,18 @@ void ControlLogEntry(ControlLog* control_log){
   		control_log->controlOutputLog.alpha_cmd_curv_out,
   		control_log->controlOutputLog.beta_cmd_curv_out,
   		control_log->controlOutputLog.tether_roll_cmd_curv_out);
-	fprintf(fp, "%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,",	//"//85 dCL_cmd_curv_out"// 	
+	fprintf(fp, "%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,",	//"//85 dCL_cmd_curv_out"// 	
   		control_log->controlOutputLog.dCL_cmd_curv_out,
 		control_log->controlOutputLog.delta_inner_out.aileron,
 		control_log->controlOutputLog.delta_inner_out.inboard_flap,
 		control_log->controlOutputLog.delta_inner_out.midboard_flap,
 		control_log->controlOutputLog.delta_inner_out.outboard_flap,
 		control_log->controlOutputLog.delta_inner_out.elevator,
-		control_log->controlOutputLog.delta_inner_out.rudder);
+		control_log->controlOutputLog.delta_inner_out.rudder,
+		control_log->controlOutputLog.thrust_moment_inner_out.thrust,
+		control_log->controlOutputLog.thrust_moment_inner_out.moment.x,
+		control_log->controlOutputLog.thrust_moment_inner_out.moment.y,
+		control_log->controlOutputLog.thrust_moment_inner_out.moment.z);
     fprintf(fp, "\n");
     fclose(fp);
 #ifdef DEBUG
