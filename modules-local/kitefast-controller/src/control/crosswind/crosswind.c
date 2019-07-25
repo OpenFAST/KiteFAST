@@ -323,7 +323,7 @@ __attribute__((optimize(0))) void CrosswindStep(const FlightStatus *flight_statu
 
   control_output->thrust_moment_inner_out = thrust_moment;
   control_output->delta_inner_out = deltas;
-
+  
   // Convert control variables to actuator commands.
   CrosswindOutputStep(params->loop_dir, loop_angle, flaring, &thrust_moment,
                      &deltas, state_est, &path_center_g, &params->output,
