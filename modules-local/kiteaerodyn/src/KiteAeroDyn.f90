@@ -2085,11 +2085,11 @@ subroutine ReadKADFile(InitInp, interval, errStat, errMsg)
       call SetErrStat( errStat2, errMsg2, errStat, errMsg, RoutineName )
       
    !-------------------------- STARBOARD WING PROPERTIES ------------------------   
-   call ReadWngProps( UnIn, fileName, InitInp%InpFileData%SWnProps%NumNds, InitInp%InpFileData%SWnProps, 7, 'Starboard Wing', errStat2, errMsg2, UnEc )
+   call ReadWngProps( UnIn, fileName, InitInp%InpFileData%SWnProps%NumNds, InitInp%InpFileData%SWnProps, 8, 'Starboard Wing', errStat2, errMsg2, UnEc )
       call SetErrStat( errStat2, errMsg2, errStat, errMsg, RoutineName )    
       
    !-------------------------- PORT WING PROPERTIES ------------------------   
-   call ReadWngProps( UnIn, fileName, InitInp%InpFileData%PWnProps%NumNds, InitInp%InpFileData%PWnProps, 7, 'Port Wing', errStat2, errMsg2, UnEc )
+   call ReadWngProps( UnIn, fileName, InitInp%InpFileData%PWnProps%NumNds, InitInp%InpFileData%PWnProps, 8, 'Port Wing', errStat2, errMsg2, UnEc )
       call SetErrStat( errStat2, errMsg2, errStat, errMsg, RoutineName )    
      
    !-------------------------- VERTICAL STABILIZER PROPERTIES ------------------------   
@@ -3101,6 +3101,7 @@ subroutine Set_VSM_Inputs(u, m, p, u_VSM, errStat, errMsg)
       u_VSM%x_hat  (:,count) = m%SWnLoads%Orientation(1,:,i)
       u_VSM%y_hat  (:,count) = m%SWnLoads%Orientation(2,:,i)
       u_VSM%z_hat  (:,count) = m%SWnLoads%Orientation(3,:,i)
+      
       if ( p%SWnCtrlID(n1) > 0 ) then
          u_VSM%Deltaf (  count) = u%Ctrl_SFlp(p%SWnCtrlID(n1))
       else   
@@ -3119,6 +3120,7 @@ subroutine Set_VSM_Inputs(u, m, p, u_VSM, errStat, errMsg)
       u_VSM%x_hat  (:,count) = m%PWnLoads%Orientation(1,:,i)
       u_VSM%y_hat  (:,count) = m%PWnLoads%Orientation(2,:,i)
       u_VSM%z_hat  (:,count) = m%PWnLoads%Orientation(3,:,i)
+
       if ( p%PWnCtrlID(n1) > 0 ) then
          u_VSM%Deltaf (  count) = u%Ctrl_PFlp(p%PWnCtrlID(n1))
       else   
