@@ -419,7 +419,7 @@ void MixFlaps(const Deltas *deltas, const double *offsets,
   flaps[kFlapA5] += deltas->inboard_flap;
   flaps[kFlapA7] += deltas->aileron + deltas->midboard_flap;
   flaps[kFlapA8] += deltas->aileron + deltas->outboard_flap;
-  flaps[kFlapEle] += deltas->elevator+0.1;
+  flaps[kFlapEle] += deltas->elevator;
   flaps[kFlapRud] += deltas->rudder;
 
   if (lower_limits != NULL && upper_limits != NULL) {
