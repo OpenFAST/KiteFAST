@@ -2487,7 +2487,7 @@ module KiteAeroDyn_IO
    INTEGER,  PARAMETER :: SWnMm(9)    = (/SWn1Mm, SWn2Mm, SWn3Mm, SWn4Mm, SWn5Mm, SWn6Mm, SWn7Mm, SWn8Mm, SWn9Mm/)
    INTEGER,  PARAMETER :: SWnFn(9)    = (/SWn1Fn, SWn2Fn, SWn3Fn, SWn4Fn, SWn5Fn, SWn6Fn, SWn7Fn, SWn8Fn, SWn9Fn/)
    INTEGER,  PARAMETER :: SWnFc(9)    = (/SWn1Fc, SWn2Fc, SWn3Fc, SWn4Fc, SWn5Fc, SWn6Fc, SWn7Fc, SWn8Fc, SWn9Fc/)
-   INTEGER,  PARAMETER :: SWnCtrl(9)  = (/PFlp1Ctrl, PFlp2Ctrl, PFlp3Ctrl, PFlp4Ctrl, PFlp5Ctrl, PFlp6Ctrl, PFlp7Ctrl, PFlp8Ctrl, PFlp9Ctrl/) 
+   INTEGER,  PARAMETER :: SWnCtrl(9)  = (/SFlp1Ctrl, SFlp2Ctrl, SFlp3Ctrl, SFlp4Ctrl, SFlp5Ctrl, SFlp6Ctrl, SFlp7Ctrl, SFlp8Ctrl, SFlp9Ctrl/) 
 
    INTEGER,  PARAMETER :: PWnVAmbn(9) = (/PWn1VAmbn, PWn2VAmbn, PWn3VAmbn, PWn4VAmbn, PWn5VAmbn, PWn6VAmbn, PWn7VAmbn, PWn8VAmbn, PWn9VAmbn/)
    INTEGER,  PARAMETER :: PWnVAmbc(9) = (/PWn1VAmbc, PWn2VAmbc, PWn3VAmbc, PWn4VAmbc, PWn5VAmbc, PWn6VAmbc, PWn7VAmbc, PWn8VAmbc, PWn9VAmbc/) 
