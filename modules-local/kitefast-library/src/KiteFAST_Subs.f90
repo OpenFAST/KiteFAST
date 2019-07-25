@@ -3207,7 +3207,7 @@ subroutine Init_KiteSystem(dt_c, numFlaps, numPylons, numComp, numCompNds, modFl
             call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
          call AllocAry( m%SHSNdDCMs, 3, 3, p%numSHSNds, 'SHSNdDCMs', errStat2, errMsg2 )
             call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
-         call AllocAry( m%PHSNdDCMs, 3, 3, p%numFusNds, 'PHSNdDCMs', errStat2, errMsg2 )
+         call AllocAry( m%PHSNdDCMs, 3, 3, p%numPHSNds, 'PHSNdDCMs', errStat2, errMsg2 )
             call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
          call AllocAry( m%SPyNdDCMs, 3, 3, maxSPyNds, p%numPylons, 'SPyNdDCMs', errStat2, errMsg2 )
             call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
@@ -3224,7 +3224,7 @@ subroutine Init_KiteSystem(dt_c, numFlaps, numPylons, numComp, numCompNds, modFl
             call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
          call AllocAry( m%SHSPts, 3, p%numSHSNds, 'SHSPts', errStat2, errMsg2 )
             call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
-         call AllocAry( m%PHSPts, 3, p%numFusNds, 'PHSPts', errStat2, errMsg2 )
+         call AllocAry( m%PHSPts, 3, p%numPHSNds, 'PHSPts', errStat2, errMsg2 )
             call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
          call AllocAry( m%SPyPts, 3, maxSPyNds, p%numPylons, 'SPyPts', errStat2, errMsg2 )
             call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
@@ -3241,7 +3241,7 @@ subroutine Init_KiteSystem(dt_c, numFlaps, numPylons, numComp, numCompNds, modFl
             call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
          call AllocAry( m%SHSVels, 3, p%numSHSNds, 'SHSVels', errStat2, errMsg2 )
             call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
-         call AllocAry( m%PHSVels, 3, p%numFusNds, 'PHSVels', errStat2, errMsg2 )
+         call AllocAry( m%PHSVels, 3, p%numPHSNds, 'PHSVels', errStat2, errMsg2 )
             call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
          call AllocAry( m%SPyVels, 3, maxSPyNds, p%numPylons, 'SPyVels', errStat2, errMsg2 )
             call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
@@ -3258,7 +3258,7 @@ subroutine Init_KiteSystem(dt_c, numFlaps, numPylons, numComp, numCompNds, modFl
             call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
          call AllocAry( m%SHSOmegas, 3, p%numSHSNds, 'SHSOmegas', errStat2, errMsg2 )
             call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
-         call AllocAry( m%PHSOmegas, 3, p%numFusNds, 'PHSOmegas', errStat2, errMsg2 )
+         call AllocAry( m%PHSOmegas, 3, p%numPHSNds, 'PHSOmegas', errStat2, errMsg2 )
             call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
          call AllocAry( m%SPyOmegas, 3, maxSPyNds, p%numPylons, 'SPyOmegas', errStat2, errMsg2 )
             call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
@@ -3275,7 +3275,7 @@ subroutine Init_KiteSystem(dt_c, numFlaps, numPylons, numComp, numCompNds, modFl
             call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
          call AllocAry( m%SHSAccs, 3, p%numSHSNds, 'SHSAccs', errStat2, errMsg2 )
             call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
-         call AllocAry( m%PHSAccs, 3, p%numFusNds, 'PHSAccs', errStat2, errMsg2 )
+         call AllocAry( m%PHSAccs, 3, p%numPHSNds, 'PHSAccs', errStat2, errMsg2 )
             call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
          call AllocAry( m%SPyAccs, 3, maxSPyNds, p%numPylons, 'SPyAccs', errStat2, errMsg2 )
             call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
@@ -3843,7 +3843,7 @@ subroutine AssRes_OnShore( t_c, isInitialTime_c, WindPt_c, FusO_c, FusODCM_c, Fu
 
                !call KAD_CopyInput(m%KAD%u,OtherSt%KAD%u(2), MESH_NEWCOPY, errStat2, errMsg2)
             end if
-            
+
             call KAD_CalcOutput( t, OtherSt%KAD%u(1), m%KAD%p, m%KAD%x, m%KAD%xd, OtherSt%KAD%z, OtherSt%KAD%OtherSt, m%KAD%y, m%KAD%m, errStat2, errMsg2 )
                call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
             if (errStat >= AbortErrLev ) return
