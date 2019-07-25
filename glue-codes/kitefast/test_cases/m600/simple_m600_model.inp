@@ -192,11 +192,17 @@ True                             SumPrint           Print summary data to <RootN
 1                                NSHSOuts           Number of starboard horizontal stabilizer node outputs (-) [0 to 9]
 1               SHSOutNd           List of starboard horizontal stabilizer nodes whose values will be output (-) [1 to NSHSOuts] [unused for NSHSOuts=0]
 1                                NPHSOuts           Number of port horizontal stabilizer      node outputs (-) [0 to 9]
-1                PHSOutNd           List of port horizontal stabilizer      nodes whose values will be output (-) [1 to NPHSOuts] [unused for NPHSOuts=0]
-1                                NPylOuts           Number of pylon node outputs (-) [0 to 9]
-1          PylOutNd           List of pylon nodes whose values will be output (-) [1 to NPylOuts] [unused for NPylOuts=0]
+1          PHSOutNd           List of port horizontal stabilizer      nodes whose values will be output (-) [1 to NPHSOuts] [unused for NPHSOuts=0]
+2          NPylOuts           Number of pylon node outputs (-) [0 to 9]
+1 2        PylOutNd           List of pylon nodes whose values will be output (-) [1 to NPylOuts] [unused for NPylOuts=0]
 OutList            The next line(s) contains a list of output parameters.  See OutListParameters.xlsx for a listing of available output channels (quoted string)
 "KiteFxi, KiteFyi, KiteFzi, KiteMxi, KiteMyi, KiteMzi"     
+"SP1TTSR,SP1BTSR,SP2TTSR,SP2BTSR,PP1TTSR,PP1BTSR,PP2TTSR,PP2BTSR"
+"SP1TPWR,SP1BPWR,SP2TPWR,SP2BPWR,PP1TPWR,PP1BPWR,PP2TPWR,PP2BPWR"
+"SP1TRTSPD,SP1BRTSPD,SP2TRTSPD,SP2BRTSPD,PP1TRTSPD,PP1BRTSPD,PP2TRTSPD,PP2BRTSPD"
+"SP1TCP,SP1BCP,SP2TCP,SP2BCP,PP1TCP,PP1BCP,PP2TCP,PP2BCP"
+"SP1TCT,SP1BCT,SP2TCT,SP2BCT,PP1TCT,PP1BCT,PP2TCT,PP2BCT"
+"SP1TCQ,SP1BCQ,SP2TCQ,SP2BCQ,PP1TCQ,PP1BCQ,PP2TCQ,PP2BCQ"
 END                                               Integerated Kite Loads
 "SP1TSkew, SP1TRtSpd, SP1TVRel, SP1TCp, SP1TCq, SP1TCt, SP1TFx, SP1TFy, SP1TFz, SP1TMx, SP1TMy, SP1TMz, SP1TPwr"  Starboard Pylon 1 Top rotor
 "SP1BSkew, SP1BRtSpd, SP1BVRel, SP1BCp, SP1BCq, SP1BCt, SP1BFx, SP1BFy, SP1BFz, SP1BMx, SP1BMy, SP1BMz, SP1BPwr"  Starboard Pylon 1 Bottom rotor

@@ -11,7 +11,7 @@
 ! data for Table  1
 ! ------------------------------------------------------------------------------
 5687500   Re                  ! Reynolds number in millions.
--20       Ctrl                ! Control setting
+-0.349066       Ctrl                ! Control setting
 False     InclUAdata          ! Is unsteady aerodynamics data included in this table? If TRUE, then include 30 UA coefs below this line.
 !........................................
 ! Table of aerodynamic coefficients.
@@ -203,7 +203,7 @@ False     InclUAdata          ! Is unsteady aerodynamics data included in this t
 ! data for Table  2
 ! ------------------------------------------------------------------------------
 5687500   Re                  ! Reynolds number in millions.
--10       Ctrl                ! Control setting
+-0.174533       Ctrl                ! Control setting
 False     InclUAdata          ! Is unsteady aerodynamics data included in this table? If TRUE, then include 30 UA coefs below this line.
 !........................................
 ! Table of aerodynamic coefficients.
@@ -587,7 +587,7 @@ False     InclUAdata          ! Is unsteady aerodynamics data included in this t
 ! data for Table  4
 ! ------------------------------------------------------------------------------
 5687500   Re                  ! Reynolds number in millions.
-10        Ctrl                ! Control setting
+0.174533        Ctrl                ! Control setting
 False     InclUAdata          ! Is unsteady aerodynamics data included in this table? If TRUE, then include 30 UA coefs below this line.
 !........................................
 ! Table of aerodynamic coefficients.
