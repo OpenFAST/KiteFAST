@@ -102,7 +102,7 @@ PHSX      PHSY      PHSZ      PHSTwist  PHSChord  PHSAFID   PHSElvID  [0:none, 1
 (m)       (m)       (m)       (deg)     (m)       (-)       (-)
 0.000     -0.000    0.000     0.000     0.993      2	1
 -0.085    -0.500    0.000     0.000     0.879      2	1
--0.171    -1.000    0.000     0.000     0.766      2	1
+-0.171    -1.000    0.000     0.000     0.766      2	1 
 -0.256    -1.500    0.000     0.000     0.652      2	1
 -0.341    -2.000    0.000     0.000     0.539      2	1
 -0.417    -2.447    0.000     0.000     0.437      2	1
@@ -183,10 +183,10 @@ True                             SumPrint           Print summary data to <RootN
 "ES10.3E2"                       OutFmt             Format used for text tabular output, excluding the time channel; resulting field should be 10 characters (string)
 1                                NFusOuts           Number of fuselage                        node outputs (-) [0 to 9]
 2   FusOutNd           List of fuselage                        nodes whose values will be output (-) [1 to NFusOuts] [unused for NFusOuts=0]
-1                                NSWnOuts           Number of starboard wing                  node outputs (-) [0 to 9]
-1 SWnOutNd           List of starboard wing                  nodes whose values will be output (-) [1 to NSWnOuts] [unused for NSWnOuts=0]
-1                                NPWnOuts           Number of port wing                       node outputs (-) [0 to 9]
-1 PWnOutNd           List of port wing                       nodes whose values will be output (-) [1 to NPWnOuts] [unused for NPWnOuts=0]
+9                                NSWnOuts           Number of starboard wing                  node outputs (-) [0 to 9]
+1 2 3 4 7 8 9 11 12 SWnOutNd           List of starboard wing                  nodes whose values will be output (-) [1 to NSWnOuts] [unused for NSWnOuts=0]
+9                                NPWnOuts           Number of port wing                       node outputs (-) [0 to 9]
+1 2 3 4 7 8 9 11 12 PWnOutNd           List of port wing                       nodes whose values will be output (-) [1 to NPWnOuts] [unused for NPWnOuts=0]
 1                                NVSOuts            Number of vertical stabilizer             node outputs (-) [0 to 9]
 1    VSOutNd            List of vertical stabilizer             nodes whose values will be output (-) [1 to NVSOuts ] [unused for NVSOuts =0]
 1                                NSHSOuts           Number of starboard horizontal stabilizer node outputs (-) [0 to 9]
@@ -196,7 +196,14 @@ True                             SumPrint           Print summary data to <RootN
 1                                NPylOuts           Number of pylon node outputs (-) [0 to 9]
 1          PylOutNd           List of pylon nodes whose values will be output (-) [1 to NPylOuts] [unused for NPylOuts=0]
 OutList            The next line(s) contains a list of output parameters.  See OutListParameters.xlsx for a listing of available output channels (quoted string)
-"KiteFxi, KiteFyi, KiteFzi, KiteMxi, KiteMyi, KiteMzi"     
+"KiteFxi, KiteFyi, KiteFzi, KiteMxi, KiteMyi, KiteMzi" 
+"SFlp1Ctrl, SFlp2Ctrl, SFlp3Ctrl, PFlp1Ctrl, PFlp2Ctrl, PFlp3Ctrl"    
+"SWn1Alpha, SWn2Alpha, SWn3Alpha, SWn4Alpha, SWn5Alpha, SWn6Alpha, SWn7Alpha, SWn8Alpha, SWn9Alpha"          All the SWn Alphas
+"SWn1Cl, SWn2Cl, SWn3Cl, SWn4Cl, SWn5Cl, SWn6Cl, SWn7Cl, SWn8Cl, SWn9Cl"          All the SWn Cls
+"SWn1Cd, SWn2Cd, SWn3Cd, SWn4Cd, SWn5Cd, SWn6Cd, SWn7Cd, SWn8Cd, SWn9Cd"          All the SWn Cds
+"PWn1Alpha, PWn2Alpha, PWn3Alpha, PWn4Alpha, PWn5Alpha, PWn6Alpha, PWn7Alpha, PWn8Alpha, PWn9Alpha"          All the PWn Alphas
+"PWn1Cl, PWn2Cl, PWn3Cl, PWn4Cl, PWn5Cl, PWn6Cl, PWn7Cl, PWn8Cl, PWn9Cl"          All the PWn Cls
+"PWn1Cd, PWn2Cd, PWn3Cd, PWn4Cd, PWn5Cd, PWn6Cd, PWn7Cd, PWn8Cd, PWn9Cd"          All the PWn Cds
 END                                               Integerated Kite Loads
 "SP1TSkew, SP1TRtSpd, SP1TVRel, SP1TCp, SP1TCq, SP1TCt, SP1TFx, SP1TFy, SP1TFz, SP1TMx, SP1TMy, SP1TMz, SP1TPwr"  Starboard Pylon 1 Top rotor
 "SP1BSkew, SP1BRtSpd, SP1BVRel, SP1BCp, SP1BCq, SP1BCt, SP1BFx, SP1BFy, SP1BFz, SP1BMx, SP1BMy, SP1BMz, SP1BPwr"  Starboard Pylon 1 Bottom rotor
