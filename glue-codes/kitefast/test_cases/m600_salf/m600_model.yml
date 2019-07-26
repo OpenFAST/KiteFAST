@@ -16,7 +16,7 @@ simulation_controls:
 
     fast_submodule_input_files:
         kiteaerodyn_input: "../kiteaerodyn/simple_m600_model.inp"
-        inflowwind_input: "kiteInflowWind.dat"
+        inflowwind_input: "../kiteinflow/kiteInflowWind.dat"
         moordyn_input: "../kitemooring/m600-MoorDyn.dat"
         controller_input: "../../../../build/modules-local/kitefast-controller/libkitefastcontroller_controller.so"
 
