@@ -494,7 +494,7 @@ begin: elements;
             1,
             0,
         fast_submodule_input_files,
-            "simple_m600_model.inp",
+            "../kiteaerodyn/simple_m600_model.inp",
             "kiteInflowWind.dat",
             "m600-MoorDyn.dat",
             "../../../../build/modules-local/kitefast-controller/libkitefastcontroller_controller.so",
