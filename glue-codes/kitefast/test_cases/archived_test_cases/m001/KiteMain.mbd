@@ -1,0 +1,415 @@
+# Rev.00             03/28/2018
+#
+# MBDyn simplified model of the MAKANI aircraft
+# KiteMain.mbd
+# DATA
+#
+# Constant mass distribution and Stiffness for all components
+# Shear center assumed at the axis of the beam and coincident with CG
+
+
+module load: "libmodule-kitefastmbd";
+
+begin: data;
+  problem: initial value;
+
+end: data;
+
+begin: initial value;
+
+  initial time: 0.;
+  final time: 1.5;
+  time step: 1e-3;
+
+  tolerance: 1e-3;
+  max iterations: 60;
+
+  derivatives tolerance: 10e0;
+  derivatives max iterations: 200;
+  derivatives coefficient: 1e-3;
+
+  linear solver: naive, colamd, mt, 1, pivot factor, 1e-8;
+#  nonlinear solver: newton raphson, modified, 10;
+
+  #output: iterations; #debug, DO NOT REMOVE, but comment after debug
+  #output: residual; #debug, DO NOT REMOVE, but comment after debug
+
+#  eigenanalysis: 0.001,
+#   output eigenvectors,
+#    upper frequency limit, 5.;
+#     use lapack;
+
+
+
+end: initial value;
+
+# CONTROL DATA
+begin: control data;
+
+  loadable elements: 1; #this sets the number of runtime usr-defined elements
+
+  include: "Kite.set";
+  #print: all;
+  #default output: none; #, structural nodes, joints; #//all
+  default orientation: orientation vector;
+  structural nodes:
+	  +fusnNodes     # fuse
+    +rwnNodes     #starboard wing
+    +lwnNodes     #port wing
+    +vsnNodes     # VS
+    +rhsnNodes    #starboard HS
+    +lhsnNodes    #port HS
+    +rpynNodes    #starboard pylons' nodes
+    +lpynNodes    #port pylons' nodes
+    +rrotnNodes   #starboard rotor nodes
+    +lrotnNodes   #port rotor nodes
+    	# +1 #ground
+    +1 # dummy mip node
+  ;
+
+  joints:
+  #  +1  # ground clamp
+    +1             # rigid fix from MIP to rwroot_node
+    +1             # rigid fix from MIP to lwroot_node
+    +1             # rigid fix from vsroot_node to aftfuse_node
+    +1             # rigid fix from rhsroot_node to VSroot node
+    +1             # rigid fix from lhsroot_node to VSroot node
+    +npyspw        # rigid fix from right wing mid node  to pylon mid node
+    +npyspw        # rigid fix from left wing mid node  to pylon mid node
+    +nrotpw        # revolute hinge from right pylons to rotors
+    +nrotpw        # revolute hinge from left pylons to rotors
+  ;
+
+  set: integer N_beam = fusnBeams
+			+rwnBeams  +lwnBeams
+			+vsnBeams
+			+rhsnBeams +lhsnBeams
+                        +npyBeams*npyspw*2
+      ;
+
+  rigid bodies:
+    + 3 * (N_beam)
+    + 2*(nrotpw)  # 3 masses per beam
+    + 1 #extra mass in the nose to balance the aircraft 
+  ;
+
+  beams:
+    N_beam
+  ;
+
+  forces:
+    +0
+  ;
+
+  gravity;
+  #air properties;
+
+end: control data;
+
+# NODES
+begin: nodes;
+  #fuse
+  include: "fuse.nod";
+
+  # wing
+  include: "wing.nod";
+
+  # vstab
+  include: "vstab.nod";
+
+  # hstab
+  include: "hstab.nod";
+
+  # pylon
+  include: "pylon.nod";
+
+  # rotor
+  include: "rotor.nod";
+
+end: nodes;
+
+# ELEMENTS
+begin: elements;
+
+  gravity: 0., 0., 1., const, -9.81;
+
+  # ground clamp
+#        joint: MIP_node, clamp, MIP_node, node, node;
+
+  # fix wings rigidly to MIP_node
+
+  joint: MIP_node +1, total joint,
+    MIP_node,
+    lwroot_node,
+    rotation orientation, reference, other node, eye,
+    position constraint,
+      active, active, active,
+      component, lwroot_xoffset,lwroot_yoffset,lwroot_zoffset, #separation in position between two nodes, in 1st node reference
+    orientation constraint,
+      active, active, active,
+      null;
+
+
+  joint: MIP_node +2, total joint,
+    MIP_node,
+    rwroot_node,
+    rotation orientation, reference, other node, eye,
+    position constraint,
+      active, active, active,
+      component, rwroot_xoffset,rwroot_yoffset,rwroot_zoffset, #separation in position between two nodes, in 1st node reference,
+    orientation constraint,
+      active, active, active,
+      null;
+
+  # fix Vstab rigidly to fuse tail node
+
+  joint: vsbot_node , total joint,
+    aftfuse_node,
+    vsbot_node,
+    position, reference, other node, null,
+    rotation orientation, reference, other node, eye,
+    position constraint,
+      active, active, active,
+      null,
+#      component, vsroot_xoffset,vsroot_yoffset,vsroot_zoffset, #separation in position between two nodes, in 1st node reference,
+    orientation constraint,
+      active, active, active,
+      null;
+
+  # fix Hstab rigidly to Vstab bottom node
+
+  joint: vsroot_node , total joint,
+    vsroot_node,
+    rhsroot_node,
+    position, reference, other node, null,
+    rotation orientation, reference, other node, eye,
+    position constraint,
+      active, active, active,
+      null,
+    orientation constraint,
+      active, active, active,
+      null;
+
+  joint: vsroot_node +1, total joint,
+    vsroot_node,
+    lhsroot_node,
+    position, reference, other node, null,
+    rotation orientation, reference, other node, eye,
+    position constraint,
+      active, active, active,
+      null,
+    orientation constraint,
+      active, active, active,
+      null;
+
+#
+#right wing to pylon joints
+  joint: rpy1top_node+1, total joint,
+  rwroot_node +1,
+  rpy1mid_node,
+  position, reference, other node, null,
+  rotation orientation, reference, other node, eye,
+  position constraint,
+    active, active, active,
+    null,
+  orientation constraint,
+    active, active, active,
+    null;
+
+#right pylon to rotor joints
+joint: rrot1_node, revolute hinge,
+  rpy1top_node,
+    position, reference, rrot1_RF, null,
+    orientation, reference, rrot1_RF, 2, 0.,1.,0.,
+                                      3, 1.,0.,0.,
+  rrot1_node,
+    position, reference, rrot1_RF, null,
+    orientation, reference, rrot1_RF, 2, 0.,1.,0.,
+                                      3, 1.,0.,0.,
+  initial theta, 0.0;
+
+joint: rrot2_node, revolute hinge,
+  rpy1bot_node,
+    position, reference, rrot2_RF, null,
+    orientation, reference, rrot2_RF, 2, 0.,1.,0.,
+                                      3, 1.,0.,0.,
+  rrot2_node,
+    position, reference, rrot2_RF, null,
+    orientation, reference, rrot2_RF, 2, 0.,1.,0.,
+                                      3, 1.,0.,0.,
+	initial theta, 0.0;
+
+
+#port wing to pylon joints
+  joint: lpy1root_node+1, total joint,
+   lwroot_node +1,
+   lpy1mid_node,
+   position, reference, other node, null,
+   rotation orientation, reference, other node, eye,
+   position constraint,
+     active, active, active,
+     null,
+   orientation constraint,
+     active, active, active,
+     null;
+
+#port pylon to rotors joints
+joint: lrot1_node, revolute hinge,
+  lpy1top_node,
+    position, reference, lrot1_RF, null,
+    orientation, reference, lrot1_RF, 2, 0.,1.,0.,
+                                      3, 1.,0.,0.,
+  lrot1_node,
+    position, reference, lrot1_RF, null,
+    orientation, reference, lrot1_RF, 2, 0.,1.,0.,
+                                      3, 1.,0.,0.,
+  initial theta, 0.;
+
+joint: lrot2_node, revolute hinge,
+  lpy1bot_node,
+    position, reference, lrot2_RF, null,
+    orientation, reference, lrot2_RF, 2, 0.,1.,0.,
+                                      3, 1.,0.,0.,
+  lrot2_node,
+    position, reference, lrot2_RF, null,
+    orientation, reference, lrot2_RF, 2, 0.,1.,0.,
+                                      3, 1.,0.,0.,
+  initial theta, 0.;
+
+  # fuse structural elements
+  include: "fuse_struct.elm";
+
+  # wing structural elements
+  include: "wing_struct.elm";
+
+  # vstab structural elements
+  include: "vstab_struct.elm";
+
+  # hstab structural elements
+  include: "hstab_struct.elm";
+
+  # pylon elements
+  include: "pylon_struct.elm";
+
+  # rotor elements
+  include: "rotor_elms.elm";
+
+  # test force
+#   force: 1, absolute,
+#   	MIP_node+1,
+#   	  position, null,
+# 	  single, 0., 0., 1.,
+# 	  const, 0;
+#
+#   couple: 2, follower,
+#   	MIP_node,
+#   	  position, null,
+# 	  single, 0., 0., 1.,
+# 	  const, -00000;
+
+  inertia: 1,
+    body, all;
+
+   user defined: 1, ModuleKiteFAST,
+    fast_submodule_flags,
+      1,
+      1,
+      0,
+      0,
+    fast_submodule_input_files,
+      "simple_m000_model_AD.txt", # kiteaerodyn
+      "kiteInflowWind.dat", # inflow wind
+      "kiteTether.dat", # moordyn
+      "", # controller
+    output_file_root,
+      "KiteFast",
+    initial_time,
+      0.0,
+    time_step,
+      1e-3,
+    gravity,
+      9.81,
+    ground_weather_station_location,
+      100.0, 20.0, 0.0,
+    number_of_flaps_per_wing,
+      3,
+    number_of_pylons_per_wing,
+      1,
+    number_of_kite_components,
+      8,
+    keypoints,
+      0.0,   0.0,  100.0,   # fuselage
+      rwroot_xoffset, rwroot_yoffset, rwroot_zoffset,   # port wing
+      lwroot_xoffset, lwroot_yoffset, lwroot_zoffset,   # starboard wing
+      vsroot_xoffset, vsroot_yoffset, vsroot_zoffset,   # vertical stabilizer
+      rhsroot_xoffset, rhsroot_yoffset, rhsroot_zoffset,  # port horizontal stabilizer
+      lhsroot_xoffset, lhsroot_yoffset, lhsroot_zoffset,   # starboard horizontal stabilizer
+      rpy1_xoffset, rpy1_yoffset, rpy1_zoffset,   # port pylon
+      lpy1_xoffset, lpy1_yoffset, lpy1_zoffset,   # starboard pylon
+    mip_node,
+      1,
+    fuselage,
+      fusnNodes,
+      MIP_node -1,
+      MIP_node,
+      MIP_node +1,
+      fusnBeams,
+      fusbeam,
+    wing_starboard,
+      rwnNodes,
+      rwroot_node,
+      rwroot_node +1,
+      rwroot_node +2,
+      rwnBeams,
+      rwbeam,
+    wing_port,
+      lwnNodes,
+      lwroot_node,
+      lwroot_node +1,
+      lwroot_node +2,
+      lwnBeams,
+      lwbeam,
+    vertical_stabilizer,
+      vsnNodes,
+      vsroot_node,
+      vsroot_node +1,
+      vsroot_node +2,
+      vsnBeams,
+      vsbeam,
+    horizontal_stabilizer_starboard,
+      rhsnNodes,
+      rhsroot_node,
+      rhsroot_node +1,
+      rhsroot_node +2,
+      rhsnBeams,
+      rhsbeam,
+    horizontal_stabilizer_port,
+      lhsnNodes,
+      lhsroot_node,
+      lhsroot_node +1,
+      lhsroot_node +2,
+      lhsnBeams,
+      lhsbeam,
+    pylon_starboard_1,
+      pynNodes,
+      rpy1root_node,
+      rpy1root_node +1,
+      rpy1root_node +2,
+      npyBeams,
+      rpy1beam,
+    pylon_port_1,
+      pynNodes,
+      lpy1root_node,
+      lpy1root_node +1,
+      lpy1root_node +2,
+      npyBeams,
+      lpy1beam,
+    starboard_rotors,
+      2,
+      rrot1_node,
+      rrot2_node,
+    port_rotors,
+      2,
+      lrot1_node,
+      lrot2_node;
+end: elements;

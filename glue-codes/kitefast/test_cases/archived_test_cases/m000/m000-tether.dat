@@ -1,0 +1,32 @@
+--------------------- MoorDyn Input File ------------------------------------
+Mooring system for OC4-DeepCwind Semi
+FALSE    Echo      - echo the input file data (flag)
+----------------------- LINE TYPES ------------------------------------------
+1        NTypes    - number of LineTypes
+Name     Diam      MassDen      EA    BA/-zeta  Can   Cat   Cdn   Cdt
+(-)       (m)      (kg/m)       (N)   (N-s/-)   (-)   (-)   (-)   (-)
+main     0.03       0.917       1.8E7  -0.011   0.0   0.0   0.7   0.0
+---------------------- CONNECTION PROPERTIES --------------------------------
+2       NConnects - number of connections including anchors and fairleads
+Node    Type      X        Y        Z      M     V      FX   FY   FZ   CdA   CA
+(-)     (-)      (m)      (m)      (m)     (kg)  (m^3)  (kN) (kN) (kN) (m^2) (-)
+1      Fixed    10.0      0.0      0.0     0.0   0.0    0.0  0.0  0.0  0.0   0.0
+2      Vessel    0.0      0.0      0.0     0.0   0.0    0.0  0.0  0.0  0.0   0.0
+---------------------- LINE PROPERTIES --------------------------------------
+1        NLines    - number of line objects
+Line    LineType  UnstrLen  NumSegs   NodeAnch  NodeFair  Flags/Outputs
+(-)       (-)       (m)       (-)       (-)       (-)         (-)
+1         main     120.0      3         1         2           -
+---------------------- SOLVER OPTIONS ---------------------------------------
+0.001    dtM       - time step to use in mooring integration (s)
+0.0      kbot      - bottom stiffness (Pa/m)
+0.0      cbot      - bottom damping (Pa-s/m)
+1.0      dtIC      - time interval for analyzing convergence during IC gen (s)
+100.0     TmaxIC    - max time for ic gen (s)
+0.1      CdScaleIC - factor by which to scale drag coefficients during dynamic relaxation (-)
+0.01     threshIC  - threshold for IC convergence (-)
+------------------------ OUTPUTS --------------------------------------------
+FairTen1
+AnchTen1
+END
+------------------------- need this line --------------------------------------

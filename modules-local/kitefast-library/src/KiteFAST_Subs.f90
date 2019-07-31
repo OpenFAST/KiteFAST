@@ -3979,7 +3979,7 @@ subroutine AssRes_OnShore( t_c, isInitialTime_c, WindPt_c, WindPtVel_c, AnchorPt
 
                !call KAD_CopyInput(m%KAD%u,OtherSt%KAD%u(2), MESH_NEWCOPY, errStat2, errMsg2)
             end if
-            
+
             call KAD_CalcOutput( t, OtherSt%KAD%u(1), m%KAD%p, m%KAD%x, m%KAD%xd, OtherSt%KAD%z, OtherSt%KAD%OtherSt, m%KAD%y, m%KAD%m, errStat2, errMsg2 )
                call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
             if (errStat >= AbortErrLev ) return

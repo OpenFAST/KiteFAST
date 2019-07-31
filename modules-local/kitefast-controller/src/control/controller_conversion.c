@@ -112,8 +112,8 @@ void AssignInputs(double dcm_g2b_c[], double pqr_c[], double *acc_norm_c,
 	state_est->apparent_wind.sph_f.beta = -asin(V_wind_b.y/state_est->apparent_wind.sph_f.v); // remove (-) and test
 	state_est->apparent_wind.solution_type = kApparentWindSolutionTypePitot; // added 6/27/19
 
-	state_est->apparent_wind.sph_f.alpha = Lpf(state_est->apparent_wind.sph_f.alpha , 0.5, 0.01, &state_est->apparent_wind.sph_f.alpha_lpf);
-	state_est->apparent_wind.sph_f.beta  = Lpf(state_est->apparent_wind.sph_f.beta  , 0.5, 0.01, &state_est->apparent_wind.sph_f.beta_lpf );
+	state_est->apparent_wind.sph_f.alpha = Lpf(state_est->apparent_wind.sph_f.alpha , 2.0, 0.01, &state_est->apparent_wind.sph_f.alpha_lpf);
+	state_est->apparent_wind.sph_f.beta  = Lpf(state_est->apparent_wind.sph_f.beta  , 2.0, 0.01, &state_est->apparent_wind.sph_f.beta_lpf );
 
 	state_est->apparent_wind.sph_f.alpha_lpf = state_est->apparent_wind.sph_f.alpha;
 	state_est->apparent_wind.sph_f.beta_lpf = state_est->apparent_wind.sph_f.beta;
