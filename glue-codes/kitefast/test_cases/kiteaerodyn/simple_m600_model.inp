@@ -169,14 +169,14 @@ PylX      PylY      PylZ      PylTwist  PylChord  PylAFID
 --- ROTOR PROPERTIES ---
 RtrRad    RtrInFile
 (m)       (string)
-1.15      "gen4_k1p36_f1p0_3DNREL_LeftHanded.dat"          ! STI
-1.15      "gen4_k1p36_f1p0_3DNREL.dat"          ! SBI
-1.15      "gen4_k1p36_f1p0_3DNREL.dat"          ! STO
-1.15      "gen4_k1p36_f1p0_3DNREL_LeftHanded.dat"          ! SBO
-1.15      "gen4_k1p36_f1p0_3DNREL_LeftHanded.dat"          ! PTI
-1.15      "gen4_k1p36_f1p0_3DNREL.dat"          ! PBI
-1.15      "gen4_k1p36_f1p0_3DNREL.dat"          ! PTO
-1.15      "gen4_k1p36_f1p0_3DNREL_LeftHanded.dat"          ! PBO
+1.15      "../kiteaerodyn/gen4_k1p36_f1p0_3DNREL_LeftHanded.dat"          ! STI
+1.15      "../kiteaerodyn/gen4_k1p36_f1p0_3DNREL.dat"          ! SBI
+1.15      "../kiteaerodyn/gen4_k1p36_f1p0_3DNREL.dat"          ! STO
+1.15      "../kiteaerodyn/gen4_k1p36_f1p0_3DNREL_LeftHanded.dat"          ! SBO
+1.15      "../kiteaerodyn/gen4_k1p36_f1p0_3DNREL_LeftHanded.dat"          ! PTI
+1.15      "../kiteaerodyn/gen4_k1p36_f1p0_3DNREL.dat"          ! PBI
+1.15      "../kiteaerodyn/gen4_k1p36_f1p0_3DNREL.dat"          ! PTO
+1.15      "../kiteaerodyn/gen4_k1p36_f1p0_3DNREL_LeftHanded.dat"          ! PBO
 --- OUTPUT ---
 True                             SumPrint           Print summary data to <RootName>.sum? (flag)
 2                                OutSwtch           Output requested channels to? (-) (switch) {1=KiteFAST.KAD.out/KiteFAST.VSM.out, 2=GlueCode.out, 3=three files]
