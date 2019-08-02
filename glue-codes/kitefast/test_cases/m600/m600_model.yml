@@ -43,7 +43,7 @@ simulation_controls:
         10
 
     max_iterations:
-        60
+        "10, at most"
 
     derivatives:
         tolerance:
