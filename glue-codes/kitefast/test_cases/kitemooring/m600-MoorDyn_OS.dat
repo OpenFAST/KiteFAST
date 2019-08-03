@@ -12,10 +12,10 @@ bridle_p   0.0400    3.468     2.1E7  -0.9      0.0   0.0   1.0   0.0
 4       NConnects - number of connections including anchors and fairleads
 Node    Type      X        Y        Z      M     V      FX   FY   FZ   CdA   CA
 (-)     (-)      (m)      (m)      (m)     (kg)  (m^3)  (kN) (kN) (kN) (m^2) (-)
-1      Vessel1     1.15    -1.2       1.702   0.0   0.0    0.0  0.0  0.0  0.0   0.0
+1      Vessel2   1.15    -1.2       1.702   0.0   0.0    0.0  0.0  0.0  0.0   0.0
 2      Connect   124.6  -376.15    169.99   0.0   0.0    0.0  0.0  0.0  0.0   0.0
-3      Vessel2   0.1494  -5.8843    -0.13035 0.0   0.0    0.0  0.0  0.0  0.0   0.0
-4      Vessel2   0.1494   5.8661    -0.13035 0.0   0.0    0.0  0.0  0.0  0.0   0.0
+3      Vessel1   0.1494  -5.8843    -0.13035 0.0   0.0    0.0  0.0  0.0  0.0   0.0
+4      Vessel1   0.1494   5.8661    -0.13035 0.0   0.0    0.0  0.0  0.0  0.0   0.0
 ---------------------- LINE PROPERTIES --------------------------------------
 3        NLines    - number of line objects
 Line    LineType  UnstrLen  NumSegs   NodeAnch  NodeFair  Flags/Outputs
