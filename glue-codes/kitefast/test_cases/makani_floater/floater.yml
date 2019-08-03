@@ -14,15 +14,15 @@ simulation_controls:
         moordyn_tether: false
         controller: false
         hydrodyn: true
-        moordyn_mooring: false
+        moordyn_mooring: true
 
     fast_submodule_input_files:
         kiteaerodyn_input: ""
         inflowwind_input: ""
         moordyn_tether_input: ""
         controller_input: ""
-        hydrodyn_input: "../hydrodyn/NRELOffshrBsline5MW_OC3Hywind_HydroDyn.dat"
-        moordyn_mooring_input: ""
+        hydrodyn_input: "../hydrodyn/HydroDyn.dat"
+        moordyn_mooring_input: "../kitemooring/moordyn_mooring.inp"
 
     print_kitefast_summary_file:
         false
