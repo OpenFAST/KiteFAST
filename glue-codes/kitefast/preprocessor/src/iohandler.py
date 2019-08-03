@@ -214,7 +214,8 @@ class Input():
         if self.simulation_type > 1:
             model_dict["platform"] = {
                 "mass": input_dict["platform"]["mass_properties"][0],
-                "inertia": input_dict["platform"]["mass_properties"][1:4],
+                "cm_offset": input_dict["platform"]["mass_properties"][1],
+                "inertia": input_dict["platform"]["mass_properties"][2:5],
                 "node_location": input_dict["platform"]["node_location"],
                 "imu_location": input_dict["platform"]["imu_location"],
                 "wind_reference_station_location": input_dict["wind_reference_station"]["location"],
