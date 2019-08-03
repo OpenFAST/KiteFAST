@@ -18,7 +18,7 @@ begin: initial value;
     derivatives tolerance: 10000;
     derivatives max iterations: 200;
     derivatives coefficient: 1e-4;
-    linear solver: klu;
+    linear solver: naive, colamd, mt, 1, pivot factor, 1e-8;
 end: initial value;
 
 
@@ -543,7 +543,7 @@ joint: 10 +200, total pin joint,
             "../kiteinflow/kiteInflowWind.dat",
             "../kitemooring/m600-MoorDyn_coarse.dat",
             "../../../../build/modules-local/kitefast-controller/libkitefastcontroller_controller.so",
-            "HydroDyn.dat",
+            "../hydrodyn/HydroDyn.dat",
             "../kitemooring/moordyn_mooring.inp",
         output_file_root,
             "KiteFast",
