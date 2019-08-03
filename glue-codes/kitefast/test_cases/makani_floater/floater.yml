@@ -21,7 +21,7 @@ simulation_controls:
         inflowwind_input: ""
         moordyn_tether_input: ""
         controller_input: ""
-        hydrodyn_input: "../5MW_OC3Spar_DLL_WTurb_WavesIrr/NRELOffshrBsline5MW_OC3Hywind_HydroDyn.dat"
+        hydrodyn_input: "../hydrodyn/NRELOffshrBsline5MW_OC3Hywind_HydroDyn.dat"
         moordyn_mooring_input: ""
 
     print_kitefast_summary_file:
@@ -47,13 +47,13 @@ simulation_controls:
             1e-3
 
         final:
-            0.5
+            10.0
 
     tolerance:
         1e-3
 
     max_iterations:
-        60
+        "10, at most"
 
     derivatives:
         tolerance:
@@ -99,24 +99,27 @@ keypoints:
 
 platform:
     mass_properties:
-        [7.130400E+05, 2.452533E+08, 2.452513E+08, 1.534000E+06]
+        # [mass, Cmz, I_xx,   I_yy,   I_zz]
+        # [  kg,   m, kg*m^2, kg*m^2, kg*m^2]
+        [7.130400E+05, -29.06151, 2.452533E+08, 2.452513E+08, 1.534000E+06]
 
     node_location:
-        [0.0, 0.0, -29.06151]
+        # this must be 0,0,0 for hydrodyn
+        [0.0, 0.0, 0.0]
 
     imu_location:
-        [1.0, 1.0, 1.0]
+        [0.0, 0.0, 0.0]
 
 wind_reference_station:
     location:
-        [2.0, 2.0, 2.0]
+        [0.0, 0.0, 0.0]
 
 ground_station:
     location:
         # locates the weather station; this point is passed directly to
         # KiteFAST which uses it to interface with the controller
         # [x, y, z]
-        [3.0, 3.0, 3.0]
+        [0.0, 0.0, 0.0]
 
 output:
     fuselage_nodes:
@@ -149,6 +152,3 @@ output:
         - 0
 
     output_channels:
-        - "KitePxi"
-        - "KitePyi"
-        - "KitePzi"
