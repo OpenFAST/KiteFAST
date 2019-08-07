@@ -2,8 +2,8 @@
 KiteFAST-MBD Documentation
 ==========================
 Sections:
-- Theory documentation
 - Repository map
+- Theory documentation
 - Example/test cases
 
 The KiteFASTMBD simulation software is made up of multiple packages:
@@ -18,6 +18,10 @@ Repository map
 ~~~~~~~~~~~~~~
 The repository is called `sandbox` and contains all of the source code
 and installation scripts required to compile and run kite simulations.
+
+The primary branches for active development are `master` and `dev`. Generally,
+`dev` contains the latest work and is merged into `master` after testing
+is completed.
 
 All paths in the documentation assume that the main directory is
 called `sandbox`. In addition to other general OpenFAST related content,
