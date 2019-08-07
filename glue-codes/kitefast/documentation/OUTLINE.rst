@@ -31,7 +31,7 @@ sandbox
 ├── glue-codes
 │   └── kitefast
 │       ├── documentation
-│       │   └── <text files>
+│       │   └── <text files and pdfs>
 │       ├── kitefast_build.sh
 │       ├── kitefast_remove.sh
 │       ├── kitefast_update.sh
@@ -75,7 +75,7 @@ The theory documentation is organized by the various physics modules which
 make up KiteFAST, MBDyn, and the interface between. An implementation
 plan including details of the physics modules added to OpenFAST, the coupling
 with MBDyn, and the outputs available to the user is located at
-`sandbox/glue-codes/kitefast/documentation/KiteFASTMBD/KiteFASTMBD_Plan.pdf`.
+`sandbox/glue-codes/kitefast/documentation/theory/KiteFASTMBD_Plan.pdf`.
 
 MBDyn
 -----
@@ -92,14 +92,13 @@ KiteFAST
 The general OpenFAST documentation is available at
 https://openfast.readthedocs.io/. Additional documentation for the VSM module
 is found at
-`sandbox/glue-codes/kitefast/documentation/KiteAeroDyn/TheoryManual/VSM_Theory.pdf`.
+`sandbox/glue-codes/kitefast/documentation/theory/VSM_Theory.pdf`.
 
 Contact Jason Jonkman <mailto:jason.jonkman@nrel.gov>.
 
 MBDyn Preprocessor
 ------------------
 The preprocessor theory documentation is available at 
-`sandbox/glue-codes/kitefast/documentation/MBDyn_Preprocessor/PrepRocessor_Theory.pdf`.
+`sandbox/glue-codes/kitefast/documentation/theory/MBDyn_Preprocessor_Theory.pdf`.
 
 Contact Rick Damiani <mailto:rick.damiani@nrel.gov>.
-
