@@ -206,6 +206,9 @@ preprocessor input files is included. This case was created manually so that
 the eigen analysis could be correcly configured. To modify this case, start
 with `KiteMain.mbd`.
 
+NOTE: dummy nodes cannot be included in the `KiteMain.mbd`.  These will cause
+parsing issues when `BlenDyn` is used to visualize modes with `Blender`.
+
 m600
 ----
 **This is the main demonstrator for the entire simulation.**
