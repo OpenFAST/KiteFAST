@@ -646,7 +646,8 @@ subroutine ActDsk_Init( InitInp, u, p, y, interval, &
    
       ! Set parameters based on initialization inputs
    p%R        = InitInp%R
-   p%halfRhoA = 0.5_ReKi*InitInp%AirDens*pi*p%R*p%R
+   p%D        = InitInp%R*2.0_ReKi
+   p%RhoD4    = (InitInp%AirDens*p%D*p%D*p%D*p%D)
  
       ! Move RtSpd and Skew angles to parameters
    if (allocated(InitInp%InitInpFile%RtSpds )) call Move_Alloc( InitInp%InitInpFile%RtSpds ,  p%RtSpds  )
@@ -675,33 +676,29 @@ subroutine ActDsk_CalcOutput( u, p, m, y, errStat, errMsg )
    
    integer(IntKi)                                   :: errStat2    ! Error status of the operation (secondary error)
    character(ErrMsgLen)                             :: errMsg2     ! Error message if errStat2 /= ErrID_None
-   real(ReKi)                                       :: velsqrd     ! The square of the disk-averaged axial velocity 
+   !real(ReKi)                                       :: velsqrd     ! The square of the disk-averaged axial velocity 
    real(ReKi)                                       :: coefs(7)
    character(*), parameter                          :: routineName = 'ActDsk_CalcOutput'
    real(ReKi)                                       :: factorF, factorM
-   real(ReKi)                                       :: RtSpd, pitch, DiskAve_Vrel, skew
+   real(ReKi)                                       :: RtSpd, pitch, DiskAve_Vrel, skew, DiskAve_Vx_Rel
    errStat   = ErrID_None           ! no error has occurred
    errMsg    = ""
+ 
    
-   
-   if ( EqualRealNos(m%DiskAve_Vx_Rel, 0.0_ReKi) ) then
-      m%TSR = 0.0_ReKi
-   else    
-      m%TSR = abs( u%RtSpd*p%R / m%DiskAve_Vx_Rel ) 
-   end if
-
    if (p%RotorMod == 1) then
-      RtSpd = u%RtSpd
-	  pitch = u%pitch
-	  DiskAve_Vrel = u%DiskAve_Vrel
-	  skew = u%skew
+     RtSpd = u%RtSpd     ! must be in units of rad/s
+	  pitch = u%pitch     ! must be in units of radians
+	  DiskAve_Vrel = u%DiskAve_Vrel  ! m/s
+	  skew = u%skew       ! must be in units of radians
+     
          ! Use quadlinear interpolation to determine the disk coefficients associated with this operating condition
       coefs = CoefInterp(RtSpd, pitch, DiskAve_Vrel, skew, p, errStat2, errMsg2)
          call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName ) 
-      m%DiskAve_Vx_Rel = abs(DiskAve_Vrel*cos(skew))
-      velsqrd  = m%DiskAve_Vx_Rel*m%DiskAve_Vx_Rel
-      factorF  = p%halfRhoA*velsqrd 
-      factorM  = factorF*p%R
+
+      RtSpd    = RtSpd / (TwoPi) ! convert to rev/s for remaining calculations
+      factorF  = p%RhoD4*RtSpd*RtSpd 
+      factorM  = factorF*p%D
+      
    
       y%Fx = factorF*coefs(1)
       y%Fy = factorF*coefs(2)
@@ -709,10 +706,10 @@ subroutine ActDsk_CalcOutput( u, p, m, y, errStat, errMsg )
       y%Mx = factorM*coefs(4)
       y%My = factorM*coefs(5)  
       y%Mz = factorM*coefs(6)
-      y%P  = factorF*m%DiskAve_Vx_Rel*coefs(7)
-      m%Cp = coefs(7)
-      m%Cq = coefs(4)
-      m%Ct = -coefs(1)
+      y%P  = factorM*RtSpd*coefs(7)
+      m%Cp = coefs(7)               ! only for writing to output file
+      m%Cq = coefs(4)               ! only for writing to output file
+      m%Ct = -coefs(1)              ! only for writing to output file
    else
       y%Fx = 0.0_ReKi
       y%Fy = 0.0_ReKi
@@ -726,6 +723,14 @@ subroutine ActDsk_CalcOutput( u, p, m, y, errStat, errMsg )
       m%Ct = 0.0_ReKi
    end if
  
+      ! Compute TSR only for writing to output file
+   DiskAve_Vx_Rel = abs(u%DiskAve_Vrel*cos(u%skew))
+   if ( EqualRealNos(DiskAve_Vx_Rel, 0.0_ReKi) ) then
+      m%TSR = 0.0_ReKi
+   else    
+      m%TSR = abs( u%RtSpd*p%R / DiskAve_Vx_Rel ) 
+   end if
+   
 end subroutine ActDsk_CalcOutput
 
 subroutine ActDsk_End(u, p, y, m, errStat, errMsg)
