@@ -64,15 +64,15 @@ typedef   ^                            MiscVarType                   ReKi       
 typedef   ^                            MiscVarType                   ReKi                     Ct                    -             -         -        "Thrust coefficient" -
 typedef   ^                            MiscVarType                   ReKi                     Cq                    -             -         -        "Torque coefficient" -
 typedef   ^                            MiscVarType                   ReKi                     TSR                   -             -         -        "Tip speed ratio" -
-typedef   ^                            MiscVarType                   ReKi                     DiskAve_Vx_Rel        -             -         -        "Disk-averaged relative velocity along the local x-axis" m/s
 #
 # ..... Parameters ................................................................................................................
 # Define parameters here:
 # Time step for integration of continuous states (if a fixed-step integrator is used) and update of discrete states:
 #
 typedef   ^                            ParameterType                 ReKi                     R                               -             -         -        "Rotor radius" m
+typedef   ^                            ParameterType                 ReKi                     D                               -             -         -        "Rotor diameter" m
 typedef   ^                            ^                             IntKi                    RotorMod                        -             -         -        "Rotor calculation model (-) (switch) {0:none, 1:actuator disk}"    -
-typedef   ^                            ^                             ReKi                     halfRhoA                        -             -         -        "One half air density times rotor swept area" kg/m
+typedef   ^                            ^                             ReKi                     RhoD4                           -             -         -        "air density times rotor diameter^4" kg-m
 typedef   ^                            ^                             INTEGER                  numRtSpd                        -             -         -        "Number of rotor speeds in tables " -
 typedef   ^                            ^                             INTEGER                  numSkew                         -             -         -        "Number of rotor inflow-skew angles in tables" -
 typedef   ^                            ^                             INTEGER                  numVrel                         -             -         -        "Number of inflow velocities in tables" -
