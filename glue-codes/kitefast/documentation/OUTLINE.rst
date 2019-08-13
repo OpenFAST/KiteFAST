@@ -7,7 +7,7 @@ Sections:
 - User documentation
 - Test cases
 
-The KiteFASTMBD simulation software is made up of multiple packages
+The KiteFAST simulation software is made up of multiple packages
 based on the modularization framework of OpenFAST:
 
 - MBDyn: multibody dynamics software from Politecnico di Milano that
