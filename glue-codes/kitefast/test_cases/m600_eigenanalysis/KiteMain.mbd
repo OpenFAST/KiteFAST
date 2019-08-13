@@ -36,7 +36,8 @@ begin: control data;
     include: "KiteMain.set";
 
     structural nodes:
-      + 1  # MIP node
+# NOTE:  For eigenanalysis, no dummy nodes can exist (NetCDF in blender doesn't import it in a usable format)
+#      + 1  # MIP node
       + fuselage_node_count
       + wing_starboard_node_count
       + wing_port_node_count
@@ -109,8 +110,9 @@ begin: nodes;
     include: "rotor_assembly_port_1_lower.nodes";
     include: "rotor_assembly_port_2_upper.nodes";
     include: "rotor_assembly_port_2_lower.nodes";
-    structural: 1, dummy,
-        fuselage_root_node + 0, offset,    6.917,  -0.000,  -0.000, eye;
+# NOTE:  For eigenanalysis, no dummy nodes can exist (NetCDF in blender doesn't import it in a usable format)
+#    structural: 1, dummy,
+#        fuselage_root_node + 0, offset,    6.917,  -0.000,  -0.000, eye;
 end: nodes;
 
 
