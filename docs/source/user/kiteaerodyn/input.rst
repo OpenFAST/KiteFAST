@@ -45,36 +45,30 @@ KiteAeroDyn driver input file is given in
 Set the ``Echo`` flag in this file to TRUE if you wish to have the
 ``KiteAeroDyn_Driver`` executable echo the contents of the driver input file (useful
 for debugging errors in the driver file). The echo file has the naming
-convention of *OutFileRoot.ech*, where ``OutFileRoot`` is
-specified in the I/O SETTINGS section of the driver input file below.
+convention of *KAD_DvrFile.ech*, where ``KAD_DvrFile`` is
+name of the KiteAeroDyn driver input file.  ``DTAero`` is the time interval for 
+the aerodynamic calculations, in seconds.
 ``KAD_InFile`` is the filename of the primary KiteAeroDyn input file.
 This name should be in quotations and can contain an absolute path or a
 relative path.
 
-The TURBINE DATA section defines the KiteAeroDyn-required turbine geometry
-for a rigid turbine, see Figure 1. ``NumBlades`` specifies the number
-of blades; only one-, two-, or three-bladed rotors are permitted.
-``HubRad`` specifies the radius to the blade root from the
-center-of-rotation along the (possibly preconed) blade-pitch axis;
-``HubRad`` must be greater than zero. ``HubHt`` specifies the
-elevation of the hub center above the ground (or above the mean sea
-level (MSL) for offshore wind turbines or above the seabed for MHK
-turbines). ``Overhang`` specifies the distance along the (possibly
-tilted) rotor shaft between the tower centerline and hub center;
-``Overhang`` is positive downwind, so use a negative number for upwind
-rotors. ``ShftTilt`` is the angle (in degrees) between the rotor shaft
-and the horizontal plane. Positive ``ShftTilt`` means that the
-downwind end of the shaft is the highest; upwind turbines have negative
-``ShftTilt`` for improved tower clearance. ``Precone`` is the angle
-(in degrees) between a flat rotor disk and the cone swept by the blades,
-positive downwind; upwind turbines have negative ``Precone`` for
-improved tower clearance.
+The ENERGY KITE REFERENCE CONFIGURATION section defines the KiteAeroDyn-required 
+geometry for the kite, see Figure 1. ``NumFlaps`` specifies the number
+of control flaps per wing-side (starboard/port); this should match what 
+the controller is sending to KiteFAST.  ``NumPylons`` specifies the number 
+of pylons per wing side (starboard/port).  ``NumFlaps`` and ``NumPylons`` 
+must each be greater than zero. Each kite component is defined relative to 
+its reference point.  These reference points are specified in the kite 
+coordinate system.  The table consists of three numbers (separated by spaces) on a single line to 
+represent the x, y, and z coordinates of that component's reference point.
+There must be a line for each pylon reference point.  For example, if 
+``NumPylons`` equals 2, then there will be 4 lines corresponding to the 
+various pylon reference points.  The Fuselage must have its reference 
+point located at (0,0,0) and therefore does not show up in the table.
 
 The I/O SETTINGS section controls the creation of the results file. If
 ``OutFileRoot`` is specified, the results file will have the filename
-*OutFileRoot.#.out*, where the ‘\ *#*\ ’ character is an integer
-number corresponding to a test case line found in the COMBINED-CASE
-ANALYSIS section described below. If an empty string is provided for
+*OutFileRoot.out*.  If an empty string is provided for
 ``OutFileRoot``, then the driver file’s root name will be used
 instead. If ``TabDel`` is ``TRUE``, a TAB character is used between
 columns in the output file; if FALSE, fixed-width is used otherwise.
@@ -83,32 +77,36 @@ for text output, excluding the time channel. The resulting field should
 be 10 characters, but KiteAeroDyn does not check ``OutFmt`` for validity.
 If you want a sound generated on program exit, set ``Beep`` to true.
 
-.. figure:: figs/ad_driver_geom.png
+.. figure:: figs/kad_driver_geom.png
    :width: 60%
    :align: center
 
-   KiteAeroDyn Driver Turbine Geometry
+   KiteAeroDyn Driver Kite Geometry
 
-The COMBINED-CASE ANALYSIS section allows you to execute ``NumCases``
-number of simulations for the given TURBINE DATA with a single driver
-input file. There will be one row in the subsequent table for each of
-the ``NumCases`` specified (plus two table header lines). The
-information within each row of the table fully specifies each
-simulation. Each row contains the following columns: ``WndSpeed``,
-``ShearExp``, ``RotSpd``, ``Pitch``, ``Yaw``, ``dT``, and
-``Tmax``. The local undisturbed wind speed for any given blade or
-tower node is determined using,
+The WIND AND ENERGY KITE TIME-HISTORY MOTION section allows you to execute a 
+simulation for the given kite specified in the ENERGY KITE REFERENCE CONFIGURATION section and 
+its corresponding ``KAD_InFile`` based on a set of inputs which drive the motions of the kite.
+
+The local undisturbed wind speed at the fuselage reference point of the kite (0,0,0 in kite coordinates) is determined using,
 
 .. math::
    :label: windspeed
 
-   U(Z) = \mathrm{WndSpeed} \times \left( \frac{Z}{\mathrm{HubHt}} \right)^\mathrm{ShearExp}
+   U(Z) = \mathrm{HWindSpd} \times \left( \frac{Z}{\mathrm{RefHt}} \right)^\mathrm{PLexp}
 
-where :math:`\mathrm{WndSpeed}` is the steady wind speed (fluid flow speed in the
-case of an MHK turbine) located at elevation :math:`\mathrm{HubHt}`, :math:`Z` is the
-instantaneous elevation of the blade or tower node above the ground (or
-above the MSL for offshore wind turbines or above the seabed for MHK
-turbines), and :math:`\mathrm{ShearExp}` is the power-law shear exponent. The fixed
+where :math:`\mathrm{HWindSpd}` is the steady wind speed (fluid flow speed in the
+case of an MHK turbine) located at elevation :math:`\mathrm{RefHt}`, :math:`Z` is the
+instantaneous elevation of the Fuselage reference point node above the ground (or
+above the MSL for offshore wind turbines, and :math:`\mathrm{PLexp}` is the power-law shear exponent. 
+
+There will be one row in the subsequent table for each of
+the time steps specified (plus two table header lines). The
+information within each row of the table fully specifies the necessary inputs to KiteAeroDyn for a given time step. 
+Each row contains the following columns: ``Time``,
+``KitePxi``, ``KitePzi``, ``KiteRoll``, ``KitePitch``, ``KiteYaw``, ``KiteTVxi``, and
+``Tmax``. 
+
+The fixed
 rotor speed (in rpm) is given by ``RotSpd`` (positive clockwise
 looking downwind), the fixed blade-pitch angle (in degrees) is given by
 ``Pitch`` (positive to feather, leading edge upwind), and the fixed
