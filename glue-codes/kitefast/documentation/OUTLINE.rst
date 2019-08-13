@@ -38,31 +38,41 @@ this directory should have the following structure:
 
 sandbox
 ├── glue-codes
-│   └── kitefast
-│       ├── documentation
-│       │   └── <text files and pdfs>
+│   └── kitefast
+│       ├── documentation
+│       │   ├── theory
+│       │   └── user_guides
 │       ├── kitefast_build.sh
 │       ├── kitefast_remove.sh
 │       ├── kitefast_update.sh
-│       ├── module-kitefastmbd
-│       │   └── <source code>
-│       ├── preprocessor
-│       │   └── <source code>
-│       └── test_cases
-│           └── <case directories>
-├── module-local
-│   ├── inflowwind
-│   │   └── <source code>
-│   ├── kiteaerodyn
-│   │   └── <source code>
-│   ├── kitefast-controller
-│   │   └── <source code>
-│   ├── kitefast-library
-│   │   └── <source code>
-│   └── vsm
-│       └── <source code>
-└── module-ext
-    └── moordyn
+│       ├── module-kitefastmbd
+│       ├── preprocessor
+│       │   └── <source code>
+│       └── test_cases
+│           ├── archived_test_cases
+│           ├── kiteaerodyn
+│           ├── kiteinflow
+│           ├── kitemooring
+│           ├── m600
+│           ├── m600_eigenanalysis
+│           ├── m600_prescribed_circle
+│           ├── m600_prescribed_circle_STIFF
+│           ├── m600_salf
+│           ├── scripts
+│           └── two_element_beam
+├── modules-ext
+│   └── moordyn
+│       └── <source code>
+└── modules-local
+    ├── inflowwind
+    │   └── <source code>
+    ├── kiteaerodyn
+    │   └── <source code>
+    ├── kitefast-controller
+    │   └── <source code>
+    ├── kitefast-library
+    │   └── <source code>
+    └── vsm
         └── <source code>
 
 sandbox/glue-codes/kitefast
