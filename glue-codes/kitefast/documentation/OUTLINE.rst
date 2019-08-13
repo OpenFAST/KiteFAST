@@ -14,7 +14,7 @@ based on the modularization framework of OpenFAST:
   drives the simulation and calculates the structural response in the system
 - KiteMBDyn preprocessor: a utility for generating the kite-specific MBDyn
   input files from a single YAML file
-- KiteFASTMBD: interface between MBDyn and the modules of OpenFAST
+- KiteFASTMBD: interface between MBDyn and the modules of KiteFAST
 - KiteAeroDyn Driver: standalone driver for running KiteAeroDyn uncoupled
   from OpenFAST
 - KiteAeroDyn: kite-specific aerodynamics module
