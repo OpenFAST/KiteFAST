@@ -1,0 +1,43 @@
+--- KiteAeroDyn v1.00.* DRIVER FILE ---
+simple_m600_model_case_03
+--- INPUT CONFIGURATION --- Case_03: Side Slip
+True                         Echo                ! Echo input data to <RootName>.ech? (flag)
+1.0                           DTAero              ! Time interval for aerodynamic calculations (s) [>0.0]
+"simple_m600_model_KAD_only.inp"       KAD_InFile          ! Name of the primary KiteAeroDyn input file (string)
+--- ENERGY KITE REFERENCE CONFIGURATION ---
+3         NumFlaps  ! Number of flaps per wing (-) [>=1]
+2         NumPylons ! Number of pylons per wing (-) [>=1]
+kiteX     kiteY     kiteZ
+(m)       (m)       (m)
+0.000     0.000     0.000     ! Starboard wing
+0.000     0.000     0.000     ! Port      wing
+-6.891    0.000     0.000     ! Vertical stabilizer
+-6.555    0.000     0.817     ! Right (Starboard) horizontal stabilizer
+-6.555    0.000     0.817     ! Left (Port)       horizontal stabilizer
+0.857     1.0       0.000     ! Pylon 3 (Starboard inner)
+0.857     3.5       0.000     ! Pylon 4 (Starboard outer)
+0.857     -1.0      0.000     ! Pylon 2 (Port inner)
+0.857     -3.5      0.000     ! Pylon 1 (Port outer)
+1.861     1.213     -1.221    ! (STI) (stbd, top, inner) Pylon 3
+1.515     1.213     1.593     ! (SBI) (stbd, bot, inner) Pylon 3
+1.861     3.640     -1.221    ! (STO) (stbd, top, outer) Pylon 4
+1.515     3.640     1.593     ! (SBO) (stbd, bot, outer) Pylon 4
+1.861     -1.213    -1.221    ! (PTI) (port, top, inner) Pylon 2
+1.515     -1.213    1.593     ! (PBI) (port, bot, inner) Pylon 2
+1.861     -3.639    -1.221    ! (PTO) (port, top, outer) Pylon 1
+1.515     -3.639    1.593     ! (PBO) (port, bot, outer) Pylon 1
+--- I/O SETTINGS ---
+"simple_m600_model_case_03"   OutFilRoot          ! Root name for any output files (sring) [use "" for .dvr rootname]
+True                          TabDel              ! Make output tab-delimited? (fixed-width otherwise) (flag)
+"ES10.3E2"                    OutFmt              ! Format used for text tabular output, excluding the time channel. Resulting field should be 10 characters. (quoted string)
+True                          Beep                ! Beep on exit? (flag)
+--- WIND AND ENERGY KITE TIME-HISTORY MOTION ---
+0.0       HWindSpd  ! Horizontal wind speed (m/s) [>=0.0]
+0.0       HWindDir  ! Horizontal wind propagation directionn(meteorological rotation from aligned with X (positive rotates towards -Y)) (deg)
+300.0     RefHt     ! Reference height for horizontal wind speed (m) [>0.0]
+0.0       PLexp     ! Vertical wind shear power-law exponent (-) [>=0.0]
+2         NumTimes  ! Number of time stamps (-) [>=2]
+Time      KitePxi   KitePyi   KitePzi   KiteRoll  KitePitch KiteYaw   KiteTVxi  KiteTVyi  KiteTVzi  KiteRVxi  KiteRVyi  KiteRVzi  SP1TRtSpd SP1BRtSpd SP2TRtSpd SP2BRtSpd PP1TRtSpd PP1BRtSpd PP2TRtSpd PP2BRtSpd SP1TPitch SP1BPitch SP2TPitch SP2BPitch PP1TPitch PP1BPitch PP2TPitch PP2BPitch SFlp1Ctrl SFlp2Ctrl SFlp3Ctrl PFlp1Ctrl PFlp2Ctrl PFlp3Ctrl Rudr1Ctrl Rudr2Ctrl SElv1Ctrl SElv2Ctrl PElv1Ctrl PElv2Ctrl
+(s)       (m)       (m)       (m)       (deg)     (deg)     (deg)     (m/s)     (m/s)     (m/s)     (deg/s)   (deg/s)   (deg/s)   (rad/s)   (rad/s)   (rad/s)   (rad/s)   (rad/s)   (rad/s)   (rad/s)   (rad/s)   (deg)     (deg)     (deg)     (deg)     (deg)     (deg)     (deg)     (deg)     (user)    (user)    (user)    (user)    (user)    (user)    (user)    (user)    (user)    (user)    (user)    (user)
+0.0       0.0       0.0       0.0       0.0       180.0     -20.0     -50.0     0.0       0.0       0.0       0.0       0.0       0.0       0.0       0.0       0.0       0.0       0.0       0.0       0.0       0.0       0.0       0.0       0.0       0.0       0.0       0.0       0.0       0.0       0.0       0.0       0.0       0.0       0.0       0.0       0.0       0.0       0.0       0.0       0.0
+10.0      0.0       0.0       0.0       0.0       180.0      20.0     -50.0     0.0       0.0       0.0       0.0       0.0       0.0       0.0       0.0       0.0       0.0       0.0       0.0       0.0       0.0       0.0       0.0       0.0       0.0       0.0       0.0       0.0       0.0       0.0       0.0       0.0       0.0       0.0       0.0       0.0       0.0       0.0       0.0       0.0
