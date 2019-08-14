@@ -7,17 +7,16 @@ program KiteFastController_Driver
    implicit none
    
       ! Variables
-   integer(IntKi)                   :: errStat, errStat2    ! Status of error message
-   character(1024)                  :: errMsg, errMsg2      ! Error message if errStat /= ErrID_None 
-   CHARACTER(1024)                  :: dvrFilename          ! Filename and path for the driver input file.  This is passed in as a command line argument when running the Driver exe. 
+   integer(IntKi)                   :: errStat    ! Status of error message
+   character(1024)                  :: errMsg      ! Error message if errStat /= ErrID_None 
    character(1024)                  :: routineName          
    ! type(KAD_Dvr_InitInputType)      :: dvrInitInp           ! Initialization input data for the KiteAeroDyn Driver
    type(KFC_InputType)              :: u
    type(KFC_OutputType)             :: y
    type(KFC_ParameterType)          :: p
-   type(KFC_InitOutputType)         :: InitOut
    type(KFC_InitInputType)          :: InitInp
    real(DbKi)                       :: t
+   real(DbKi)                       :: interval
    
       ! Initialize the NWTC library
    call NWTC_Init()
@@ -35,8 +34,9 @@ program KiteFastController_Driver
    InitInp%numPylons = 2
    InitInp%DT  = 0.01_DbKi
    InitInp%DLL_Filename = '/home/makani/Desktop/sandbox/build/modules-local/kitefast-controller/libkitefastcontroller_controller.so'
-   
-   call KFC_Init(InitInp, p, InitOut, InitInp%DT, errStat, errMsg)
+   interval = InitInp%DT
+  
+   call KFC_Init(InitInp, u, p, y, interval, errStat, errMsg)
       print *, "KiteFastController_Driver calling KFC_Init received ErrStat=", errStat, " ErrMsg=" , trim(errMsg)
       if ( errStat >= AbortErrLev ) call Cleanup()
       ! Establish the KiteFastController inputs
