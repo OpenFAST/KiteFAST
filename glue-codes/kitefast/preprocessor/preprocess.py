@@ -50,9 +50,9 @@ args = parser.parse_args()
 input_file = os.path.abspath(args.input_file[0])
 inputs = Input(input_file)
 if args.model_type == "kite":
-    model = KiteModel(inputs.simulation_dict, inputs.model_dict)
+    model = KiteModel(inputs.simulation_dict, inputs.model_dict, inputs.simulation_type)
 elif args.model_type == "beam":
-    model = TwoElementBeamModel(inputs.simulation_dict, inputs.model_dict)
+    model = TwoElementBeamModel(inputs.simulation_dict, inputs.model_dict, inputs.simulation_type)
 
 # Export the MBDyn model files
 if args.output_directory is None:

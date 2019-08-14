@@ -60,3 +60,8 @@ vs-build/
 *.preprocessor
 glue-codes/kitefast/test_cases/*/controller_save_data.csv
 *.bylog
+*.ech
+*.V*i
+*.A*i
+*wave_ech.Elev
+*wave_ech.DynP

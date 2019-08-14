@@ -14,6 +14,8 @@ typedef struct {
   double v;      // Airspeed [m/s] (always non-negative).
   double alpha;  // Angle-of-attack [rad].
   double beta;   // Sideslip angle [rad].
+  double beta_lpf;
+  double alpha_lpf;
 } ApparentWindSph;
 
 // For general information about RTK positioning, see:
@@ -120,6 +122,8 @@ typedef struct {
   // tether about the body x-axis (rotated normal to the bridle
   // plane).
   double roll;
+
+  double roll_lpf;
 
   // Angle [rad] the bridle plane makes relative to the body y-z
   // plane.  Positive means a positive rotation of the tether about

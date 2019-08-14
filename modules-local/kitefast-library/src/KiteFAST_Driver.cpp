@@ -36,7 +36,23 @@ int Setup_m000_Geom(int& numPylons, int& numComp, double** pFusODCM, double** pK
    numComp = 8;
    // The kite is aligned with the Global Coordinate system
    *pFusODCM = (double *)malloc(9 * sizeof(double));
-   (*pFusODCM)[0] = 0.8610;
+
+   //level flight case
+   (*pFusODCM)[0] = -1.0;
+   (*pFusODCM)[1] = 0.0;
+   (*pFusODCM)[2] = 0.0;
+
+   (*pFusODCM)[3] = 0.0;
+   (*pFusODCM)[4] = 1.0;
+   (*pFusODCM)[5] = 0.0;
+
+   (*pFusODCM)[6] = 0.0;
+   (*pFusODCM)[7] = 0.0;
+   (*pFusODCM)[8] = -1.0;
+
+
+   //Prescribed circle start case
+   /*(*pFusODCM)[0] = 0.8610;
    (*pFusODCM)[1] = -0.2349;
    (*pFusODCM)[2] = -0.4511;
 
@@ -46,7 +62,7 @@ int Setup_m000_Geom(int& numPylons, int& numComp, double** pFusODCM, double** pK
 
    (*pFusODCM)[6] = -0.4944;
    (*pFusODCM)[7] = -0.5945;
-   (*pFusODCM)[8] = -0.6341;
+   (*pFusODCM)[8] = -0.6341;*/
 
    // Offset of kite in global coordinates (m)
    // This offset needs to be added to all the reference points.
@@ -356,7 +372,22 @@ int Setup_m600_Geom(int& numPylons, int& numComp, double** pFusODCM, double** pK
    numComp = 10;
    // The kite is aligned with the Global Coordinate system
    *pFusODCM = (double *)malloc(9 * sizeof(double));
-   (*pFusODCM)[0] = 0.8610;
+
+   //level flight case
+   (*pFusODCM)[0] = -1.0;
+   (*pFusODCM)[1] = 0.0;
+   (*pFusODCM)[2] = 0.0;
+
+   (*pFusODCM)[3] = 0.0;
+   (*pFusODCM)[4] = 1.0;
+   (*pFusODCM)[5] = 0.0;
+
+   (*pFusODCM)[6] = 0.0;
+   (*pFusODCM)[7] = 0.0;
+   (*pFusODCM)[8] = -1.0;
+
+   //Prescribed circle start case
+   /*(*pFusODCM)[0] = 0.8610;
    (*pFusODCM)[1] = -0.2349;
    (*pFusODCM)[2] = -0.4511;
 
@@ -366,7 +397,8 @@ int Setup_m600_Geom(int& numPylons, int& numComp, double** pFusODCM, double** pK
 
    (*pFusODCM)[6] = -0.4944;
    (*pFusODCM)[7] = -0.5945;
-   (*pFusODCM)[8] = -0.6341;
+   (*pFusODCM)[8] = -0.6341;*/
+
 
    // Offset of kite in global coordinates (m)
    // This offset needs to be added to all the reference points.
@@ -390,7 +422,6 @@ int Setup_m600_Geom(int& numPylons, int& numComp, double** pFusODCM, double** pK
    (*pNumCompNds)[8] = 3; //  port inboard pylon nodes
    (*pNumCompNds)[9] = 3; //  port outboard pylon nodes
 
-   
    // Reference *points  specified in the Kite Coordinate System
    int numRefPtElem = numComp * 3;
    *pRefPts = (double *)malloc(numRefPtElem * sizeof(double));
@@ -443,9 +474,9 @@ int Setup_m600_Geom(int& numPylons, int& numComp, double** pFusODCM, double** pK
    (*pRefPts)[c + 2] = 0.0;
    c = c + 3;
 
-   (*pRefPts)[c + 0] = 0.857 ;
-   (*pRefPts)[c + 1] = 3.486 ;
-   (*pRefPts)[c + 2] = 0.0   ;
+   (*pRefPts)[c + 0] = 0.857;
+   (*pRefPts)[c + 1] = 3.486;
+   (*pRefPts)[c + 2] = 0.0;
    c = c + 3;
 
    // *port *pylons in kite coords
@@ -454,9 +485,9 @@ int Setup_m600_Geom(int& numPylons, int& numComp, double** pFusODCM, double** pK
    (*pRefPts)[c + 2] = 0.0;
    c = c + 3;
 
-   (*pRefPts)[c + 0] = 0.857 ;
+   (*pRefPts)[c + 0] = 0.857;
    (*pRefPts)[c + 1] = -3.793;
-   (*pRefPts)[c + 2] = 0.0 ;
+   (*pRefPts)[c + 2] = 0.0;
    c = c + 3;
 
    // nodal DCMs
@@ -502,7 +533,7 @@ int Setup_m600_Geom(int& numPylons, int& numComp, double** pFusODCM, double** pK
    // Fuselage node positions in kite coordinates relative to component reference point:  (0,0,0) for fuselage
    n = 0;
    double fusXloc[] = { 0.0, -1.553, -6.917 };
-   for (i=0 ; i < 3*(*pNumCompNds)[0]; i = i + 3)
+   for (i = 0; i < 3 * (*pNumCompNds)[0]; i = i + 3)
    {
       (*pNodePts)[i] = fusXloc[n];
       double x = (*pNodePts)[i];
@@ -519,7 +550,7 @@ int Setup_m600_Geom(int& numPylons, int& numComp, double** pFusODCM, double** pK
    n = 0;
    c = 3 * (*pNumCompNds)[0];
    double yloc[] = { 0.0, 1.060, 3.486, 6.432, 12.831 };
-   for (i=0; i < 3 * (*pNumCompNds)[1]; i = i + 3)
+   for (i = 0; i < 3 * (*pNumCompNds)[1]; i = i + 3)
    {
       (*pNodePts)[c + i + 1] = yloc[n];
       double x = (*pNodePts)[c + i];
@@ -536,7 +567,7 @@ int Setup_m600_Geom(int& numPylons, int& numComp, double** pFusODCM, double** pK
    n = 0;
    c = c + 3 * (*pNumCompNds)[1];
    double yloc2[] = { 0.0, -1.060, -3.486, -6.432, -12.831 };
-   for (i=0; i < 3 * (*pNumCompNds)[2]; i = i + 3)
+   for (i = 0; i < 3 * (*pNumCompNds)[2]; i = i + 3)
    {
       (*pNodePts)[c + i + 1] = yloc2[n];
       double x = (*pNodePts)[c + i];
@@ -553,7 +584,7 @@ int Setup_m600_Geom(int& numPylons, int& numComp, double** pFusODCM, double** pK
    n = 0;
    c = c + 3 * (*pNumCompNds)[2];
    double zloc[] = { -2.850, 0.0, 0.712 };
-   for (i=0; i < 3 * (*pNumCompNds)[3]; i = i + 3)
+   for (i = 0; i < 3 * (*pNumCompNds)[3]; i = i + 3)
    {
       (*pNodePts)[c + i + 1] = zloc[n];
       double x = (*pNodePts)[c + i];
@@ -570,8 +601,8 @@ int Setup_m600_Geom(int& numPylons, int& numComp, double** pFusODCM, double** pK
    // Starboard stab node positions in kite coordinates relative to component reference point
    n = 0;
    c = c + 3 * (*pNumCompNds)[3];
-   double yloc3[] = { 0.0,  0.5, 1.0, 1.724, 2.447 };
-   for (i=0; i < 3 * (*pNumCompNds)[4]; i = i + 3)
+   double yloc3[] = { 0.0, 0.5, 1.0, 1.724, 2.447 };
+   for (i = 0; i < 3 * (*pNumCompNds)[4]; i = i + 3)
    {
       (*pNodePts)[c + i + 1] = yloc3[n];
       double x = (*pNodePts)[c + i];
@@ -588,8 +619,8 @@ int Setup_m600_Geom(int& numPylons, int& numComp, double** pFusODCM, double** pK
    // Port stab node positions in kite coordinates relative to component reference point
    n = 0;
    c = c + 3 * (*pNumCompNds)[4];
-   double yloc4[] =  { 0.0, -0.5, -1.0, -1.724, -2.447 };
-   for (i=0; i < 3 * (*pNumCompNds)[5]; i = i + 3)
+   double yloc4[] = { 0.0, -0.5, -1.0, -1.724, -2.447 };
+   for (i = 0; i < 3 * (*pNumCompNds)[5]; i = i + 3)
    {
       (*pNodePts)[c + i + 1] = yloc4[n];
       double x = (*pNodePts)[c + i];
@@ -606,7 +637,7 @@ int Setup_m600_Geom(int& numPylons, int& numComp, double** pFusODCM, double** pK
    n = 0;
    c = c + 3 * (*pNumCompNds)[5];
    double zloc2[] = { -1.470, -0.120, 1.832 };
-   for (i=0; i < 3 * (*pNumCompNds)[6]; i = i + 3)
+   for (i = 0; i < 3 * (*pNumCompNds)[6]; i = i + 3)
    {
       (*pNodePts)[c + i + 1] = zloc2[n];
       double x = (*pNodePts)[c + i];
@@ -623,7 +654,7 @@ int Setup_m600_Geom(int& numPylons, int& numComp, double** pFusODCM, double** pK
    n = 0;
    c = c + 3 * (*pNumCompNds)[6];
    double zloc3[] = { -1.470, -0.120, 1.832 };
-   for (i=0; i < 3 * (*pNumCompNds)[7]; i = i + 3)
+   for (i = 0; i < 3 * (*pNumCompNds)[7]; i = i + 3)
    {
       (*pNodePts)[c + i + 1] = zloc3[n];
       double x = (*pNodePts)[c + i];
@@ -640,7 +671,7 @@ int Setup_m600_Geom(int& numPylons, int& numComp, double** pFusODCM, double** pK
    n = 0;
    c = c + 3 * (*pNumCompNds)[7];
    double zloc4[] = { -1.470, -0.120, 1.832 };
-   for (i=0; i < 3 * (*pNumCompNds)[8]; i = i + 3)
+   for (i = 0; i < 3 * (*pNumCompNds)[8]; i = i + 3)
    {
       (*pNodePts)[c + i + 1] = zloc4[n];
       double x = (*pNodePts)[c + i];
@@ -657,7 +688,7 @@ int Setup_m600_Geom(int& numPylons, int& numComp, double** pFusODCM, double** pK
    n = 0;
    c = c + 3 * (*pNumCompNds)[8];
    double zloc5[] = { -1.470, -0.120, 1.832 };
-   for (i=0; i < 3 * (*pNumCompNds)[9]; i = i + 3)
+   for (i = 0; i < 3 * (*pNumCompNds)[9]; i = i + 3)
    {
       (*pNodePts)[c + i + 1] = zloc5[n];
       double x = (*pNodePts)[c + i];
@@ -730,18 +761,18 @@ int Setup_m600_Geom(int& numPylons, int& numComp, double** pFusODCM, double** pK
    (*pRtrPts)[21] = 1.515;
    (*pRtrPts)[22] = -3.639;
    (*pRtrPts)[23] = 1.593;
-   
+
    // Place into global coordinates
    for (i = 0; i < numRtrPtsElem; i = i + 3)
-      {
-         double x = (*pRtrPts)[i];
-         double y = (*pRtrPts)[i + 1];
-         double z = (*pRtrPts)[i + 2];
-         int result = PlaceInGlobal(x, y, z, 0.0, 0.0, 0.0, *pFusODCM, *pKiteOffset);
-         (*pRtrPts)[i] = x;
-         (*pRtrPts)[i + 1] = y;
-         (*pRtrPts)[i + 2] = z;
-      }
+   {
+      double x = (*pRtrPts)[i];
+      double y = (*pRtrPts)[i + 1];
+      double z = (*pRtrPts)[i + 2];
+      int result = PlaceInGlobal(x, y, z, 0.0, 0.0, 0.0, *pFusODCM, *pKiteOffset);
+      (*pRtrPts)[i] = x;
+      (*pRtrPts)[i + 1] = y;
+      (*pRtrPts)[i + 2] = z;
+   }
 
    //Set all the rotor masses and inertias and CM offsets
    for (i = 0; i < numRtrPts; i++)
@@ -857,36 +888,26 @@ int main(int argc, char *argv[])
     pChanList_len[6] = 7;
     
 
-    // Set module flags 0 = off, 1=on
-    pModFlags = (int *)malloc(4*sizeof(int));
-    pModFlags[0] = 1;  // use KAD module
-    pModFlags[1] = 1;  // use InflowWind module
-    pModFlags[2] = 1;  // use MoorDyn module
-    pModFlags[3] = 0;  // no KiteFAST controller
+    int result = Setup_m600_Geom(numPylons, numComp, &pFusODCM, &pKiteOffset, &pNumCompNds, &pRefPts, numNodePts, &pNodeDCMs, &pNodePts, numRtrPts, &pRtrPts, &pRtrMass, &pRtrI_Rot, &pRtrI_Trans, &pRtrXcm, numNodePtElem, numRtrPtsElem, numGaussPtLoadsElem);
 
-    // Set input file names
-    // NOTE: All the data further below is directly tied to the KAD file listed here.
-    strcpy(KAD_FileName, "D:\\DEV\\makani\\google-repo\\sandbox\\glue-codes\\kitefast\\test_cases\\m600\\simple_m600_model.inp");
-    strcpy(IfW_FileName, "D:\\DEV\\makani\\google-repo\\sandbox\\glue-codes\\kitefast\\test_cases\\m600\\kiteInflowWind.dat");
-    strcpy(MD_FileName, "D:\\DEV\\makani\\google-repo\\sandbox\\glue-codes\\kitefast\\test_cases\\m600\\m600-MoorDyn.dat");
-    strcpy(KFC_FileName, "D:\\DEV\\makani\\google-repo\\sandbox\\glue-codes\\kitefast\\test_cases\\m600\\libkitefastcontroller_controller.so");
-    strcpy(outFileRoot, "KiteTest");
-
-    
-
-    
     // Set the ground station point where the wind is measured
     pWindPt = (double *)malloc(3 * sizeof(double));
     pWindPt[0] = 100.0;
     pWindPt[1] = 20.0;
     pWindPt[2] = 0.0;
 
-    //Test the FusODCM as a 1D array instead of a 2D array
+    // Set module flags 0 = off, 1=on
+    pModFlags = (int *)malloc(6 * sizeof(int));
+    pModFlags[0] = 1;  // use KAD module
+    pModFlags[1] = 1;  // use InflowWind module
+    pModFlags[2] = 1;  // use MoorDyn tether module
+    pModFlags[3] = 0;  // no KiteFAST controller
 
-
-    int result = Setup_m600_Geom(numPylons, numComp, &pFusODCM, &pKiteOffset, &pNumCompNds, &pRefPts, numNodePts, &pNodeDCMs, &pNodePts, numRtrPts, &pRtrPts, &pRtrMass, &pRtrI_Rot, &pRtrI_Trans, &pRtrXcm, numNodePtElem, numRtrPtsElem, numGaussPtLoadsElem);
-
-
+    strcpy(outFileRoot, "D:\\DEV\\makani\\google-repo\\sandbox\\glue-codes\\kitefast\\test_cases\\m600_salf\\KiteTest");
+    strcpy(KAD_FileName, "D:\\DEV\\makani\\google-repo\\sandbox\\glue-codes\\kitefast\\test_cases\\m600_salf\\simple_m600_model.inp");
+    strcpy(IfW_FileName, "D:\\DEV\\makani\\google-repo\\sandbox\\glue-codes\\kitefast\\test_cases\\m600_salf\\kiteInflowWind.dat");
+    strcpy(MD_FileName, "D:\\DEV\\makani\\google-repo\\sandbox\\glue-codes\\kitefast\\test_cases\\m600_salf\\m600-MoorDyn.dat");
+    strcpy(KFC_FileName, "D:\\DEV\\makani\\google-repo\\sandbox\\glue-codes\\kitefast\\test_cases\\m600_salf\\libkitefastcontroller_controller.so");
 
     // This is called as part of the user module constructor
     KFAST_Init(&dt, &numFlaps, &numPylons, &numComp, pNumCompNds, pModFlags, KAD_FileName, IfW_FileName, MD_FileName, KFC_FileName, outFileRoot, &printSum, &gravity, &KAD_InterpOrder,
@@ -903,7 +924,6 @@ int main(int argc, char *argv[])
 
     // The outputs for the first timestep need to be obtained
     // TODO: Is call part of the user module constructor or part of InitialAssRes??? GJH
-
     numRtrLoadsElem = numRtrPtsElem * 2;
     pRtrLoads = (double *)malloc(numRtrLoadsElem * sizeof(double));
     numGaussLoadPts = numGaussPtLoadsElem / 6;
@@ -987,7 +1007,6 @@ int main(int argc, char *argv[])
     pRtrOmegas = (double *)malloc(numRtrPtsElem * sizeof(double));
     pRtrAccs = (double *)malloc(numRtrPtsElem * sizeof(double));
     pRtrAlphas = (double *)malloc(numRtrPtsElem * sizeof(double));
-    pRtrDCMs = (double *)malloc(3*numRtrPtsElem * sizeof(double));
     for (n = 0; n < numRtrPtsElem; n=n+3)
     {
         pRtrVels[n]     = -50.0;
@@ -1003,6 +1022,8 @@ int main(int argc, char *argv[])
         pRtrAlphas[n  + 1] = 0.0;
         pRtrAlphas[n  + 2] = 0.0;
     }
+
+    pRtrDCMs = (double *)malloc(3 * numRtrPtsElem * sizeof(double));
 
     for (i = 0; i < numRtrPtsElem*3; i = i + 9)
     {

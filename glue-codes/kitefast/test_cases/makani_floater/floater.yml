@@ -1,0 +1,154 @@
+title:
+    makani floating platform
+
+simulation_controls:
+    simulation_type:
+        # 1: onshore
+        # 2: full offshore
+        # 3: offshore, but no kite
+        3
+
+    fast_submodules:
+        kiteaerodyn: false
+        inflowwind: false
+        moordyn_tether: false
+        controller: false
+        hydrodyn: true
+        moordyn_mooring: true
+
+    fast_submodule_input_files:
+        kiteaerodyn_input: ""
+        inflowwind_input: ""
+        moordyn_tether_input: ""
+        controller_input: ""
+        hydrodyn_input: "../hydrodyn/HydroDyn.dat"
+        moordyn_mooring_input: "../kitemooring/moordyn_mooring.inp"
+
+    print_kitefast_summary_file:
+        false
+
+    kitefast_output_file_root_name:
+        "KiteFast"
+
+    kiteaerodyn_interpolation_order:
+        # 0 = hold KAD outputs between KAD calls
+        # 1 = Linearly interpolate outputs
+        # 2 = 2nd order interpolation of outputs
+        0
+
+    constants:
+        gravity:
+            # SI units, global reference frame
+            # [x, y, z]
+            [0.0, 0.0, -9.81]
+
+    time:
+        timestep:
+            1e-3
+
+        final:
+            10.0
+
+    tolerance:
+        1e-3
+
+    max_iterations:
+        "10, at most"
+
+    derivatives:
+        tolerance:
+            10e0
+
+        max_iteration:
+            200
+
+        coefficient:
+            1e-4
+
+    linear_solver:
+        naive
+
+    rigid_model:
+        # true | false
+        false
+
+    debug:
+        # true | false
+        false
+
+    initial_conditions:
+        location:
+            # locates the kite coordinate system (MIP point) in the global frame
+            # [x, y, z]
+            [126.6398, -379.6509, 172.8097]
+
+        orientation:
+            # [roll, pitch, yaw]
+            [136.84688687, -29.63091069, -7.88157559]
+
+        velocity:
+            translational:
+                # [x, y, z]
+                [53.9008, 3.3295, -29.7069]
+
+            rotational:
+                # [roll, pitch, yaw]
+                [0.01984969, -0.003768248, 0.002413641]
+
+keypoints:
+
+platform:
+    mass_properties:
+        # [mass, Cmz, I_xx,   I_yy,   I_zz]
+        # [  kg,   m, kg*m^2, kg*m^2, kg*m^2]
+        [7.130400E+05, -29.06151, 2.452533E+08, 2.452513E+08, 1.534000E+06]
+
+    node_location:
+        # this must be 0,0,0 for hydrodyn
+        [0.0, 0.0, 0.0]
+
+    imu_location:
+        [0.0, 0.0, 0.0]
+
+wind_reference_station:
+    location:
+        [0.0, 0.0, 0.0]
+
+ground_station:
+    location:
+        # locates the weather station; this point is passed directly to
+        # KiteFAST which uses it to interface with the controller
+        # [x, y, z]
+        [0.0, 0.0, 0.0]
+
+output:
+    fuselage_nodes:
+        # - 2
+        # - 3
+        - 0
+
+    wing_starboard_nodes:
+        # - 2
+        # - 3
+        - 0
+
+    wing_port_outputs:
+        # - 3
+        - 0
+
+    vertical_stabilizer_outputs:
+        # 0th node means no nodes are requested
+        - 0
+
+    horizontal_stabilizer_starboard_outputs:
+        - 0
+
+    horizontal_stabilizer_port_outputs:
+        - 0
+
+    pylon_outputs:
+        # - 1
+        # - 2
+        - 0
+
+    output_channels:

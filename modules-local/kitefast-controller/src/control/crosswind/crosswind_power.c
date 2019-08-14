@@ -214,8 +214,7 @@ static double SetBeta(double loop_angle, const PlaybookEntry *playbook_entry) {
                          ARRAYSIZE(playbook_entry->beta_lookup), loop_angle);
 }
 
-void CrosswindPowerGetPathCenter(const CrosswindPowerState *state,
-                                 Vec3 *path_center_g) {
+void CrosswindPowerGetPathCenter(const CrosswindPowerState *state, Vec3 *path_center_g) {
   assert(state != NULL && path_center_g != NULL);
   assert(-PI <= state->path_elevation && state->path_elevation <= PI);
   // TODO(kennyjensen): Add an assert for the path azimuth being in

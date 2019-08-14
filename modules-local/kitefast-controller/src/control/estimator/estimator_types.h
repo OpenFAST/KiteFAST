@@ -679,6 +679,7 @@ typedef struct {
   // Filtered values.
   double acc_norm_f;
   Vec3 pqr_f;
+  Vec3 pqr_f_lpf;
 
   // Position, velocity, and acceleration estimates.
   Vec3 Xg, Vg, Vg_f, Vb, Vb_f, Ag, Ab_f;

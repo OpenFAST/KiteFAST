@@ -29,10 +29,19 @@ class BasePlatform():
         self.mbdyn_ref_index = mbdyn_ref_index  # starting index for nodes, beams
 
         # unpack the component dictionary
+
+        # platform node location
         self.node_location = model_dict["node_location"]
-        self.imu_location = model_dict["imu_location"]
+
+        # imu location is relative to the platform location
+        self.imu_location = model_dict["imu_location"] + self.node_location
+
+        # these are other reference locations
         self.wind_reference_station_location = model_dict["wind_reference_station_location"]
         self.ground_station_location = model_dict["ground_station_location"]
+
+        # mass properties
+        self.platform_cm_offset = model_dict["cm_offset"]
         self.platform_mass = model_dict["mass"]
         self.platform_inertia = model_dict["inertia"]
 
@@ -84,6 +93,7 @@ class BasePlatform():
                 node=self.nodes[0],
                 mass=self.platform_mass,
                 added_mass=0.0,
+                cm_offset=Vec3(0.0, 0.0, self.platform_cm_offset),
                 Ixx=self.platform_inertia[0],
                 Iyy=self.platform_inertia[1],
                 Izz=self.platform_inertia[2]

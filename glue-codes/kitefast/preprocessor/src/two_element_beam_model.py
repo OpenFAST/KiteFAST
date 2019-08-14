@@ -23,8 +23,10 @@ from .mbdyn_types import ReferenceFrame
 
 
 class TwoElementBeamModel(BaseModel):
-    def __init__(self, input_simulation_dict, input_model_dict):
+    def __init__(self, input_simulation_dict, input_model_dict, simulation_type=0):
         super().__init__()
+
+        # simulation_type not used but included for consistency with other models
 
         # verify required components exist
         self.required_components = [

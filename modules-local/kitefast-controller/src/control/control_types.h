@@ -134,9 +134,37 @@ typedef struct {
   // value of gs_azi_cmd.
   bool hold_gs_azi_cmd;
 
+  // Outputs to be plotted
   double loop_angle;
   LoopDirection loop_dir;
-
+  Vec3 path_center_g;
+  // playboook out
+  double path_radius_playbook_out;
+  // power step outputs
+  double airspeed_cmd_power_out;
+  double d_airspeed_d_loopangle_power_out;
+  double alpha_nom_power_out;
+  double beta_nom_power_out;
+  // path step outputs
+  double k_aero_cmd_path_out;
+  double k_geom_cmd_path_out;
+  double k_aero_curr_path_out;
+  double k_geom_curr_path_out;
+  // curvature step output
+  Vec3 pqr_cmd_curv_out;
+  bool flaring_curv_out;
+  double alpha_cmd_curv_out;
+  double beta_cmd_curv_out;
+  double tether_roll_cmd_curv_out;
+  double dCL_cmd_curv_out;
+  // kinematics
+  double kite_accel_ff_loop_kin_out;
+  //crosswind pqr
+  Vec3 pqr_cmd_new_cross_pqr_out;
+  // inner outputs
+  ThrustMoment thrust_moment_inner_out;
+  Deltas delta_inner_out;
+  
 } ControlOutput;
 
 // Common parameters.
