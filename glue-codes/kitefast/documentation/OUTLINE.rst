@@ -39,14 +39,26 @@ sandbox
 ├── glue-codes
 │   └── kitefast
 │       ├── documentation
-│       │   ├── theory
-│       │   └── user_guides
+│       │   ├── KiteAeroDyn
+│       │   │   ├── KiteAeroDyn_Plan.pdf
+│       │   │   ├── VSM_theory.pdf
+│       │   │   └── user_guide
+│       │   ├── KiteFASTMBD_Plan.pdf
+│       │   ├── KiteMBDynPreprocessor
+│       │   │   └── MBDyn_Preprocessor_Theory.pdf
+│       │   ├── MBDyn
+│       │   │   └── mbdyn-input-1.7.3.pdf
+│       │   └── OUTLINE.rst
 │       ├── kitefast_build.sh
 │       ├── kitefast_remove.sh
 │       ├── kitefast_update.sh
 │       ├── module-kitefastmbd
+│       │   ├── Makefile.inc
+│       │   ├── module-kitefastmbd.cc
+│       │   └── module-kitefastmbd.h
 │       ├── preprocessor
-│       │   └── <source code>
+│       │   ├── docs
+│       │   └── src
 │       └── test_cases
 │           ├── archived_test_cases
 │           ├── kiteaerodyn
@@ -61,18 +73,21 @@ sandbox
 │           └── two_element_beam
 ├── modules-ext
 │   └── moordyn
-│       └── <source code>
+│       └── src
 └── modules-local
     ├── inflowwind
-    │   └── <source code>
+    │   └── src
     ├── kiteaerodyn
-    │   └── <source code>
+    │   └── src
     ├── kitefast-controller
-    │   └── <source code>
+    │   ├── analysis
+    │   └── src
     ├── kitefast-library
-    │   └── <source code>
+    │   └── src
+    ├── turbsim
+    │   └── src
     └── vsm
-        └── <source code>
+        └── src
 
 sandbox/glue-codes/kitefast
 ---------------------------
