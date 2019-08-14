@@ -908,12 +908,12 @@ int main(int argc, char *argv[])
     // Set input file names
     // NOTE: All the data further below is directly tied to the KAD file listed here.
     strcpy(outFileRoot, "D:\\DEV\\makani\\google-repo\\sandbox\\glue-codes\\kitefast\\test_cases\\5MW_OC3Spar_DLL_WTurb_WavesIrr\\KiteOSTest");
-    strcpy(KAD_FileName, "D:\\DEV\\makani\\google-repo\\sandbox\\glue-codes\\kitefast\\test_cases\\m600\\simple_m600_model.inp");
-    strcpy(IfW_FileName, "D:\\DEV\\makani\\google-repo\\sandbox\\glue-codes\\kitefast\\test_cases\\m600\\kiteInflowWind.dat");
-    strcpy(MD_FileName, "D:\\DEV\\makani\\google-repo\\sandbox\\glue-codes\\kitefast\\test_cases\\m600\\m600-MoorDyn_OS.dat");
+    strcpy(KAD_FileName, "D:\\DEV\\makani\\google-repo\\sandbox\\glue-codes\\kitefast\\test_cases\\kiteaerodyn\\simple_m600_model.inp");
+    strcpy(IfW_FileName, "D:\\DEV\\makani\\google-repo\\sandbox\\glue-codes\\kitefast\\test_cases\\kiteinflow\\kiteInflowWind.dat");
+    strcpy(MD_FileName, "D:\\DEV\\makani\\google-repo\\sandbox\\glue-codes\\kitefast\\test_cases\\kitemooring\\m600-MoorDyn_coarse.dat");
     strcpy(KFC_FileName, "D:\\DEV\\makani\\google-repo\\sandbox\\glue-codes\\kitefast\\test_cases\\m600\\libkitefastcontroller_controller.so");
-    strcpy(MD_Mooring_FileName, "D:\\DEV\\makani\\google-repo\\sandbox\\glue-codes\\kitefast\\test_cases\\5MW_OC3Spar_DLL_WTurb_WavesIrr\\NRELOffshrBsline5MW_OC3Hywind_MoorDyn.dat");
-    strcpy(HD_FileName,         "D:\\DEV\\makani\\google-repo\\sandbox\\glue-codes\\kitefast\\test_cases\\5MW_OC3Spar_DLL_WTurb_WavesIrr\\NRELOffshrBsline5MW_OC3Hywind_HydroDyn.dat");
+    strcpy(MD_Mooring_FileName, "D:\\DEV\\makani\\google-repo\\sandbox\\glue-codes\\kitefast\\test_cases\\kitemooring\\moordyn_mooring.inp");
+    strcpy(HD_FileName,         "D:\\DEV\\makani\\google-repo\\sandbox\\glue-codes\\kitefast\\test_cases\\hydrodyn\\NRELOffshrBsline5MW_OC3Hywind_HydroDyn.dat");
     // strcpy(outFileRoot, "/Users/rmudafor/Development/makani/makani_openfast/glue-codes/kitefast/test_cases/5MW_OC3Spar_DLL_WTurb_WavesIrr/KiteOSTest");
     // strcpy(KAD_FileName, "/Users/rmudafor/Development/makani/makani_openfast/glue-codes/kitefast/test_cases/m000/simple_m000_model_AD.txt");
     // strcpy(IfW_FileName, "/Users/rmudafor/Development/makani/makani_openfast/glue-codes/kitefast/test_cases/m000/kiteInflowWind.dat");
@@ -1132,7 +1132,7 @@ int main(int argc, char *argv[])
     if (fabs(pPtfmLoads[n]) > 0 || fabs(pPtfmLoads[n  + 1]) > 0 || fabs(pPtfmLoads[n + 2]) > 0 || fabs(pPtfmLoads[n +3]) > 0 || fabs(pPtfmLoads[n  + 4]) > 0 || fabs(pPtfmLoads[n  + 5]) > 0)
     {
         printf("Platform node loads = %10.3e,%10.3e,%10.3e,%10.3e,%10.3e,%10.3e\n", pPtfmLoads[n], pPtfmLoads[n  + 1], pPtfmLoads[n + 2], pPtfmLoads[n +3], pPtfmLoads[n  + 4], pPtfmLoads[n + 5]);
-    }
+    } */
     if (errStat != 0)
     {
         printf("%s\n", errMsg);
@@ -1262,4 +1262,3 @@ int main(int argc, char *argv[])
     return errStat;
 
 }
-
