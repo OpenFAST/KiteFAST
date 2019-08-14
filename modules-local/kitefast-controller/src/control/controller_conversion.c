@@ -9,7 +9,7 @@
 #include "control/ground_station_frame.h"
 #include "kfc.h"
 
-void AssignInputs(double dcm_g2b_c[], double pqr_c[], double *acc_norm_c,
+__attribute__((optimize(0)))  void AssignInputs(double dcm_g2b_c[], double pqr_c[], double *acc_norm_c,
 	double Xg_c[], double Vg_c[], double Vb_c[], double Ag_c[],
 	double Ab_c[], double *rho_c, double apparent_wind_c[],
 	double tether_force_c[], double wind_g_c[], double AeroTorque[], int *errStat, char *errMsg,
@@ -31,14 +31,14 @@ void AssignInputs(double dcm_g2b_c[], double pqr_c[], double *acc_norm_c,
 		printf("  tether_force_c = [%0.4f, %0.4f, %0.4f] \n",tether_force_c[0],tether_force_c[1],tether_force_c[2]);
 		printf("  wind_g_c = [%0.4f, %0.4f, %0.4f] \n",wind_g_c[0],wind_g_c[1],wind_g_c[2]);
 		printf("  AeroTorque (csim) = [%0.4f, %0.4f, %0.4f, %0.4f, %0.4f, %0.4f, %0.4f, %0.4f] \n",
-			-AeroTorque[3],
-			-AeroTorque[1],
-			-AeroTorque[5],
-			-AeroTorque[7],
-			-AeroTorque[6],
-			-AeroTorque[4],
-			-AeroTorque[0],
-			-AeroTorque[2]);
+			AeroTorque[3],
+			AeroTorque[1],
+			AeroTorque[5],
+			AeroTorque[7],
+			AeroTorque[6],
+			AeroTorque[4],
+			AeroTorque[0],
+			AeroTorque[2]);
 		// printf("  AeroTorque (kfas) = [%0.4f, %0.4f, %0.4f, %0.4f, %0.4f, %0.4f, %0.4f, %0.4f] \n",
 		// 	AeroTorque[0],
 		// 	AeroTorque[1],
@@ -119,17 +119,26 @@ void AssignInputs(double dcm_g2b_c[], double pqr_c[], double *acc_norm_c,
 	state_est->apparent_wind.sph_f.beta_lpf = state_est->apparent_wind.sph_f.beta;
 
 	// AeroTorque
-	double AeroTorque_tmp[8];
-	memcpy(&AeroTorque_tmp, &AeroTorque, sizeof(AeroTorque));
+	// double AeroTorque_tmp[8];
+	// memcpy(&AeroTorque_tmp, &AeroTorque, sizeof(AeroTorque));
 	// AeroTorque Must be in Makani
-	AeroTorque[0] = -AeroTorque_tmp[3]; // SBo
-	AeroTorque[1] = -AeroTorque_tmp[1]; // SBi
-	AeroTorque[2] = -AeroTorque_tmp[5]; // PBi
-	AeroTorque[3] = -AeroTorque_tmp[7]; // PBo
-	AeroTorque[4] = -AeroTorque_tmp[6]; // PTo
-	AeroTorque[5] = -AeroTorque_tmp[4]; // PTi
-	AeroTorque[6] = -AeroTorque_tmp[0]; // STi
-	AeroTorque[7] = -AeroTorque_tmp[2]; // STo
+	// AeroTorque[0] = AeroTorque_tmp[3]; // SBo
+	// AeroTorque[1] = AeroTorque_tmp[1]; // SBi
+	// AeroTorque[2] = AeroTorque_tmp[5]; // PBi
+	// AeroTorque[3] = AeroTorque_tmp[7]; // PBo
+	// AeroTorque[4] = AeroTorque_tmp[6]; // PTo
+	// AeroTorque[5] = AeroTorque_tmp[4]; // PTi
+	// AeroTorque[6] = AeroTorque_tmp[0]; // STi
+	// AeroTorque[7] = AeroTorque_tmp[2]; // STo
+
+	motor_state->aero_torque[0] = -AeroTorque[3]; // SBo 
+	motor_state->aero_torque[1] = -AeroTorque[1]; // SBi
+	motor_state->aero_torque[2] = -AeroTorque[5]; // PBi
+	motor_state->aero_torque[3] = -AeroTorque[7]; // PBo
+	motor_state->aero_torque[4] = -AeroTorque[6]; // PTo
+	motor_state->aero_torque[5] = -AeroTorque[4]; // PTi
+	motor_state->aero_torque[6] = -AeroTorque[0]; // STi
+	motor_state->aero_torque[7] = -AeroTorque[2]; // STo
 		 
 	//tether_force_c
 	// calculate tether roll angle using force vector components:
@@ -201,6 +210,8 @@ void AssignInputs(double dcm_g2b_c[], double pqr_c[], double *acc_norm_c,
 	state_est->perch_azi.angle = 0.8698;
 	state_est->perch_azi.angle_vel_f = 0;
 
+	state_est->stacking_state = 0;
+
 }
 
 void AssignOutputs(double CtrlSettings[], double Gen_Torque[],
@@ -231,20 +242,32 @@ void AssignOutputs(double CtrlSettings[], double Gen_Torque[],
 	// KFAST FLAP convention
 
 	//kFlap_A
-	CtrlSettings[0] = 	raw_control_output->flaps[kFlapA5]; 	//	Starboard wing control ID 1
-	CtrlSettings[1] = 	raw_control_output->flaps[kFlapA7]; 	//	Starboard wing control ID 2
-	CtrlSettings[2] = 	raw_control_output->flaps[kFlapA8]; 	//	Starboard wing control ID 3
-	CtrlSettings[3] = 	raw_control_output->flaps[kFlapA4]; 	//	Port      wing control ID 1
-	CtrlSettings[4] = 	raw_control_output->flaps[kFlapA2]; 	//	Port      wing control ID 2
-	CtrlSettings[5] = 	raw_control_output->flaps[kFlapA1]; 	//	Port      wing control ID 3
-	CtrlSettings[6] = 	raw_control_output->flaps[kFlapRud]; 	//	Rudder
-	CtrlSettings[7] = 	raw_control_output->flaps[kFlapRud];	//	Rudder
-	CtrlSettings[8] = 	-raw_control_output->flaps[kFlapEle];	//	Elevators	
-	CtrlSettings[9] = 	-raw_control_output->flaps[kFlapEle];	//	Elevators	
-	CtrlSettings[10] = 	-raw_control_output->flaps[kFlapEle];	//	Elevators	
-	CtrlSettings[11] = 	-raw_control_output->flaps[kFlapEle];	// 	Elevators
+	// (+) starboard deflection (TE up)  & (-) port deflection (TE down)-> induces Port Wing Down in Kitefast (-Roll Angle)
+	// (-) starboard deflection (TE down)& (+) port deflection (TE up)  -> induces Starboard Wing Down in Kitefast (+Roll Angle)
+	// Sign flip needed!
+ 	CtrlSettings[0] = -raw_control_output->flaps[kFlapA5]; //	Starboard wing control ID 1
+	CtrlSettings[1] = -raw_control_output->flaps[kFlapA7]; //	Starboard wing control ID 2
+	CtrlSettings[2] = -raw_control_output->flaps[kFlapA8]; //	Starboard wing control ID 3
+	CtrlSettings[3] = -raw_control_output->flaps[kFlapA4]; //	Port      wing control ID 1
+	CtrlSettings[4] = -raw_control_output->flaps[kFlapA2]; //	Port      wing control ID 2
+	CtrlSettings[5] = -raw_control_output->flaps[kFlapA1]; //	Port      wing control ID 3
+
+	// (+) rudder deflection (TE to port side) -> induces a Left turn (towards port)
+	// (-) rudder deflection (TE to Starboard side) -> induces a Right turn (towards starboard)
+	// No sign flip needed
+	CtrlSettings[6] = raw_control_output->flaps[kFlapRud]; //	Rudder
+	CtrlSettings[7] = raw_control_output->flaps[kFlapRud]; //	Rudder
+
+	// (+) elevator deflection (TE up)   -> induces a pitch down in kitefast 
+	// (-) elevator deflection (TE down) -> induces a pitch up in kitefast
+	// Sign flip needed!
+	CtrlSettings[8] =  -raw_control_output->flaps[kFlapEle]; // Elevators	
+	CtrlSettings[9] =  -raw_control_output->flaps[kFlapEle]; // Elevators	
+	CtrlSettings[10] = -raw_control_output->flaps[kFlapEle]; // Elevators	
+	CtrlSettings[11] = -raw_control_output->flaps[kFlapEle]; // Elevators 
 	
-	// Blade Pitch
+	// Blade Pitch 
+	// currently not apart of controller. Place holders can be found below:
 	Blade_Pitch[0] = 0.0;
 	Blade_Pitch[1] = 0.0; 
 	Blade_Pitch[2] = 0.0; 
@@ -254,83 +277,139 @@ void AssignOutputs(double CtrlSettings[], double Gen_Torque[],
 	Blade_Pitch[6] = 0.0; 
 	Blade_Pitch[7] = 0.0; 
 
-	// //Motor speeds	
-	// Motor_c[0] = motor_state->motor_speeds[kMotor1];
-	// Motor_c[1] = motor_state->motor_speeds[kMotor2];
-	// Motor_c[2] = motor_state->motor_speeds[kMotor3];
-	// Motor_c[3] = motor_state->motor_speeds[kMotor4];
-	// Motor_c[4] = motor_state->motor_speeds[kMotor5];
-	// Motor_c[5] = motor_state->motor_speeds[kMotor6];
-	// Motor_c[6] = motor_state->motor_speeds[kMotor7];
-	// Motor_c[7] = motor_state->motor_speeds[kMotor8];
+	//// MOTORS
+	// Kitefast Motor Order -> Kitefast sign convention
+	// 
+	// [0] starboard-inboard-top      (-)
+	// [1] starboard-inboard-bottom   (+)
+	// [2] starboard-outboard-top     (+)
+	// [3] starboard-outboard-bottom  (-)
+	// [4] port-inboard-top           (-)
+	// [5] port-inboard-bottom        (+)
+	// [6] port-outboard-top          (+)
+	// [7] port-outboard-bottom       (-)
+
+	// Controller Motor Order -> Makani Sign Convention
+	// 
+	// Table:  location, #, name and rotational direction
+	// (Pos or Neg) of each rotor, from the position of standing in front of and facing the kite.
+	// 
+	// 8. STo  | 7. STi|          | 6. PTi  | 5. PTo                       
+	// Pos     | Neg   |          | Neg     | Pos
+	// ----------------------------------------------
+	// Starboard Wing  | Fuselage | Port Wing
+	// ----------------------------------------------
+	// 1. SBo  | 2. SBi|          | 3. PBi  | 4. PBo
+	// Neg     | Pos   |          | Pos     | Neg
+	// 
+	// The propellers follow
+	// the sign convention where positive means
+	// that the propeller is rotating in a positive direction (i.e. right
+	// hand rule) about the propeller axis, which is predominately in the
+	// same direction as the body x-axis.
+	// 
+	// SORTED BY MAKANI 0-7			// SORTED BY KFAST 0-7	
+	// ID   | Makani | KFast		ID   | KFast  | Makani	
+	// -----------------------	   -----------------------	
+	// SBo  |   1    |   3   		STi  |   0    |   7      			
+	// SBi  |   2    |   1   		SBi  |   1    |   2      	
+	// PBi  |   3    |   5   		STo  |   2    |   8      	
+	// PBo  |   4    |   7   		SBo  |   3    |   1      	
+	// PTo  |   5    |   6   		PTi  |   4    |   6      	
+	// PTi  |   6    |   4   		PBi  |   5    |   3      	
+	// STi  |   7    |   0   		PTo  |   6    |   5      	
+	// STo  |   8    |   2   		PBo  |   7    |   4    
+
+	// SUMMARY 
+	// [0] Starboard inner Top = kMotor7 (-)
+	// [1] Starboard inner Bot = kMotor2 (+)
+	// [2] Starboard outer Top = kMotor8 (+)
+	// [3] Starboard outer Bot = kMotor1 (-)
+	// [4] Port      inner Top = kMotor6 (-)
+	// [5] Port      inner Bot = kMotor3 (+)
+	// [6] Port      outer Top = kMotor5 (+)
+	// [7] Port      outer Bot = kMotor4 (-)
 
 	//Generator Torques
-	Gen_Torque[0] = motor_state->rotor_torques[kMotor7]; // Starboard inner Top = kMotor7
-	Gen_Torque[1] = motor_state->rotor_torques[kMotor2]; // Starboard inner Bot = kMotor2
-	Gen_Torque[2] = motor_state->rotor_torques[kMotor8]; // Starboard outer Top = kMotor8
-	Gen_Torque[3] = motor_state->rotor_torques[kMotor1]; // Starboard outer Bot = kMotor1
-	Gen_Torque[4] = motor_state->rotor_torques[kMotor6]; // Port      inner Top = kMotor6
-	Gen_Torque[5] = motor_state->rotor_torques[kMotor3]; // Port      inner Bot = kMotor3
-	Gen_Torque[6] = motor_state->rotor_torques[kMotor5]; // Port      outer Top = kMotor5
-	Gen_Torque[7] = motor_state->rotor_torques[kMotor4]; // Port      outer Bot = kMotor4
+	Gen_Torque[0] = motor_state->rotor_torques[kMotor7]; 		
+	Gen_Torque[1] = motor_state->rotor_torques[kMotor2]; 		
+	Gen_Torque[2] = motor_state->rotor_torques[kMotor8]; 		
+	Gen_Torque[3] = motor_state->rotor_torques[kMotor1]; 		
+	Gen_Torque[4] = motor_state->rotor_torques[kMotor6]; 		
+	Gen_Torque[5] = motor_state->rotor_torques[kMotor3]; 		
+	Gen_Torque[6] = motor_state->rotor_torques[kMotor5]; 		
+	Gen_Torque[7] = motor_state->rotor_torques[kMotor4]; 		
 
 	// Rotor Accelerations
-
-	Rotor_Accel[0] = motor_state->rotor_accel[kMotor7];		// (-)
-	Rotor_Accel[1] = motor_state->rotor_accel[kMotor2];		// (+)
-	Rotor_Accel[2] = motor_state->rotor_accel[kMotor8];		// (+)
-	Rotor_Accel[3] = motor_state->rotor_accel[kMotor1];		// (-)
-	Rotor_Accel[4] = motor_state->rotor_accel[kMotor6];		// (-)
-	Rotor_Accel[5] = motor_state->rotor_accel[kMotor3];		// (+)
-	Rotor_Accel[6] = motor_state->rotor_accel[kMotor5];		// (+)
-	Rotor_Accel[7] = motor_state->rotor_accel[kMotor4];		// (-)
-
+	Rotor_Accel[0] = motor_state->rotor_accel[kMotor7]; 		
+	Rotor_Accel[1] = motor_state->rotor_accel[kMotor2]; 		
+	Rotor_Accel[2] = motor_state->rotor_accel[kMotor8]; 		
+	Rotor_Accel[3] = motor_state->rotor_accel[kMotor1]; 		
+	Rotor_Accel[4] = motor_state->rotor_accel[kMotor6]; 		
+	Rotor_Accel[5] = motor_state->rotor_accel[kMotor3]; 		
+	Rotor_Accel[6] = motor_state->rotor_accel[kMotor5]; 		
+	Rotor_Accel[7] = motor_state->rotor_accel[kMotor4]; 		
 	// Rotor Speeds
-	Rotor_Speed[0] = motor_state->rotor_omegas[kMotor7];
-	Rotor_Speed[1] = motor_state->rotor_omegas[kMotor2];
-	Rotor_Speed[2] = motor_state->rotor_omegas[kMotor8];
-	Rotor_Speed[3] = motor_state->rotor_omegas[kMotor1];
-	Rotor_Speed[4] = motor_state->rotor_omegas[kMotor6];
-	Rotor_Speed[5] = motor_state->rotor_omegas[kMotor3];
-	Rotor_Speed[6] = motor_state->rotor_omegas[kMotor5];
-	Rotor_Speed[7] = motor_state->rotor_omegas[kMotor4];
+	Rotor_Speed[0] = motor_state->rotor_omegas[kMotor7];		
+	Rotor_Speed[1] = motor_state->rotor_omegas[kMotor2];	
+	Rotor_Speed[2] = motor_state->rotor_omegas[kMotor8];		
+	Rotor_Speed[3] = motor_state->rotor_omegas[kMotor1];	
+	Rotor_Speed[4] = motor_state->rotor_omegas[kMotor6];		
+	Rotor_Speed[5] = motor_state->rotor_omegas[kMotor3];	
+	Rotor_Speed[6] = motor_state->rotor_omegas[kMotor5];	
+	Rotor_Speed[7] = motor_state->rotor_omegas[kMotor4];	
 
+
+	// Print outputs of controller:
 	#if DEBUG
-		printf("  kFlapA_c (kfas frame) = [%0.4f, %0.4f, %0.4f, %0.4f, %0.4f, %0.4f, %0.4f, %0.4f] \n",
-					CtrlSettings[0],
-					CtrlSettings[1],
-					CtrlSettings[2],
-					CtrlSettings[3],
-					CtrlSettings[4],
-					CtrlSettings[5],
-					CtrlSettings[6],
-					CtrlSettings[7]);
+		printf("  kFlapA_c (kfas frame) = [A5=%0.4f, A7=%0.4f, A8=%0.4f, A4=%0.4f, A2=%0.4f, A1=%0.4f, R1=%0.4f, R2=%0.4f, E1=%0.4f, E2=%0.4f, E3=%0.4f, E4=%0.4f] \n",
+				CtrlSettings[0],
+				CtrlSettings[1],
+				CtrlSettings[2],
+				CtrlSettings[3],
+				CtrlSettings[4],
+				CtrlSettings[5],
+				CtrlSettings[6],
+				CtrlSettings[7],
+				CtrlSettings[8],
+				CtrlSettings[9],
+				CtrlSettings[10],
+				CtrlSettings[11]);
 		printf("  kFlapA_c (csim frame) = [%0.4f, %0.4f, %0.4f, %0.4f, %0.4f, %0.4f, %0.4f, %0.4f] \n",
-					raw_control_output->flaps[kFlapA1],
-					raw_control_output->flaps[kFlapA2],
-					raw_control_output->flaps[kFlapA4],
-					raw_control_output->flaps[kFlapA5],
-					raw_control_output->flaps[kFlapA7],
-					raw_control_output->flaps[kFlapA8],
-					-raw_control_output->flaps[kFlapEle],
-					raw_control_output->flaps[kFlapRud]);
+				raw_control_output->flaps[kFlapA1],
+				raw_control_output->flaps[kFlapA2],
+				raw_control_output->flaps[kFlapA4],
+				raw_control_output->flaps[kFlapA5],
+				raw_control_output->flaps[kFlapA7],
+				raw_control_output->flaps[kFlapA8],
+				-raw_control_output->flaps[kFlapEle],
+				raw_control_output->flaps[kFlapRud]);
 		printf("  Gen_Torque (kfast frame) = [%0.4f, %0.4f, %0.4f, %0.4f, %0.4f, %0.4f, %0.4f, %0.4f] \n",
-					Gen_Torque[0],
-					Gen_Torque[1],
-					Gen_Torque[2],
-					Gen_Torque[3],
-					Gen_Torque[4],
-					Gen_Torque[5],
-					Gen_Torque[6],
-					Gen_Torque[7]);
+				motor_state->rotor_torques[kMotor7],
+				motor_state->rotor_torques[kMotor2],
+				motor_state->rotor_torques[kMotor8],
+				motor_state->rotor_torques[kMotor1],
+				motor_state->rotor_torques[kMotor6],
+				motor_state->rotor_torques[kMotor3],
+				motor_state->rotor_torques[kMotor5],
+				motor_state->rotor_torques[kMotor4]);
 		printf("  Rotor_Speed (kfast frame) = [%0.4f, %0.4f, %0.4f, %0.4f, %0.4f, %0.4f, %0.4f, %0.4f] \n",
-					Rotor_Speed[0],
-					Rotor_Speed[1],
-					Rotor_Speed[2],
-					Rotor_Speed[3],
-					Rotor_Speed[4],
-					Rotor_Speed[5],
-					Rotor_Speed[6],
-					Rotor_Speed[7]);
+				motor_state->rotor_omegas[kMotor7],
+				motor_state->rotor_omegas[kMotor2],
+				motor_state->rotor_omegas[kMotor8],
+				motor_state->rotor_omegas[kMotor1],
+				motor_state->rotor_omegas[kMotor6],
+				motor_state->rotor_omegas[kMotor3],
+				motor_state->rotor_omegas[kMotor5],
+				motor_state->rotor_omegas[kMotor4]);
+		printf("  Rotor_Accel (kfast frame) = [%0.4f, %0.4f, %0.4f, %0.4f, %0.4f, %0.4f, %0.4f, %0.4f] \n",
+				motor_state->rotor_accel[kMotor7],
+				motor_state->rotor_accel[kMotor2],
+				motor_state->rotor_accel[kMotor8],
+				motor_state->rotor_accel[kMotor1],
+				motor_state->rotor_accel[kMotor6],
+				motor_state->rotor_accel[kMotor3],
+				motor_state->rotor_accel[kMotor5],
+				motor_state->rotor_accel[kMotor4]);
 	#endif
 }

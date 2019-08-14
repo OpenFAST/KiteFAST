@@ -22,7 +22,7 @@ void InitMotorControl(MotorState *motor_state) {
     // Set speeds and commands to assume steady state behavior
     motor_state->motor_speeds[i] = motor_state->rotor_omegas[i];
     motor_state->rate_limited_cmd[i] = motor_state->rotor_omegas[i];
-    motor_state->cmd_filter_z[i] = motor_state->rotor_omegas[i];
+    motor_state->cmd_filter_z[i] = 0;//motor_state->rotor_omegas[i];
   }
 }
 
@@ -30,7 +30,7 @@ void InitMotorControl(MotorState *motor_state) {
 // accelerating the motor and negative torque decelerating the motor.  Rotor
 // commands are assumed to be from control_output, where direction of rotation
 // has not yet been taken into account.
-void MotorControlStep(const PowerSysSimParams *motor_params,
+__attribute__((optimize(0)))  void MotorControlStep(const PowerSysSimParams *motor_params,
   const RotorParams rotor_params[], const PowerSysParams *power_sys_params,
   const double rotor_cmds[], const double external_torques[],
   MotorState *motor_state) {
@@ -38,9 +38,7 @@ void MotorControlStep(const PowerSysSimParams *motor_params,
   for (int32_t motor_number = 0; motor_number < kNumMotors; motor_number++) {
 
     double omega_cmd = rotor_cmds[motor_number];
-    #if DEBUG
-      printf("    rotor cmd = %0.4f \n", omega_cmd);
-    #endif
+
     // Apply Rate Limit
     #if APPLY_RATE_LIMIT
      omega_cmd = RateLimit(omega_cmd, -motor_params->omega_cmd_rate_limit,
@@ -77,14 +75,15 @@ void MotorControlStep(const PowerSysSimParams *motor_params,
     // Add in external_torques (assume contribution accelerates propeller).
     // Divide by individual propeller inertia and run discrete integrator.
     // TODO(gdolan): Consider whether a zoh is required on the torque.
-    double rotor_torque = torque + external_torques[motor_number];
+    double rotor_torque = torque + external_torques[motor_number]; // external torques coming in should be opposite sign  
     double rotor_accel = rotor_torque / rotor_params[motor_number].I;
     motor_state->motor_speeds[motor_number] += rotor_accel * *g_sys.ts;
 
     // Copy variables to output
-    motor_state->rotor_torques[motor_number] = torque;
+    motor_state->rotor_torques[motor_number] = rotor_torque;
     motor_state->rotor_omegas[motor_number] = motor_state->motor_speeds[motor_number];
     motor_state->rotor_accel[motor_number]  = rotor_accel;
+    // motor_state->aero_torque[motor_number] = external_torques[motor_number];
   }
 }
 

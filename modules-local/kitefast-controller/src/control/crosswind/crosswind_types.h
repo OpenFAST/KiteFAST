@@ -46,9 +46,9 @@ typedef enum {
 } CrosswindInnerAirspeeds;
 
 typedef enum {
-  kCrosswindLongitudinalInputElevator,
-  kCrosswindLongitudinalInputMotorPitch,
-  kNumCrosswindLongitudinalInputs
+  kCrosswindLongitudinalInputElevator, // 0
+  kCrosswindLongitudinalInputMotorPitch, // 1
+  kNumCrosswindLongitudinalInputs // 2
 } CrosswindLongitudinalInputs;
 
 typedef enum {

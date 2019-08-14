@@ -64,16 +64,24 @@ void CrosswindInit(const StateEstimate *state_est, const double *flaps_z1,
   // Calculate the aileron,p elevator, and rudder commands that produce
   // equivalent deflections to the final deflections from the
   // transition-in controller.
-  Deltas deltas_0 = {
-	  .aileron = (flaps_z1[kFlapA8] - flaps_z1[kFlapA1]) / 2.0,
+  // Deltas deltas_0 = {
+	//   .aileron = (flaps_z1[kFlapA8] - flaps_z1[kFlapA1]) / 2.0,
+	//   .inboard_flap = 0.0,
+	//   .midboard_flap = 0.0,
+	//   .outboard_flap = 0.0,
+	//   .elevator = flaps_z1[kFlapEle] - params->output.flap_offsets[kFlapEle],
+	//   .rudder = flaps_z1[kFlapRud] - params->output.flap_offsets[kFlapRud] };
+
+    // replaced previous stucture -> 8/14/19
+    Deltas deltas_0 = {
+	  .aileron = 0.0858,
 	  .inboard_flap = 0.0,
 	  .midboard_flap = 0.0,
 	  .outboard_flap = 0.0,
-	  .elevator = flaps_z1[kFlapEle] - params->output.flap_offsets[kFlapEle],
-	  .rudder = flaps_z1[kFlapRud] - params->output.flap_offsets[kFlapRud] };
+	  .elevator = 0.0564,
+	  .rudder = -0.0122 };
 
   double alpha_0 = SetAlpha(loop_angle, &playbook_entry);
-  // double alpha_0 = 0; // added by Jmiller STI
   CrosswindInnerInit(state_est, &deltas_0, alpha_0, loop_angle, &params->inner,
                      &state->inner);
   CrosswindOutputInit(&params->output, &state->output,
