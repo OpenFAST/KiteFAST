@@ -377,7 +377,7 @@ SUBROUTINE HydroDyn_Init( InitInp, u, p, x, xd, z, OtherState, y, m, Interval, I
         !  we will set Hydrodyn's time step to be that of the Convolution radiation module if it is being used.  Otherwise, we
         !  will set it to be equal to the glue-codes
       IF ((Initlocal%PotMod == 1) .AND. (Initlocal%WAMIT%RdtnMod == 1) ) THEN
-         IF ( .NOT. EqualRealNos(Interval,InitLocal%WAMIT%Conv_Rdtn%RdtnDT) ) THEN
+         IF ( .NOT. EqualRealNos( real(Interval, R8Ki),real(InitLocal%WAMIT%Conv_Rdtn%RdtnDT, R8Ki) ) ) THEN
             CALL SetErrStat(ErrID_Fatal,'The value of Conv_Rdtn is not equal to the glue code timestep.  This is not allowed in the current version of HydroDyn.',ErrStat,ErrMsg,RoutineName)
             IF ( ErrStat >= AbortErrLev ) THEN
                CALL CleanUp()
@@ -456,7 +456,7 @@ SUBROUTINE HydroDyn_Init( InitInp, u, p, x, xd, z, OtherState, y, m, Interval, I
 
       ! Verify that Current_Init() did not request a different Interval!
       
-      IF ( p%DT /= Interval ) THEN
+      IF ( .NOT. EqualRealNos( real(Interval, R8Ki),real(p%DT, R8Ki) ) ) THEN
          CALL SetErrStat(ErrID_Fatal,'Current Module attempted to change timestep interval, but this is not allowed.  Current Module must use the HydroDyn Interval.',ErrStat,ErrMsg,RoutineName)
          CALL CleanUp()
          RETURN
@@ -600,7 +600,7 @@ SUBROUTINE HydroDyn_Init( InitInp, u, p, x, xd, z, OtherState, y, m, Interval, I
       
       ! Verify that Waves_Init() did not request a different Interval!
       
-      IF ( p%DT /= Interval ) THEN
+      IF ( .NOT. EqualRealNos( real(Interval, R8Ki),real(p%DT, R8Ki) ) ) THEN
          CALL SetErrStat(ErrID_Fatal,'Waves Module attempted to change timestep interval, but this is not allowed.  Waves Module must use the HydroDyn Interval.',ErrStat,ErrMsg,RoutineName)
          CALL CleanUp()
          RETURN
@@ -779,7 +779,7 @@ SUBROUTINE HydroDyn_Init( InitInp, u, p, x, xd, z, OtherState, y, m, Interval, I
                   
             ! Verify that Waves2_Init() did not request a different Interval!
    
-            IF ( p%DT /= Interval ) THEN
+            IF ( .NOT. EqualRealNos( real(Interval, R8Ki),real(p%DT, R8Ki) ) ) THEN
                CALL SetErrStat(ErrID_Fatal,'Waves2 Module attempted to change timestep interval, but this is not allowed. '// &
                                           ' Waves2 Module must use the HydroDyn Interval.',ErrStat,ErrMsg,RoutineName)
                CALL CleanUp()
@@ -885,7 +885,7 @@ SUBROUTINE HydroDyn_Init( InitInp, u, p, x, xd, z, OtherState, y, m, Interval, I
             
                ! Verify that WAMIT_Init() did not request a different Interval!
          
-            IF ( p%DT /= Interval ) THEN
+            IF ( .NOT. EqualRealNos( real(Interval, R8Ki),real(p%DT, R8Ki) ) ) THEN
                CALL SetErrStat(ErrID_Fatal,'WAMIT Module attempted to change timestep interval, but this is not allowed.  WAMIT Module must use the HydroDyn Interval.',ErrStat,ErrMsg,RoutineName)
                CALL CleanUp()
                RETURN
@@ -934,7 +934,7 @@ SUBROUTINE HydroDyn_Init( InitInp, u, p, x, xd, z, OtherState, y, m, Interval, I
                
                   ! Verify that WAMIT2_Init() did not request a different Interval!
    
-               IF ( p%DT /= Interval ) THEN
+               IF ( .NOT. EqualRealNos( real(Interval, R8Ki),real(p%DT, R8Ki) ) ) THEN
                   CALL SetErrStat(ErrID_Fatal,'WAMIT2 Module attempted to change timestep interval, but this is not allowed.  '// &
                                              'WAMIT2 Module must use the HydroDyn Interval.',ErrStat,ErrMsg,RoutineName)
                   CALL CleanUp()
@@ -1222,7 +1222,7 @@ SUBROUTINE HydroDyn_Init( InitInp, u, p, x, xd, z, OtherState, y, m, Interval, I
          END IF
             ! Verify that Morison_Init() did not request a different Interval!
       
-         IF ( p%DT /= Interval ) THEN
+         IF ( .NOT. EqualRealNos( real(Interval, R8Ki),real(p%DT, R8Ki) ) ) THEN
             CALL SetErrStat(ErrID_Fatal,'Morison Module attempted to change timestep interval, but this is not allowed.  Morison Module must use the HydroDyn Interval.',ErrStat,ErrMsg,RoutineName)
             CALL CleanUp()
             RETURN

@@ -560,7 +560,7 @@ subroutine Init_Offshore(dt, TMax, PtfmO_c, PtfmODCM_c, GSRefPtR_c, HD_FileName_
       return
    end if
    
-   if ( .not. EqualRealNos(interval,dt) ) then
+   if ( .NOT. EqualRealNos( real(interval, R8Ki),real(dt, R8Ki) ) ) then
       call SetErrStat(ErrID_Fatal,'HydroDyn DT must be equal to MBDyn DT',errStat,errMsg,routineName)
       return
    end if 
@@ -607,7 +607,7 @@ subroutine Init_Offshore(dt, TMax, PtfmO_c, PtfmODCM_c, GSRefPtR_c, HD_FileName_
          return
       end if
         
-      if ( .not. EqualRealNos(interval,dt) ) then
+      if ( .NOT. EqualRealNos( real(interval, R8Ki),real(dt, R8Ki) ) ) then
          call SetErrStat(ErrID_Fatal,'MoorDyn Mooring DT must be equal to MBDyn DT',errStat,errMsg,routineName) 
          return
       end if
