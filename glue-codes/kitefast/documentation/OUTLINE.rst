@@ -3,8 +3,7 @@ KiteFAST Documentation
 ======================
 Sections:
 - Repository map
-- Theory documentation
-- User documentation
+- Module documentation
 - Test cases
 
 The KiteFAST simulation software is made up of multiple packages
@@ -40,14 +39,26 @@ sandbox
 ├── glue-codes
 │   └── kitefast
 │       ├── documentation
-│       │   ├── theory
-│       │   └── user_guides
+│       │   ├── KiteAeroDyn
+│       │   │   ├── KiteAeroDyn_Plan.pdf
+│       │   │   ├── VSM_theory.pdf
+│       │   │   └── user_guide
+│       │   ├── KiteFASTMBD_Plan.pdf
+│       │   ├── KiteMBDynPreprocessor
+│       │   │   └── MBDyn_Preprocessor_Theory.pdf
+│       │   ├── MBDyn
+│       │   │   └── mbdyn-input-1.7.3.pdf
+│       │   └── OUTLINE.rst
 │       ├── kitefast_build.sh
 │       ├── kitefast_remove.sh
 │       ├── kitefast_update.sh
 │       ├── module-kitefastmbd
+│       │   ├── Makefile.inc
+│       │   ├── module-kitefastmbd.cc
+│       │   └── module-kitefastmbd.h
 │       ├── preprocessor
-│       │   └── <source code>
+│       │   ├── docs
+│       │   └── src
 │       └── test_cases
 │           ├── archived_test_cases
 │           ├── kiteaerodyn
@@ -62,18 +73,21 @@ sandbox
 │           └── two_element_beam
 ├── modules-ext
 │   └── moordyn
-│       └── <source code>
+│       └── src
 └── modules-local
     ├── inflowwind
-    │   └── <source code>
+    │   └── src
     ├── kiteaerodyn
-    │   └── <source code>
+    │   └── src
     ├── kitefast-controller
-    │   └── <source code>
+    │   ├── analysis
+    │   └── src
     ├── kitefast-library
-    │   └── <source code>
+    │   └── src
+    ├── turbsim
+    │   └── src
     └── vsm
-        └── <source code>
+        └── src
 
 sandbox/glue-codes/kitefast
 ---------------------------
@@ -88,17 +102,41 @@ modules used by KiteFAST are inflowwind, kiteaerodyn, kitefast-controller,
 kitefast-library, vsm, and moordyn.
 
 
-Theory documentation
+Module documentation
 ~~~~~~~~~~~~~~~~~~~~
-The theory documentation is organized by the various physics modules that
-make up KiteFAST, including MBDyn and the interfaces between. All theory
+The documentation is organized by the various physics modules that
+make up KiteFAST, including MBDyn and the interfaces between. All
 documentation is located at
-`sandbox/sandbox/glue-codes/kitefast/documentation/theory`.
+`sandbox/sandbox/glue-codes/kitefast/documentation/`.
 
 A high-level implementation plan of KiteFASTMBD, including the interfaces
 to the physics modules of KiteFAST, the coupling with MBDyn, and the outputs
 available to the user not otherwise set the module level is located at
-`theory/KiteFASTMBD_Plan.pdf`.
+`sandbox/sandbox/glue-codes/kitefast/documentation/KiteFASTMBD_Plan.pdf`.
+
+The general OpenFAST documentation is available at
+https://openfast.readthedocs.io/.
+
+KiteAeroDyn
+-----------
+The implementation plan for KiteAeroDyn, which includes a description of inputs
+and outputs, is found at `KiteAeroDyn/KiteAeroDyn_Plan.pdf`. Additional theory
+documentation for the VSM module is found at `KiteAeroDyn/VSM_Theory.pdf`.
+
+# TODO: Greg add user documentation location and anything else
+
+Contact Jason Jonkman <mailto:jason.jonkman@nrel.gov> and
+Greg Hayman <mailto:hayman.gregory@gmail.com>.
+
+KiteMBDyn Preprocessor
+----------------------
+The preprocessor theory documentation is available at
+`KiteMBDynPreprocess/MBDyn_Preprocessor_Theory.pdf`. This describes the
+mechanisms by which the simplified model described in the YAML file is
+converted to a full MBDyn model. Contact Rick Damiani
+<mailto:rick.damiani@nrel.gov>.
+
+# TODO: Raf add user documentation location and the documentation itself
 
 MBDyn
 -----
@@ -107,54 +145,20 @@ This is a third-party software developed at University Politecnico di Milano.
 In KiteFAST, MBDyn is used for the structural dynamics (other than the tether)
 and as the driver to move the time-domain solution forward.
 
-Its documentation can be found at `documentation/mbdyn-input-1.7.3.pdf` with
+Its documentation can be found at `MBDyn/mbdyn-input-1.7.3.pdf` with
 further documentation available at https://www.mbdyn.org/?Documentation.
 
 Contact Pierangelo Masarati <mailto:pierangelo.masarati@polimi.it>.
 
-KiteFAST Modules
-----------------
-The general OpenFAST documentation is available at
-https://openfast.readthedocs.io/.
-
-Contact Jason Jonkman <mailto:jason.jonkman@nrel.gov>.
-
 InflowWind
-++++++++++
+----------
 The general InflowWind documentation is available at
 https://nwtc.nrel.gov/InflowWind/.
 
 MoorDyn
-+++++++
+-------
 The general MoorDyn documentation is available at
 https://nwtc.nrel.gov/MoorDyn/.
-
-KiteAeroDyn
-+++++++++++
-The implementation plan for KiteAeroDyn, which includes a description of inputs
-and outputs, is found at `theory/KiteAeroDyn_Plan.pdf`. Additional theory
-documentation for the VSM module is found at `theory/VSM_Theory.pdf`.
-
-MBDyn Preprocessor
-------------------
-The preprocessor theory documentation is available at
-`theory/MBDyn_Preprocessor_Theory.pdf`. This describes the mechanisms by which
-the simplified model described in the YAML file is converted to a full MBDyn
-model.
-
-Contact Rick Damiani <mailto:rick.damiani@nrel.gov>.
-
-
-User documentation
-~~~~~~~~~~~~~~~~~~
-The user documentation provides guidance on inputs, outputs, and modeling
-considerations of the entire system. All user documentation
-is located at `sandbox/sandbox/glue-codes/kitefast/documentation/user_guides`.
-
-The user documentation available are:
-- general usage: user_guides/general_usage.rst
-- KiteMBDyn Preprocesser: user_guides/kitembdyn_preprocessor_usage.rst
-- KiteAeroDyn: user_guides/kiteaerodyn_usage.rst
 
 
 Test cases

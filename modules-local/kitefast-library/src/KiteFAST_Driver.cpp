@@ -903,10 +903,10 @@ int main(int argc, char *argv[])
     pModFlags[2] = 1;  // use MoorDyn tether module
     pModFlags[3] = 0;  // no KiteFAST controller
 
-    strcpy(outFileRoot, "D:\\DEV\\makani\\google-repo\\sandbox\\glue-codes\\kitefast\\test_cases\\m600_salf\\KiteTest");
-    strcpy(KAD_FileName, "D:\\DEV\\makani\\google-repo\\sandbox\\glue-codes\\kitefast\\test_cases\\m600_salf\\simple_m600_model.inp");
-    strcpy(IfW_FileName, "D:\\DEV\\makani\\google-repo\\sandbox\\glue-codes\\kitefast\\test_cases\\m600_salf\\kiteInflowWind.dat");
-    strcpy(MD_FileName, "D:\\DEV\\makani\\google-repo\\sandbox\\glue-codes\\kitefast\\test_cases\\m600_salf\\m600-MoorDyn.dat");
+    strcpy(outFileRoot, "D:\\DEV\\makani\\google-repo\\sandbox\\glue-codes\\kitefast\\test_cases\\m600\\KiteNew");
+    strcpy(KAD_FileName, "D:\\DEV\\makani\\google-repo\\sandbox\\glue-codes\\kitefast\\test_cases\\kiteaerodyn\\simple_m600_model.inp");
+    strcpy(IfW_FileName, "D:\\DEV\\makani\\google-repo\\sandbox\\glue-codes\\kitefast\\test_cases\\kiteinflow\\kiteInflowWind.dat");
+    strcpy(MD_FileName, "D:\\DEV\\makani\\google-repo\\sandbox\\glue-codes\\kitefast\\test_cases\\kitemooring\\m600-MoorDyn.dat");
     strcpy(KFC_FileName, "D:\\DEV\\makani\\google-repo\\sandbox\\glue-codes\\kitefast\\test_cases\\m600_salf\\libkitefastcontroller_controller.so");
 
     // This is called as part of the user module constructor

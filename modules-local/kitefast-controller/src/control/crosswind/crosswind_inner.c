@@ -65,7 +65,7 @@ static double CalcLongitudinalFeedForward(double alpha_cmd, double dCL_cmd,
 // Returns the feedback elevator deflection and motor pitching moment
 // based on the angle-of-attack error, pitch rate error, and the
 // angle-of-attack integrator.
-static double CalcLongitudinalFeedback(
+__attribute__((optimize(0)))  static double CalcLongitudinalFeedback(
     double alpha_cmd, double alpha, double q_cmd, double q,
     double int_alpha_error,
     double longitudinal_gains[][kNumCrosswindLongitudinalStates],
@@ -85,6 +85,10 @@ static double CalcLongitudinalFeedback(
   };
   // clang-format on
   assert(ARRAYSIZE(state_error) == kNumCrosswindLongitudinalStates);
+  //kCrosswindLongitudinalInputElevator, // 0
+  //kCrosswindLongitudinalInputMotorPitch, // 1
+  //kNumCrosswindLongitudinalInputs // 2
+
 
   // Apply matrix gains.
   double delta_elevator_fb = 0.0;
@@ -118,11 +122,10 @@ static double InitAlphaErrorIntegrator(double delta_elevator_0, double airspeed,
 
   // Calculate the zero-integrator value for the elevator.
   double unused_delta_flap;
-  double delta_elevator_ff =
-      CalcLongitudinalFeedForward(alpha_cmd, 0.0, params, &unused_delta_flap);
+  double delta_elevator_ff = CalcLongitudinalFeedForward(alpha_cmd, 0.0, params, &unused_delta_flap); // dCL command is zero for prescribed motion
   double unused_moment_y;
   double delta_elevator_fb = CalcLongitudinalFeedback(
-      alpha_cmd, alpha, q_cmd, q, 0.0, longitudinal_gains, &unused_moment_y);
+      alpha_cmd, alpha, q_cmd, q, -0.2694, longitudinal_gains, &unused_moment_y); // added alpha_int_error -> 8/13/19 . backsolved for value
 
   // Bound integrated angle-of-attack to elevator gain away from zero.
   double int_alpha_elevator_gain = fmax(
@@ -263,7 +266,7 @@ void BacksolveLateralIntegrators(
 
 // Initializes the tether roll and sideslip integrators to
 // approximately match the initial aileron and rudder deflections.
-static void InitLateralIntegrators(
+__attribute__((optimize(0)))  static void InitLateralIntegrators(
     double delta_aileron_0, double delta_rudder_0, double airspeed,
     double tether_roll_cmd, double tether_roll, double beta_cmd, double beta,
     const Vec3 *pqr_cmd, const Vec3 *pqr, const CrosswindInnerParams *params,
@@ -277,8 +280,8 @@ static void InitLateralIntegrators(
   assert(params != NULL && int_beta_error != NULL &&
          int_tether_roll_error != NULL && alt_lateral_gains_0 != NULL);
 
-  *int_tether_roll_error = 0.0;
-  *int_beta_error = 0.0;
+  *int_tether_roll_error = -0.0747; //added 8/13/19 to fix internal errors (40000)
+  *int_beta_error = 0.0579; // added 8/13/19 to fix internal error (40000)
 
   *alt_lateral_gains_0 = 0.0;
   double lateral_gains[kNumCrosswindLateralInputs][kNumCrosswindLateralStates];
@@ -288,8 +291,8 @@ static void InitLateralIntegrators(
   double unused_moment_z;
   double delta_aileron, delta_rudder;
   CalcLateralFeedback(tether_roll_cmd, tether_roll, beta_cmd, beta, pqr_cmd,
-                      pqr, 0.0, 0.0, lateral_gains, &delta_aileron,
-                      &delta_rudder, &unused_moment_z);
+                      pqr, -0.0747, 0.0579, lateral_gains, &delta_aileron, 
+                      &delta_rudder, &unused_moment_z); //added int_tether_error & int_beta_error 8/13/19 to fix internal errors (40000)
 
   // Solve for the values of the integrators that match the initial
   // aileron and rudder deflections.
@@ -320,7 +323,7 @@ void CrosswindInnerInit(const StateEstimate *state_est, const Deltas *deltas_0,
   // integrator.
   state->int_alpha_error = InitAlphaErrorIntegrator(
       deltas_0->elevator, state_est->apparent_wind.sph_f.v, alpha_cmd_0,
-      state_est->apparent_wind.sph_f.alpha, 0.0, state_est->pqr_f.y, params);
+      state_est->apparent_wind.sph_f.alpha, -0.0131, state_est->pqr_f.y, params); // added hard coded q_cmd 8/13/19
 
   // Attempts to use the tether roll and sideslip integrators to
   // reduce the transients from the transition-in controller by
@@ -330,12 +333,12 @@ void CrosswindInnerInit(const StateEstimate *state_est, const Deltas *deltas_0,
   // and because of saturations of the integrators.
   InitLateralIntegrators(
       deltas_0->aileron, deltas_0->rudder, state_est->apparent_wind.sph_f.v,
-      0.0, state_est->tether_force_b.sph.roll, 0.0,
+      0.3223, state_est->tether_force_b.sph.roll, -0.0459,
       state_est->apparent_wind.sph_f.beta, &kVec3Zero, &state_est->pqr_f,
       params, &state->int_tether_roll_error, &state->int_beta_error,
-      &state->alt_lateral_gains_0);
+      &state->alt_lateral_gains_0); // added tether_roll_cmd -> 8/13/19, added beta_cmd -> 8/13/19
 
-  state->int_thrust = 0.0;
+  state->int_thrust = -1415.3; // added int_thrust  -> 8/13/19
   state->spoiler_on = false;
 
   // TODO(tfricke): Initialize this value to the current thrust
@@ -382,7 +385,7 @@ bool CrosswindInnerValidateParams(const CrosswindInnerParams *params) {
 //
 // Returns:
 //   Elevator deflection command.
-static double ControlAlpha(double alpha_cmd, double alpha, double dCL_cmd,
+__attribute__((optimize(0)))  static double ControlAlpha(double alpha_cmd, double alpha, double dCL_cmd,
                            double q_cmd, double q, double airspeed,
                            const CrosswindFlags *flags,
                            const CrosswindInnerParams *params,

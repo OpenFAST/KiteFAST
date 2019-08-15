@@ -301,7 +301,7 @@ module KiteFastController
          y%SPyGenTorque = 0.0_ReKi
          y%PPyGenTorque = 0.0_ReKi
             ! TODO: Determine what would be a realistic dummy set of speed and the correct signs for each rotor
-         y%SPyRtrSpd(1,1) = -100.0  ! starboard top rotor, inner pylons 
+         y%SPyRtrSpd(1,1) = -100.0  ! starboard top rotor, inner pylons   rad/s
          y%SPyRtrSpd(2,1) = 100.0  ! starboard bottom rotor, inner pylons     
          y%PPyRtrSpd(1,1) = -100.0  ! port top rotor, inner pylons
          y%PPyRtrSpd(2,1) = 100.0  ! port bottom rotor, inner pylons
@@ -311,15 +311,16 @@ module KiteFastController
             y%PPyRtrSpd(1,2) = 100.0  ! port top rotor, outer pylon
             y%PPyRtrSpd(2,2) = -100.0  ! port bottom rotor, outer pylon
          end if
-         y%SPyRtrAcc    =   0.0_ReKi  ! rad/s^2
-         y%PPyRtrAcc    =   0.0_ReKi  ! rad/s^2
+         y%SPyRtrAcc    =   10.0_ReKi  ! rad/s^2
+         y%PPyRtrAcc    =   12.0_ReKi  ! rad/s^2
          y%SPyBldPitch  = 0.0_ReKi
          y%PPyBldPitch  = 0.0_ReKi
-         y%SFlp         = 0.0_ReKi
-         y%PFlp         = 0.0_ReKi
-         y%Rudr         = 0.0_ReKi
-         y%SElv         = 0.0_ReKi
-         y%PElv         = 0.0_ReKi
+            ! All flag commands are constant for the dummy controller
+         y%SFlp =  0.1_ReKi
+         y%PFlp = -0.3_ReKi
+         y%Rudr =  0.2_ReKi
+         y%SElv =  0.4_ReKi
+         y%PElv =  0.5_ReKi
          
       end if
 
@@ -423,11 +424,18 @@ module KiteFastController
          ! obtain initial outputs from the DLL and set them
          call MapKFCOutputs( p%numFlaps, p%numPylons, genTorq, rtrSpd, rtrAcc, rtrBladePitch, ctrlSettings, y)
          
+         ! print *, " debug - y%SFlp : ", y%SFlp
+         ! print *, " debug - y%PFlp : ", y%PFlp
+         ! print *, " debug - y%Rudr : ", y%Rudr
+         ! print *, " debug - y%SElv : ", y%SElv
+         ! print *, " debug - y%PElv : ", y%PElv
+         ! print *, " ======================================="
+         
       else
          
          ! TODO: Determine what would be a realistic dummy set of speed and the correct signs for each rotor
             ! NOTE: Speed should match the settings used in the Init routine.
-         y%SPyRtrSpd(1,1) = -100.0  ! starboard top rotor, inner pylons 
+         y%SPyRtrSpd(1,1) = -100.0  ! starboard top rotor, inner pylons    rad/s
          y%SPyRtrSpd(2,1) = 100.0  ! starboard bottom rotor, inner pylons        
          y%PPyRtrSpd(1,1) = -100.0  ! port top rotor, inner pylons
          y%PPyRtrSpd(2,1) = 100.0  ! port bottom rotor, inner pylons
@@ -439,10 +447,10 @@ module KiteFastController
             y%PPyRtrSpd(2,2) = -100.0  ! port bottom rotor, outer pylon
          end if
             ! Zero rotor acceleration
-         y%SPyRtrAcc(1,:) = 0.0_ReKi ! starboard top rotor, all pylons 
-         y%SPyRtrAcc(2,:) = 0.0_ReKi ! starboard bottom rotor, all pylons
-         y%PPyRtrAcc(1,:) = 0.0_ReKi ! port top rotor, all pylons
-         y%PPyRtrAcc(2,:) = 0.0_ReKi ! port bottom rotor, all pylons
+         y%SPyRtrAcc(1,:) = 10.0_ReKi ! starboard top rotor, all pylons 
+         y%SPyRtrAcc(2,:) = 11.0_ReKi ! starboard bottom rotor, all pylons
+         y%PPyRtrAcc(1,:) = 12.0_ReKi ! port top rotor, all pylons
+         y%PPyRtrAcc(2,:) = 13.0_ReKi ! port bottom rotor, all pylons
          
 
             ! Currently blade pitch is not being set by controller and was initialized to 0.0
@@ -454,11 +462,11 @@ module KiteFastController
          y%PPyGenTorque = -u%PPyAeroTorque  ! port rotors
         
             ! All flag commands are constant for the dummy controller
-         y%SFlp = 0.0_ReKi
-         y%PFlp = 0.0_ReKi
-         y%Rudr = 0.0_ReKi
-         y%SElv = 0.0_ReKi
-         y%PElv = 0.0_ReKi
+         y%SFlp =  0.1_ReKi
+         y%PFlp = -0.3_ReKi
+         y%Rudr =  0.2_ReKi
+         y%SElv =  0.4_ReKi
+         y%PElv =  0.5_ReKi
          
       end if
       

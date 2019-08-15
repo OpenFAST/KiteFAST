@@ -182,21 +182,22 @@ True                             SumPrint           Print summary data to <RootN
 2                                OutSwtch           Output requested channels to? (-) (switch) {1=KiteFAST.KAD.out/KiteFAST.VSM.out, 2=GlueCode.out, 3=three files]
 "ES10.3E2"                       OutFmt             Format used for text tabular output, excluding the time channel; resulting field should be 10 characters (string)
 1                                NFusOuts           Number of fuselage                        node outputs (-) [0 to 9]
-2   FusOutNd           List of fuselage                        nodes whose values will be output (-) [1 to NFusOuts] [unused for NFusOuts=0]
-1                                NSWnOuts           Number of starboard wing                  node outputs (-) [0 to 9]
-1 SWnOutNd           List of starboard wing                  nodes whose values will be output (-) [1 to NSWnOuts] [unused for NSWnOuts=0]
-1                                NPWnOuts           Number of port wing                       node outputs (-) [0 to 9]
-1 PWnOutNd           List of port wing                       nodes whose values will be output (-) [1 to NPWnOuts] [unused for NPWnOuts=0]
-1                                NVSOuts            Number of vertical stabilizer             node outputs (-) [0 to 9]
-1    VSOutNd            List of vertical stabilizer             nodes whose values will be output (-) [1 to NVSOuts ] [unused for NVSOuts =0]
-1                                NSHSOuts           Number of starboard horizontal stabilizer node outputs (-) [0 to 9]
-1               SHSOutNd           List of starboard horizontal stabilizer nodes whose values will be output (-) [1 to NSHSOuts] [unused for NSHSOuts=0]
-1                                NPHSOuts           Number of port horizontal stabilizer      node outputs (-) [0 to 9]
+2          FusOutNd           List of fuselage                        nodes whose values will be output (-) [1 to NFusOuts] [unused for NFusOuts=0]
+3          NSWnOuts           Number of starboard wing                  node outputs (-) [0 to 9]
+1 7 11     SWnOutNd           List of starboard wing                  nodes whose values will be output (-) [1 to NSWnOuts] [unused for NSWnOuts=0]
+3          NPWnOuts           Number of port wing                       node outputs (-) [0 to 9]
+1 7 11     PWnOutNd           List of port wing                       nodes whose values will be output (-) [1 to NPWnOuts] [unused for NPWnOuts=0]
+1          NVSOuts            Number of vertical stabilizer             node outputs (-) [0 to 9]
+1          VSOutNd            List of vertical stabilizer             nodes whose values will be output (-) [1 to NVSOuts ] [unused for NVSOuts =0]
+1          NSHSOuts           Number of starboard horizontal stabilizer node outputs (-) [0 to 9]
+1          SHSOutNd           List of starboard horizontal stabilizer nodes whose values will be output (-) [1 to NSHSOuts] [unused for NSHSOuts=0]
+1          NPHSOuts           Number of port horizontal stabilizer      node outputs (-) [0 to 9]
 1          PHSOutNd           List of port horizontal stabilizer      nodes whose values will be output (-) [1 to NPHSOuts] [unused for NPHSOuts=0]
 2          NPylOuts           Number of pylon node outputs (-) [0 to 9]
 1 2        PylOutNd           List of pylon nodes whose values will be output (-) [1 to NPylOuts] [unused for NPylOuts=0]
 OutList            The next line(s) contains a list of output parameters.  See OutListParameters.xlsx for a listing of available output channels (quoted string)
 "KiteFxi, KiteFyi, KiteFzi, KiteMxi, KiteMyi, KiteMzi"     
+"SFlp1Ctrl, SFlp2Ctrl, SFlp3Ctrl, PFlp1Ctrl, PFlp2Ctrl, PFlp3Ctrl, Rudr1Ctrl, SElv1Ctrl, PElv1Ctrl"
 "SP1TTSR,SP1BTSR,SP2TTSR,SP2BTSR,PP1TTSR,PP1BTSR,PP2TTSR,PP2BTSR"
 "SP1TPWR,SP1BPWR,SP2TPWR,SP2BPWR,PP1TPWR,PP1BPWR,PP2TPWR,PP2BPWR"
 "SP1TRTSPD,SP1BRTSPD,SP2TRTSPD,SP2BRTSPD,PP1TRTSPD,PP1BRTSPD,PP2TRTSPD,PP2BRTSPD"

@@ -15,6 +15,7 @@ typedef struct {
     double rotor_omegas[kNumMotors];
     double rotor_torques[kNumMotors];
     double rotor_accel[kNumMotors];
+    double aero_torque[kNumMotors];
     
 } MotorState;
 

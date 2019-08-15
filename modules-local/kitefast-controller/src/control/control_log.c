@@ -18,6 +18,8 @@ void ControlLogInit(char* controllerVerNumber){
     fprintf(fp, " wind_g.vector.x, wind_g.vector.y, wind_g.vector.z, sph_f.v, sph_f.alpha, sph_f.beta, tether_force_b.vector_f.x, tether_force_b.vector_f.y, tether_force_b.vector_f.z, "); // 39
     fprintf(fp, "flaps[0], flaps[1], flaps[2], flaps[3], flaps[4], flaps[5], flaps[6], flaps[7], "); // 47
     fprintf(fp, "rotors[0], rotors[1], rotors[2], rotors[3], rotors[4], rotors[5], rotors[6], rotors[7], "); // 55
+    fprintf(fp, "r_torque[0], r_torque[1], r_torque[2], r_torque[3], r_torque[4], r_torque[5], r_torque[6], r_torque[7], ");
+	fprintf(fp, "aero_torque[0], aero_torque[1], aero_torque[2], aero_torque[3], aero_torque[4], aero_torque[5], aero_torque[6], aero_torque[7], ");
 	fprintf(fp, "loop_angle, path_center_g_x, path_center_g_y, path_center_g_z, tether_roll_post, tether_roll_pre, tether_pit, speed_f_playbook, wind_g_dir_f, ");   // 64
 	fprintf(fp, "path_radius_playbook_out, airspeed_cmd_power_out, d_airspeed_d_loopangle_power_out, alpha_nom_power_out, beta_nom_power_out, k_aero_cmd_path_out, pqr_cmd_new_cross_pqr_out_x, pqr_cmd_new_cross_pqr_out_y, pqr_cmd_new_cross_pqr_out_z, kite_accel_ff_loop_kin_out, "); //74
     fprintf(fp, "k_geom_cmd_path_out, k_aero_curr_path_out, k_geom_curr_path_out, pqr_cmd_curv_out_x, pqr_cmd_curv_out_y, pqr_cmd_curv_out_z, flaring_curv_out, alpha_cmd_curv_out, beta_cmd_curv_out, tether_roll_cmd_curv_out, "); // 84
@@ -91,14 +93,32 @@ void ControlLogEntry(ControlLog* control_log){
 		control_log->controlOutputLog.flaps[kFlapEle],
 		control_log->controlOutputLog.flaps[kFlapRud]);
 	fprintf(fp, "%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,",	//55	//"rotors[0], rotors[1], rotors[2], rotors[3], rotors[4], rotors[5], rotors[6], rotors[7], "); /
-		control_log->controlOutputLog.rotors[kMotor1],
-		control_log->controlOutputLog.rotors[kMotor2],
-		control_log->controlOutputLog.rotors[kMotor3],
-		control_log->controlOutputLog.rotors[kMotor4],
-		control_log->controlOutputLog.rotors[kMotor5],
-		control_log->controlOutputLog.rotors[kMotor6],
-		control_log->controlOutputLog.rotors[kMotor7],
-		control_log->controlOutputLog.rotors[kMotor8]);
+		control_log->motor_state.rotor_omegas[kMotor1],
+		control_log->motor_state.rotor_omegas[kMotor2],
+		control_log->motor_state.rotor_omegas[kMotor3],
+		control_log->motor_state.rotor_omegas[kMotor4],
+		control_log->motor_state.rotor_omegas[kMotor5],
+		control_log->motor_state.rotor_omegas[kMotor6],
+		control_log->motor_state.rotor_omegas[kMotor7],
+		control_log->motor_state.rotor_omegas[kMotor8]);
+	fprintf(fp, "%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,",	//55	//"r_torque[0], r_torque[1], r_torque[2], r_torque[3], r_torque[4], r_torque[5], r_torque[6], r_torque[7], "); /
+		control_log->motor_state.rotor_torques[kMotor1],
+		control_log->motor_state.rotor_torques[kMotor2],
+		control_log->motor_state.rotor_torques[kMotor3],
+		control_log->motor_state.rotor_torques[kMotor4],
+		control_log->motor_state.rotor_torques[kMotor5],
+		control_log->motor_state.rotor_torques[kMotor6],
+		control_log->motor_state.rotor_torques[kMotor7],
+		control_log->motor_state.rotor_torques[kMotor8]);
+	fprintf(fp, "%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,",	//55	//"r_torque[0], r_torque[1], r_torque[2], r_torque[3], r_torque[4], r_torque[5], r_torque[6], r_torque[7], "); /
+		control_log->motor_state.aero_torque[kMotor1],
+		control_log->motor_state.aero_torque[kMotor2],
+		control_log->motor_state.aero_torque[kMotor3],
+		control_log->motor_state.aero_torque[kMotor4],
+		control_log->motor_state.aero_torque[kMotor5],
+		control_log->motor_state.aero_torque[kMotor6],
+		control_log->motor_state.aero_torque[kMotor7],
+		control_log->motor_state.aero_torque[kMotor8]);
 	fprintf(fp, "%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,",//64	//"loop_angle, path_center_g_x, path_center_g_y, path_center_g_z, tether_roll_post, tether_roll_pre, tether_pit, speed_f_playbook, wind_g.dir_f"// 	
 		control_log->controlOutputLog.loop_angle,
 		control_log->controlOutputLog.path_center_g.x,

@@ -989,7 +989,7 @@ static SystemParams system_params = {
       0.046062,
       0.206902
     },
-    .rho = 1.026,
+    .rho = 1.0747,
     .P_atm = 90728.3,
     .g_g = {
       0.0,
