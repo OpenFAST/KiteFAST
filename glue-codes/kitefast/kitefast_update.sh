@@ -5,9 +5,12 @@ set -e
 
 ##### configuration
 
-source_code_parent_directory="/home/parallels/Desktop"
+# Set the directories in the variables below. These are the 
+# directories where kitefast and mbdyn will ultimately go.
+source_code_parent_directory="/Users/rmudafor/Development/makani"
 mbdyn_directory=$source_code_parent_directory"/mbdyn-1.7.3"
 openfast_directory=$source_code_parent_directory"/sandbox"
+git_branch="dev"
 
 #####
 
@@ -71,8 +74,8 @@ fi
 # rebuild kitefast
 cd $openfast_directory
 require_clean_work_tree "git checkout"
-git checkout dev
-git pull origin dev
+git checkout $git_branch
+git pull origin $git_branch
 cd build
 cmake ..
 make -j 2 kitefastlib kitefastcontroller_controller
