@@ -16,7 +16,8 @@ fortran_compiler="/usr/bin/gfortran"
 
 #####
 
-### install required software
+### uninstall dependencies
+
 packages=`apt -qq list --installed`
 
 function uninstall_if_found {
