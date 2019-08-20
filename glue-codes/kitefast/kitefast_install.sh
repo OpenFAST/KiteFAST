@@ -1,5 +1,8 @@
 # Install script for all KiteFAST related components on Debian Stretch (9)
 
+# source the helper functions
+source kitefast_helpers.sh
+
 # exit on error
 set -e
 
@@ -16,47 +19,8 @@ fortran_compiler="/usr/bin/gfortran"
 
 #####
 
-### helpers
-
-function print {
-  echo "*** "$@
-}
-
 ### install required software
 packages=`apt -qq list --installed`
-
-function install_if_not_found {
-  if package_installed $1; then
-    print $1" already installed."
-    return
-  fi
-
-  if ! install_package $1; then
-    print $1" could not be installed."
-  else
-    print $1" successfully installed."
-  fi
-}
-
-function package_installed {
-  print "Checking for "$1
-  echo $packages | grep -q $1
-  return $?
-}
-
-function install_package {
-  print "Installing "$1
-  sudo apt install -y $1
-  return $?
-}
-
-function create_link {
-  if [ -e "$2" ]; then
-    mv $2 $2.back
-    print "Symlink exists so its been saved as "$2".back"
-  fi
-  ln -s $1 $2
-}
 
 # update apt-get repo
 sudo apt update
@@ -72,8 +36,7 @@ install_if_not_found "liblapack-dev" # lapack math library
 install_if_not_found "libltdl-dev"   # libltdl headers, used in mbdyn for linking
 install_if_not_found "libgsl-dev"    # used in the STI controller
 install_if_not_found "python3-pip"   # used in the STI controller
-# optional: needed for eigen analysis and netcdf output
-# install_if_not_found libnetcdf-c++4
+install_if_not_found "libnetcdf-c++4"
 
 # remove lingering packages
 sudo apt-get autoremove
@@ -149,8 +112,7 @@ cd $mbdyn_directory
 
 # modify the line below as needed
 # for debug, add --enable-debug
-# for eigen analysis, add --enable-netcdf --with-lapack --enable-eig
-./configure --enable-runtime-loading --with-module="kitefastmbd"
+./configure --enable-runtime-loading --with-module="kitefastmbd" --enable-netcdf --with-lapack --enable-eig
 
 sudo make                      # build mbdyn
 cd modules                     # move to the module directory
