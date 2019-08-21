@@ -60,11 +60,11 @@ class MainMBD():
         self.mip_id = mip_id
         self.fuselage_output_nodes = output["fuselage_nodes"]
         self.wing_starboard_nodes = output["wing_starboard_nodes"]
-        self.wing_port_outputs = output["wing_port_outputs"]
-        self.vertical_stabilizer_outputs = output["vertical_stabilizer_outputs"]
-        self.horizontal_stabilizer_starboard_outputs = output["horizontal_stabilizer_starboard_outputs"]
-        self.horizontal_stabilizer_port_outputs = output["horizontal_stabilizer_port_outputs"]
-        self.pylon_outputs = output["pylon_outputs"]
+        self.wing_port_outputs = output["wing_port_nodes"]
+        self.vertical_stabilizer_outputs = output["vertical_stabilizer_nodes"]
+        self.horizontal_stabilizer_starboard_outputs = output["horizontal_stabilizer_starboard_nodes"]
+        self.horizontal_stabilizer_port_outputs = output["horizontal_stabilizer_port_nodes"]
+        self.pylon_outputs = output["pylon_nodes"]
         self.output_channels = [] if output["output_channels"] is None else output["output_channels"]
 
         self.keypoints = keypoints
@@ -273,13 +273,13 @@ class MainMBD():
                 for node in nodes:
                     output.write_line("            {},".format(node))
     
-        _write_output_lines(self.fuselage_output_nodes, "fuselage_outputs")
-        _write_output_lines(self.wing_starboard_nodes, "wing_starboard_outputs")
-        _write_output_lines(self.wing_port_outputs, "wing_port_outputs")
-        _write_output_lines(self.vertical_stabilizer_outputs, "vertical_stabilizer_outputs")
-        _write_output_lines(self.horizontal_stabilizer_starboard_outputs, "horizontal_stabilizer_starboard_outputs")
-        _write_output_lines(self.horizontal_stabilizer_port_outputs, "horizontal_stabilizer_port_outputs")
-        _write_output_lines(self.pylon_outputs, "pylon_outputs")
+        _write_output_lines(self.fuselage_output_nodes, "fuselage_nodes")
+        _write_output_lines(self.wing_starboard_nodes, "wing_starboard_nodes")
+        _write_output_lines(self.wing_port_outputs, "wing_port_nodes")
+        _write_output_lines(self.vertical_stabilizer_outputs, "vertical_stabilizer_nodes")
+        _write_output_lines(self.horizontal_stabilizer_starboard_outputs, "horizontal_stabilizer_starboard_nodes")
+        _write_output_lines(self.horizontal_stabilizer_port_outputs, "horizontal_stabilizer_port_nodes")
+        _write_output_lines(self.pylon_outputs, "pylon_nodes")
         output.write_line("        output_channels,")
         if len(self.output_channels) == 0:
             output.write_line("            {};".format(len(self.output_channels)))
