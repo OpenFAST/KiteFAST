@@ -45,12 +45,14 @@ sandbox
 │       │   │   └── user_guide
 │       │   ├── KiteFASTMBD_Plan.pdf
 │       │   ├── KiteMBDynPreprocessor
-│       │   │   └── MBDyn_Preprocessor_Theory.pdf
+│       │   │   ├── MBDyn_Preprocessor_Theory.pdf
+│       │   │   └── user_guide
 │       │   ├── MBDyn
 │       │   │   └── mbdyn-input-1.7.3.pdf
 │       │   └── OUTLINE.rst
-│       ├── kitefast_build.sh
-│       ├── kitefast_remove.sh
+│       ├── kitefast_helpers.sh
+│       ├── kitefast_install.sh
+│       ├── kitefast_uninstall.sh
 │       ├── kitefast_update.sh
 │       ├── module-kitefastmbd
 │       │   ├── Makefile.inc
@@ -98,8 +100,8 @@ test and example cases.
 sandbox/modules-local and sandbox/modules-ext
 ---------------------------------------------
 This directory contains the physics modules which make up OpenFAST. The
-modules used by KiteFAST are inflowwind, kiteaerodyn, kitefast-controller,
-kitefast-library, vsm, and moordyn.
+modules used by KiteFAST are InflowWind, KiteAeroDyn, kitefast-controller,
+kitefast-library, VSM, and MoorDyn.
 
 
 Module documentation
@@ -115,15 +117,15 @@ available to the user not otherwise set the module level is located at
 `sandbox/sandbox/glue-codes/kitefast/documentation/KiteFASTMBD_Plan.pdf`.
 
 The general OpenFAST documentation is available at
-https://openfast.readthedocs.io/.
+https://openfast.readthedocs.io/. The FAST Developer's Handbook is also
+available at https://nwtc.nrel.gov/system/files/ProgrammingHandbook_Mod20130326.pdf.
 
 KiteAeroDyn
 -----------
 The implementation plan for KiteAeroDyn, which includes a description of inputs
 and outputs, is found at `KiteAeroDyn/KiteAeroDyn_Plan.pdf`. Additional theory
-documentation for the VSM module is found at `KiteAeroDyn/VSM_Theory.pdf`.
-
-# TODO: Greg add user documentation location and anything else
+documentation for the VSM module is found at `KiteAeroDyn/VSM_Theory.pdf`. User
+documentation is available at `KiteAeroDyn/user_guide`.
 
 Contact Jason Jonkman <mailto:jason.jonkman@nrel.gov> and
 Greg Hayman <mailto:hayman.gregory@gmail.com>.
@@ -131,12 +133,13 @@ Greg Hayman <mailto:hayman.gregory@gmail.com>.
 KiteMBDyn Preprocessor
 ----------------------
 The preprocessor theory documentation is available at
-`KiteMBDynPreprocess/MBDyn_Preprocessor_Theory.pdf`. This describes the
+`KiteMBDynPreprocessor/MBDyn_Preprocessor_Theory.pdf`. This describes the
 mechanisms by which the simplified model described in the YAML file is
-converted to a full MBDyn model. Contact Rick Damiani
-<mailto:rick.damiani@nrel.gov>.
+converted to a full MBDyn model. User documentation is available at
+`KiteMBDynPreprocessor/user_guide/USER_GUIDE.rst`.
 
-# TODO: Raf add user documentation location and the documentation itself
+Contact Rick Damiani <mailto:rick.damiani@nrel.gov> and Rafael Mudafort
+<mailto:rafael.mudafort@nrel.gov>.
 
 MBDyn
 -----
@@ -240,8 +243,8 @@ simulating a time marching flight, this case performs an Eigenanalysis of the
 structure in the absence of aerodynamics, the tether, and control actions
 (all modules are disabled).
 
-NOTE: Reconfiguring mbdyn with `--enable-netcdf --with-lapack --enable-eig` and
-recompiling is required to use the eigen analysis features of this case.
+NOTE: Configuring MBDyn with `--enable-netcdf --with-lapack --enable-eig`
+is required to use the eigen analysis features of this case.
 
 The MBDyn input files are included directly in the repository and no
 preprocessor input files is included. This case was created manually so that

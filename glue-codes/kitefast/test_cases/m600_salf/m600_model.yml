@@ -509,21 +509,21 @@ output:
         # - 3
         - 0
 
-    wing_port_outputs:
+    wing_port_nodes:
         # - 3
         - 0
 
-    vertical_stabilizer_outputs:
+    vertical_stabilizer_nodes:
         # 0th node means no nodes are requested
         - 0
 
-    horizontal_stabilizer_starboard_outputs:
+    horizontal_stabilizer_starboard_nodes:
         - 0
 
-    horizontal_stabilizer_port_outputs:
+    horizontal_stabilizer_port_nodes:
         - 0
 
-    pylon_outputs:
+    pylon_nodes:
         # - 1
         # - 2
         - 0

@@ -1,5 +1,8 @@
 # Uninstall script for all KiteFAST related components on Debian Stretch (9)
 
+# source the helper functions
+source kitefast_helpers.sh
+
 # exit on error
 set -e
 
@@ -17,26 +20,7 @@ fortran_compiler="/usr/bin/gfortran"
 #####
 
 ### uninstall dependencies
-
 packages=`apt -qq list --installed`
-
-function uninstall_if_found {
-  if package_installed $1; then
-    uninstall_package $1
-  fi
-}
-
-function package_installed {
-  echo "*** Checking for "$1
-  echo $packages | grep -q $1
-  installed=$?
-  return $installed
-}
-
-function uninstall_package {
-  echo "*** Uninstalling "$1
-  sudo apt remove -y $1
-}
 
 # install these general software development tools
 uninstall_if_found "git"

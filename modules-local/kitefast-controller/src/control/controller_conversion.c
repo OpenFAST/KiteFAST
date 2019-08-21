@@ -131,14 +131,14 @@ __attribute__((optimize(0)))  void AssignInputs(double dcm_g2b_c[], double pqr_c
 	// AeroTorque[6] = AeroTorque_tmp[0]; // STi
 	// AeroTorque[7] = AeroTorque_tmp[2]; // STo
 
-	motor_state->aero_torque[0] = -AeroTorque[3]; // SBo 
-	motor_state->aero_torque[1] = -AeroTorque[1]; // SBi
-	motor_state->aero_torque[2] = -AeroTorque[5]; // PBi
-	motor_state->aero_torque[3] = -AeroTorque[7]; // PBo
-	motor_state->aero_torque[4] = -AeroTorque[6]; // PTo
-	motor_state->aero_torque[5] = -AeroTorque[4]; // PTi
-	motor_state->aero_torque[6] = -AeroTorque[0]; // STi
-	motor_state->aero_torque[7] = -AeroTorque[2]; // STo
+	motor_state->aero_torque[0] = AeroTorque[3]; // SBo 
+	motor_state->aero_torque[1] = AeroTorque[1]; // SBi
+	motor_state->aero_torque[2] = AeroTorque[5]; // PBi
+	motor_state->aero_torque[3] = AeroTorque[7]; // PBo
+	motor_state->aero_torque[4] = AeroTorque[6]; // PTo
+	motor_state->aero_torque[5] = AeroTorque[4]; // PTi
+	motor_state->aero_torque[6] = AeroTorque[0]; // STi
+	motor_state->aero_torque[7] = AeroTorque[2]; // STo
 		 
 	//tether_force_c
 	// calculate tether roll angle using force vector components:
