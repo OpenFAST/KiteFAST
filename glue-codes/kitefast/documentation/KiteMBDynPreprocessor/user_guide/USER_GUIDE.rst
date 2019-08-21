@@ -1,7 +1,7 @@
 KiteMBDyn Preprocessor User Guide
 =================================
 
-This document is a user guide for the KiteMBDyn Preprocessor as it relates to
+This document is a user's guide for the KiteMBDyn Preprocessor as it relates to
 KiteFAST and MBDyn. The purpose of this tool is to abstract the complexity of
 the MBDyn input file into more user friendly format.
 
@@ -10,10 +10,14 @@ A separate developer's guide is planned for future development.
 The KiteMBDyn Preprocessor is a Python framework for constructing generic
 ``components`` and attaching them in a particular way to create a full
 ``model``. Each model also has an associated format for the main MBDyn
-files which will describe it. The geometry is given in a standard YAML format
-with straight components and a mass distribution. The Preprocessor interpolates
-structural quantities to the Gauss locations for the structural solve and
-distributes the integrated mass and inertias into a lumped mass and inertia.
+files that will describe it. The geometry is given in a standard YAML format
+and consists of a number of beam elements, rigid bodies, and point masses.
+For the beam elements, the Preprocessor interpolates the cross-sectional
+stiffness quantities to the Gauss locations for the structural solve and
+distributes the cross-sectional mass and inertias into a lumped mass and
+inertia at the nodes (MBDyn uses a lumped mass formulation rather than a
+consistent mass formulation).
+
 See the KiteMBDyn Preprocessor Theory for more information.
 
 Command Line interface
@@ -47,7 +51,7 @@ General Guidelines
 - Quantities are in SI units (kg, m, s); angles are in degrees and angular
   velocities are in rad/s
 - Reference lines should be monotonically increasing or decreasing in their
-  primary direction; overlapping points will cause an error
+  primary direction (x, y, z); overlapping nodes will cause an error
 - The kite coordinate system (body frame) is
 
  - x pointed forward (in the primary direction of flight)
@@ -108,15 +112,26 @@ rules specific to the preprocessor input file:
 
 Kite Geometry Assumptions and Limitations
 -----------------------------------------
-- Nacelles are attached to the endpoints of the pylons
+- Nacelles are cantilevered to the endpoints of the pylons
 - Wings have an equal number of pylons
-- All components are geometrically straight; any curvature is modeled by center
-  of mass offsets
+- All beam components are geometrically straight and are parallel with the
+  local kite x, y, or z axes; any beam curvature is modeled by offsets of the
+  cross-section center of mass and/or stiffness (tension center, shear center)
+- The kite model must consist of the following components
+    - 2 wings (starboard, port) cantilevered to fuselage
+    - 1 vertical stabilizer cantilevered to fuselage
+    - 2 horizontal stabilizers (starboard, port) cantilevered to vertical
+      stabilizer
+    - User-specified number of pylons cantilivered to each wing
+    - One rotor connected to each nacelle, but modeled analytically in
+      KiteFASTMBD
 
 Key Points
 ----------
 The ``keypoints`` table locates each component's origin point. These points
-are defined in the kite coordinate system.
+are defined for the undeflected structure in the kite coordinate system; the
+same reference points are used to define the aerodynamic geometry in
+KiteAeroDyn.
 
 The only keypoint which is not allowed to be specified by the user is the
 fuselage keypoint which is hard coded to the kite's origin at (0, 0, 0).
@@ -134,8 +149,7 @@ Each component has a primary axis
 - fuselage: x
 - wings: y
 - vertical stabilizer: z
-- horizontal stabilizer: y
-- horizontal stabilizer: y
+- horizontal stabilizers: y
 - pylons: z
 
 element_end_nodes
@@ -144,16 +158,17 @@ A three-node beam element is used in the MBDyn solver. These elements are
 defined in the input file by their end nodes in the ``element_end_nodes`` table
 and the third node is automatically added by the preprocessor at the midpoint.
 
-These nodes are located in space by a single-component offset in the direction
-of the primary axis of the associated kite component relative to origin defined
-in the ``keypoints`` table in the kite coordinate system. This table also
-specifies the twist at each node, connects other kite components, and adds a
-point mass. The twist applies only to the section stiffness not the
-mass, center of mass, or inertia, and it should be given relative to the
-positive direction of the component's primary axis.
+These nodes are located in space by a single-component offset of the
+undeflected structure in the direction of the primary axis of the associated
+kite component relative to origin defined in the ``keypoints`` table in the
+kite coordinate system. This table also specifies the twist at each node,
+connects other kite components, and adds a point mass. The twist applies only
+to the section stiffness not the mass, center of mass, or inertia, and it
+should be given relative to the positive direction of the component's primary
+axis.
 
-Nodes have a local coordinate system which is initially aligned with the kite
-system but rotated by the node's twist in the component's primary axis.
+Nodes have a local coordinate system which is aligned with the kite system and
+placed at the node location.
 
 stiffness_matrix
 ~~~~~~~~~~~~~~~~
@@ -166,7 +181,7 @@ system.
 It is important to note that MBDyn expects the stiffness properties at the
 finite element's gaussian points which are located at +/- 1/sqrt(3) from the
 element midpoint (nondimensionally). The nodal stiffness properties will be
-interpolated by the preprocessor to these locations.
+linearly interpolated by the KiteMBDyn Preprocessor to these locations.
 
 mass_distribution
 ~~~~~~~~~~~~~~~~~
@@ -177,11 +192,12 @@ inertia quantities are defined at the node in the node's coordinate system.
 The given nodal mass distribution will be integrated and distributed as
 lumped masses by the preprocessor.
 
-Rotors
-------
-The ``rotor`` blocks are distinct from other components in that they models a
-single body in space with an associates mass, center of mass offset,
-translational inertia and rotational inertia.
+Rotors and Nacelles
+-------------------
+The ``rotor_assembly`` blocks are distinct from other components. The rotors
+and nacelles are modeled as distinct rigid bodies in space each with an
+associated mass, center of mass offset, translational inertia and rotational
+inertia.
 
 .. code-block:: yaml
 
@@ -220,7 +236,7 @@ Various simulation controls for the MBDyn and KiteFAST portions of the
 simulation are given in the ``simulation_controls`` section. These are
 generally passed directly to the appropriate portions of the software
 and are not modified by the preprocessor except where indicated below.
-Thus, various types of data can generally be interchanges. For example,
+Thus, various types of data can generally be interchanged. For example,
 most fields allow for their values to be a number wrapped in quotes ("10")
 or a numeric value (10). This is useful in fields where MBDyn allows various
 forms of input like ``max_iterations``.
@@ -258,11 +274,11 @@ Settings for the KiteFAST output.
 
 kiteaerodyn_interpolation_order
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Order of interpolation for KiteAeroDyn outputs.
+Order of interpolation/extrapolation for KiteAeroDyn outputs.
 
-- 0: Hold KAD outputs between KAD calls
-- 1: Linearly interpolate outputs
-- 2: 2nd order interpolation of outputs
+- 0: Hold KiteAeroDyn input/outputs between KiteAeroDyn calls
+- 1: Linearly interpolate inputs/outputs
+- 2: Quadratic interpolation of inputs/outputs
 
 .. code-block:: yaml
 
@@ -294,7 +310,7 @@ is available for whereby specifying "N, at most" avoids the residual check and
 completes N number of iterations. If the final residual is less than the first
 residual, the time marching continues.
 
-TODO: descrive ``derivatives``, ``linear_solver``
+TODO: describe ``derivatives``, ``linear_solver``
 
 .. code-block:: yaml
 
@@ -321,8 +337,10 @@ Model Settings
 ~~~~~~~~~~~~~~
 These are additional miscellaneous flags for further modeling configurations.
 
-The ``rigid_model`` feature adds a joint between each node in the model such
-that there are no elastics calculated. It must be either "true" or "false"
+The ``rigid_model`` feature adds a rigid joint between each node in the model
+such that there are no elastics calculated. It must be either "true" or "false".
+Because of the large number of algebraic constraints this feature enables,
+expect a slow runtime when “true”.
 
 ``debug`` adds additional MBDyn debugging information. This is primarily useful
 for determining which portions of the model are causing convergence issues. It
@@ -340,7 +358,7 @@ ground_weather_station
 ~~~~~~~~~~~~~~~~~~~~~~
 The ``ground_weather_station`` field specifies the location of the ground
 station. This point is passed directly to KiteFAST and used to interface with
-the controller. This point is given in order of x-y-z components relative to
+the controller. This point is given as x-y-z components relative to
 the global origin.
 
 .. code-block:: yaml
@@ -354,23 +372,24 @@ Initial Conditions
 The location, orientation, and velocity of the model at initial time are given
 here.
 
-The ``location`` places the MIP of the kite in the global frame. Since the
-fuselage keypoint is forced to (0,0,0), this point is passed to KiteFAST as the
-fuselage key point in the back side. it is given in order of x-y-z components
-relative to the global origin.
+The ``location`` places the most important point ( of the kite in the global
+frame. The MIP is coincident with the fuselage keypoint (0,0,0). The location
+is given as x-y-z components relative to the global origin.
 
 The ``orientation`` field lists the initial Euler angles of the kite in order
-of roll-pitch-yaw. These angles are converted to a DCM in the Preprocessor
-using the SciPy Spatial Transform library. This rotation is "intrinsic"
+of roll-pitch-yaw sequence. These angles are converted to a DCM in the
+Preprocessor using the SciPy Spatial Transform library. This rotation is
+"intrinsic"
 (https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.transform.Rotation.from_euler.html#scipy.spatial.transform.Rotation.from_euler)
 meaning that each rotation occurs relative to the body frame. The roll occurs
 first. Then, the kite is pitched relative to the orientation after the roll.
 Finally, the yaw rotation happens relative to the intermediate orientation of
 the kite after the pitch.
 
-The ``velocities`` are given in both translational and rotational components.
-Translational velocities are given in m/s in order of x-y-z components, and
-rotational velocities are given in rad/s in order of roll-pitch-yaw components.
+Translational velocities are given in m/s as x-y-z components relative to the
+global inertial frame coordinate system, and rotational velocities are given in
+rad/s as x-y-z components relative to the global inertial frame coordinate
+system.
 
 .. code-block:: yaml
 
@@ -383,11 +402,9 @@ rotational velocities are given in rad/s in order of roll-pitch-yaw components.
 
         velocity:
             translational:
-                # [x, y, z]
                 [53.9008, 3.3295, -29.7069]
 
             rotational:
-                # [roll, pitch, yaw]
                 [0.1474, -0.2842, -0.3232]
 
 
@@ -401,12 +418,12 @@ To request a node for output, list its index (these are indexed from 1) under
 the given component. Then, construct the output channel string by combining the
 physical quantity abbreviation with the index of the node in the list of
 requested nodes under a component. For example, the block below enables
-output for fuselage nodes 2 and 3. To output the x-component of the deflection
-for these nodes, the corresponding strings are "Fus1TDx" and "Fus2TDx".
-Additional channels are available for the entire kite. To turn off output for
-a particular component, list "- 0" for the nodes.
+output for fuselage nodes 4 and 5. To output the x-component of the deflection
+for these nodes, the corresponding strings are "Fus1TDx" for node 4 and
+"Fus2TDx" for node 5. Additional channels are available for the entire kite.
+To turn off output for a particular component, list "- 0" for the nodes.
 
-See KiteFASTMBD_Plan.pdf for more information.
+See KiteFASTMBD_Plan.pdf for more information and the full list of outputs.
 
 TODO: Describe outputs for the pylons and rotors
 
