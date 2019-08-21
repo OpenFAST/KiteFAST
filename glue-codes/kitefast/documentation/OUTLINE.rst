@@ -45,7 +45,8 @@ sandbox
 │       │   │   └── user_guide
 │       │   ├── KiteFASTMBD_Plan.pdf
 │       │   ├── KiteMBDynPreprocessor
-│       │   │   └── MBDyn_Preprocessor_Theory.pdf
+│       │   │   ├── MBDyn_Preprocessor_Theory.pdf
+│       │   │   └── user_guide
 │       │   ├── MBDyn
 │       │   │   └── mbdyn-input-1.7.3.pdf
 │       │   └── OUTLINE.rst
