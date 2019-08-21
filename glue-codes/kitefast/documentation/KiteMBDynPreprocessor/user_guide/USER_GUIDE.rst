@@ -16,6 +16,32 @@ structural quantities to the Gauss locations for the structural solve and
 distributes the integrated mass and inertias into a lumped mass and inertia.
 See the KiteMBDyn Preprocessor Theory for more information.
 
+Command Line interface
+----------------------
+The KiteMBDyn Preprocessor should be executed via a bash command line.
+The command line interface can be explored by supplying the `-h` flag.
+
+.. code-block:: bash
+
+    $ python preprocess.py -h
+        usage: preprocess.py [-h] -i INPUT_FILE [-o [OUTPUT_DIRECTORY]]
+                            [-m [MODEL_TYPE]] [-info]
+
+        Creates a set of MBDyn input files from a model definition.
+
+        optional arguments:
+        -h, --help            show this help message and exit
+        -i INPUT_FILE, --input-file INPUT_FILE
+                                Path to the preprocessor input file
+        -o [OUTPUT_DIRECTORY], --output-directory [OUTPUT_DIRECTORY]
+                                Path to the directory where the output should be
+                                written
+        -m [MODEL_TYPE], --model-type [MODEL_TYPE]
+                                Available options: kite (default), beam
+        -info, --show-component-info
+                                Display mass, center of mass, and inertia for each
+                                component
+
 General Guidelines
 ------------------
 - Quantities are in SI units (kg, m, s); angles are in degrees and angular
@@ -151,11 +177,48 @@ inertia quantities are defined at the node in the node's coordinate system.
 The given nodal mass distribution will be integrated and distributed as
 lumped masses by the preprocessor.
 
-Platform
---------
-The ``platform`` block is distinct from other components in that it models a
+Rotors
+------
+The ``rotor`` blocks are distinct from other components in that they models a
 single body in space with an associates mass, center of mass offset,
 translational inertia and rotational inertia.
+
+.. code-block:: yaml
+
+    rotor_assembly:
+        starboard:
+            1:
+                upper:
+                    rotor:
+                        mass_properties:
+                            # [mass, Cmx,  I_rot, I_trans]
+                            # [  kg,   m, kg*m^2,  kg*m^2]
+                            [7.700, 0.0, 1.610, 0.805]
+
+                    nacelle:
+                        mass_properties:
+                            # [mass, Cmx, Cmy, Cmz,    Ixx,    Iyy,    Izz,    Ixy,    Ixz,    Iyz]
+                            # [  kg,   m,   m,   m, kg*m^2, kg*m^2, kg*m^2, kg*m^2, kg*m^2, kg*m^2]
+                            [55.150, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+
+                lower:
+                    rotor:
+                        mass_properties:
+                            # [mass, Cmx, I_rot, I_trans]
+                            # [  kg,   m, kg*m^2,  kg*m^2]
+                            [7.700, 0.0, 1.610, 0.805]
+
+                    nacelle:
+                        mass_properties:
+                            # [mass, Cmx, Cmy, Cmz,    Ixx,    Iyy,    Izz,    Ixy,    Ixz,    Iyz]
+                            # [  kg,   m,   m,   m, kg*m^2, kg*m^2, kg*m^2, kg*m^2, kg*m^2, kg*m^2]
+                            [55.150, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+
+Platform
+--------
+Similar to the rotors, the ``platform`` block models a single body in space
+with an associates mass, center of mass offset, translational inertia and
+rotational inertia.
 
 Though one point mass is modeled, two points must be given. In additional to
 the node location, an IMU location is also supplied and passed to KiteFAST.
