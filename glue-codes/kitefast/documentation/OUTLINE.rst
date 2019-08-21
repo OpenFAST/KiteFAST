@@ -50,8 +50,9 @@ sandbox
 │       │   ├── MBDyn
 │       │   │   └── mbdyn-input-1.7.3.pdf
 │       │   └── OUTLINE.rst
-│       ├── kitefast_build.sh
-│       ├── kitefast_remove.sh
+│       ├── kitefast_helpers.sh
+│       ├── kitefast_install.sh
+│       ├── kitefast_uninstall.sh
 │       ├── kitefast_update.sh
 │       ├── module-kitefastmbd
 │       │   ├── Makefile.inc
