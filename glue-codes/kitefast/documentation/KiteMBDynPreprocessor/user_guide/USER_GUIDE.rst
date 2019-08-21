@@ -151,6 +151,28 @@ inertia quantities are defined at the node in the node's coordinate system.
 The given nodal mass distribution will be integrated and distributed as
 lumped masses by the preprocessor.
 
+Platform
+--------
+The ``platform`` block is distinct from other components in that it models a
+single body in space with an associates mass, center of mass offset,
+translational inertia and rotational inertia.
+
+Though one point mass is modeled, two points must be given. In additional to
+the node location, an IMU location is also supplied and passed to KiteFAST.
+
+.. code-block:: yaml
+
+    platform:
+        mass_properties:
+            # [mass, CM offset, translational intertia, rotational inertia]
+            [7.700, 0.0, 1.610, 0.805]
+
+        node_location:
+            [0.0, 0.0, 0.0]
+
+        imu_location:
+            [1.0, 1.0, 1.0]
+
 Simulation Controls
 -------------------
 Various simulation controls for the MBDyn and KiteFAST portions of the
@@ -273,14 +295,20 @@ must be either "true" or "false"
     debug:
         false
 
-ground_weather_station
-~~~~~~~~~~~~~~~~~~~~~~
-The ``ground_weather_station`` field specifies the location of the ground
-station. This point is passed directly to KiteFAST and used to interface with
-the controller. This point is given in order of x-y-z components relative to
-the global origin.
+Reference Points
+~~~~~~~~~~~~~~~~
+Some reference points must be defined for the offshore simulation.
+
+The ``wind_reference_station`` locates the anemometer location on the buoy,
+the ``ground_weather_station`` locates the ground station. These points are
+passed directly to KiteFAST and used to interface with the controller. Both
+points are given in order of x-y-z components relative to the global origin.
 
 .. code-block:: yaml
+
+    wind_reference_station:
+        location:
+            [2.0, 2.0, 2.0]
 
     ground_weather_station:
         location:

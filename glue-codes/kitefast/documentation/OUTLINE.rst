@@ -63,20 +63,25 @@ sandbox
 │       │   └── src
 │       └── test_cases
 │           ├── archived_test_cases
+│           ├── hydrodyn
 │           ├── kiteaerodyn
 │           ├── kiteinflow
 │           ├── kitemooring
 │           ├── m600
 │           ├── m600_eigenanalysis
+│           ├── m600_platform
 │           ├── m600_prescribed_circle
 │           ├── m600_prescribed_circle_STIFF
 │           ├── m600_salf
+│           ├── makani_floater
 │           ├── scripts
 │           └── two_element_beam
 ├── modules-ext
 │   └── moordyn
 │       └── src
 └── modules-local
+    ├── hydrodyn
+    │   └── src
     ├── inflowwind
     │   └── src
     ├── kiteaerodyn
@@ -100,8 +105,8 @@ test and example cases.
 sandbox/modules-local and sandbox/modules-ext
 ---------------------------------------------
 This directory contains the physics modules which make up OpenFAST. The
-modules used by KiteFAST are InflowWind, KiteAeroDyn, kitefast-controller,
-kitefast-library, VSM, and MoorDyn.
+modules used by KiteFAST are HydroDyn, InflowWind, KiteAeroDyn,
+kitefast-controller, kitefast-library, VSM, and MoorDyn.
 
 
 Module documentation
@@ -153,6 +158,11 @@ further documentation available at https://www.mbdyn.org/?Documentation.
 
 Contact Pierangelo Masarati <mailto:pierangelo.masarati@polimi.it>.
 
+HydroDyn
+--------
+The general HydroDyn documentation is available at
+https://nwtc.nrel.gov/HydroDyn/.
+
 InflowWind
 ----------
 The general InflowWind documentation is available at
@@ -173,6 +183,7 @@ varying degree of complexity. All test cases are located at
 Unless otherwise noted, all cases share common input files which are located at
 
 test_cases
+├── hydrodyn
 ├── kiteaerodyn
 ├── kiteinflow
 └── kitemooring
@@ -182,11 +193,13 @@ with the most complex. A short description of each follows.
 
 test_cases
 ├── two_element_beam
+├── makani_floater
 ├── m600_prescribed_circle
 ├── m600_prescribed_circle_STIFF
 ├── m600_salf
 ├── m600_eigenanalysis
-└── m600
+├── m600
+└── m600_platform
 
 two_element_beam
 ----------------
@@ -200,6 +213,14 @@ structure of the MBDyn input files, in general. It has elements and
 nomenclature in common with a kite model, but it is a more generalized case.
 While it does not run the KiteFASTMBD interface, it does generate files
 which can be run with MBDyn alone.
+
+makani_floater
+--------------
+This case models only the buoy system for an offshore simulation. This is a
+single body floating in water with waves and moored.
+
+The KiteMBDyn Preprocessor input file is included and should be used to
+generate the MBDyn case files.
 
 m600_prescribed_circle
 ----------------------
@@ -256,11 +277,23 @@ parsing issues when `BlenDyn` is used to visualize modes with `Blender`.
 
 m600
 ----
-**This is the main demonstrator for the entire simulation.**
+**This is the main demonstrator for the onshore simulation.**
 
 This test case contains the geometry of a simplified m600 kite. By default, all
 physics modules are enabled. The initial conditions are such that simulation
 begins with the kite already in its crosswind loop.
+
+The KiteMBDyn Preprocessor input file is included and should be used to
+generate the MBDyn case files.
+
+m600_platform
+-------------
+**This is the main demonstrator for the offshore simulation.**
+
+This test case contains the geometry of a simplified m600 kite tethered to a
+buoy which is moored to the ocean floor. By default, all physics modules are
+enabled. The initial conditions are such that simulation begins with the kite
+already in its crosswind loop.
 
 The KiteMBDyn Preprocessor input file is included and should be used to
 generate the MBDyn case files.
