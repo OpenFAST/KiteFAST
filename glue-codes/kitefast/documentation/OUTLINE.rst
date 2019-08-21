@@ -116,7 +116,8 @@ available to the user not otherwise set the module level is located at
 `sandbox/sandbox/glue-codes/kitefast/documentation/KiteFASTMBD_Plan.pdf`.
 
 The general OpenFAST documentation is available at
-https://openfast.readthedocs.io/.
+https://openfast.readthedocs.io/. The FAST Developer's Handbook is also
+available at https://nwtc.nrel.gov/system/files/ProgrammingHandbook_Mod20130326.pdf.
 
 KiteAeroDyn
 -----------
