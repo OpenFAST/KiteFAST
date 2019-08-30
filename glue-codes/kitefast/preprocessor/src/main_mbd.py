@@ -336,13 +336,13 @@ class MainMBD():
                 for node in nodes:
                     output.write_line("            {},".format(node))
     
-        _write_output_lines(self.fuselage_output_nodes, "fuselage_nodes")
-        _write_output_lines(self.wing_starboard_nodes, "wing_starboard_nodes")
-        _write_output_lines(self.wing_port_outputs, "wing_port_nodes")
-        _write_output_lines(self.vertical_stabilizer_outputs, "vertical_stabilizer_nodes")
-        _write_output_lines(self.horizontal_stabilizer_starboard_outputs, "horizontal_stabilizer_starboard_nodes")
-        _write_output_lines(self.horizontal_stabilizer_port_outputs, "horizontal_stabilizer_port_nodes")
-        _write_output_lines(self.pylon_outputs, "pylon_nodes")
+        _write_output_lines(self.fuselage_output_nodes, "fuselage_outputs")
+        _write_output_lines(self.wing_starboard_nodes, "wing_starboard_outputs")
+        _write_output_lines(self.wing_port_outputs, "wing_port_outputs")
+        _write_output_lines(self.vertical_stabilizer_outputs, "vertical_stabilizer_outputs")
+        _write_output_lines(self.horizontal_stabilizer_starboard_outputs, "horizontal_stabilizer_starboard_outputs")
+        _write_output_lines(self.horizontal_stabilizer_port_outputs, "horizontal_stabilizer_port_outputs")
+        _write_output_lines(self.pylon_outputs, "pylon_outputs")
         output.write_line("        output_channels,")
         if len(self.output_channels) == 0:
             output.write_line("            {};".format(len(self.output_channels)))
