@@ -36,7 +36,7 @@ install_if_not_found "liblapack-dev" # lapack math library
 install_if_not_found "libltdl-dev"   # libltdl headers, used in mbdyn for linking
 install_if_not_found "libgsl-dev"    # used in the STI controller
 install_if_not_found "python3-pip"   # used in the STI controller
-install_if_not_found "libnetcdf-c++4"
+install_if_not_found "libnetcdf-dev"
 
 # remove lingering packages
 sudo apt-get autoremove
