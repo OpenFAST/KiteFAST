@@ -34,6 +34,7 @@ uninstall_if_found "libltdl-dev"   # libltdl headers, used in mbdyn for linking
 uninstall_if_found "libgsl-dev"    # used in the STI controller
 uninstall_if_found "python3-pip"   # used in the STI controller
 uninstall_if_found "libnetcdf-dev"
+uninstall_if_found "libnetcdf-cxx-legacy-dev"
 
 # remove lingering packages
 sudo apt-get autoremove -y
