@@ -299,7 +299,7 @@ necessary file locations.
         kiteaerodyn_input: "../kiteaerodyn/simple_m600_model.inp"
         inflowwind_input: "../kiteinflow/kiteInflowWind.dat"
         moordyn_input: "../kitemooring/m600-MoorDyn.dat"
-        controller_input: "../../../../build/modules-local/kitefast-controller/libkitefastcontroller_controller.so"
+        controller_input: "../../../../build/modules/kitefast-controller/libkitefastcontroller_controller.so"
 
 print_kitefast_summary_file, kitefast_output_file_root_name
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

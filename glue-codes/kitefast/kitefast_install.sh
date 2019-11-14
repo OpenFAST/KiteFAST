@@ -96,15 +96,15 @@ destination_directory="$mbdyn_directory/modules/module-kitefastmbd"
 create_link $openfast_directory/glue-codes/kitefast/module-kitefastmbd/Makefile.inc $destination_directory/Makefile.inc
 create_link $openfast_directory/glue-codes/kitefast/module-kitefastmbd/module-kitefastmbd.cc $destination_directory/module-kitefastmbd.cc
 create_link $openfast_directory/glue-codes/kitefast/module-kitefastmbd/module-kitefastmbd.h $destination_directory/module-kitefastmbd.h
-create_link $openfast_directory/build/modules-local/kitefast-library/libkitefastlib.a $destination_directory/libkitefastlib.a
-create_link $openfast_directory/build/modules-local/nwtc-library/libnwtclibs.a $destination_directory/libnwtclibs.a
-create_link $openfast_directory/build/modules-ext/moordyn/libmoordynlib.a $destination_directory/libmoordynlib.a
-create_link $openfast_directory/build/modules-local/kiteaerodyn/libkiteaerodynlib.a $destination_directory/libkiteaerodynlib.a
-create_link $openfast_directory/build/modules-local/vsm/libvsmlib.a $destination_directory/libvsmlib.a
-create_link $openfast_directory/build/modules-local/actuatordisk/libactuatordisklib.a $destination_directory/libactuatordisklib.a
-create_link $openfast_directory/build/modules-local/aerodyn/libairfoilinfolib.a $destination_directory/libairfoilinfolib.a
-create_link $openfast_directory/build/modules-local/inflowwind/libifwlib.a $destination_directory/libifwlib.a
-create_link $openfast_directory/build/modules-local/kitefast-controller/libkitefastcontrollerlib.a $destination_directory/libkitefastcontrollerlib.a
+create_link $openfast_directory/build/modules/kitefast-library/libkitefastlib.a $destination_directory/libkitefastlib.a
+create_link $openfast_directory/build/modules/nwtc-library/libnwtclibs.a $destination_directory/libnwtclibs.a
+create_link $openfast_directory/build/modules/moordyn/libmoordynlib.a $destination_directory/libmoordynlib.a
+create_link $openfast_directory/build/modules/kiteaerodyn/libkiteaerodynlib.a $destination_directory/libkiteaerodynlib.a
+create_link $openfast_directory/build/modules/vsm/libvsmlib.a $destination_directory/libvsmlib.a
+create_link $openfast_directory/build/modules/actuatordisk/libactuatordisklib.a $destination_directory/libactuatordisklib.a
+create_link $openfast_directory/build/modules/aerodyn/libairfoilinfolib.a $destination_directory/libairfoilinfolib.a
+create_link $openfast_directory/build/modules/inflowwind/libifwlib.a $destination_directory/libifwlib.a
+create_link $openfast_directory/build/modules/kitefast-controller/libkitefastcontrollerlib.a $destination_directory/libkitefastcontrollerlib.a
 
 # # configure and build mbdyn
 export LDFLAGS=-rdynamic

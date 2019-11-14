@@ -83,7 +83,7 @@ program AFI_Driver
    
    else  ! No argument     
          ! NOTE: The following assumes the working path is in the OpenFAST build\bin folder.
-      InitInputs%FileName      = '..'//PathSep//'reg_tests'//PathSep//'modules-local'//PathSep//'airfoilinfo'//PathSep//'afi_1D'//PathSep//'two_d_test_airfoil.dat'   
+      InitInputs%FileName      = '..'//PathSep//'reg_tests'//PathSep//'modules'//PathSep//'airfoilinfo'//PathSep//'afi_1D'//PathSep//'two_d_test_airfoil.dat'   
 
    end if
 

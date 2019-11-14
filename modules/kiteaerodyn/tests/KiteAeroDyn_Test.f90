@@ -413,7 +413,7 @@ end subroutine KADTest_SetBaseInitInpData
    !   interval            = 1.0_DbKi 
    !   InitInData%R        = 2.0_ReKi
    !   InitInData%AirDens  = 98.0_ReKi
-   !   InitInData%Filename = '..\..\reg_tests\r-test\modules-local\actuatordisk\basic_fileread\KiteAeroDyn.dat'
+   !   InitInData%Filename = '..\..\reg_tests\r-test\modules\actuatordisk\basic_fileread\KiteAeroDyn.dat'
    !   
    !      ! Initialize the KiteAeroDyn module
    !   call KAD_Init( InitInData, u, p, y, interval, InitOutData, errStat, errMsg )

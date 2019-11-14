@@ -43,7 +43,7 @@ temp_vals = np.zeros([len(plot_vars)+1])
 
 # TODO - have controller save the .csv to this directory
 with open(file_name) as file:
-#with open("modules-local/kitefast-controller/analyis/controller_save_data.csv") as file:
+#with open("modules/kitefast-controller/analyis/controller_save_data.csv") as file:
 	reader = csv.reader(file,delimiter=',')
 	line_count = 0
 	for row in reader:

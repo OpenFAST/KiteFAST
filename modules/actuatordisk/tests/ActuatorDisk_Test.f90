@@ -134,7 +134,7 @@ contains
       interval            = 1.0_DbKi 
       InitInData%R        = 2.0_ReKi
       InitInData%AirDens  = 98.0_ReKi
-      InitInData%Filename = '..\..\modules-local\actuatordisk\tests\ActuatorDisk.dat'
+      InitInData%Filename = '..\..\modules\actuatordisk\tests\ActuatorDisk.dat'
       
          ! Initialize the ActuatorDisk module
       call ActDsk_Init( InitInData, u, p, y, interval, InitOutData, errStat, errMsg )

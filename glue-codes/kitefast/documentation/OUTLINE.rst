@@ -73,10 +73,7 @@ sandbox
 │           ├── m600_salf
 │           ├── scripts
 │           └── two_element_beam
-├── modules-ext
-│   └── moordyn
-│       └── src
-└── modules-local
+└── modules
     ├── inflowwind
     │   └── src
     ├── kiteaerodyn
@@ -86,6 +83,8 @@ sandbox
     │   └── src
     ├── kitefast-library
     │   └── src
+    ├── moordyn
+    │   └── src
     ├── turbsim
     │   └── src
     └── vsm
@@ -97,8 +96,8 @@ This directory contains the documentation, automated installation scripts,
 MBDyn interface source code, preprocessor source code, and a collection of
 test and example cases.
 
-sandbox/modules-local and sandbox/modules-ext
----------------------------------------------
+sandbox/modules
+---------------
 This directory contains the physics modules which make up OpenFAST. The
 modules used by KiteFAST are InflowWind, KiteAeroDyn, kitefast-controller,
 kitefast-library, VSM, and MoorDyn.

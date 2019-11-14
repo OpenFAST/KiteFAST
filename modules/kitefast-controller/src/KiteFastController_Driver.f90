@@ -33,7 +33,7 @@ program KiteFastController_Driver
    InitInp%numFlaps = 3
    InitInp%numPylons = 2
    InitInp%DT  = 0.01_DbKi
-   InitInp%DLL_Filename = '/home/makani/Desktop/sandbox/build/modules-local/kitefast-controller/libkitefastcontroller_controller.so'
+   InitInp%DLL_Filename = '/home/makani/Desktop/sandbox/build/modules/kitefast-controller/libkitefastcontroller_controller.so'
    interval = InitInp%DT
   
    call KFC_Init(InitInp, u, p, y, interval, errStat, errMsg)

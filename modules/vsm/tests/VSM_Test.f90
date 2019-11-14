@@ -123,7 +123,7 @@ subroutine VSMTest_FlatPlate_8deg(errStat, errMsg)
          call SetErrStat( ErrID_Fatal, 'Could not allocate memory for InitInData%elemLens', errStat, errMsg, routineName ) 
          return
       end if
-      InitInData%AFNames(1)    = '..\..\modules-local\vsm\tests\Airfoils\FlatPlate.dat'
+      InitInData%AFNames(1)    = '..\..\modules\vsm\tests\Airfoils\FlatPlate.dat'
       InitInData%AFIDs = 1
       InitInData%Chords = 2.7_ReKi
       
@@ -263,7 +263,7 @@ subroutine VSMTest_NACA_12deg(errStat, errMsg)
          return
       end if
       
-      InitInData%AFNames(1)    = '..\..\modules-local\vsm\tests\Airfoils\NACA1410FW.dat'
+      InitInData%AFNames(1)    = '..\..\modules\vsm\tests\Airfoils\NACA1410FW.dat'
       InitInData%AFIDs = 1
       InitInData%Chords = 2.7_ReKi
       
@@ -398,7 +398,7 @@ subroutine VSMTest_NACA_0deg(errStat, errMsg)
          return
       end if
       
-      InitInData%AFNames(1)    = '..\..\modules-local\vsm\tests\Airfoils\NACA1410FW.dat'
+      InitInData%AFNames(1)    = '..\..\modules\vsm\tests\Airfoils\NACA1410FW.dat'
       InitInData%AFIDs = 1
       InitInData%Chords = 2.7_ReKi
       
@@ -533,7 +533,7 @@ subroutine VSMTest_NACA_0deg(errStat, errMsg)
          return
       end if
       
-      InitInData%AFNames(1)    = '..\..\modules-local\vsm\tests\Airfoils\NACA1410FW.dat'
+      InitInData%AFNames(1)    = '..\..\modules\vsm\tests\Airfoils\NACA1410FW.dat'
       InitInData%AFIDs = 1
       InitInData%Chords = 1.0_ReKi
       
@@ -879,7 +879,7 @@ subroutine VSMTest_NACA_8deg_10deg_sweep(errStat, errMsg)
          return
       end if
       
-      InitInData%AFNames(1)    = '..\..\modules-local\vsm\tests\Airfoils\NACA1410FW.dat'
+      InitInData%AFNames(1)    = '..\..\modules\vsm\tests\Airfoils\NACA1410FW.dat'
       InitInData%AFIDs = 1
       InitInData%Chords = 2.7_ReKi
       
@@ -1019,7 +1019,7 @@ subroutine VSMTest_NACA_10deg_w_flaps(errStat, errMsg)
          return
       end if
       
-      InitInData%AFNames(1)    = '..\..\modules-local\vsm\tests\Airfoils\NACA1410FW.dat'
+      InitInData%AFNames(1)    = '..\..\modules\vsm\tests\Airfoils\NACA1410FW.dat'
       InitInData%AFIDs = 1
       InitInData%Chords = 2.7_ReKi
       
@@ -1154,7 +1154,7 @@ subroutine VSMTest_NACA_10deg_w_flaps(errStat, errMsg)
          return
       end if
       
-      InitInData%AFNames(1)    = '..\..\modules-local\vsm\tests\Airfoils\FlatPlate.dat'
+      InitInData%AFNames(1)    = '..\..\modules\vsm\tests\Airfoils\FlatPlate.dat'
       InitInData%AFIDs = 1
       InitInData%Chords = 2.7_ReKi
       
@@ -1319,7 +1319,7 @@ subroutine VSMTest_FlatPlate_2wing_8and4deg(errStat, errMsg)
          return
       end if
       
-      InitInData%AFNames(1)    = '..\..\modules-local\vsm\tests\Airfoils\FlatPlate.dat'
+      InitInData%AFNames(1)    = '..\..\modules\vsm\tests\Airfoils\FlatPlate.dat'
       InitInData%AFIDs = 1
       InitInData%Chords = 2.7_ReKi
       ! Wing 1
@@ -1485,7 +1485,7 @@ subroutine VSMTest_NACA_2wing_8and4deg(errStat, errMsg)
       end if
       
       
-      InitInData%AFNames(1)    = '..\..\modules-local\vsm\tests\Airfoils\NACA1410FW.dat'
+      InitInData%AFNames(1)    = '..\..\modules\vsm\tests\Airfoils\NACA1410FW.dat'
       InitInData%AFIDs = 1
       InitInData%Chords = 2.7_ReKi
       
@@ -1650,7 +1650,7 @@ subroutine VSMTest_ReverseDir(errStat, errMsg)
          return
       end if
       
-      InitInData%AFNames(1)    = '..\..\modules-local\vsm\tests\Airfoils\FlatPlate.dat'
+      InitInData%AFNames(1)    = '..\..\modules\vsm\tests\Airfoils\FlatPlate.dat'
       InitInData%AFIDs = 1
       InitInData%Chords = 1.0_ReKi
       
@@ -1788,7 +1788,7 @@ subroutine VSMTest_ReverseDir(errStat, errMsg)
          call SetErrStat( ErrID_Fatal, 'Could not allocate memory for InitInData%ElemLens', errStat, errMsg, routineName ) 
          return
       end if
-      InitInData%AFNames(1)    = '..\..\modules-local\vsm\tests\Airfoils\FlatPlate.dat'
+      InitInData%AFNames(1)    = '..\..\modules\vsm\tests\Airfoils\FlatPlate.dat'
       InitInData%AFIDs = 1
       InitInData%Chords = 1.0_ReKi
 
