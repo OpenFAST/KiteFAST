@@ -105,6 +105,7 @@ create_link $openfast_directory/build/modules/vsm/libvsmlib.a $destination_direc
 create_link $openfast_directory/build/modules/actuatordisk/libactuatordisklib.a $destination_directory/libactuatordisklib.a
 create_link $openfast_directory/build/modules/aerodyn/libairfoilinfolib.a $destination_directory/libairfoilinfolib.a
 create_link $openfast_directory/build/modules/inflowwind/libifwlib.a $destination_directory/libifwlib.a
+create_link $openfast_directory/build/modules/version/libversioninfolib.a $destination_directory/libversioninfolib.a
 create_link $openfast_directory/build/modules/kitefast-controller/libkitefastcontrollerlib.a $destination_directory/libkitefastcontrollerlib.a
 
 # # configure and build mbdyn

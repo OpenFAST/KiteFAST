@@ -8,6 +8,10 @@ set -e
 
 ##### configuration
 
+# NOTE: All dependencies will be uninstalled by default. To change this,
+# comment the lines for uninstallating dependencies youd like
+# to keep below
+
 # set the directories in the variables below. these are the 
 # directories where kitefast and mbdyn will ultimately go
 source_code_parent_directory="/Users/rmudafor/Development/makani"
