@@ -127,6 +127,7 @@ create_link $openfast_directory/build/modules/aerodyn/libairfoilinfolib.a $desti
 create_link $openfast_directory/build/modules/inflowwind/libifwlib.a $destination_directory/libifwlib.a
 create_link $openfast_directory/build/modules/kitefast-controller/libkitefastcontrollerlib.a $destination_directory/libkitefastcontrollerlib.a
 create_link $openfast_directory/build/modules/hydrodyn/libhydrodynlib.a $destination_directory/libhydrodynlib.a
+create_link $openfast_directory/build/modules/version/libversioninfolib.a $destination_directory/libversioninfolib.a
 
 # # configure and build mbdyn
 export LDFLAGS=-rdynamic
