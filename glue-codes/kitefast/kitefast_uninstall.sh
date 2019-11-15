@@ -8,6 +8,10 @@ set -e
 
 ##### configuration
 
+# NOTE: All dependencies will be uninstalled by default. To change this,
+# comment the lines for uninstallating dependencies youd like
+# to keep below
+
 # set the directories in the variables below. these are the 
 # directories where kitefast and mbdyn will ultimately go
 source_code_parent_directory="/Users/rmudafor/Development/makani"
@@ -33,6 +37,8 @@ uninstall_if_found "liblapack-dev" # lapack math library
 uninstall_if_found "libltdl-dev"   # libltdl headers, used in mbdyn for linking
 uninstall_if_found "libgsl-dev"    # used in the STI controller
 uninstall_if_found "python3-pip"   # used in the STI controller
+uninstall_if_found "libnetcdf-dev"
+uninstall_if_found "libnetcdf-cxx-legacy-dev"
 
 # remove lingering packages
 sudo apt-get autoremove -y

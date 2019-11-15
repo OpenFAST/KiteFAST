@@ -107,9 +107,6 @@ rules specific to the preprocessor input file:
         - [ 0.000, 0.0,     wing,                0]
         - [ 2.000, 0.0,     none,                0]
 
-- NOTE: Null values in the "attached component" columns should be denoted
-  by "none"
-
 Kite Geometry Assumptions and Limitations
 -----------------------------------------
 - Nacelles are cantilevered to the endpoints of the pylons
@@ -144,6 +141,10 @@ Structural components are defined by three tables
 - stiffness_matrix
 - mass_distribution
 
+and a structural damping value
+
+- proportional_stiffness_constant
+
 Each component has a primary axis
 
 - fuselage: x
@@ -167,16 +168,50 @@ to the section stiffness not the mass, center of mass, or inertia, and it
 should be given relative to the positive direction of the component's primary
 axis.
 
-Nodes have a local coordinate system which is aligned with the kite system and
-placed at the node location.
+Connections between various components are specified at associated nodes. Null
+values in the "attached component" columns should be denoted by "none".
+Otherwise, the following component connections must exist:
+
+- fuselage:
+    - wing
+    - stabilizer/vertical
+
+- wing/starboard:
+    - fuselage
+    - pylon/starboard/<N>
+
+- wing/port:
+    - fuselage
+    - pylon/port/<N>
+
+stabilizer/vertical:
+    - fuselage
+    - stabilizer/horizontal
+
+stabilizer/horizontal/starboard:
+    - stabilizer/vertical
+
+stabilizer/horizontal/port:
+    - stabilizer/vertical
+
+pylon/starboard/<N>:
+    - rotor_assembly/starboard/<N>/upper
+    - rotor_assembly/starboard/<N>/lower
+    - wing/starboard
+
+pylon/port/N:
+    - rotor_assembly/port/<N>/upper
+    - rotor_assembly/port/<N>/lower
+    - wing/port
 
 stiffness_matrix
 ~~~~~~~~~~~~~~~~
 This table defines the diagonal and upper-triangular portion of a symmetric 6x6
 cross-sectional stiffness matrix at each end node. Thus, the number of rows in
 this table must match the number of rows in the ``element_end_nodes`` table.
-These stiffness quantities are defined at the node in the node's coordinate
-system.
+These stiffness quantities are defined at the node in a coordinate system
+oriented with the primary axis of the beam. For every component, K11 is
+the axial stiffness ``EA``.
 
 It is important to note that MBDyn expects the stiffness properties at the
 finite element's gaussian points which are located at +/- 1/sqrt(3) from the
@@ -185,12 +220,18 @@ linearly interpolated by the KiteMBDyn Preprocessor to these locations.
 
 mass_distribution
 ~~~~~~~~~~~~~~~~~
-This table defines the cross-sectional mass, center of mass, and inertia
+This table defines the cross-sectional mass, center of mass offset, and inertia
 distribution at each end node. Thus, the number of rows in this table must
-match the number of rows in the ``element_end_nodes`` table. These mass and
-inertia quantities are defined at the node in the node's coordinate system.
-The given nodal mass distribution will be integrated and distributed as
-lumped masses by the preprocessor.
+match the number of rows in the ``element_end_nodes`` table. The given nodal
+mass distribution will be integrated and distributed as lumped masses by the
+KiteMBDyn Preprocessor. The center of mass offsets are given relative to the
+node location in directions normal to the primary axis of the beam.
+
+proportional_stiffness_constant
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+This value introduces damping to the structural model. This damping value
+is specified as proportional to the structural stiffness. Thus, for no damping,
+use a value of ``0``.
 
 Rotors and Nacelles
 -------------------
@@ -280,7 +321,7 @@ necessary file locations.
         kiteaerodyn_input: "../kiteaerodyn/simple_m600_model.inp"
         inflowwind_input: "../kiteinflow/kiteInflowWind.dat"
         moordyn_input: "../kitemooring/m600-MoorDyn.dat"
-        controller_input: "../../../../build/modules-local/kitefast-controller/libkitefastcontroller_controller.so"
+        controller_input: "../../../../build/modules/kitefast-controller/libkitefastcontroller_controller.so"
 
 print_kitefast_summary_file, kitefast_output_file_root_name
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

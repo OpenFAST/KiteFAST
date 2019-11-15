@@ -20,7 +20,7 @@ simulation_controls:
         kiteaerodyn_input: "../kiteaerodyn/simple_m600_model.inp"
         inflowwind_input: "../kiteinflow/kiteInflowWind.dat"
         moordyn_tether_input: "m600-MoorDyn.dat"
-        controller_input: "../../../../build/modules-local/kitefast-controller/libkitefastcontroller_controller.so"
+        controller_input: "../../../../build/modules/kitefast-controller/libkitefastcontroller_controller.so"
         hydrodyn_input: "../5MW_OC3Spar_DLL_WTurb_WavesIrr/NRELOffshrBsline5MW_OC3Hywind_HydroDyn.dat"
         moordyn_mooring_input: ""
 

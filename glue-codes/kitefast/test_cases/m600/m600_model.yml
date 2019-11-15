@@ -12,7 +12,7 @@ simulation_controls:
         kiteaerodyn_input: "../kiteaerodyn/simple_m600_model.inp"
         inflowwind_input: "../kiteinflow/kiteInflowWind.dat"
         moordyn_tether_input: "../kitemooring/m600-MoorDyn.dat"
-        controller_input: "../../../../build/modules-local/kitefast-controller/libkitefastcontroller_controller.so"
+        controller_input: "../../../../build/modules/kitefast-controller/libkitefastcontroller_controller.so"
 
     print_kitefast_summary_file:
         false
