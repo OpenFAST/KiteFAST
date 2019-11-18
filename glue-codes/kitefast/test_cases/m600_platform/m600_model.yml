@@ -503,7 +503,7 @@ rotor_assembly:
 
 platform:
     mass_properties:
-        [7.700, 0.0, 1.610, 0.805]
+        [7.130400E+05, -29.06151, 2.452533E+08, 2.452513E+08, 1.534000E+06]
 
     node_location:
         [0.0, 0.0, 0.0]
@@ -533,21 +533,21 @@ output:
         # - 3
         - 0
 
-    wing_port_outputs:
+    wing_port_nodes:
         # - 3
         - 0
 
-    vertical_stabilizer_outputs:
+    vertical_stabilizer_nodes:
         # 0th node means no nodes are requested
         - 0
 
-    horizontal_stabilizer_starboard_outputs:
+    horizontal_stabilizer_starboard_nodes:
         - 0
 
-    horizontal_stabilizer_port_outputs:
+    horizontal_stabilizer_port_nodes:
         - 0
 
-    pylon_outputs:
+    pylon_nodes:
         # - 1
         # - 2
         - 0
