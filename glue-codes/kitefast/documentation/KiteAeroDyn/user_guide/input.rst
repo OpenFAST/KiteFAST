@@ -13,8 +13,8 @@ inputs to KiteAeroDyn.
 As an example,  the ``driver.dvr`` file is the main driver, the ``input.dat`` 
 is the primary input file, the ``rotor.dat`` file contains the rotor
 performance data, and the ``airfoil.dat`` file contains the airfoil
-angle of attack, lift, drag, moment coefficients, and pressure
-coefficients.  Example input files are included in :numref:`kad_appendix`.
+angle of attack, lift, drag, and moment coefficients. 
+Example input files are included in :numref:`kad_appendix`.
 
 No lines should be added or removed from the input files, except in
 tables where the number of rows is specified, lines to specify requested output channel names, 
@@ -81,7 +81,8 @@ If you want a sound generated on program exit, set ``Beep`` to true.
    :width: 60%
    :align: center
 
-   KiteAeroDyn Driver Kite Geometry
+KiteAeroDyn Driver Kite Geometry
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The WIND AND ENERGY KITE TIME-HISTORY MOTION section allows you to execute a 
 simulation for the given kite specified in the ENERGY KITE REFERENCE CONFIGURATION section and 
@@ -97,35 +98,39 @@ The local undisturbed wind speed at the fuselage reference point of the kite (0,
 where :math:`\mathrm{HWindSpd}` is the steady wind speed (fluid flow speed in the
 case of an MHK turbine) located at elevation :math:`\mathrm{RefHt}`, :math:`Z` is the
 instantaneous elevation of the Fuselage reference point node above the ground (or
-above the MSL for offshore wind turbines, and :math:`\mathrm{PLexp}` is the power-law shear exponent. 
+above the MSL for offshore kites, and :math:`\mathrm{PLexp}` is the power-law shear exponent. 
 
 There will be one row in the subsequent table for each of
-the time steps specified (plus two table header lines). The
+the time steps specified, ``NumTimes``, (plus two table header lines). The
 information within each row of the table fully specifies the necessary inputs to KiteAeroDyn for a given time step. 
-Each row contains the following columns: ``Time``,
-``KitePxi``, ``KitePzi``, ``KiteRoll``, ``KitePitch``, ``KiteYaw``, ``KiteTVxi``, and
-``Tmax``. 
+Each row contains the following columns (in the given order) [Note: the presence of some columns depends on the values of ``NumPylons`` and ``NumFlaps``]: 
+``Time``: timestamp in seconds for the row of input data
+``KitePxi``, ``KitePyi``, ``KitePzi``: X, Y, and Z location of the kite's local (0,0,0) point in the inertial, global reference system, (m) 
+``KiteRoll``, ``KitePitch``, ``KiteYaw``: orientation of the kite, specified via a 1-2-3 Euler sequence (degrees)
+``KiteTVxi``, ``KiteTVyi``,  ``KiteTVzi``: translational velocities of the kite's (0,0,0) point in the inertial, global reference system, (m/s) 
+``KiteRVxi``,  ``KiteRVyi``,  ``KiteRVzi``: rotational velocities about the kite's (0,0,0) point in the inertial, global reference system, (degrees/s) 
+``SP1TRtSpd``, ``SP1BRtSpd``, ``SP2TRtSpd``, ``SP2BRtSpd``: Starboard wing rotor speeds starting inboard and moving outboard and alternating top and then bottom on each pylon [number of columns must match ``NumPylons`` times two, in primary KiteAeroDyn input file] (radians/s)
+``PP1TRtSpd``, ``PP1BRtSpd``, ``PP2TRtSpd``, ``PP2BRtSpd``: Port wing rotor speeds starting inboard and moving outboard and alternating top and then bottom on each pylon [number of columns must match ``NumPylons`` times two, in primary KiteAeroDyn input file] (radians/s)
+``SP1TPitch``, ``SP1BPitch``, ``SP2TPitch``, ``SP2BPitch``: Starboard wing collective blade pitch angles [currently unused] starting inboard and moving outboard and alternating top and then bottom on each pylon [number of columns must match ``NumPylons`` times two, in primary KiteAeroDyn input file] (degrees)
+``PP1TPitch``, ``PP1BPitch``, ``PP2TPitch``, ``PP2BPitch``: Port wing collective blade pitch angles [currently unused] starting inboard and moving outboard and alternating top and then bottom on each pylon [number of columns must match ``NumPylons`` times two, in primary KiteAeroDyn input file] (degrees)
+``SFlp1Ctrl``, ``SFlp2Ctrl``, ``SFlp3Ctrl``: Starboard wing flap control angle settings [number of columns must match ``NumFlaps`` in primary KiteAeroDyn input file] (units must match airfoil tables ``Ctrl`` units)
+``PFlp1Ctrl``, ``PFlp2Ctrl``, ``PFlp3Ctrl``: Port wing flap control angle settings [number of columns must match ``NumFlaps`` in primary KiteAeroDyn input file] (units must match airfoil tables ``Ctrl`` units)
+``Rudr1Ctrl``, ``Rudr2Ctrl``: Control angle settings for the vertical stabilizer surface (units must match airfoil tables ``Ctrl`` units)
+``SElv1Ctrl`` ``SElv2Ctrl``: Control angle settings for the starboard horizontal stabilizer surface (units must match airfoil tables ``Ctrl`` units)
+``PElv1Ctrl`` ``PElv2Ctrl``: Control angle settings for the port horizontal stabilizer surface (units must match airfoil tables ``Ctrl`` units)
 
-The fixed
-rotor speed (in rpm) is given by ``RotSpd`` (positive clockwise
-looking downwind), the fixed blade-pitch angle (in degrees) is given by
-``Pitch`` (positive to feather, leading edge upwind), and the fixed
-nacelle-yaw angle (in degrees) is given by ``Yaw`` (positive rotation
-of the nacelle about the vertical tower axis, counterclockwise when
-looking downward). While the flow speed and direction in the KiteAeroDyn
-driver is uniform and fixed (depending only on elevation above ground),
-``Yaw`` and ``ShftTilt`` (from the TURBINE DATA section above) can
-introduce skewed flow. ``dT`` is the simulation time step, which must
-match the time step for the aerodynamic calculations (``DTAero``) as
-specified in the primary KiteAeroDyn input file, and ``Tmax`` is the total
-simulation time.
+The first row of the TIME-HISTORY MOTION table must have a time stamp of 0.0 seconds. 
+The ``Time`` values must then be monotonically increasing for the remaining rows.  
+The rows do not need to be spaced ``DTAero`` seconds apart, even though the time marching increments on ``DTAero``.
+The driver code will interpolate data in the motion table to generate appropriate inputs for the nth ``DTAero`` increment. 
+The simulation will end at the timestamp which is an integer multiple of ``DTAero`` but is less than or equal to the last timestamp in the motion table.
 
 KiteAeroDyn Primary Input File
---------------------------
+------------------------------
  
 The primary KiteAeroDyn input file defines modeling options, environmental
-conditions (except freestream flow), airfoils, tower nodal
-discretization and properties, as well as output file specifications.
+conditions (except freestream flow), airfoils, aerodynamic nodal
+discretization and properties, rotor properties, as well as output file specifications.
 
 The file is organized into several functional sections. Each section
 corresponds to an aspect of the aerodynamics model. A sample KiteAeroDyn
@@ -135,165 +140,58 @@ primary input file is given in
 The input file begins with two lines of header information which is for
 your use, but is not used by the software.
 
-General Options
-~~~~~~~~~~~~~~~
+Simulation Control
+~~~~~~~~~~~~~~~~~~
 
 Set the ``Echo`` flag to TRUE if you wish to have KiteAeroDyn echo the
-contents of the KiteAeroDyn primary, airfoil, and blade input files (useful
+contents of the KiteAeroDyn primary and airfoil input files (useful
 for debugging errors in the input files). The echo file has the naming
-convention of *OutRootFile.AD.ech*. ``OutRootFile`` is either
-specified in the I/O SETTINGS section of the driver input file when
-running KiteAeroDyn standalone, or by the MBDyn program when running a
-coupled simulation.
+convention of *BaseFilename.KAD.ech*. ``BaseFilename`` is the filename of the
+primary KiteAeroDyn input file.
 
-``DTAero`` sets the time step for the aerodynamic calculations. For
-accuracy and numerical stability, we recommend that ``DTAero`` be set
-such that there are at least 200 azimuth steps per rotor revolution.
-However, when KiteAeroDyn is coupled to MBDyn, MBDyn may require time steps
-much smaller than this rule of thumb. If UA is enabled while using very
-small time steps, you may need to recompile KiteAeroDyn in double precision
-to avoid numerical problems in the UA routines. The keyword ``DEFAULT``
-for ``DTAero`` may be used to indicate that KiteAeroDyn should employ the
+``DTAero`` sets the time step for the aerodynamic calculations. 
+The keyword ``DEFAULT`` for ``DTAero`` may be used to indicate that KiteAeroDyn should employ the
 time step prescribed by the driver code (MBDyn or the standalone driver
 program).
 
-Set ``WakeMod`` to 0 if you want to disable rotor wake/induction
-effects or 1 to include these effects using the BEM theory model. When
-``WakeMod`` is set to 2, a dynamic BEM theory model (DBEMT) is used.
-``WakeMod`` cannot be set to 2 during linearization analyses.
+Set ``LiftMod`` to 1 if you want to disable wake/induction
+effects or 2 to include these effects using the vortex model. When
+``RotorMod`` is set to 0, no rotor power or loads are computed.
+Setting ``RotorMod`` to 1 causes KiteAeroDyn to compute loads and power via a simple actuator disk model.
 
-Set ``AFAeroMod`` to 1 to include steady blade airfoil aerodynamics or 2
-to enable UA; ``AFAeroMod`` must be 1 during linearization analyses
-with KiteAeroDyn coupled to MBDyn. 
+The ``UseCM`` option is currently unimplemented. 
 
-Set ``TwrPotent`` to 0 to disable the
-potential-flow influence of the tower on the fluid flow local to the
-blade, 1 to enable the standard potential-flow model, or 2 to include
-the Bak correction in the potential-flow model. 
-
-Set the ``TwrShadow``
-flag to TRUE to include the influence of the tower on the flow local to
-the blade based on the downstream tower shadow model or FALSE to disable
-these effects. If the tower influence from potential flow and tower
-shadow are both enabled, the two influences will be superimposed. 
-
-Set the ``TwrAero`` flag to TRUE to calculate fluid drag loads on the
-tower or FALSE to disable these effects. 
-
-During linearization analyses
-with KiteAeroDyn coupled MBDyn and BEM enabled (``WakeMod = 1``), set the
-``FrozenWake`` flag to TRUE to employ frozen-wake assumptions during
-linearization (i.e. to fix the axial and tangential induces velocities,
-and, at their operating-point values during linearization) or FALSE to
-recalculate the induction during linearization using BEM theory. 
-
-Set the ``CavitCheck`` flag to TRUE to perform a cavitation check for MHK
-turbines or FALSE to disable this calculation. If ``CavitCheck`` is
-TRUE, ``AFAeroMod`` must be set to 1 because the cavitation check does
-not function with unsteady airfoil aerodynamics.
 
 Environmental Conditions
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
 ``AirDens`` specifies the fluid density and must be a value greater
-than zero; a typical value is around 1.225 kg/m\ :sup:`3` for air (wind
-turbines) and 1025 kg/m\ :sup:`3` for seawater (MHK turbines).
+than zero; a typical value is around 1.225 kg/m\ :sup:`3` for air.
 ``KinVisc`` specifies the kinematic viscosity of the air (used in the
 Reynolds number calculation); a typical value is around 1.460E-5
-m\ :sup:`2`/s for air (wind turbines) and 1.004E-6 m\ :sup:`2`/s for
-seawater (MHK turbines). ``SpdSound`` is the speed of sound in air
-(used to calculate the Mach number within the unsteady airfoil
-aerodynamics calculations); a typical value is around 340.3 m/s. The
-last three parameters in this section are only used when
-``CavitCheck = TRUE`` for MHK turbines. ``Patm`` is the atmospheric
-pressure above the free surface; typically around 101,325 Pa. ``Pvap``
-is the vapor pressure of the fluid; for seawater this is typically
-around 2,000 Pa. ``FluidDepth`` is the distance from the hub center to
-the free surface.
+m\ :sup:`2`/s for air. ``SpdSound`` is the speed of sound in air; a typical value is around 340.3 m/s.
 
-Blade-Element/Momentum Theory Options
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Lifting Line Vortex-step Method Options
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The input parameters in this section are not used when ``WakeMod = 0``.
+The input parameters in this section are not used when ``LiftMod = 1``.
 
-``SkewMod`` determines the skewed-wake correction model. Set
-``SkewMod`` to 1 to use the uncoupled BEM solution technique without
-an additional skewed-wake correction. Set ``SkewMod`` to 2 to include
-the Pitt/Peters correction model. **The coupled model ``SkewMod=
-3`` is not available in this version of KiteAeroDyn.**
-
-``SkewModFactor`` is used only when  ``SkewMod = 1``. Enter a scaling factor to use
-in the Pitt/Peters correction model, or enter ``"default"`` to use the default 
-value of :math:`\frac{15 \pi}{32}`.
-
-Set ``TipLoss`` to TRUE to include the Prandtl tip-loss model or FALSE
-to disable it. Likewise, set ``HubLoss`` to TRUE to include the
-Prandtl hub-loss model or FALSE to disable it.
-
-Set ``TanInd`` to TRUE to include tangential induction (from the
-angular momentum balance) in the BEM solution or FALSE to neglect it.
-Set ``AIDrag`` to TRUE to include drag in the axial-induction
-calculation or FALSE to neglect it. If ``TanInd = TRUE``, set
-``TIDrag`` to TRUE to include drag in the tangential-induction
-calculation or FALSE to neglect it. Even when drag is not used in the
-BEM iteration, drag is still used to calculate the nodal loads once the
-induction has been found,
-
-``IndToler`` sets the convergence threshold for the iterative
-nonlinear solve of the BEM solution. The nonlinear solve is in terms of
-the inflow angle, but ``IndToler`` represents the tolerance of the
+``VSMMod`` determines the propagation direction for the wakes. Set ``VSMMod`` to 1 
+to use the local chord to determine the wake alignment. 
+Set ``VSMMod`` to 2 to align the wakes with the kite-averaged free stream direction. 
+``VSMToler`` sets the convergence threshold for the iterative
+nonlinear Newton solve of the vortex solution. ``VSMToler`` represents the tolerance of the
 nondimensional residual equation, with no physical association possible.
 When the keyword ``DEFAULT`` is used in place of a numerical value,
-``IndToler`` will be set to 5E-5 when KiteAeroDyn is compiled in single
-precision and to 5E-10 when KiteAeroDyn is compiled in double precision; we
-recommend using these defaults. ``MaxIter`` determines the maximum
-number of iterations steps in the BEM solve. If the residual value of
-the BEM solve is not less than or equal to ``IndToler`` in
-``MaxIter``, KiteAeroDyn will exit the BEM solver and return an error
-message.
-
-Dynamic Blade-Element/Momentum Theory Options
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-The input parameters in this section are used only when ``WakeMod = 2``.
-
-Set ``DBEMT_Mod`` to 1 for the constant-tau1 model, or set ``DBEMT_Mod`` to 2
-to use a model where tau1 varies with time.
-
-If ``DBEMT_Mod=1`` (constant-tau1 model), set ``tau1_const`` to the time 
-constant to use for DBEMT.
-
-Unsteady Airfoil Aerodynamics Options
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-The input parameters in this section are only used when ``AFAeroMod
-= 2``.
-
-``UAMod`` determines the UA model. Setting ``UAMod`` to 1 enables
-original theoretical developments of B-L, 2 enables the extensions to
-B-L developed by González, and 3 enables the extensions to B-L developed
-by Minnema/Pierce. **While all of the UA models are documented in this
-manual, the original B-L model is not yet functional. Testing has shown
-that the González and Minnema/Pierce models produce reasonable
-hysteresis of the normal force, tangential force, and pitching-moment
-coefficients if the UA model parameters are set appropriately for a
-given airfoil, Reynolds number, and/or Mach number. However, the
-results will differ a bit from earlier versions of KiteAeroDyn, (which was
-based on the Minnema/Pierce extensions to B-L) even if the default UA
-model parameters are used, due to differences in the UA model logic
-between the versions. We recommend that users run test cases with
-uniform inflow and fixed yaw error (e.g., through the standalone KiteAeroDyn
-driver) to examine the accuracy of the normal force, tangential force,
-and pitching-moment coefficient hysteresis and to adjust the UA model
-parameters appropriately.**
-
-``FLookup`` determines how the nondimensional separation distance
-value, *f’*, will be calculated. When ``FLookup`` is set to TRUE, *f’*
-is determined via a lookup into the static lift-force coefficient and
-drag-force coefficient data. **Using best-fit exponential equations
-(``FLookup = FALSE``) is not yet available, so ``FLookup`` must be
-``TRUE`` in this version of KiteAeroDyn.**
-
+``VSMToler`` will be set to 1E-4 when KiteAeroDyn; we
+recommend using these defaults. ``VSMMaxIter`` determines the maximum
+number of Netwon iterations in the solve. When the keyword ``DEFAULT`` is used in place of a numerical value,
+``VSMMaxIter`` will be set to 40. If the residual value of
+the solve is not less than or equal to ``VSMToler`` in
+``VSMMaxIter``, KiteAeroDyn will exit the solver and return an error
+message.  ``VSMPerturb`` sets the perturbation size for computing the Jacobian in the Newton iterations.   
+When the keyword ``DEFAULT`` is used in place of a numerical value,
+``VSMPerturb`` will be set to 0.05.
 
 .. _airfoil_information:
 
@@ -303,102 +201,226 @@ Airfoil Information
 This section defines the airfoil data input file information. The
 airfoil data input files themselves (one for each airfoil) include
 tables containing coefficients of lift force, drag force, and optionally
-pitching moment, and minimum pressure versus AoA, as well as UA model
-parameters, and are described in :numref:`airfoil_data_input_file`.
+pitching moment versus AoA, as well as UA model
+parameters (currently unused by KiteAeroDyn), and are described in :numref:`airfoil_data_input_file`.
 
-The first 5 lines in the AIRFOIL INFORMATION section relate to the
+The ``AFTabMod`` setting determines the form of table lookup used in each airfoil data file.
+*1* corresponds to a 1D lookup on angle of attack.  *2* provides a 2D lookup on angle of attack and Reynold's number.
+*3* corresponds to a 2D lookup of angle of attack and a user-generated control value.
+The next 4 lines in the AIRFOIL INFORMATION section relate to the
 format of the tables of static airfoil coefficients within each of the
 airfoil input files. ``InCol_Alfa``, ``InCol_Cl``,
-``InCol_Cd``, ``InCol_Cm,`` and ``InCol_Cpmin`` are column
+``InCol_Cd``, and ``InCol_Cm are column
 numbers in the tables containing the AoA, lift-force coefficient,
-drag-force coefficient, pitching-moment coefficient, and minimum
-pressure coefficient, respectively (normally these are 1, 2, 3, 4, and
-5, respectively). If pitching-moment terms are neglected with
-``UseBlCm = FALSE``, ``InCol_Cm`` may be set to zero, and if the
-cavitation check is disabled with ``CavitCheck = FALSE``,
-``InCol_Cpmin`` may be set to zero.
+drag-force coefficient, and pitching-moment coefficient, respectively 
+(normally these are 1, 2, 3, and 4, respectively).
 
 Specify the number of airfoil data input files to be used using
 ``NumAFfiles``, followed by ``NumAFfiles`` lines of filenames. The
 file names should be in quotations and can contain an absolute path or a
 relative path e.g., “C:\\airfoils\\S809_CLN_298.dat” or
 “airfoils\\S809_CLN_298.dat”. If you use relative paths, it is
-relative to the location of the current working directory. The blade
-data input files will reference these airfoil data using their line
+relative to the location of the current working directory. The kite component sections
+(described next) will reference these airfoil data using their line
 identifier, where the first airfoil file is numbered 1 and the last
 airfoil file is numbered ``NumAFfiles``.
 
-Rotor/Blade Properties
-~~~~~~~~~~~~~~~~~~~~~~
+Fuselage Properties
+~~~~~~~~~~~~~~~~~~~
 
-Set ``UseBlCm`` to TRUE to include pitching-moment terms in the blade
-airfoil aerodynamics or FALSE to neglect them; if ``UseBlCm = TRUE``,
-pitching-moment coefficient data must be included in the airfoil data
-tables with ``InCol_Cm`` not equal to zero.
+The fuselage is currently modeled as a drag-only body.  Specify the number of aerodynamic nodes with the
+``NumFusNds`` parameter, followed by ``NumFusNds`` lines of nodal data.
+``FusX``, ``FusY``, and ``FusZ`` determine the location of a node within the kite coordinate system,
+and are relative to the system's origin point. These nodes can be ordered from either the front of the kite to the back,
+or from the back to the front.  Step changes in the fuselage geometry are specified with adjacent nodes having 
+the same x-value but differing y or z values.  The airfoil at each node is assumed to be in the y-z plane, 
+and-along with the nodal locations-the positive aerodynamic ``FusTwist`` is specified about positive x, 
+and the chordlength (``FusChord``) and airfoil table ID (``FusAFID``) are specified. A zero-degree twist 
+means positive y points toward the trailing edge and negative z points toward the suction side of the airfoil.
 
-The blade nodal discretization, geometry, twist, chord, and airfoil
-identifier are set in separate input files for each blade, described in
-:numref:`blade_data_input_file`. ``ADBlFile(1)`` is the filename for blade 1,
-``ADBlFile(2)`` is the filename for blade 2, and ``ADBlFile(3)`` is
-the filename for blade 3, respectively; the latter is not used for
-two-bladed rotors and the latter two are not used for one-bladed rotors.
-The file names should be in quotations and can contain an absolute path
-or a relative path. The data in each file need not be identical, which
-permits modeling of aerodynamic imbalances.
 
-Tower Influence and Aerodynamics
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Starboard (Right) Wing Properties
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The input parameters in this section pertain to the tower influence
-and/or tower drag calculations and are only used when ``TwrPotent`` >
-0, ``TwrShadow = TRUE``, or ``TwrAero = TRUE``.
+Specify the number of aerodynamic nodes with the
+``NumSWnNds`` parameter, followed by ``NumSWnNds`` lines of nodal data.
+``SWnX``, ``SWnY``, and ``SWnZ`` determine the location of a node within the kite coordinate system,
+and are relative to the starboard wing's reference point (also given in the kite coordinate system). 
+In the stand-alone KiteAeroDyn driver case, this point is specified
+in the ENERGY KITE REFERENCE CONFIGURATION section of the driver input file.  In a MBDyn-coupled simulation,
+this point is defined in the preprocessor input file under the ``keypoints`` section and on the line labeled 
+``wing/starboard``.  The locations of the aerodynamic nodes along the aerodynamic reference line (¼ chord) 
+with y monotonically increasing. The airfoil at each node is assumed to be rotated from the x-z plane based 
+on the dihedral angle (``SWnDhdrl``) about negative x resulting in an inclined x-z’ plane (with y’ normal), 
+and—along with the nodal locations—the positive aerodynamic twist (``SWnTwist``) is specified about positive y’, 
+and the chordlength (``SWnChord``), airfoil table ID (``SWnAFID``), and flap ID (``SWnFlpID``) are specified. 
+A zero-degree twist means negative x points toward the trailing edge and negative z’ points toward the 
+suction side of the airfoil. Calculations for the lifting line vortex method take place at the 
+midpoints between these nodes; instead of interpolating airfoil data, the airfoil and flap IDs 
+at each midpoint is taken to be the airfoil and flap IDs of the corresponding node with lower y.
 
-``NumTwrNds`` is the user-specified number of tower analysis nodes and
-determines the number of rows in the subsequent table (after two table
-header lines). ``NumTwrNds`` must be greater than or equal to two; the
-higher the number, the finer the resolution and longer the computational
-time; we recommend that ``NumTwrNds`` be between 10 and 20 to balance
-accuracy with computational expense. For each node, ``TwrElev``
-specifies the local elevation of the tower node above ground (or above
-MSL for offshore wind turbines or above the seabed for MHK turbines),
-``TwrDiam`` specifies the local tower diameter, and ``TwrCd``
-specifies the local tower drag-force coefficient. ``TwrElev`` must be
-entered in monotonically increasing order—from the lowest (tower-base)
-to the highest (tower-top) elevation. See Figure 2.
 
-Outputs
-~~~~~~~
+Port (Left) Wing Properties
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Specify the number of aerodynamic nodes with the
+``NumPWnNds`` parameter, followed by ``NumPWnNds`` lines of nodal data.
+``PWnX``, ``PWnY``, and ``PWnZ`` determine the location of a node within the kite coordinate system,
+and are relative to the port wing's reference point (also given in the kite coordinate system). 
+In the stand-alone KiteAeroDyn driver case, this point is specified
+in the ENERGY KITE REFERENCE CONFIGURATION section of the driver input file.  In a MBDyn-coupled simulation,
+this point is defined in the preprocessor input file under the ``keypoints`` section and on the line labeled 
+``wing/port``.  The locations of the aerodynamic nodes along the aerodynamic reference line (¼ chord) 
+with y monotonically decreasing. The airfoil at each node is assumed to be rotated from the x-z plane based 
+on the dihedral angle (``PWnDhdrl``) about negative x resulting in an inclined x-z’ plane (with y’ normal), 
+and—along with the nodal locations—the positive aerodynamic twist (``PWnTwist``) is specified about positive y’, 
+and the chordlength (``PWnChord``), airfoil table ID (``PWnAFID``), and flap ID (``PWnFlpID``) are specified. 
+A zero-degree twist means negative x points toward the trailing edge and negative z’ points toward the 
+suction side of the airfoil. Calculations for the lifting line vortex method take place at the 
+midpoints between these nodes; instead of interpolating airfoil data, the airfoil and flap IDs 
+at each midpoint is taken to be the airfoil and flap IDs of the corresponding node with lower y.
+
+
+Vertical Stabilizer Properties
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Specify the number of aerodynamic nodes with the
+``NumVSNds`` parameter, followed by ``NumVSNds`` lines of nodal data.
+``VSX``, ``VSY``, and ``VSZ`` determine the location of a node within the kite coordinate system,
+and are relative to the vertical stabilizer's reference point (also given in the kite coordinate system). 
+In the stand-alone KiteAeroDyn driver case, this point is specified
+in the ENERGY KITE REFERENCE CONFIGURATION section of the driver input file.  In a MBDyn-coupled simulation,
+this point is defined in the preprocessor input file under the ``keypoints`` section and on the line labeled 
+``stabilizer/vertical``.  The locations of the aerodynamic nodes (black nodes in figure above) along the 
+aerodynamic reference line (¼ chord) are specified in the body-fixed (x,y,z) coordinate system relative 
+to its origin, with z monotonically increasing (from possible negative to positive values). 
+The airfoil at each node is assumed to be in the x-y plane, and—along with the nodal locations—the 
+positive aerodynamic twist (``VSTwist``) is specified about positive z, 
+and the chordlength (``VSChord``), airfoil table ID (``VSAFID``), 
+and rudder ID (``VSRdrID``) are specified. A zero-degree twist means negative x points toward the trailing edge 
+and positive y points toward the suction side of the airfoil. Calculations for the lifting line 
+vortex method take place at the midpoints between these nodes; instead of interpolating airfoil data, 
+the airfoil and rudder IDs at each midpoint is taken to be the airfoil and rudder IDs of the corresponding node with lower z.
+
+Starboard (Right) Stabilizer Properties
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Specify the number of aerodynamic nodes with the
+``NumSHSNds`` parameter, followed by ``NumSHSNds`` lines of nodal data.
+``SHSX``, ``SHSY``, and ``SHSZ`` determine the location of a node within the kite coordinate system,
+and are relative to the starboard horizontal stabilizer's reference point (also given in the kite coordinate system). 
+In the stand-alone KiteAeroDyn driver case, this point is specified
+in the ENERGY KITE REFERENCE CONFIGURATION section of the driver input file.  In a MBDyn-coupled simulation,
+this point is defined in the preprocessor input file under the ``keypoints`` section and on the line labeled 
+``stabilizer/horizontal/starboard``.  The locations of the aerodynamic nodes (black nodes in figure above) 
+along the aerodynamic reference line (¼ chord) are specified in the body-fixed (x,y,z) 
+coordinate system relative to its origin, with y monotonically increasing. The airfoil at each node 
+is assumed to be in the x-z plane, and—along with the nodal locations—the positive aerodynamic twist (``SHSTwist``) 
+is specified about positive y, and the chordlength (``SHSChord``), airfoil table ID (``SHSAFID``), 
+and elevator ID (``SHSElvID``) are specified. A zero-degree twist means negative x points toward the 
+trailing edge and negative z points toward the suction side of the airfoil. Calculations for the 
+lifting line vortex method take place at the midpoints between these nodes; instead of interpolating
+airfoil data, the airfoil and elevator IDs at each midpoint is taken to be the airfoil and elevator IDs 
+of the corresponding node with lower y.
+
+
+Port (Left) Stabilizer Properties
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Specify the number of aerodynamic nodes with the
+``NumPHSNds`` parameter, followed by ``NumPHSNds`` lines of nodal data.
+``PHSX``, ``PHSY``, and ``PHSZ`` determine the location of a node within the kite coordinate system,
+and are relative to the port horizontal stabilizer's reference point (also given in the kite coordinate system). 
+In the stand-alone KiteAeroDyn driver case, this point is specified
+in the ENERGY KITE REFERENCE CONFIGURATION section of the driver input file.  In a MBDyn-coupled simulation,
+this point is defined in the preprocessor input file under the ``keypoints`` section and on the line labeled 
+``stabilizer/horizontal/starboard``.  The locations of the aerodynamic nodes (black nodes in figure above) 
+along the aerodynamic reference line (¼ chord) are specified in the body-fixed (x,y,z) 
+coordinate system relative to its origin, with y monotonically decreasing (negative values). The airfoil at each node 
+is assumed to be in the x-z plane, and—along with the nodal locations—the positive aerodynamic twist (``PHSTwist``) 
+is specified about positive y, and the chordlength (``PHSChord``), airfoil table ID (``PHSAFID``), 
+and elevator ID (``PHSElvID``) are specified. A zero-degree twist means negative x points toward the 
+trailing edge and negative z points toward the suction side of the airfoil. Calculations for the 
+lifting line vortex method take place at the midpoints between these nodes; instead of interpolating
+airfoil data, the airfoil and elevator IDs at each midpoint is taken to be the airfoil and elevator IDs 
+of the corresponding node with higher (less negative) y.
+
+
+Pylon Properties
+~~~~~~~~~~~~~~~~
+
+Specify the number of aerodynamic nodes, per pylon,  with the
+``NumPylNds`` parameter, followed by ``NumPylNds`` times 2 times ``NumPylons`` lines of nodal data.
+``PylX``, ``PlyY``, and ``PlyZ`` determine the location of a node within the kite coordinate system,
+and are relative to the given pylon's reference point (also given in the kite coordinate system).
+In the stand-alone KiteAeroDyn driver case, this point is specified
+in the ENERGY KITE REFERENCE CONFIGURATION section of the driver input file.  In a MBDyn-coupled simulation,
+this point is defined in the preprocessor input file under the ``keypoints`` section and on the line labeled 
+``pylon/starboard/PyID`` and ``pylon/port/PyID``, where ``PyID`` varies from 1 to ``NumPylons``. The node list
+must be structured such that all starboard pylon nodes appear first, starting with the inner-most pylon and 
+ending with the outer-most pylon. 
+Then the port pylon nodes are listed, again starting with the inner-most pylon and ending with the outer-most pylon.
+The locations of the aerodynamic nodes (black nodes in figure above) along the aerodynamic reference line 
+(¼ chord) are specified in the body-fixed (x,y,z) coordinate system relative to its origin, with z monotonically 
+increasing (from possibly negative to positive values). The airfoil at each node is assumed to be in the x-y plane, 
+and—along with the nodal locations—the positive aerodynamic twist (``PylTwist``) is specified about positive z, 
+and the chordlength (``PylChord``) and airfoil table ID (``PylAFID``) are specified. A zero-degree twist means negative 
+x points toward the trailing edge and positive y points toward the suction side of the airfoil. 
+Calculations for the lifting line vortex method take place at the midpoints between these nodes; 
+instead of interpolating airfoil data, the airfoil ID at each midpoint is taken to be the 
+airfoil ID of the corresponding node with lower z.
+
+
+Rotor Properties
+~~~~~~~~~~~~~~~~
+The rotor properties are defined by giving the rotor's radius (``RtrRad``) in meters, and the filename for the rotor's 
+performance data (``RtrInFile``) as a quoted string.  This data is provided in table form with one line for each rotor.
+The node list must be structured such that all starboard pylon rotors appear first, starting with the inner-most pylon and 
+ending with the outer-most pylon. Then the port pylon rotors are listed, again starting with the inner-most pylon 
+and ending with the outer-most pylon. Each pylon must contain a line for the top rotor followed by the bottom rotor.
+The table will contain a total of four times ``NumPylons`` lines.
+
+Output Options
+~~~~~~~~~~~~~~
 
 Specifying ``SumPrint`` to TRUE causes KiteAeroDyn to generate a summary
-file with name ``OutFileRoot**.AD.sum*. ``OutFileRoot`` is either
+file with name ``OutFileRoot**.KAD.sum*. ``OutFileRoot`` is either
 specified in the I/O SETTINGS section of the driver input file when
 running KiteAeroDyn standalone, or by the MBDyn program when running a
-coupled simulation. See section 5.2 for summary file details.
+coupled simulation.  
+If ``OutSwtch`` is set to 1, outputs related to the vortex step method (VSM) calculations are sent to a file 
+with the name, ``OutFileRoot.VSM.out``, and the user-requested output channels specified in the ``OutList``, described below,
+are sent to a file with the name, ``OutFileRoot.KAD.out``.  If ``OutSwtch`` is set to 2, and the user is running an 
+MBDyn-driven simulation, the user-requested KiteAeroDyn outputs are sent to a single file with the name 
+``OutFileRoot.out`` which also contains MoorDyn and MBDyn outputs.  If ``OutSwtch`` is set to 3, both file outputs occur,
+in the case of an MBDyn-driven simulation.  The ``OutFmt`` parameter controls the formatting for the output data.  
+KiteAeroDyn currently does not check the validity of these format strings.  They need to be valid Fortran format strings.  
+An example valid format string is: ``"ES11.4"``.    
+   
 
-KiteAeroDyn can output aerodynamic and kinematic quantities at up to nine
-nodes along the tower and up to nine nodes along each blade.
-``NBlOuts`` specifies the number of blade nodes that output is
-requested for (0 to 9) and ``BlOutNd`` on the next line is a list
-``NBlOuts`` long of node numbers between 1 and ``NumBlNds``
-(corresponding to a row number in the blade analysis node table in the
-blade data input files), separated by any combination of commas,
-semicolons, spaces, and/or tabs. All blades have the same output node
-numbers. ``NTwOuts`` specifies the number of tower nodes that output
-is requested for (0 to 9) and ``TwOutNd`` on the next line is a list
-``NTwOuts`` long of node numbers between 1 and ``NumTwrNds``
-(corresponding to a row number in the tower analysis node table above),
-separated by any combination of commas, semicolons, spaces, and/or tabs.
-The outputs specified in the ``OutList`` section determine which
-quantities are actually output at these nodes.
-
-.. _ad_tower_geom:
-
-.. figure:: figs/ad_tower_geom.png
-   :width: 60%
-   :align: center
-
-   KiteAeroDyn Tower Geometry
-
+KiteAeroDyn can output aerodynamic and kinematic quantities at up to nine nodes for each kite component.
+``NFusOuts`` specifies the number of fuselage nodes that output is requested for (0 to 9) and ``FusOutNd`` 
+on the next line is a list ``NFusOuts`` long of node numbers between 1 and ``NumFusNds`` (corresponding to 
+a row number in the fuselage node table, separated by any combination of commas, semicolons, spaces, and/or tabs. 
+``NSWnOuts`` specifies the number of starboard wing nodes that output is requested for (0 to 9) and ``SWnOutNd`` 
+on the next line is a list ``NSWnOuts`` long of node numbers between 1 and ``NumSWnNds`` (corresponding to 
+a row number in the starboard wing node table, separated by any combination of commas, semicolons, spaces, and/or tabs. 
+``NPWnOuts`` specifies the number of port wing nodes that output is requested for (0 to 9) and ``PWnOutNd`` 
+on the next line is a list ``NPWnOuts`` long of node numbers between 1 and ``NumPWnNds`` (corresponding to 
+a row number in the port wing node table, separated by any combination of commas, semicolons, spaces, and/or tabs. 
+``NVSOuts`` specifies the number of vertical stabilizer nodes that output is requested for (0 to 9) and ``VSOutNd`` 
+on the next line is a list ``NVSOuts`` long of node numbers between 1 and ``NumVSNds`` (corresponding to 
+a row number in the vertical stabilizer node table, separated by any combination of commas, semicolons, spaces, and/or tabs. 
+``NSHSOuts`` specifies the number of starboard horizontal stabilizer nodes that output is requested for (0 to 9) and ``SHSOutNd`` 
+on the next line is a list ``NSHSOuts`` long of node numbers between 1 and ``NumSHSNds`` (corresponding to 
+a row number in the starboard horizontal stabilizer node table, separated by any combination of commas, semicolons, spaces, and/or tabs. 
+``NPHSOuts`` specifies the number of port horizontal stabilizer nodes that output is requested for (0 to 9) and ``PHSOutNd`` 
+on the next line is a list ``NPHSOuts`` long of node numbers between 1 and ``NumPHSNds`` (corresponding to 
+a row number in the port horizontal stabilizer node table, separated by any combination of commas, semicolons, spaces, and/or tabs. 
+``NPylOuts`` specifies the number of fuselage nodes that output is requested for (0 to 9) and ``PylOutNd`` 
+on the next line is a list ``NPylOuts`` long of node numbers between 1 and ``NumPylNds`` (corresponding to 
+a row number in the fuselage node table, separated by any combination of commas, semicolons, spaces, and/or tabs. 
+Outputs for a given pylon use the same output node numbers listed via ``NPylOuts``. 
 
 The ``OutList`` section controls output quantities generated by
 KiteAeroDyn. Enter one or more lines containing quoted strings that in turn
@@ -413,11 +435,11 @@ and so the lines can be shorter. You may enter comments after the
 closing quote on any of the lines. Entering a line with the string “END”
 at the beginning of the line or at the beginning of a quoted string
 found at the beginning of the line will cause KiteAeroDyn to quit scanning
-for more lines of channel names. Blade and tower node-related quantities
-are generated for the requested nodes identified through the
-``BlOutNd`` and ``TwOutNd`` lists above. If KiteAeroDyn encounters an
-unknown/invalid channel name, it warns the users but will remove the
-suspect channel from the output file. Please refer to Appendix E for a
+for more lines of channel names. Node-related quantities
+are generated for the requested nodes identified through the various
+``***OutNds`` lists above. If KiteAeroDyn encounters an
+unknown/invalid channel name, it warns the users and will mark the
+units of the suspect channel as ``Invalid``. Please refer to Appendix E for a
 complete list of possible output parameters.
 
 .. _airfoil_data_input_file:
@@ -622,8 +644,7 @@ number of rows in the subsequent table of static airfoil coefficients;
 ``NumAlf`` must be greater than or equal to one (``NumAlf = 1``
 implies constant coefficients, regardless of the AoA). 
 
-KiteAeroDyn will
-interpolate on AoA using the data provided via linear interpolation or via cubic
+KiteAeroDyn will interpolate on AoA using the data provided via linear interpolation or via cubic
 splines, depending on the setting of input ``InterpOrd`` above. 
 If ``AFTabMod`` is set to ``1``, only the first airfoil table in each file
 will be used. If ``AFTabMod`` is set to ``2``, KiteAeroDyn will find the
@@ -648,75 +669,49 @@ check is neglected with ``CavitCheck = FALSE`` in the GENERAL OPTIONS
 section of the KiteAeroDyn primary input file, the column containing the
 minimum pressure coefficients may be absent from the file.
 
-.. _blade_data_input_file:
+.. _rotor_data_input_file:
 
-Blade Data Input File
+Rotor Data Input File
 ~~~~~~~~~~~~~~~~~~~~~
 
-
-The blade data input file contains the nodal discretization, geometry,
-twist, chord, and airfoil identifier for a blade. Separate files are
-used for each blade, which permits modeling of aerodynamic imbalances. A
-sample blade data input file is given in :numref:`kad_appendix`.
+The rotor data input file contains the rotor performance coefficient data as a 
+function of rotor speed, inflow velocity, inflow skew angle, and collective-rotor blade pitch.  
+Separate files are used for each unique rotor. A sample rotor data input file and the local
+rotor coordinate system is given in :numref:`kad_appendix`.
 
 The input file begins with two lines of header information which is for
 your use, but is not used by the software.
 
-``NumBlNds`` is the user-specified number of blade analysis nodes and
-determines the number of rows in the subsequent table (after two table
-header lines). ``NumBlNds`` must be greater than or equal to two; the
-higher the number, the finer the resolution and longer the computational
-time; we recommend that ``NumBlNds`` be between 10 and 20 to balance
-accuracy with computational expense. Even though ``NumBlNds`` is
-defined in each blade file, all blades must have the same number of
-nodes. For each node:
+``NumOmega`` specifies the number of rotor rotational speeds, 
+``NumVinf`` specifies the number of freestream velocities, 
+``NumSkew`` specifies the number of skew angles, and 
+``NumPitch`` - specifies the number of pitch angles. Therefore, the data table 
+will contain ``NumOmega`` X ``NumVinf`` X ``NumSkew`` X ``NumPitch`` lines (plus
+two table header lines). Each of these values must be >= 2. 
+The rotor table data contains 11 columns (in the following order, from left to right):
 
--  ``BlSpn`` specifies the local span of the blade node along the
-   (possibly preconed) blade-pitch axis from the root; ``BlSpn`` must
-   be entered in monotonically increasing order—from the most inboard to
-   the most outboard—and the first node must be zero, and when KiteAeroDyn
-   is coupled to MBDyn, the last node should be located at the blade tip;
+-  ``Omega`` specifies the rotor rotational velocity (rad/s);
 
--  ``BlCrvAC`` specifies the local out-of-plane offset (when the
-   blade-pitch angle is zero) of the aerodynamic center (reference point
-   for the airfoil lift and drag forces), normal to the blade-pitch
-   axis, as a result of blade curvature; ``BlCrvAC`` is positive
-   downwind; upwind turbines have negative ``BlCrvAC`` for improved
-   tower clearance;
+-  ``Vinf`` specifies the inflow wind speed (m/s);
 
--  ``BlSwpAC`` specifies the local in-plane offset (when the
-   blade-pitch angle is zero) of the aerodynamic center (reference point
-   for the airfoil lift and drag forces), normal to the blade-pitch
-   axis, as a result of blade sweep; positive ``BlSwpAC`` is opposite
-   the direction of rotation;
+-  ``Skew`` specifies the skew angle (angle between local x and Vinf (VRel) vector, 
+   positive angle about positive local z, in degrees);
 
--  ``BlCrvAng`` specifies the local angle (in degrees) from the
-   blade-pitch axis of a vector normal to the plane of the airfoil, as a
-   result of blade out-of-plane curvature (when the blade-pitch angle is
-   zero); ``BlCrvAng`` is positive downwind; upwind turbines have
-   negative ``BlCrvAng`` for improved tower clearance;
+-  ``Pitch`` specifies the collective-rotor blade pitch angle (in degrees);
 
--  ``BlTwist`` specifies the local aerodynamic twist angle (in
-   degrees) of the airfoil; it is the orientation of the local chord
-   about the vector normal to the plane of the airfoil, positive to
-   feather, leading edge upwind; the blade-pitch angle will be added to
-   the local twist;
+-  ``C_Fx`` specifies the thrust (x) force coefficient for the given operating conditions;
 
--  ``BlChord`` specifies the local chord length; and
+-  ``C_Fy`` specifies the transverse (y) force coefficient for the given operating conditions;
 
--  ``BlAFID`` specifies which airfoil data the local blade node is
-   associated with; valid values are numbers between 1 and
-   ``NumAFfiles`` (corresponding to a row number in the airfoil file
-   table in the KiteAeroDyn primary input file); multiple blade nodes can
-   use the same airfoil data.
+-  ``C_Fz`` specifies the transverse (z) force coefficient for the given operating conditions;
 
-See :numref:`kad_blade_geom`. Twist is shown in :numref:`kad_blade_local_cs` of :numref:`kad_appendix`.
+-  ``C_Mx`` specifies the torque (x) coefficient for the given operating conditions;
 
-.. _kad_blade_geom:
+-  ``C_My`` specifies the transverse (y) moment coefficient for the given operating conditions;
 
-.. figure:: figs/kad_blade_geom.png
-   :width: 90%
-   :align: center
+-  ``C_Mz`` specifies the transverse (z) moment coefficient for the given operating conditions;
 
-   KiteAeroDyn Blade Geometry – Left: Side View; Right: Front View (Looking Downwind)
+-  ``C_P`` specifies the power coefficient for the given operating conditions;
 
+The table must be constructed such that the ``Omega`` dependent variable varies most frequently, 
+followed by ``Vinf``, and so forth, through the ``Pitch`` dependent variable which varies the least frequently.
