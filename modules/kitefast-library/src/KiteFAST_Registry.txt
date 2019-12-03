@@ -57,6 +57,8 @@ typedef    ^                   ^               MD_OtherStateType       OtherSt  
 typedef    KiteFAST/KFAST   KFC_Data           KFC_ParameterType       p  - - - "Parameter data for KiteFAST controller module" -
 typedef    ^                   ^               KFC_InputType           u  - - - "Input data for KiteFAST controller module" -
 typedef    ^                   ^               KFC_OutputType          y  - - - "Output data for KiteFAST controller module" -
+typedef    ^                   ^               KFC_MiscVarType         m  - - - "Misc vars for KiteFAST controller module" -
+typedef    ^                   ^               KFC_OtherStateType      o  - - - "Other states for KiteFAST controller module" -
 typedef    ^                   ^               DbKi                    dt - - - "Time interval for KFC calculations" s
  
 # ..... Misc/Optimization variables.................................................................................................

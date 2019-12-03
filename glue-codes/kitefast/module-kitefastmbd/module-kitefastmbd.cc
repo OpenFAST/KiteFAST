@@ -29,7 +29,7 @@
 
 #include "module-kitefastmbd.h"
 
-// #define DEBUGUDE
+//#define DEBUGUDE
 
 ModuleKiteFAST::ModuleKiteFAST(unsigned uLabel, const DofOwner *pDO, DataManager *pDM, MBDynParser &HP) : Elem(uLabel, flag(0)), UserDefinedElem(uLabel, pDO)
 {

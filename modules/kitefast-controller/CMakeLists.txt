@@ -26,19 +26,17 @@ endif()
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c99 -g -fPIC")
 find_package(GSL REQUIRED)
 
-if (GENERATE_TYPES)
-	generate_f90_types(src/KiteFastController_Registry.txt ${CMAKE_CURRENT_LIST_DIR}/src/KiteFastController_Types.f90 -noextrap)
-endif()
+generate_f90_types(src/KiteFastController_Registry.txt KiteFastController_Types.f90 -noextrap)
 
 # kitefastcontroller-lib
-set(LIB_SOURCES src/KiteFastController.f90 src/KiteFastController_Types.f90 )
+set(LIB_SOURCES src/KiteFastController.f90 src/KiteFastController_IO.f90 src/KiteFastController_Types.f90)
+
 add_library(kitefastcontrollerlib ${LIB_SOURCES})
 target_link_libraries(kitefastcontrollerlib nwtclibs)
 
 # kitefastcontroller-controller
 file(GLOB C_MATH_SOURCES "src/common/c_math/*")
 add_library(C_MATH ${C_MATH_SOURCES})
-target_include_directories(C_MATH PRIVATE ${GSL_INCLUDE_DIR})
 
 set(DYLIB_SOURCES
 	src/KiteFastController.c 

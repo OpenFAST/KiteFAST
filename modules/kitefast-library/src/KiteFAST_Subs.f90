@@ -2797,6 +2797,7 @@ subroutine Init_KiteSystem(dt_c, numFlaps, numPylons, numComp, numCompNds, modFl
    character(ErrMsgLen)            :: errMsg2
    type(InflowWind_InitInputType)  :: IfW_InitInp 
    type(KFC_InitInputType)         :: KFC_InitInp
+   type(KFC_InitOutputType)        :: KFC_InitOut !RRD
    character(*), parameter         :: routineName = 'KFAST_Init'
    integer(IntKi)                  :: i,j,c, count, maxSPyNds, maxPPyNds, SumFileUnit
    real(DbKi)                      :: interval
@@ -3134,8 +3135,10 @@ subroutine Init_KiteSystem(dt_c, numFlaps, numPylons, numComp, numCompNds, modFl
    else
       KFC_InitInp%UseDummy = .true.
    end if
-      
-   call KFC_Init(KFC_InitInp, m%KFC%u, m%KFC%p, m%KFC%y, interval, errStat2, errMsg2 )
+   KFC_InitInp%OutFileRoot = p%OutFileRoot !RRD
+   
+   !call KFC_Init(KFC_InitInp, m%KFC%u, m%KFC%p, m%KFC%y, interval, errStat2, errMsg2 )
+   call KFC_Init(KFC_InitInp, m%KFC%u, m%KFC%p, m%KFC%y, interval, m%KFC%m, m%KFC%o, KFC_InitOut, errStat2, errMsg2 ) !RRD
       call SetErrStat(errStat2,errMsg2,errStat,errMsg,routineName)
       if (errStat >= AbortErrLev ) then
          return
@@ -3576,13 +3579,16 @@ subroutine AssRes_OnShore( t_c, isInitialTime_c, WindPt_c, WindPtVel_c, AnchorPt
    
       ! Transfer C-based nodal and rotor quantities into Fortran-based data structures (and the MBD motion meshes)
       !   The resulting data resides inside the MiscVars data structure (m)
-
+  
+   !print *, ">>>>>>>> RRD_Debug: In ",routineName," before TransferMBDynInputsan<<<<<<<<<<<<<<<<<<<<< \n"  
+  
    call TransferMBDynInputs( numNodePts_c, nodePts_c, nodeDCMs_c, nodeVels_c, nodeOmegas_c, nodeAccs_c, rtrPts_c, rtrDCMs_c, rtrVels_c, rtrOmegas_c, rtrAccs_c, rtrAlphas_c, p, m, errStat2, errMsg2 )
          call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
          if (errStat >= AbortErrLev ) return
-
-         
-   ! -------------------------------------------------------------------------
+   
+   !print *, ">>>>>>>> RRD_Debug: In ",routineName," after TransferMBDynInputsan<<<<<<<<<<<<<<<<<<<<< \n"           
+   
+         ! -------------------------------------------------------------------------
    ! Controller
    ! -------------------------------------------------------------------------      
    !fracStep = modulo( real(t,SiKi), real(p%KFC_dt,SiKi) )
@@ -3647,8 +3653,9 @@ subroutine AssRes_OnShore( t_c, isInitialTime_c, WindPt_c, WindPtVel_c, AnchorPt
          
       m%KFC%u%apparent_wind = matmul(p%DCM_Fast2Ctrl, m%KFC%u%apparent_wind)
      
-         
-      call KFC_Step(t-p%KFC_dt, m%KFC%u, m%KFC%p, m%KFC%y, errStat2, errMsg2 )
+      !print *, ">>>>>>>> RRD_Debug: In ",routineName," Call KFC_STEP<<<<<<<<<<<<<<<<<<<<< \n"  
+      !call KFC_Step(t-p%KFC_dt, m%KFC%u, m%KFC%p, m%KFC%y, errStat2, errMsg2 ) !This has been replaced by the one below
+      call KFC_Step(t-p%KFC_dt, m%KFC%u, m%KFC%p, m%KFC%y, m%KFC%m, m%KFC%o, errStat2, errMsg2 ) !RRD
          call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
       if (errStat >= AbortErrLev )  return
 
@@ -3674,6 +3681,7 @@ subroutine AssRes_OnShore( t_c, isInitialTime_c, WindPt_c, WindPtVel_c, AnchorPt
       OtherSt%FusOomegas = m%FusOomegas
       OtherSt%FusOacc    = m%FusOaccs
       doTransfersforKFC   = .true.  ! need to transfer the MD bridle forces and KAD rotor loads once they are computed (below) for the next call to KFC_Step()   
+      !print *, ">>>>>>>> RRD_Debug: In ",routineName,"isInitialTime is ",isInitialTime," <<<<<<<<<<<<<<<<<<<<< \n"  
    end if
              
    ! -------------------------------------------------------------------------
@@ -3749,7 +3757,7 @@ subroutine AssRes_OnShore( t_c, isInitialTime_c, WindPt_c, WindPtVel_c, AnchorPt
          call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
       if (errStat >= AbortErrLev ) return
 
-      
+      !print *, ">>>>>>>> RRD_debug In AssRes_ONShore: before doTransfersforKFC <<<<<<<<<<<<<<<<<<<<< \n"  
       if ( doTransfersforKFC ) then
             ! need to transfer the bridle forces once they are computed (below) for the next call to KFC_Step() because we just stepped the controller.
          numFairLeads = size(m%MD_Tether%y%PtFairLeadLoad(1)%Force,2)
@@ -4062,18 +4070,20 @@ subroutine AssRes_OnShore( t_c, isInitialTime_c, WindPt_c, WindPtVel_c, AnchorPt
             AeroMoment = 0.0_ReKi
             AeroForce  = 0.0_ReKi
          end if         
-
          call KFAST_RotorCalcs(m%PPyRtrDCMs(:,:,i,j), m%PPyRtrOmegas(:,i,j), m%PPyRtrAccs(:,i,j), m%PPyRtrAlphas(:,i,j), &
                                m%KFC%y%PPyRtrSpd(i,j), m%KFC%y%PPyGenTorque(i,j), AeroForce, AeroMoment, &
                                p%Gravity, p%PPyRtrMass(i,j),   p%PPyRtrIrot(i,j),     p%PPyRtrItrans(i,j), p%PPyRtrXcm(i,j), &
                                m%PPyRtrFReact(:,i,j), m%PPyRtrMReact(:,i,j), errStat2, errMsg2 )
             call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )                             
+         !!print *, ">>>>>>>> RRD_Debug: In ",routineName,"before TransferLoadsToMBDyn p%numPylons=",p%numPylons,"<<<<<<<<<<<<<<<<<<<<< \n" 
+         !!print *, ">>>>>>>> RRD_Debug: In ",routineName," m%PPyRtrOmegas(:,i,j),m%KFC%y%PPyGenTorque(i,j),AeroForce=",m%PPyRtrOmegas(:,i,j),m%KFC%y%PPyGenTorque(i,j),AeroForce," <<<<<<<<<<<<<<<<<<<<< \n"  
+   
       end do
    end do
    
    call TransferLoadsToMBDyn( p, m, nodeLoads_c, rtrLoads_c, errStat2, errMsg2 )
       call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
-
+     ! print *, ">>>>>>>> RRD_Debug: End of Routine ",routineName,"  Passed @t=",t," <<<<<<<<<<<<<<<<<<<<< " !RRD
 end subroutine AssRes_OnShore
 
 subroutine AfterPredict_Onshore(t_c, errStat, errMsg)

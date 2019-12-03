@@ -1,0 +1,19 @@
+--- KiteFastController INPUT FILE ---
+Testing Controller
+--- SIMULATION CONTROL ---
+False     Echo      ! Echo input data to <RootName>.ech? (flag)
+0.01      DTctrl    ! Time interval for controller calculations (s)
+--- OUTPUT ---
+True                             SumPrint           Print summary data to <RootName>.sum? (flag)
+1                               OutSwtch           Output requested channels to? (-) (switch) {1=KiteFAST.KFC.out, 2=GlueCode.out, 3=three files]
+"ES10.3E2"                       OutFmt             Format used for text tabular output, excluding the time channel; resulting field should be 10 characters (string)
+8                                NRotOuts           Number of Rotors whose gentroque will be output [0 to 8]
+1 2 3  4 5 6 7 8                 RotOuts            List of rotors whose gen_torque will be output (-) [1 to NRotOuts] [unused for NRotOuts=0]
+8                                NFlpOuts           Number of Flaps whose deflections will be output [0 to 8]
+1 2 3  4 5 6 7 8                 FlapOuts           List of flaps whose deflections will be output (-) [1 to NFlpOuts] [unused for NFlpOuts=0]
+OutList            The next line(s) contains a list of output parameters.  See OutListParameters.xlsx for a listing of available output channels (quoted string)
+"Rot1GTq,Rot2GTq,Rot3GTq,Rot4GTq,Rot5GTq,Rot6GTq,Rot7GTq,Rot8GTq"
+"Rot1Spd,Rot2Spd,Rot3Spd,Rot4Spd,Rot5Spd,Rot6Spd,Rot7Spd,Rot8Spd"
+"Flp1Def, Flp2Def, Flp3Def, Flp4Def, Flp5Def, Flp6Def, Flp7Def, Flp8Def"
+END of input file (the word "END" must appear in the first 3 columns of this last OutList line)
+
