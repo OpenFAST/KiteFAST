@@ -329,7 +329,8 @@ Order of interpolation/extrapolation for KiteAeroDyn outputs.
 time
 ~~~~
 Time settings for the simulation. These are important to both MBDyn and
-KiteFAST.
+KiteFAST.  A ``timestep`` of 1e-3 is a good starting point, though some
+models may be able to use 2e-3.
 
 .. code-block:: yaml
 
@@ -346,12 +347,23 @@ These solver settings are relevant only to MBDyn.
 
 The ``tolerance`` is the threshold for convergence in the iterative residual
 and ``max_iterations`` is the number of iterations to complete before
-aborting the simulation if the tolerance is not reached. An additional option
-is available for whereby specifying "N, at most" avoids the residual check and
-completes N number of iterations. If the final residual is less than the first
-residual, the time marching continues.
+aborting the simulation if the tolerance is not reached. For the ``tolerance``,
+an additional option is available for whereby specifying "N, at most" avoids
+the residual check and completes N number of iterations (this can help catch
+diverging solutions). If the final residual is less than the first residual,
+the time marching continues.
 
-TODO: describe ``derivatives``, ``linear_solver``
+For onshore models, no more than 10 iterations are typically required
+(higher complexity models may require more iterations).
+Tip: watch the ``kitemain.out`` file (using ``tail -f`` at the command 
+line) to see if the residual and iteration count are stable, then adjust
+``timestep`` and ``max_iterations`` as necessary.
+
+TODO: describe ``derivatives``
+
+Several options are available for the ``linear_solver``.  The ``naive``
+solver works well for most models.  The ``klu`` solver also works fairly
+well.  Other solver options have not been fully explored.
 
 .. code-block:: yaml
 
