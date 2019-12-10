@@ -42,15 +42,14 @@ SET AD_Loc=%Modules_Loc%\aerodyn\src
 SET SrvD_Loc=%Modules_Loc%\servodyn\src
 SET BD_Loc=%Modules_Loc%\beamdyn\src
 SET SC_Loc=%Modules_Loc%\supercontroller\src
-SET AFI_Loc=%Local_Modules_Loc%\aerodyn\src
-SET SrvD_Loc=%Local_Modules_Loc%\servodyn\src
-SET BD_Loc=%Local_Modules_Loc%\beamdyn\src
-SET SC_Loc=%Local_Modules_Loc%\supercontroller\src
-SET ActDsk_Loc=%Local_Modules_Loc%\actuatordisk\src
-SET KAD_Loc=%Local_Modules_Loc%\kiteaerodyn\src
-SET KFAST_Loc=%Local_Modules_Loc%\kitefast-library\src
-SET VSM_Loc=%Local_Modules_Loc%\vsm\src
-SET KFC_Loc=%Local_Modules_Loc%\kitefast-controller\src
+SET AFI_Loc=%Modules_Loc%\aerodyn\src
+SET SrvD_Loc=%Modules_Loc%\servodyn\src
+SET BD_Loc=%Modules_Loc%\beamdyn\src
+SET ActDsk_Loc=%Modules_Loc%\actuatordisk\src
+SET KAD_Loc=%Modules_Loc%\kiteaerodyn\src
+SET KFAST_Loc=%Modules_Loc%\kitefast-library\src
+SET VSM_Loc=%Modules_Loc%\vsm\src
+SET KFC_Loc=%Modules_Loc%\kitefast-controller\src
 
 SET ALL_FAST_Includes=-I "%FAST_Loc%" -I "%NWTC_Lib_Loc%" -I "%ED_Loc%" -I "%SrvD_Loc%" -I "%AD14_Loc%" -I^
  "%AD_Loc%" -I "%BD_Loc%" -I "%SC_Loc%" -I "%AFI_Loc%" -I^
@@ -136,21 +135,25 @@ GOTO checkError
 :BEMT
 :DBEMT
 SET CURR_LOC=%AD_Loc%
+SET Output_Loc=%CURR_LOC%
 %REGISTRY% "%CURR_LOC%\%ModuleName%_Registry.txt" -I "%NWTC_Lib_Loc%" -I "%AFI_Loc%" -I "%CURR_LOC%" -O "%Output_Loc%"
 GOTO checkError
 
 :AeroDyn_Driver
 SET CURR_LOC=%AD_Loc%
+SET Output_Loc=%CURR_LOC%
 %REGISTRY% "%CURR_LOC%\AeroDyn_Driver_Registry.txt" -I %NWTC_Lib_Loc% -I "%AFI_Loc%" -I %CURR_LOC%  -O %Output_Loc% -noextrap
 GOTO checkError
 
 :AFI
 SET CURR_LOC=%AFI_Loc%
+SET Output_Loc=%CURR_LOC%
 %REGISTRY% "%CURR_LOC%\AirfoilInfo_Registry.txt" -I "%NWTC_Lib_Loc%" -I "%CURR_LOC%" -noextrap -O "%Output_Loc%"
 GOTO checkError
 
 :UA
 SET CURR_LOC=%AD_Loc%
+SET Output_Loc=%CURR_LOC%
 %REGISTRY% "%CURR_LOC%\UnsteadyAero_Registry.txt" -I "%NWTC_Lib_Loc%" -I "%AFI_Loc%" -I "%CURR_LOC%" -O "%Output_Loc%"
 GOTO checkError
 
@@ -264,26 +267,31 @@ GOTO checkError
 
 :FASTWrapper
 SET CURR_LOC=%Farm_Loc%
+SET Output_Loc=%CURR_LOC%
 %REGISTRY% "%CURR_LOC%\FASTWrapper_Registry.txt" -I %NWTC_Lib_Loc%  %ALL_FAST_INCLUDES% -noextrap -O "%Output_Loc%"
 GOTO checkError
 
 :ActuatorDisk
 SET CURR_LOC=%ActDsk_Loc%
+SET Output_Loc=%CURR_LOC%
 %REGISTRY% "%CURR_LOC%\ActuatorDisk_Registry.txt" -I "%NWTC_Lib_Loc%" -noextrap -O "%Output_Loc%"
 GOTO checkError
 
 :KiteAeroDyn
 SET CURR_LOC=%KAD_Loc%
+SET Output_Loc=%CURR_LOC%
 %REGISTRY% "%CURR_LOC%\%ModuleName%_Registry.txt" -I "%NWTC_Lib_Loc%" -I "%CURR_LOC%" -I "%ActDsk_Loc%" -I "%VSM_Loc%" -I "%AFI_Loc%" -O "%Output_Loc%"
 GOTO checkError
 
 :VSM
 SET CURR_LOC=%VSM_Loc%
+SET Output_Loc=%CURR_LOC%
 %REGISTRY% "%CURR_LOC%\%ModuleName%_Registry.txt" -I "%NWTC_Lib_Loc%" -I "%CURR_LOC%" -I "%AFI_Loc%" -noextrap -O "%Output_Loc%"
 GOTO checkError
 
 :KiteFastController
 SET CURR_LOC=%KFC_Loc%
+SET Output_Loc=%CURR_LOC%
 %REGISTRY% "%CURR_LOC%\%ModuleName%_Registry.txt" -I "%NWTC_Lib_Loc%" -I "%CURR_LOC%" -noextrap -O "%Output_Loc%"
 GOTO checkError
 
