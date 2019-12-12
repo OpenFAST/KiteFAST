@@ -21,7 +21,7 @@ simulation_controls:
         inflowwind_input: "../kiteinflow/kiteInflowWind.dat"
         moordyn_tether_input: "m600-MoorDyn.dat"
         controller_input: "../../../../build/modules/kitefast-controller/libkitefastcontroller_controller.so"
-        hydrodyn_input: "../5MW_OC3Spar_DLL_WTurb_WavesIrr/NRELOffshrBsline5MW_OC3Hywind_HydroDyn.dat"
+        hydrodyn_input: "../hydrodyn/NRELOffshrBsline5MW_OC3Hywind_HydroDyn.dat"
         moordyn_mooring_input: ""
 
     print_kitefast_summary_file:
@@ -50,14 +50,14 @@ simulation_controls:
             0.5
 
     tolerance:
-        1e-3
+        10000
 
     max_iterations:
-        60
+        "1000, at most"
 
     derivatives:
         tolerance:
-            10e0
+            10e3
 
         max_iteration:
             200
