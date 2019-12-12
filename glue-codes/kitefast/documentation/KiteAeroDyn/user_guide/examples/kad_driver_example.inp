@@ -2,7 +2,7 @@
 Sample KiteAeroDyn primary input file
 --- INPUT CONFIGURATION ---
 False              Echo               Echo input data to <RootName>.ech? (flag)
-1.0                DTAero             Time interval for aerodynamic calculations (s) [>0.0]
+0.01               DTAero             Time interval for aerodynamic calculations (s) [>0.0]
 "kad_primary_example.inp"  KAD_InFile         Name of the primary KiteAeroDyn input file (string)
 --- ENERGY KITE REFERENCE CONFIGURATION ---
 3                  NumFlaps           Number of flaps  per wing (-) [>=1]

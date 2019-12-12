@@ -12,7 +12,7 @@ Echo Files
 
 If you set the ``Echo`` flag to ``TRUE`` in the KiteAeroDyn driver file or the
 KiteAeroDyn primary input file, the contents of those files will be echoed
-to a file with the naming conventions, *Basefile.ech* for the
+to a file with the naming conventions, *Basefile.ech*, 
 where ``Basefile`` is either the name of the driver input file or the KiteAeroDyn input file. 
 The echo files are
 helpful for debugging your input files. The contents of an echo file
@@ -26,7 +26,7 @@ Summary File
 KiteAeroDyn generates a summary file with the naming convention,
 *OutFileRoot.KAD.sum* if the ``SumPrint`` parameter is set to ``TRUE``.
 ``OutFileRoot`` is either specified in the I/O SETTINGS section of the
-driver input file when running KiteAeroDyn standalone, or by the KiteFAST
+driver input file when running KiteAeroDyn standalone, or by the KiteFAST 
 program when running a coupled simulation. This file summarizes key
 information about your aerodynamics model, including which features have
 been enabled and what outputs have been selected.
@@ -36,9 +36,9 @@ Results Files
 
 In standalone mode, the KiteAeroDyn time-series results are written to text-based files with the naming convention
 *OutFileRoot.KAD.out*, and *OutFileRoot.VSM.out*, where ``OutFileRoot`` is specified in the I/O
-SETTINGS section of the driver input file. If KiteAeroDyn is coupled to KiteFAST, then KiteFAST
-will generate a master results file that includes the KiteAeroDyn results if the ``OutSwtch`` parameter is set to 2 or 3.
-and KiteAeroDyn will not write out its own results if the ``OutSwtch`` parameter is set to 1 or 3. The results are in table
+SETTINGS section of the driver input file, if the ``OutSwtch`` parameter is set to 1 or 3. If KiteAeroDyn is coupled to KiteFAST, then KiteFAST 
+will generate a master results file that includes the KiteAeroDyn user-requested output channel results if the ``OutSwtch`` parameter is set to 2 or 3.
+KiteAeroDyn will not write out its own results (KAD or VSM) if the ``OutSwtch`` parameter is set to 2. Note that the results in the *OutFileRoot.VSM.out* file are fixed to generate an exhaustive set of output channels for each aerodynamic node.  The results are in table
 format, where each column is a data channel (the first column always
 being the simulation time), and each row corresponds to a simulation
 output time step. The data channels are specified in the OUTPUTS section

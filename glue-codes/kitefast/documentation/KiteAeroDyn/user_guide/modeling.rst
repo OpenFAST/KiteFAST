@@ -10,12 +10,12 @@ section provides some general guidance to help you construct models that
 are compatible with KiteAeroDyn.
 
 
-Standalone KiteKiteAeroDyn Driver
+Standalone KiteAeroDyn Driver
 ---------------------------------
 
-The standalone KiteKiteAeroDyn driver code is very useful for computing kite
-aerodynamics independent of aero-elastic coupling. The standalone
-KiteKiteAeroDyn driver code generates a time-series of flight 
+The standalone KiteAeroDyn driver code is very useful for computing kite
+aerodynamics under prescribed motion of the kite independent of aero-elastic coupling. The standalone
+KiteAeroDyn driver code uses a time-series of rigid-body flight 
 kinematics and control signals (the inputs to the aerodynamic calculations).
 The full suite of KiteAeroDyn output channels are available for these simulations.
 
@@ -23,46 +23,53 @@ The full suite of KiteAeroDyn output channels are available for these simulation
 Environmental Conditions
 ------------------------
 
-For air, typical values for ``AirDens``, ``KinVisc``,
-``SpdSound``, and ``Patm`` are around 1.225 kg/m\ :sup:`3`, 1.460E-5
-m\ :sup:`2`/s, 340.3 m/s, and 101,325 Pa, respectively. 
+For air, typical values for ``AirDens``, ``KinVisc``, and
+``SpdSound`` are around 1.225 kg/m\ :sup:`3`, 1.460E-5
+m\ :sup:`2`/s, and 340.3 m/s, respectively. 
 
 
 Lifting Line Vortex-step Method
 -------------------------------
 
-We recommend initially setting ``VSMToler``, ``VSMMaxIter``, and ``VSMPerturb`` to ``DEFAULT``.
+We recommend setting ``VSMToler`` to 2 when simulating an operational kite to enable the lifting line vortex-step method. We recommend initially setting ``VSMToler``, ``VSMMaxIter``, and ``VSMPerturb`` to ``DEFAULT``.
 If this simulation issues errors regarding convergence of the VSM solution, then you may need to
 alter these default values.  First, try increasing the value of ``VSMMaxIter`` beyond the default 
-value of 40.  Then you may need to turn either or both of the ``VSMToler`` or ``VSMPerturb`` values.
+value of 40.  Then you may need to change either or both of the ``VSMToler`` or ``VSMPerturb`` values.
 
 
 Temporal and Spatial Discretization
 -----------------------------------
 
 For accuracy and numerical stability, we recommend that ``DTAero`` be
-set to 0.01 seconds.
+set to 0.01 seconds when KiteAeroDyn is coupled to KiteFAST.
 
 For the kite aerodynamic surfaces spatial discretization, using higher number of
 analysis nodes will result in a more accurate solution at the expense of
-longer computational time. We recommend a node spacing of roughly 1 meters.  The 
+longer computational time. We recommend a node spacing of roughly 1 meters (e.g., 10-20 nodes per wing).  The 
 vortex step method theory is not meant for discretizations finer than this. 
-When KiteAeroDyn is coupled to MBDyn, the aerodynamic surfaces 
+When KiteAeroDyn is coupled to KiteFAST, the aerodynamic surfaces 
 analysis node discretization may be independent from the
-discretization of the nodes in the structural module.
+discretization of the nodes in the structural module (MBDyn).
 
 
 Pylon and Rotor Ordering
 ------------------------
 
-The pylon node list must be structured such that all starboard pylon nodes appear first, 
+The pylon node list in the Pylon Properties section of the primary KiteAeroDyn input file must be structured such that all starboard pylon nodes appear first, 
 starting with the inner-most pylon and ending with the outer-most pylon. Then the port pylon 
 nodes are listed, again starting with the inner-most pylon and ending with the outer-most pylon.
 
-The node list must be structured such that all starboard pylon rotors appear first, starting with the inner-most pylon and 
+Additionally, the list of rotor properties in the primary KiteAeroDyn input file must be structured such that all starboard pylon rotors appear first, starting with the inner-most pylon and 
 ending with the outer-most pylon. Then the port pylon rotors are listed, again starting with the inner-most pylon 
-and ending with the outer-most pylon. Each pylon must contain a line for the top rotor followed by the bottom rotor.
-The table will contain a total of four times ``NumPylons`` lines.
+and ending with the outer-most pylon. Each pylon must contain a line for the top rotor followed by the bottom rotor. Therefore, the list will contain a total of four times ``NumPylons`` lines.
+
+Likewise, the plyon reference point node list in the Energy Kite Reference Configuration section of the KiteAeroDyn driver input file must be structured such that all starboard pylon nodes appear first, 
+starting with the inner-most pylon and ending with the outer-most pylon. Then the port pylon 
+nodes are listed, again starting with the inner-most pylon and ending with the outer-most pylon.
+
+Likewise, the rotor reference point node list in the Energy Kite Reference Configuration section of the KiteAeroDyn driver input file must be structured such that all starboard pylon rotors appear first, starting with the inner-most pylon and 
+ending with the outer-most pylon. Then the port pylon rotors are listed, again starting with the inner-most pylon 
+and ending with the outer-most pylon. Each pylon must contain a line for the top rotor followed by the bottom rotor. Therefore, the list will contain a total of four times ``NumPylons`` lines.
 
 
 Units of the User-supplied Control Settings
@@ -70,7 +77,7 @@ Units of the User-supplied Control Settings
 
 The units used for the ``Ctrl`` values in the multi-dimensional airfoil tables
 must match the units of the control signals generated by the user-supplied 
-KiteFast controller.
+KiteFAST controller.
 
 
 

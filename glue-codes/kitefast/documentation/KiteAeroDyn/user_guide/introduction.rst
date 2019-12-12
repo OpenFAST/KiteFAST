@@ -3,46 +3,41 @@
 Introduction
 ============
 
-KiteAeroDyn is a time-domain aerodynamics module that is coupled into the MBDyn multi-body dynamics tool to 
+KiteAeroDyn is a time-domain aerodynamics module that is coupled to the MBDyn multi-body dynamics tool within KiteFAST to 
 enable aero-elastic simulation of kite systems. KiteAeroDyn can also be driven as a standalone code to 
-compute kite aerodynamic response uncoupled from MBDyn.   
+compute kite aerodynamic response uncoupled from KiteFAST.   
 
 KiteAeroDyn calculates quasi-steady aerodynamic loads on the various aerodynamic surfaces of the kite system.
 Aerodynamic calculations within KiteAeroDyn are based on a Vortex Step Method (VSM), 
-{TODO: VERIFY: where the three-dimensional (3D) flow around a body is
+where the three-dimensional (3D) flow around a body is
 approximated by local two-dimensional (2D) flow at cross sections, and
 the distributed pressure and shear stresses are approximated by lift
 forces, drag forces, and pitching moments lumped at a node in a 2D cross
-section}. Analysis nodes are distributed along the various kite surfaces (fuselage, wings, etc.), 
-the 2D forces and moment at each node are computed as concentrated loads located at the 1/4 chord point of the cross-sections.  
+section. Analysis nodes are distributed along the various kite surfaces (fuselage, wings, etc.); 
+the 2D forces and moment at each node are computed as concentrated loads located at the aerodynamic center of the cross-sections.  
 The total 3D aerodynamic loads are found by integrating the 2D point loads over the length of the kite surfaces. When
-KiteAeroDyn is coupled to MBDyn, the kite aerodynamic analysis node
+KiteAeroDyn is coupled to KiteFAST, the kite aerodynamic analysis node
 discretization may be independent from the discretization of the nodes
 in the structural model.
 
 KiteAeroDyn assumes the kite geometry consists of a fuselage, starboard and port 
-wings, a vertical stabilizer, starboard and port stabilizers, and one or two-
-pylons located on a wing surface (2 or 4 pylons total across both wing surfaces). 
-Each kite component (or surface) is assummed to
+wings, a vertical stabilizer, starboard and port stabilizers, and one or more
+pylons located on a wing surface (2x pylons total across both wing surfaces). 
+Each kite component (or surface) is assumed to
 have a spanwise direction. The 2D cross-sections where the aerodynamic analysis takes place 
-may follow the out-of-plane curvature, but in-plane sweep is assumed to be accomplished
-by shearing, rather than rotation of the 2D cross section.
+may include a dihedral angle for the wings, but are otherwise orthogonal to the spanwise direction.
 
-When KiteAeroDyn is coupled to MBDyn, KiteAeroDyn receives the instantaneous
+When KiteAeroDyn is coupled to KiteFAST, KiteAeroDyn receives the instantaneous
 (possibly displaced/deflected) structural position, orientation, and
-velocities of analysis nodes on the kite. As with
-curvature and sweep, the 2D cross sections where the blade aerodynamic
-analysis takes place will follow the out-of-plane deflection, but
-in-plane deflection is assumed to be accomplished by shearing, rather
-than rotation of the 2D cross section. KiteAeroDyn also receives the local
+velocities of analysis nodes on the kite. KiteAeroDyn also receives the local
 freestream (undisturbed) fluid velocities at the analysis nodes.
 (Fluid and structural calculations take place outside of the KiteAeroDyn
 module and are passed as inputs to KiteAeroDyn by the driver code.) The
 fluid and structural motions are provided at each coupling time step and
 then KiteAeroDyn computes the aerodynamic loads on the analysis nodes
-and returns them back to MBDyn as part of the aero-elastic calculation.
+and returns them back to KiteFAST as part of the aero-elastic calculation.
 In standalone mode, the inputs to KiteAeroDyn are prescribed by a simple
-driver code, without aero-elastic coupling.
+driver code, without aero-elastic coupling (other than rigid-body motion).
 
 In the current version of KiteAeroDyn, only steady aerodynamics are supported. 
 In the steady model, the supplied static airfoil data — including the lift force, 
@@ -52,18 +47,17 @@ drag force, and optional pitching moment versus angle of attack
 used to generate the needed static airfoil data based on uncorrected 2D
 data (based, e.g., on airfoil tests in a wind tunnel or
 `XFoil <http://web.mit.edu/drela/Public/web/xfoil/>`__), including
-features to blend data between different airfoils, apply 3D rotational
-augmentation, and extrapolate to high AoA. The static airfoil data is always used in
+features to blend data between different airfoils and extrapolate to high AoA. The static airfoil data is always used in
 the VSM iteration.  The interpolation of airfoil data based on Reynolds number or aerodynamic-control setting
 (e.g., flaps) is also available.
 
 The primary KiteAeroDyn input file defines modeling options, environmental
-conditions (except freestream flow), airfoils, rotor properties, 
+conditions (except freestream flow), airfoils, rotor properties, the discretization and geometry of each kite component (fuselage, wings, etc.),
 as well as output file specifications.
-Rotor airfoil data properties are read from dedicated inputs files (one for
-each rotor) and include coefficients of lift force, drag force, and
-optional pitching moment versus AoA;  the UA
-model parameters are currently unused.
+Airfoil data properties are read from dedicated inputs files (one for
+each unique airfoil) and include coefficients of lift force, drag force, and
+optional pitching moment versus AoA (and optionally Reynolds number or aerodynamic-control setting); the UA
+model parameters are currently unused. Rotor data properties are also read from dedicated input files and include coefficients force coefficients, moment coefficients, and power coefficient versus rotor speed, relative velocity, skew angle, and rotor collective blade-pitch angle.
 
 :numref:`kad_input` describes the KiteAeroDyn input files. 
 :numref:`kad_output` discusses the
