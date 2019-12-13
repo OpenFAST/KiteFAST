@@ -79,6 +79,7 @@ GOTO checkError
 
 :KiteFAST
 SET CURR_LOC=%KFAST_Loc%
+SET Output_Loc=%CURR_LOC%
 %REGISTRY% "%CURR_LOC%\KiteFAST_Registry.txt" %ALL_KFAST_Includes% -noextrap -O "%Output_Loc%"
 GOTO checkError
 
