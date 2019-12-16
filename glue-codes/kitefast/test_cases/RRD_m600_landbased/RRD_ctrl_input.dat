@@ -3,6 +3,12 @@ Testing Controller
 --- SIMULATION CONTROL ---
 False     Echo      ! Echo input data to <RootName>.ech? (flag)
 0.01      DTctrl    ! Time interval for controller calculations (s)
+--- INITIAL CONDITIONS ---
+0.          0.     0.        0.      0.        0.         0.        0.    rtrBladePitch         !< The rotor blade pitches [8 values] [rad], for all rotors in CSIM order convention
+200.0   -200.0  -250.0   +300.0  -400.0      250.0      250.0    -250.0   genTorq               !< The generator torques [8 values] [Nm], for all rotors in CSIM order convention.
+-150.0   120.0   140.0   -150.0   180.0     -180.0     -180.0     180.0   rtrSpd                !< The rotor speeds [8 values] (rad/s), for all rotors in CSIM order convention.
+0.0      0.0       0.0    0.0       0.0        0.0      0.0         0.0   rtrAcc                !< The rotor accelerations [8 values] (rad/s^2), for all rotors in CSIM order convention.
+-0.3    -0.3       0.0   -0.006     0.0        0.0      0.1        -0.1   ctrlSettings          !< The control surfaces angles [8 values] [rad], for all surfaces in CSIM order convention. 
 --- OUTPUT ---
 True                             SumPrint           Print summary data to <RootName>.sum? (flag)
 1                               OutSwtch           Output requested channels to? (-) (switch) {1=KiteFAST.KFC.out, 2=GlueCode.out, 3=three files]

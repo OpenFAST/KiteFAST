@@ -245,26 +245,29 @@ void AssignOutputs(double CtrlSettings[], double Gen_Torque[],
 	// (+) starboard deflection (TE up)  & (-) port deflection (TE down)-> induces Port Wing Down in Kitefast (-Roll Angle)
 	// (-) starboard deflection (TE down)& (+) port deflection (TE up)  -> induces Starboard Wing Down in Kitefast (+Roll Angle)
 	// Sign flip needed!
- 	CtrlSettings[0] = -raw_control_output->flaps[kFlapA5]; //	Starboard wing control ID 1
-	CtrlSettings[1] = -raw_control_output->flaps[kFlapA7]; //	Starboard wing control ID 2
-	CtrlSettings[2] = -raw_control_output->flaps[kFlapA8]; //	Starboard wing control ID 3
-	CtrlSettings[3] = -raw_control_output->flaps[kFlapA4]; //	Port      wing control ID 1
-	CtrlSettings[4] = -raw_control_output->flaps[kFlapA2]; //	Port      wing control ID 2
-	CtrlSettings[5] = -raw_control_output->flaps[kFlapA1]; //	Port      wing control ID 3
+ 	// CtrlSettings[0] = -raw_control_output->flaps[kFlapA5]; //	Starboard wing control ID 1
+	// CtrlSettings[1] = -raw_control_output->flaps[kFlapA7]; //	Starboard wing control ID 2
+	// CtrlSettings[2] = -raw_control_output->flaps[kFlapA8]; //	Starboard wing control ID 3
+	// CtrlSettings[3] = -raw_control_output->flaps[kFlapA4]; //	Port      wing control ID 1
+	// CtrlSettings[4] = -raw_control_output->flaps[kFlapA2]; //	Port      wing control ID 2
+	// CtrlSettings[5] = -raw_control_output->flaps[kFlapA1]; //	Port      wing control ID 3
+	
+	//RRD replace CtrlSettings above with this copy/pass-through
+	memcpy(CtrlSettings, raw_control_output->flaps, sizeof(CtrlSettings));
 
 	// (+) rudder deflection (TE to port side) -> induces a Left turn (towards port)
 	// (-) rudder deflection (TE to Starboard side) -> induces a Right turn (towards starboard)
 	// No sign flip needed
-	CtrlSettings[6] = raw_control_output->flaps[kFlapRud]; //	Rudder
-	CtrlSettings[7] = raw_control_output->flaps[kFlapRud]; //	Rudder
+	//CtrlSettings[6] = raw_control_output->flaps[kFlapRud]; //	Rudder
+	//CtrlSettings[7] = raw_control_output->flaps[kFlapRud]; //	Rudder
 
 	// (+) elevator deflection (TE up)   -> induces a pitch down in kitefast 
 	// (-) elevator deflection (TE down) -> induces a pitch up in kitefast
 	// Sign flip needed!
-	CtrlSettings[8] =  -raw_control_output->flaps[kFlapEle]; // Elevators	
-	CtrlSettings[9] =  -raw_control_output->flaps[kFlapEle]; // Elevators	
-	CtrlSettings[10] = -raw_control_output->flaps[kFlapEle]; // Elevators	
-	CtrlSettings[11] = -raw_control_output->flaps[kFlapEle]; // Elevators 
+	// CtrlSettings[8] =  -raw_control_output->flaps[kFlapEle]; // Elevators	
+	// CtrlSettings[9] =  -raw_control_output->flaps[kFlapEle]; // Elevators	
+	// CtrlSettings[10] = -raw_control_output->flaps[kFlapEle]; // Elevators	
+	// CtrlSettings[11] = -raw_control_output->flaps[kFlapEle]; // Elevators 
 	
 	// Blade Pitch 
 	// currently not apart of controller. Place holders can be found below:
@@ -362,7 +365,7 @@ void AssignOutputs(double CtrlSettings[], double Gen_Torque[],
 
 	// Print outputs of controller:
 	#if DEBUG
-		printf("  kFlapA_c (kfas frame) = [A5=%0.4f, A7=%0.4f, A8=%0.4f, A4=%0.4f, A2=%0.4f, A1=%0.4f, R1=%0.4f, R2=%0.4f, E1=%0.4f, E2=%0.4f, E3=%0.4f, E4=%0.4f] \n",
+		printf("  kFlapA_c (kfas frame) = [A1=%0.4f, A2=%0.4f, A4=%0.4f, A5=%0.4f, A7=%0.4f, A8=%0.4f, El=%0.4f, Ru=%0.4f] \n", //, E1=%0.4f, E2=%0.4f, E3=%0.4f, E4=%0.4f
 				CtrlSettings[0],
 				CtrlSettings[1],
 				CtrlSettings[2],
@@ -370,11 +373,11 @@ void AssignOutputs(double CtrlSettings[], double Gen_Torque[],
 				CtrlSettings[4],
 				CtrlSettings[5],
 				CtrlSettings[6],
-				CtrlSettings[7],
-				CtrlSettings[8],
-				CtrlSettings[9],
-				CtrlSettings[10],
-				CtrlSettings[11]);
+				CtrlSettings[7]);
+		//		CtrlSettings[8],
+				// CtrlSettings[9],
+				// CtrlSettings[10],
+				// CtrlSettings[11]);
 		printf("  kFlapA_c (csim frame) = [%0.4f, %0.4f, %0.4f, %0.4f, %0.4f, %0.4f, %0.4f, %0.4f] \n",
 				raw_control_output->flaps[kFlapA1],
 				raw_control_output->flaps[kFlapA2],

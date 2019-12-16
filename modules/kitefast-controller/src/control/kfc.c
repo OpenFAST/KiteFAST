@@ -141,7 +141,16 @@ void controller_init(double Requested_dT, int numFlaps, int numPylons, double ge
 	// Init Crosswind
 	CrosswindInit(&controlglob.state_est, flaps_z1, 0.0, 0, &GetControlParams()->crosswind, &controlglob.state.crosswind);
 	
-	// Init Motor Control
+	// Init Motor Control  ### RRD modified the global variables here  <<<<<<<<<<< START
+	for (int i = 0; i < kNumMotors; i++) {
+      controlglob.state.motor_state.rotor_torques[i] = genTorq[i];
+      controlglob.state.motor_state.rotor_omegas[i]  = rotorSpeed[i];
+      controlglob.state.motor_state.rotor_accel[i]   = rotorAccel[i];
+	}
+	 // Copy flaps data from initial values provided by user
+	memcpy(controlglob.raw_control_output.flaps, ctrlSettings, sizeof(ctrlSettings));
+	
+	//>>>>>>>>>>> END
   	InitMotorControl(&controlglob.state.motor_state);
 
 	// Init Control Logging

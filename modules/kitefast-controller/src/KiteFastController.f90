@@ -271,7 +271,9 @@ module KiteFastController
       interval    = 0.01_DbKi          ! Forcing a controller dt of 0.01 sec
       p%DT        = interval            
       p%useDummy  = InitInp%useDummy
-      
+      p%nCtrlSettings = 2*p%numFlaps+2 ! "Number of Flap Deflections " -
+      p%nRotors       = 4*p%numPylons  ! "Number of Rotors[ (rad/s^2)" -
+
          ! allocate the inputs and outputs
       call AllocAry( u%SPyAeroTorque, 2, p%numPylons, 'u%SPyAeroTorque', errStat2, errMsg2 )
          call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
@@ -297,24 +299,38 @@ module KiteFastController
          call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
       call AllocAry( y%PFlp, p%numFlaps, 'y%PFlp', errStat2, errMsg2 )   
       !RRD added the following OtherStates
-      call AllocAry( o%ctrlsettings,2*p%numFlaps+6, 'o%ctrlsettings', errStat2, errMsg2 )
+      call AllocAry( o%ctrlsettings,p%nCtrlSettings, 'o%ctrlsettings', errStat2, errMsg2 )
          call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
-      call AllocAry( o%rtrSpd,4*p%numPylons, 'o%rtrSpd', errStat2, errMsg2 )
+      call AllocAry( o%rtrSpd,p%nRotors, 'o%rtrSpd', errStat2, errMsg2 )
          call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
-      call AllocAry( o%rtrAcc,4*p%numPylons, 'o%rtrAcc', errStat2, errMsg2 )
+      call AllocAry( o%rtrAcc,p%nRotors, 'o%rtrAcc', errStat2, errMsg2 )
          call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
-      call AllocAry( o%genTorq,4*p%numPylons, 'o%genTorq', errStat2, errMsg2 )
+      call AllocAry( o%genTorq,p%nRotors, 'o%genTorq', errStat2, errMsg2 )
          call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
-      call AllocAry( o%rtrBladePitch,4*p%numPylons, 'o%rtrBladePitch', errStat2, errMsg2 )
+      call AllocAry( o%rtrBladePitch,p%nRotors, 'o%rtrBladePitch', errStat2, errMsg2 )
          call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
-      call AllocAry( o%rtrIrot,4*p%numPylons, 'o%rtrIrot', errStat2, errMsg2 )
+      call AllocAry( o%rtrIrot,p%nRotors, 'o%rtrIrot', errStat2, errMsg2 )
          call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
-      call AllocAry( o%AeroTorq,2*p%numFlaps+2, 'o%AeroTorque', errStat2, errMsg2 )
+      call AllocAry( o%AeroTorq,p%nRotors, 'o%AeroTorque', errStat2, errMsg2 )
          call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
       
       
       if (errStat >= AbortErrLev ) return
 
+      !>>>>>>>>>>>>>>>>>>>>>>>>>RRD Get ICs in case and then call Controller_Init<<<<<<<<<<<<<<<<<<<<<<<<<<<
+      
+      InitInp%Filename='./RRD_ctrl_input.dat'  !RRD:hardwire for now, it will be read elsewhere in the future from InitInp%Filename
+
+      ! Read Input file, otherwise the caller must have fully populated the Initialization inputs
+         if ( trim(InitInp%Filename) /= '' ) then
+            call ReadKFCFile(InitInp, interval, p, errStat, errMsg)
+            if ( errStat > ErrID_None ) return
+      !      print *, ">>>>>>>> RRD_Debug: In ",routineName,"InitInp%Filename is ",InitInp%Filename," <<<<<<<<<<<<<<<<<<<<< \n"  
+         endif
+      
+         ! Validate the input file data and issue errors as needed
+         call ValidateInitData(InitInp, errStat, errMsg)
+         if ( errStat >= AbortErrLev ) return
       
       ! Are we simply using a dummy controller?  If so, we will skip trying to call into a DLL/SO      
       
@@ -356,6 +372,12 @@ module KiteFastController
                c = c + 1
             end do
          end do
+
+         o%genTorq        = InitInp%InpFileData%genTorq
+         o%rtrSpd         = InitInp%InpFileData%rtrSpd
+         o%rtrAcc         = InitInp%InpFileData%rtrAcc
+         o%rtrBladePitch  = InitInp%InpFileData%rtrBladePitch
+         o%ctrlSettings   = InitInp%InpFileData%ctrlSettings
          
          !print *, ">>>>>>>> RRD_Debug: In ",routineName,"- dt_c, o%genTorq before DLL_INIT=",dt_c, o%genTorq, "<<<<<<<<<<<<<<<<"  
          !call DLL_KFC_Init_Subroutine ( dt_c, p%numFlaps*2+2, p%numPylons, rtrIrot, o%genTorq, rtrSpd, rtrAcc, rtrBladePitch, ctrlSettings, errStat, errMsg_c ) 
@@ -413,7 +435,7 @@ module KiteFastController
           !RRD I introduced o% for all otherstates, i.e. those given by external controller
          o%ctrlSettings(1:p%numFlaps)=0.1_ReKi !starboard flap
          o%ctrlSettings(p%numFlaps+1:2*p%numFlaps)=-0.3_ReKi !port flap
-         o%ctrlSettings(2*p%numFlaps+1:2*p%numFlaps+2)=0.2_ReKi !rudder
+         o%ctrlSettings(2*p%numFlaps+1:p%nCtrlSettings)=0.2_ReKi !rudder
          o%ctrlSettings(2*p%numFlaps+3:2*p%numFlaps+4)=0.4_ReKi ! starboard elevator
          o%ctrlSettings(2*p%numFlaps+5:2*p%numFlaps+6)=0.5_ReKi ! port elevator
 
@@ -424,22 +446,6 @@ module KiteFastController
          !y%PElv =  0.5_ReKi
          
       end if
-      
-      !>>>>>>>>>>>>>>>>>>>>>>>>>RRD to the end of the subroutine KFC_Init<<<<<<<<<<<<<<<<<<<<<<<<<<<
-      
-      InitInp%Filename='./RRD_ctrl_input.dat'  !RRD:hardwire for now, it will be read elsewhere in the future from InitInp%Filename
-
-      ! Read Input file, otherwise the caller must have fully populated the Initialization inputs
-      if ( trim(InitInp%Filename) /= '' ) then
-         call ReadKFCFile(InitInp, interval, errStat, errMsg)
-         if ( errStat > ErrID_None ) return
-         print *, ">>>>>>>> RRD_Debug: In ",routineName,"InitInp%Filename is ",InitInp%Filename," <<<<<<<<<<<<<<<<<<<<< \n"  
-      endif
-   
-      ! Validate the input file data and issue errors as needed
-      call ValidateInitData(InitInp, errStat, errMsg)
-      if ( errStat >= AbortErrLev ) return
-
       
       !----------------------------------
       ! Create the file-related output data
@@ -662,11 +668,10 @@ module KiteFastController
          !y%PPyGenTorque = -u%PPyAeroTorque  ! port rotors
         
             ! All flag commands are constant for the dummy controller
-         o%ctrlSettings(1:p%numFlaps)=-0.1_ReKi !starboard flap
-         o%ctrlSettings(p%numFlaps+1:2*p%numFlaps)=+0.3_ReKi !port flap
-         o%ctrlSettings(2*p%numFlaps+1:2*p%numFlaps+2)=-0.2_ReKi !rudder
-         o%ctrlSettings(2*p%numFlaps+3:2*p%numFlaps+4)=-0.4_ReKi ! starboard elevator
-         o%ctrlSettings(2*p%numFlaps+5:2*p%numFlaps+6)=-0.5_ReKi ! port elevator
+         o%ctrlSettings(1:p%numFlaps)=-0.1_ReKi !port flaps
+         o%ctrlSettings(p%numFlaps+1:2*p%numFlaps)=+0.3_ReKi !starboard flaps
+         o%ctrlSettings(2*p%numFlaps+1)=-0.01_ReKi !elevator
+         o%ctrlSettings(p%nCtrlSettings)=-0.4_ReKi ! rudder
 
          !y%SFlp =  0.1_ReKi
          !y%PFlp = -0.3_ReKi
@@ -873,10 +878,11 @@ module KiteFastController
    !==================================================================================================== 
 !----------------------------------------------------------------------------------------------------------------------------------
 !> This routine parse the KiteAeroDyn input file.
-   subroutine ReadKFCFile(InitInp, interval, errStat, errMsg)
+   subroutine ReadKFCFile(InitInp, interval,p, errStat, errMsg)
 
       type(KFC_InitInputType),          intent(inout)  :: InitInp     !< Initialization input data for KiteFastController
       real(DbKi),                       intent(in   )  :: interval    !< Default time step for controller calculations, s
+      TYPE(KFC_ParameterType),          INTENT( INOUT ):: p           !< parameters
       integer(IntKi),                   intent(  out)  :: errStat     !< Error status of the operation
       character(*),                     intent(  out)  :: errMsg      !< Error message if errStat /= ErrID_None
    
@@ -969,8 +975,57 @@ module KiteFastController
       
       call ReadVarWDefault( UnIn, fileName, InitInp%InpFileData%DTctrl, "DTctrl", "Time interval for controller calculations {or default} (s)", interval, errStat2, errMsg2, UnEc)
          call SetErrStat( errStat2, errMsg2, errStat, errMsg, RoutineName )
- 
+      !-------------------------- INITIAL CONDITIONS ------------------------
+
+      CALL ReadCom( UnIn, fileName, 'Section Header: Initial Conditions', ErrStat2, ErrMsg2, UnEc )
+      CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
+      IF ( ErrStat >= AbortErrLev ) THEN
+            CALL Cleanup()
+            RETURN
+      END IF
+
+      ! rtrBladePitch - Rotor blade putchs [1 to NRotOuts] 
+      CALL ReadAry( UnIn, fileName, InitInp%InpFileData%rtrBladePitch, p%nRotors, "rtrBladePitch", "List of initial rotor blade pitches (rad) [nRotors]", ErrStat2, ErrMsg2, UnEc)
+         CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
+         IF ( ErrStat >= AbortErrLev ) THEN
+            CALL Cleanup()
+            RETURN
+         END IF
+
+      ! genTorq - Gen torques [1 to NRotOuts] 
+      CALL ReadAry( UnIn, fileName, InitInp%InpFileData%genTorq, p%nRotors, "genTorq", "List of initial generator torques (Nm) [nRotors]", ErrStat2, ErrMsg2, UnEc)
+         CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
+         IF ( ErrStat >= AbortErrLev ) THEN
+            CALL Cleanup()
+            RETURN
+         END IF
+
+      ! rtrSpd - rotor speeds [1 to NRotOuts] 
+      CALL ReadAry( UnIn, fileName, InitInp%InpFileData%rtrSpd, p%nRotors, "rtrSpd", "List of initial rotor speeds (rad/s) [nRotors]", ErrStat2, ErrMsg2, UnEc)
+         CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
+         IF ( ErrStat >= AbortErrLev ) THEN
+            CALL Cleanup()
+            RETURN
+         END IF
+
+      ! rtrAcc - rotor accels [1 to NRotOuts] 
+      CALL ReadAry( UnIn, fileName, InitInp%InpFileData%rtrAcc, p%nRotors, "rtrAcc", "List of initial rotor accels (rad/s^2) [nRotors]", ErrStat2, ErrMsg2, UnEc)
+         CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
+         IF ( ErrStat >= AbortErrLev ) THEN
+            CALL Cleanup()
+            RETURN
+         END IF
+
+      ! ctrlSettings - flap initial deflections [1 to 8 (most flaps in CSIM)] 
+      CALL ReadAry( UnIn, fileName, InitInp%InpFileData%ctrlSettings, p%nCtrlSettings, "ctrlSettings", "List of initial flap delflections (rad) [nCtrlSettings]", ErrStat2, ErrMsg2, UnEc)
+         CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
+         IF ( ErrStat >= AbortErrLev ) THEN
+            CALL Cleanup()
+            RETURN
+         END IF
+   
          !---------------------- OUTPUT --------------------------------------------------
+
       CALL ReadCom( UnIn, fileName, 'Section Header: Output', ErrStat2, ErrMsg2, UnEc )
          CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
          IF ( ErrStat >= AbortErrLev ) THEN
@@ -1019,14 +1074,14 @@ module KiteFastController
             RETURN
          END IF
    
-         IF ( InitInp%InpFileData%NRotOuts > 4*InitInp%numPylons ) THEN
+         IF ( InitInp%InpFileData%NRotOuts > p%nRotors ) THEN
             CALL SetErrStat( ErrID_Warn, 'Number of requested rotors outputs exceeds '// &
                                          TRIM(Num2LStr(4*InitInp%numPylons))//'.', ErrStat, ErrMsg, RoutineName )
             IF ( ErrStat >= AbortErrLev ) THEN
                CALL Cleanup()
                RETURN
             END IF
-            InitInp%InpFileData%NRotOuts = 4*InitInp%numPylons
+            InitInp%InpFileData%NRotOuts = p%nRotors
          END IF
          
          ! RotOuts - List of rotors whose values will be output (-) [1 to NRotOuts] [unused for NrotOuts=0]:
@@ -1045,14 +1100,14 @@ module KiteFastController
             RETURN
          END IF
    
-         IF ( InitInp%InpFileData%NFlpOuts > 2*InitInp%numFlaps+2 ) THEN
+         IF ( InitInp%InpFileData%NFlpOuts > p%nCtrlSettings ) THEN
             CALL SetErrStat( ErrID_Warn, 'Number of requested flaps outputs exceeds '// &
                                          TRIM(Num2LStr(2*InitInp%numFlaps+2))//'.', ErrStat, ErrMsg, RoutineName )
             IF ( ErrStat >= AbortErrLev ) THEN
                CALL Cleanup()
                RETURN
             END IF
-            InitInp%InpFileData%NFlpOuts = 2*InitInp%numFlaps+2
+            InitInp%InpFileData%NFlpOuts = p%nCtrlSettings
             print *, ">>>>>RRD_debug: In ",RoutineName," InitInp%InpFileData%NFlpOuts=",InitInp%InpFileData%NFlpOuts
          END IF
          

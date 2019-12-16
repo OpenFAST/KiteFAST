@@ -67,11 +67,8 @@ fi
 cd build
 
 #/usr/lib/lapack  /usr/lib/x86_64-linux-gnu/libgslcblas.so.0
-cmake ..  -DDOUBLE_PRECISION=OFF  -DGENERATE_TYPES=ON #-DLAPACK_LIBRARIES="~/anaconda3/pkgs/lapack-3.8.0-0/lib"  -DBLAS_LIBRARIES="~/anaconda3/lib/"
-#cmake ..  -DDOUBLE_PRECISION=OFF  -DGENERATE_TYPES=ON -DLAPACK_LIBRARIES="/usr/lib/lapack"  -DBLAS_LIBRARIES="~/usr/lib/x86_64-linux-gnu/"
+cmake ..  -DCMAKE_BUILD_TYPE=DEBUG -DDOUBLE_PRECISION=OFF  -DGENERATE_TYPES=ON
 make -j 2 kitefastlib kitefastoslib kitefastcontroller_controller
-#cmake ..  -DCMAKE_BUIKD_TYPE=DEBUG -DDOUBLE_PRECISION=OFF  -DGENERATE_TYPES=ON
-#make -j 2  kitefastcontroller_controller
 
 # download mbdyn, configure, and build
 cd $source_code_parent_directory
