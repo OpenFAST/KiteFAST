@@ -80,7 +80,7 @@ __attribute__((optimize(0)))  void MotorControlStep(const PowerSysSimParams *mot
     motor_state->motor_speeds[motor_number] += rotor_accel * *g_sys.ts;
 
     // Copy variables to output
-    motor_state->rotor_torques[motor_number] = rotor_torque;
+    motor_state->rotor_torques[motor_number] = torque;  //RRD>>> Replaced rotor_torque with torque
     motor_state->rotor_omegas[motor_number] = motor_state->motor_speeds[motor_number];
     motor_state->rotor_accel[motor_number]  = rotor_accel;
     // motor_state->aero_torque[motor_number] = external_torques[motor_number];

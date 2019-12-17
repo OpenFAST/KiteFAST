@@ -123,31 +123,50 @@ module KiteFastController
       !real(C_DOUBLE),       intent(in   ) :: ctrlSettings(:)
       
       
-      integer(IntKi)                :: wingOffset, i, j, c
+      integer(IntKi)                :: wingOffset, i, j, c, cp,cs
 
      errStat = ErrID_None
      errMsg  = ''
 
          ! Set outputs to zero for now
-      c = 1
-      wingOffset = 2*p%numPylons
+      ! c = 1
+      ! wingOffset = 2*p%numPylons
+      ! do j=1,p%numPylons
+      !    do i=1,2
+      !       !print *, ">>>>>>>> RRD_debug In",RoutineName,"o%genTorq(c)=",o%genTorq(c)," <<<<<<<<<<<<<<<<<<<<< \n" 
+      !       y%SPyGenTorque(i,j) = o%genTorq(c)
+      !       y%SPyRtrSpd(i,j)    = o%rtrSpd(c)
+      !       y%SPyRtrAcc(i,j)    = o%rtrAcc(c)
+      !       y%SPyBldPitch(i,j)  = o%rtrBladePitch(c)
+
+      !       y%PPyRtrAcc(i,j)    = o%rtrAcc(c + wingOffset)
+      !       y%PPyRtrSpd(i,j)    = o%rtrSpd(c + wingOffset)
+      !       y%PPyGenTorque(i,j) = o%genTorq(c + wingOffset)
+      !       y%PPyBldPitch(i,j)  = o%rtrBladePitch(c + wingOffset)
+      !       !print *, ">>>>>>>> RRD_debug In ",RoutineName," o%genTorq(c+ wingOffset)=",o%genTorq(c+ wingOffset),"y%PPyGenTorque(i,j)=",y%PPyGenTorque(i,j), " <<<<<<<<<<<<<<<<<<<<< \n" 
+      !       c = c + 1
+            
+      !    end do
+      ! end do
+
+      !RRD:  mapping redone for motors too. The location order is the CSIM one, and they get assigned to Port/Starboard here
       do j=1,p%numPylons
          do i=1,2
-            y%SPyGenTorque(i,j) = o%genTorq(c)
-            !print *, ">>>>>>>> RRD_debug In",RoutineName,"o%genTorq(c)=",o%genTorq(c)," <<<<<<<<<<<<<<<<<<<<< \n" 
-            y%PPyGenTorque(i,j) = o%genTorq(c + wingOffset)
-            y%SPyRtrSpd(i,j)    = o%rtrSpd(c)
-            y%PPyRtrSpd(i,j)    = o%rtrSpd(c + wingOffset)
-            y%SPyRtrAcc(i,j)    = o%rtrAcc(c)
-            y%PPyRtrAcc(i,j)    = o%rtrAcc(c + wingOffset)
-            y%SPyBldPitch(i,j)  = o%rtrBladePitch(c)
-            y%PPyBldPitch(i,j)  = o%rtrBladePitch(c + wingOffset)
-            !print *, ">>>>>>>> RRD_debug In ",RoutineName," o%genTorq(c+ wingOffset)=",o%genTorq(c+ wingOffset),"y%PPyGenTorque(i,j)=",y%PPyGenTorque(i,j), " <<<<<<<<<<<<<<<<<<<<< \n" 
-            c = c + 1
+            cp=(i-1)*(p%numPylons+j) + (2-i)*(p%nRotors+1-j-p%numPylons)
+            cs=(i-1)*(p%numPylons-j+1) + (2-i)*(p%nRotors-p%numPylons+j)
             
-         end do
+            y%PPyGenTorque(i,j) = o%genTorq(cp)
+            y%PPyRtrAcc(i,j)    = o%rtrAcc(cp)
+            y%PPyRtrSpd(i,j)    = o%rtrSpd(cp)            
+            y%PPyBldPitch(i,j)  = o%rtrBladePitch(cp)
+
+            y%SPyGenTorque(i,j) = o%genTorq(cs)
+            y%SPyRtrAcc(i,j)    = o%rtrAcc(cs)
+            y%SPyRtrSpd(i,j)    = o%rtrSpd(cs)       
+            y%SPyBldPitch(i,j)  = o%rtrBladePitch(cs)
+
+         end do   
       end do
-      
       !RRD: To me the following looks all wrong, so I am redoing the mapping below:
       !y%SFlp         = o%ctrlSettings(1:p%numFlaps)
       !y%PFlp         = o%ctrlSettings(p%numFlaps+1:2*p%numFlaps)
@@ -460,6 +479,7 @@ module KiteFastController
       p%OutSwtch  = InitInp%InpFileData%OutSwtch
       p%NumOuts   = InitInp%InpFileData%NumOuts !this could be numouts instead
       p%NFlpOuts  = InitInp%InpFileData%NFlpOuts
+      p%FlpOuts   = InitInp%InpFileData%FlpOuts
       p%OutFmt    = InitInp%InpFileData%OutFmt
       p%NRotOuts  = InitInp%InpFileData%NRotOuts
       p%RotOuts   = InitInp%InpFileData%RotOuts
@@ -1112,7 +1132,7 @@ module KiteFastController
          END IF
          
          ! FlpOuts - List of flaps whose values will be output (-) [1 to NFlpOuts] [unused for NFlpOuts=0]:
-      CALL ReadAry( UnIn, fileName, InitInp%InpFileData%FlpOuts, InitInp%InpFileData%NFlpOuts, "FlpOuts", "List of rotors whose gentorque will be output (-) [1 to NFlpOuts] [unused for NFlpOuts=0]", ErrStat2, ErrMsg2, UnEc)
+      CALL ReadAry( UnIn, fileName, InitInp%InpFileData%FlpOuts, InitInp%InpFileData%NFlpOuts, "FlpOuts", "List of flaps whose deflections will be output (-) [1 to NFlpOuts] [unused for NFlpOuts=0]", ErrStat2, ErrMsg2, UnEc)
          CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
          IF ( ErrStat >= AbortErrLev ) THEN
             CALL Cleanup()

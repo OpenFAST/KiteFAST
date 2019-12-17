@@ -2736,6 +2736,7 @@ subroutine KFAST_ProcessOutputs()
 
 end subroutine KFAST_ProcessOutputs
 
+!>>>>>RRD start:  added FusO_c, FusODCM_c, FusOv_c, FusOomegas_c, FusOacc_c, FusOalphas_c, arguments here
 subroutine Init_KiteSystem(dt_c, numFlaps, numPylons, numComp, numCompNds, modFlags, KAD_FileName_c, IfW_FileName_c, MD_FileName_c, KFC_FileName_c, &
                        outFileRoot_c, printSum, gravity, KAD_InterpOrder, MD_InitInp, FusODCM_c, numRtrPts_c, rtrPts_c, rtrMass_c, rtrI_Rot_c, rtrI_trans_c, rtrXcm_c, refPts_c, &
                        numNodePts_c, nodePts_c, nodeDCMs_c, nFusOuts_c, FusOutNd_c, nSWnOuts_c, SWnOutNd_c, &
@@ -2765,7 +2766,7 @@ subroutine Init_KiteSystem(dt_c, numFlaps, numPylons, numComp, numCompNds, modFl
    real(C_DOUBLE),           intent(in   ) :: rtrI_Rot_c(numRtrPts_c)                  ! Rotational inertia about the shaft axis of the top and bottom rotors/drivetrains on the pylons on the wing meshes (kg-m2)
    real(C_DOUBLE),           intent(in   ) :: rtrI_trans_c(numRtrPts_c)                ! Transverse inertia about the rotor reference point of the top and bottom rotors/drivetrains on the pylons on the wing meshes (kg-m2)
    real(C_DOUBLE),           intent(in   ) :: rtrXcm_c(numRtrPts_c)                    ! Distance along the shaft from the rotor reference point of the top and bottom rotors/drivetrains on the pylons on the wing meshes to the center of mass of the rotor/drivetrain (positive along positive x) (m)
-   real(C_DOUBLE),           intent(in   ) :: refPts_c(numComp*3)                    ! Initial location of the MBDyn component reference points in the global coordinates. (m)  The length of this array comes from  numComp * 3.
+   real(C_DOUBLE),           intent(in   ) :: refPts_c(numComp*3)            ! Initial location of the MBDyn component reference points in the global coordinates. (m)  The length of this array comes from  numComp * 3.
    integer(C_INT),           intent(in   ) :: numNodePts_c                   ! The total number of MBDyn structural nodes.  We need this total number (which could be derived from the numCompNds array) to size the following arrays in the Fortran code. 
    real(C_DOUBLE),           intent(in   ) :: nodePts_c(numNodePts_c*3)                   ! Initial location of the MBDyn structural nodes in the global coordinates. (m)  The array is populated in the same order at the numCompNds array.
    real(C_DOUBLE),           intent(in   ) :: nodeDCMs_c(numNodePts_c*9)                  ! Initial DCMs matrices to transform each nodal point from global to kite coordinates.
@@ -3138,6 +3139,32 @@ subroutine Init_KiteSystem(dt_c, numFlaps, numPylons, numComp, numCompNds, modFl
    KFC_InitInp%OutFileRoot = p%OutFileRoot !RRD
    
    !call KFC_Init(KFC_InitInp, m%KFC%u, m%KFC%p, m%KFC%y, interval, errStat2, errMsg2 )
+   !>>>>>RRD start:     Get initial conditions passed on to KFC_Init
+   print *, ">>>>>>>> RRD_Debug: In ",routineName," before FusO definition<<<<<<<<<<<<<<<<<<<<< \n"  
+   !FusO = refPts_c(1:3)   ! This is in global coordinates
+   ! TODO : Check ording of c data to make sure we get the expected global to local DCM
+   !m%FusODCM = reshape(FusODCM_c,(/3,3/))
+  
+   !FusOv = FusOv_c
+   
+   m%KFC%u%Xg            = FusO - p%anchorPt
+   m%KFC%u%Xg            = matmul(p%DCM_Fast2Ctrl, m%KFC%u%Xg)
+   m%KFC%u%rho           = p%AirDens
+   m%KFC%u%dcm_g2b       = matmul(m%FusODCM, transpose(p%DCM_Fast2Ctrl))
+
+   !m%KFC%u%tether_forceb = matmul(OtherSt%FusODCM, OtherSt%totalFairLeadLoads)
+   !m%KFC%u%pqr           = matmul(OtherSt%FusODCM, OtherSt%FusOomegas)
+   !m%KFC%u%acc_norm      = TwoNorm(OtherSt%FusOacc)
+   !m%KFC%u%Vg            = matmul(p%DCM_Fast2Ctrl, FusOv)
+   !m%KFC%u%Vb            = matmul(m%FusODCM, FusOv)
+   !m%KFC%u%Ag            = matmul(p%DCM_Fast2Ctrl, OtherSt%FusOacc)
+   !m%KFC%u%Ab            = matmul(OtherSt%FusODCM, OtherSt%FusOacc)
+   !m%KFC%u%apparent_wind = IfW_FusO - OtherSt%FusOv
+   !m%KFC%u%wind_g        = matmul(p%DCM_Fast2Ctrl, IfW_ground)
+   !m%KFC%u%apparent_wind = matmul(p%DCM_Fast2Ctrl, m%KFC%u%apparent_wind)
+   ! <<<<<<<<RRD: end
+
+
    call KFC_Init(KFC_InitInp, m%KFC%u, m%KFC%p, m%KFC%y, interval, m%KFC%m, m%KFC%o, KFC_InitOut, errStat2, errMsg2 ) !RRD
       call SetErrStat(errStat2,errMsg2,errStat,errMsg,routineName)
       if (errStat >= AbortErrLev ) then
@@ -3283,7 +3310,7 @@ subroutine Init_KiteSystem(dt_c, numFlaps, numPylons, numComp, numCompNds, modFl
          
             ! Convert 1D float array data into specific quantities
       
-         FusO = refPts_c(1:3)   ! This is in global coordinates
+         FusO = refPts_c(1:3)   ! This is in global coordinates  <<<< RRD moved this up as it is needed for KFC_Init as well
          m%FusO = FusO
          ! The remaining reference points are already in the Kite coordinate system!
          m%SWnO = refPts_c(4:6)
@@ -3393,7 +3420,8 @@ subroutine Init_KiteSystem(dt_c, numFlaps, numPylons, numComp, numCompNds, modFl
          call AllocAry( m%PPyAccs, 3, maxPPyNds, p%numPylons, 'PPyAccs', errStat2, errMsg2 )
             call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
       
-         ! TODO : Check ording of c data to make sure we get the expected global to local DCM
+         !RRD moved next 2 lines up because KFC_Init needs them too
+         !!   ! TODO : Check ording of c data to make sure we get the expected global to local DCM
          m%FusODCM = reshape(FusODCM_c,(/3,3/))
    
          call TransferMBDynInitInputs( numNodePts_c, nodePts_c, nodeDCMs_c, rtrPts_c, p, m, errStat2, errMsg2 )

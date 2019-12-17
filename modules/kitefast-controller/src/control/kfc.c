@@ -148,7 +148,7 @@ void controller_init(double Requested_dT, int numFlaps, int numPylons, double ge
       controlglob.state.motor_state.rotor_accel[i]   = rotorAccel[i];
 	}
 	 // Copy flaps data from initial values provided by user
-	memcpy(controlglob.raw_control_output.flaps, ctrlSettings, sizeof(ctrlSettings));
+	memcpy(controlglob.raw_control_output.flaps, ctrlSettings, sizeof(controlglob.raw_control_output.flaps));
 	
 	//>>>>>>>>>>> END
   	InitMotorControl(&controlglob.state.motor_state);

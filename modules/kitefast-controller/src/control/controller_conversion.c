@@ -71,7 +71,7 @@ __attribute__((optimize(0)))  void AssignInputs(double dcm_g2b_c[], double pqr_c
 	state_est->pqr_f_lpf.y = state_est->pqr_f.y;	
 	state_est->pqr_f_lpf.z = state_est->pqr_f.z;
 
-	//acc_norm_c - convert and copy value into state_est->acc_norm_f
+	//acc_norm_c - convert and copy value into state_est->acc_norm_f  // RRD-Why does it have to be converted? Ask JUSTIN
 	double acc_norm_f_tmp = *acc_norm_c;
 	memcpy(&state_est->acc_norm_f, &acc_norm_f_tmp, sizeof(state_est->acc_norm_f));
 
@@ -91,13 +91,13 @@ __attribute__((optimize(0)))  void AssignInputs(double dcm_g2b_c[], double pqr_c
 	memcpy(&state_est->Vb, &Vb_tmp, sizeof(state_est->Vb));
 	memcpy(&state_est->Vb_f, &Vb_tmp, sizeof(state_est->Vb_f));
 
-	// Ag - convert and copy value into state_est->Ag
-	Vec3 Ag_tmp = { -Ag_c[0] , -Ag_c[1], -Ag_c[2] };
+	// Ag - convert and copy value into state_est->Ag  // RRD-Why does it have to be converted? Ask JUSTIN. Also I removed the - signs
+	Vec3 Ag_tmp = { Ag_c[0] , Ag_c[1], Ag_c[2] };
 	// Vec3 Ag_tmp = { Ag_c[0] , Ag_c[1], Ag_c[2] };
 	memcpy(&state_est->Ag, &Ag_tmp, sizeof(state_est->Ag));
 
-	// Ab_f - convert and copy value into state_est->Ab_f
-	Vec3 Ab_tmp = { -Ab_c[0] , -Ab_c[1] , -Ab_c[2] };
+	// Ab_f - convert and copy value into state_est->Ab_f  // RRD-Why does it have to be converted? Ask JUSTIN. Also I removed the - signs
+	Vec3 Ab_tmp = { Ab_c[0] , Ab_c[1] , Ab_c[2] };
 	// Vec3 Ab_tmp = { Ab_c[0] , Ab_c[1] , Ab_c[2] };
 	memcpy(&state_est->Ab_f, &Ab_tmp, sizeof(state_est->Ab_f));
 	// rho - convert and copy value into state_est->rho
@@ -252,8 +252,12 @@ void AssignOutputs(double CtrlSettings[], double Gen_Torque[],
 	// CtrlSettings[4] = -raw_control_output->flaps[kFlapA2]; //	Port      wing control ID 2
 	// CtrlSettings[5] = -raw_control_output->flaps[kFlapA1]; //	Port      wing control ID 3
 	
-	//RRD replace CtrlSettings above with this copy/pass-through
-	memcpy(CtrlSettings, raw_control_output->flaps, sizeof(CtrlSettings));
+	//RRD replace CtrlSettings above with this copy/pass-through; Could not figure out how to use membpy, ask JUSTIN
+	//memcpy(&CtrlSettings, &raw_control_output->flaps, sizeof(CtrlSettings));
+	for (int i = 0; i < kNumFlaps; i++) {
+      CtrlSettings[i] = raw_control_output->flaps[i];
+	}
+	
 
 	// (+) rudder deflection (TE to port side) -> induces a Left turn (towards port)
 	// (-) rudder deflection (TE to Starboard side) -> induces a Right turn (towards starboard)
@@ -271,14 +275,15 @@ void AssignOutputs(double CtrlSettings[], double Gen_Torque[],
 	
 	// Blade Pitch 
 	// currently not apart of controller. Place holders can be found below:
-	Blade_Pitch[0] = 0.0;
-	Blade_Pitch[1] = 0.0; 
-	Blade_Pitch[2] = 0.0; 
-	Blade_Pitch[3] = 0.0; 
-	Blade_Pitch[4] = 0.0; 
-	Blade_Pitch[5] = 0.0; 
-	Blade_Pitch[6] = 0.0; 
-	Blade_Pitch[7] = 0.0; 
+	*Blade_Pitch    = 0.0; // Can this take care of all ?
+	// Blade_Pitch[0] = 0.0;
+	// Blade_Pitch[1] = 0.0; 
+	// Blade_Pitch[2] = 0.0; 
+	// Blade_Pitch[3] = 0.0; 
+	// Blade_Pitch[4] = 0.0; 
+	// Blade_Pitch[5] = 0.0; 
+	// Blade_Pitch[6] = 0.0; 
+	// Blade_Pitch[7] = 0.0; 
 
 	//// MOTORS
 	// Kitefast Motor Order -> Kitefast sign convention
@@ -334,33 +339,40 @@ void AssignOutputs(double CtrlSettings[], double Gen_Torque[],
 	// [7] Port      outer Bot = kMotor4 (-)
 
 	//Generator Torques
-	Gen_Torque[0] = motor_state->rotor_torques[kMotor7]; 		
-	Gen_Torque[1] = motor_state->rotor_torques[kMotor2]; 		
-	Gen_Torque[2] = motor_state->rotor_torques[kMotor8]; 		
-	Gen_Torque[3] = motor_state->rotor_torques[kMotor1]; 		
-	Gen_Torque[4] = motor_state->rotor_torques[kMotor6]; 		
-	Gen_Torque[5] = motor_state->rotor_torques[kMotor3]; 		
-	Gen_Torque[6] = motor_state->rotor_torques[kMotor5]; 		
-	Gen_Torque[7] = motor_state->rotor_torques[kMotor4]; 		
+	// RRD: Can we use memcpy to remove for loops?
+	for (int i = 0; i < kNumMotors; i++) {
+      Gen_Torque[i]  = motor_state->rotor_torques[i];
+	  Rotor_Accel[i] = motor_state->rotor_accel[i];
+	  Rotor_Speed[i] = motor_state->rotor_omegas[i];
+	}
+	
+	// Gen_Torque[0] = motor_state->rotor_torques[kMotor7]; 		
+	// Gen_Torque[1] = motor_state->rotor_torques[kMotor2]; 		
+	// Gen_Torque[2] = motor_state->rotor_torques[kMotor8]; 		
+	// Gen_Torque[3] = motor_state->rotor_torques[kMotor1]; 		
+	// Gen_Torque[4] = motor_state->rotor_torques[kMotor6]; 		
+	// Gen_Torque[5] = motor_state->rotor_torques[kMotor3]; 		
+	// Gen_Torque[6] = motor_state->rotor_torques[kMotor5]; 		
+	// Gen_Torque[7] = motor_state->rotor_torques[kMotor4]; 		
 
-	// Rotor Accelerations
-	Rotor_Accel[0] = motor_state->rotor_accel[kMotor7]; 		
-	Rotor_Accel[1] = motor_state->rotor_accel[kMotor2]; 		
-	Rotor_Accel[2] = motor_state->rotor_accel[kMotor8]; 		
-	Rotor_Accel[3] = motor_state->rotor_accel[kMotor1]; 		
-	Rotor_Accel[4] = motor_state->rotor_accel[kMotor6]; 		
-	Rotor_Accel[5] = motor_state->rotor_accel[kMotor3]; 		
-	Rotor_Accel[6] = motor_state->rotor_accel[kMotor5]; 		
-	Rotor_Accel[7] = motor_state->rotor_accel[kMotor4]; 		
-	// Rotor Speeds
-	Rotor_Speed[0] = motor_state->rotor_omegas[kMotor7];		
-	Rotor_Speed[1] = motor_state->rotor_omegas[kMotor2];	
-	Rotor_Speed[2] = motor_state->rotor_omegas[kMotor8];		
-	Rotor_Speed[3] = motor_state->rotor_omegas[kMotor1];	
-	Rotor_Speed[4] = motor_state->rotor_omegas[kMotor6];		
-	Rotor_Speed[5] = motor_state->rotor_omegas[kMotor3];	
-	Rotor_Speed[6] = motor_state->rotor_omegas[kMotor5];	
-	Rotor_Speed[7] = motor_state->rotor_omegas[kMotor4];	
+	// // Rotor Accelerations
+	// Rotor_Accel[0] = motor_state->rotor_accel[kMotor7]; 		
+	// Rotor_Accel[1] = motor_state->rotor_accel[kMotor2]; 		
+	// Rotor_Accel[2] = motor_state->rotor_accel[kMotor8]; 		
+	// Rotor_Accel[3] = motor_state->rotor_accel[kMotor1]; 		
+	// Rotor_Accel[4] = motor_state->rotor_accel[kMotor6]; 		
+	// Rotor_Accel[5] = motor_state->rotor_accel[kMotor3]; 		
+	// Rotor_Accel[6] = motor_state->rotor_accel[kMotor5]; 		
+	// Rotor_Accel[7] = motor_state->rotor_accel[kMotor4]; 		
+	// // Rotor Speeds
+	// Rotor_Speed[0] = motor_state->rotor_omegas[kMotor7];		
+	// Rotor_Speed[1] = motor_state->rotor_omegas[kMotor2];	
+	// Rotor_Speed[2] = motor_state->rotor_omegas[kMotor8];		
+	// Rotor_Speed[3] = motor_state->rotor_omegas[kMotor1];	
+	// Rotor_Speed[4] = motor_state->rotor_omegas[kMotor6];		
+	// Rotor_Speed[5] = motor_state->rotor_omegas[kMotor3];	
+	// Rotor_Speed[6] = motor_state->rotor_omegas[kMotor5];	
+	// Rotor_Speed[7] = motor_state->rotor_omegas[kMotor4];	
 
 
 	// Print outputs of controller:
