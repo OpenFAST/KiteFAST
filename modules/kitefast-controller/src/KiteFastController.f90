@@ -573,7 +573,7 @@ module KiteFastController
       character(kind=C_CHAR)                        :: errMsg_c(IntfStrLen)
 
       !!real(C_DOUBLE), allocatable                   :: AeroTorq(:) , genTorq(:), rtrSpd(:), rtrAcc(:), rtrBladePitch(:), ctrlSettings(:)  !!RRD I replaced this with OtherStates in Registry
-      integer(IntKi)                                :: c, i, j, wingOffset
+      integer(IntKi)                                :: c, i, j, wingOffset, cp, cs
       errStat2 = ErrID_None
       errMsg2  = ''
       
@@ -607,10 +607,14 @@ module KiteFastController
          c = 1
          wingOffset = 2*p%numPylons
          do j=1,p%numPylons
-            do i=1,2
-               o%AeroTorq(c)              = u%SPyAeroTorque(i,j)
-               o%AeroTorq(c + wingOffset) = u%PPyAeroTorque(i,j)
-               c = c + 1
+            do i=1,2         !RRD changed to keep CIM order in out and input
+               !o%AeroTorq(c)              = u%SPyAeroTorque(i,j)
+               !o%AeroTorq(c + wingOffset) = u%PPyAeroTorque(i,j)
+               cp=(i-1)*(p%numPylons+j) + (2-i)*(p%nRotors+1-j-p%numPylons)
+               cs=(i-1)*(p%numPylons-j+1) + (2-i)*(p%nRotors-p%numPylons+j)
+               o%AeroTorq(cs)              = u%SPyAeroTorque(i,j)
+               o%AeroTorq(cp)              = u%PPyAeroTorque(i,j)
+               !c = c + 1
             end do
          end do
 

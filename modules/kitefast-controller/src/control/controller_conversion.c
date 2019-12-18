@@ -31,14 +31,14 @@ __attribute__((optimize(0)))  void AssignInputs(double dcm_g2b_c[], double pqr_c
 		printf("  tether_force_c = [%0.4f, %0.4f, %0.4f] \n",tether_force_c[0],tether_force_c[1],tether_force_c[2]);
 		printf("  wind_g_c = [%0.4f, %0.4f, %0.4f] \n",wind_g_c[0],wind_g_c[1],wind_g_c[2]);
 		printf("  AeroTorque (csim) = [%0.4f, %0.4f, %0.4f, %0.4f, %0.4f, %0.4f, %0.4f, %0.4f] \n",
-			AeroTorque[3],
-			AeroTorque[1],
-			AeroTorque[5],
-			AeroTorque[7],
-			AeroTorque[6],
-			AeroTorque[4],
 			AeroTorque[0],
-			AeroTorque[2]);
+			AeroTorque[1],
+			AeroTorque[2],
+			AeroTorque[3],
+			AeroTorque[4],
+			AeroTorque[5],
+			AeroTorque[6],
+			AeroTorque[7]);
 		// printf("  AeroTorque (kfas) = [%0.4f, %0.4f, %0.4f, %0.4f, %0.4f, %0.4f, %0.4f, %0.4f] \n",
 		// 	AeroTorque[0],
 		// 	AeroTorque[1],
@@ -130,15 +130,19 @@ __attribute__((optimize(0)))  void AssignInputs(double dcm_g2b_c[], double pqr_c
 	// AeroTorque[5] = AeroTorque_tmp[4]; // PTi
 	// AeroTorque[6] = AeroTorque_tmp[0]; // STi
 	// AeroTorque[7] = AeroTorque_tmp[2]; // STo
-
-	motor_state->aero_torque[0] = AeroTorque[3]; // SBo 
-	motor_state->aero_torque[1] = AeroTorque[1]; // SBi
-	motor_state->aero_torque[2] = AeroTorque[5]; // PBi
-	motor_state->aero_torque[3] = AeroTorque[7]; // PBo
-	motor_state->aero_torque[4] = AeroTorque[6]; // PTo
-	motor_state->aero_torque[5] = AeroTorque[4]; // PTi
-	motor_state->aero_torque[6] = AeroTorque[0]; // STi
-	motor_state->aero_torque[7] = AeroTorque[2]; // STo
+	
+	//RRD: changed this one to keep CSIM order in here
+	for (int i = 0; i < kNumMotors; i++) {
+      motor_state->aero_torque[i] = AeroTorque[i];
+	}
+	// motor_state->aero_torque[0] = AeroTorque[3]; // SBo 
+	// motor_state->aero_torque[1] = AeroTorque[1]; // SBi
+	// motor_state->aero_torque[2] = AeroTorque[5]; // PBi
+	// motor_state->aero_torque[3] = AeroTorque[7]; // PBo
+	// motor_state->aero_torque[4] = AeroTorque[6]; // PTo
+	// motor_state->aero_torque[5] = AeroTorque[4]; // PTi
+	// motor_state->aero_torque[6] = AeroTorque[0]; // STi
+	// motor_state->aero_torque[7] = AeroTorque[2]; // STo
 		 
 	//tether_force_c
 	// calculate tether roll angle using force vector components:
@@ -399,32 +403,32 @@ void AssignOutputs(double CtrlSettings[], double Gen_Torque[],
 				raw_control_output->flaps[kFlapA8],
 				-raw_control_output->flaps[kFlapEle],
 				raw_control_output->flaps[kFlapRud]);
-		printf("  Gen_Torque (kfast frame) = [%0.4f, %0.4f, %0.4f, %0.4f, %0.4f, %0.4f, %0.4f, %0.4f] \n",
-				motor_state->rotor_torques[kMotor7],
-				motor_state->rotor_torques[kMotor2],
-				motor_state->rotor_torques[kMotor8],
+		printf("  Gen_Torque (csim frame) = [%0.4f, %0.4f, %0.4f, %0.4f, %0.4f, %0.4f, %0.4f, %0.4f] \n",
 				motor_state->rotor_torques[kMotor1],
-				motor_state->rotor_torques[kMotor6],
+				motor_state->rotor_torques[kMotor2],
 				motor_state->rotor_torques[kMotor3],
+				motor_state->rotor_torques[kMotor4],
 				motor_state->rotor_torques[kMotor5],
-				motor_state->rotor_torques[kMotor4]);
-		printf("  Rotor_Speed (kfast frame) = [%0.4f, %0.4f, %0.4f, %0.4f, %0.4f, %0.4f, %0.4f, %0.4f] \n",
-				motor_state->rotor_omegas[kMotor7],
-				motor_state->rotor_omegas[kMotor2],
-				motor_state->rotor_omegas[kMotor8],
+				motor_state->rotor_torques[kMotor6],
+				motor_state->rotor_torques[kMotor7],
+				motor_state->rotor_torques[kMotor8]);
+		printf("  Rotor_Speed (csim frame) = [%0.4f, %0.4f, %0.4f, %0.4f, %0.4f, %0.4f, %0.4f, %0.4f] \n",
 				motor_state->rotor_omegas[kMotor1],
-				motor_state->rotor_omegas[kMotor6],
+				motor_state->rotor_omegas[kMotor2],
 				motor_state->rotor_omegas[kMotor3],
+				motor_state->rotor_omegas[kMotor4],
 				motor_state->rotor_omegas[kMotor5],
-				motor_state->rotor_omegas[kMotor4]);
-		printf("  Rotor_Accel (kfast frame) = [%0.4f, %0.4f, %0.4f, %0.4f, %0.4f, %0.4f, %0.4f, %0.4f] \n",
-				motor_state->rotor_accel[kMotor7],
-				motor_state->rotor_accel[kMotor2],
-				motor_state->rotor_accel[kMotor8],
+				motor_state->rotor_omegas[kMotor6],
+				motor_state->rotor_omegas[kMotor7],
+				motor_state->rotor_omegas[kMotor8]);
+		printf("  Rotor_Accel (csim frame) = [%0.4f, %0.4f, %0.4f, %0.4f, %0.4f, %0.4f, %0.4f, %0.4f] \n",
 				motor_state->rotor_accel[kMotor1],
-				motor_state->rotor_accel[kMotor6],
+				motor_state->rotor_accel[kMotor2],
 				motor_state->rotor_accel[kMotor3],
+				motor_state->rotor_accel[kMotor4],
 				motor_state->rotor_accel[kMotor5],
-				motor_state->rotor_accel[kMotor4]);
+				motor_state->rotor_accel[kMotor6],
+				motor_state->rotor_accel[kMotor7],
+				motor_state->rotor_accel[kMotor8]);
 	#endif
 }
