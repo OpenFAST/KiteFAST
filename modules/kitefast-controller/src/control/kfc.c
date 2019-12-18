@@ -13,7 +13,10 @@
 #include "control/physics/motor_params.h"
 #include "control/system_params.h"
 
-// ControlGlobal is a work around to avoid having to store variables in Kitefast
+// KFC.C -> top level of shared library (binary file)
+// This is The functions in this file are the callable
+
+// ControlGlobal is a work around to avoid having to store controller specific variables in Kitefast
 // The control global struct is defined in the init function, and then called throughout the step function
 // Control Global comprises of existing CSim structrues (StateEstimate, ControlState, ControlOutput, FlightStatus)
 ControlGlobal controlglob = {	.state_est = {
@@ -77,6 +80,7 @@ ControlGlobal controlglob = {	.state_est = {
 								  	.last_flight_mode = kFlightModeCrosswindNormal,
 									.flight_mode_first_entry = false },
 								.state = {
+									// these rotor torques/omegas/accel are the values that make up the initial guess to Kitefast (omegas taken from .h5 file)
 									.motor_state = {
   										.rotor_torques = {341.8406, -376.9308, -414.5138, 455.5038, -374.0471, 348.2114, 326.1038, -306.6319},
   										.rotor_omegas = {-150, 144, 139, -134, 173, -178, -183, 188},
@@ -93,10 +97,18 @@ ControlGlobal controlglob = {	.state_est = {
 // controller_init
 // 		- Initializes controller modules (crosswind, motor control) and loads in controller params
 // Inputs:
-// 		errStat - Error value
-// 		errMsg - Error msg
-// Output -> errStat & errMsg are pointers
-//
+// 		Requested_dT 	- value of dt. this must agree with g_sys.ts or controller will throw assertion (double)
+// 		numFlaps		- number of flaps the kitefast kite is currently using. this must agree with the enum kNumFlaps (int)
+// 		numPylons		- number of pylons per wing of the kite is currently using. this must agree with the enum kNumFlaps (int)
+// 		I_rot			- Moment of Inertia of each rotor (size = #ofRotors x 1) (double)
+// 		errStat 		- Error value (int)
+// 		errMsg 			- Error msg (char)
+// Output -> all outputs below are passed as pointers 
+//		genTorq
+//		rotorSpeed
+//		rotorAccel
+//		rotorBlPit
+//		ctrlSettings
 // TODO 
 // 		- add error checks for number of Flaps & number Pylons (done)
 // 		- Connect with new inputs from Kitefast (waiting on Update)
@@ -129,7 +141,8 @@ void controller_init(double Requested_dT, int numFlaps, int numPylons, double ge
 	// 0.4.1 - Added pre-inner step preparation functions (CalcCrosswindPqr()/CalcCrosswindPqrDot()/CalcAeroForce())
 	// 0.5.0 - Output Step icluded and working
 	// 1.0.0 - First working draft of Controller - all minor steps are working
-	// 1.1.0 - Motor Model added - hooks to kitefast still not connected - but controller is producing 
+	// 1.1.0 - Motor Model added - hooks to kitefast still not connected - but controller is producing
+
 	const char controllerVerNumber[] = "1.1.0"; // major.minor.[maintenance]
 #ifdef DEBUG									//DEBUG preproc found in kfc.h
 	printf("   controller_version: %s \n", controllerVerNumber);
@@ -195,10 +208,8 @@ void controller_init(double Requested_dT, int numFlaps, int numPylons, double ge
 // 		errSta as pointer
 // 		errMsg as pointer
 //
-// TODO:
-// 		- Fill in kFlapA_c summary above
-// 		- Connect with new Inputs/Outputs from Kitefast (waiting on Update)
-__attribute__((optimize(0)))  void controller_step(double t, double dcm_g2b_c[], double pqr_c[], double *acc_norm_c,
+
+void controller_step(double t, double dcm_g2b_c[], double pqr_c[], double *acc_norm_c,
 					 double Xg_c[], double Vg_c[], double Vb_c[], double Ag_c[],
 					 double Ab_c[], double *rho_c, double apparent_wind_c[],
 					 double tether_force_c[], double wind_g_c[],
@@ -207,18 +218,13 @@ __attribute__((optimize(0)))  void controller_step(double t, double dcm_g2b_c[],
 					 double RotorSpeed[], double AeroTorque[],
 					 int *errStat, char *errMsg)
 {
-
-	#ifdef DEBUG //DEBUG preproc found in kfc.h
-//		printf("   controller_step\n");
-	#endif
-	// // placeholders for new inputs:
-	// double ext_torques[] = AeroTorque; //coming in as Aerotorque
-	//Convert the inputs from controller_step and assins the values that correspond to the inputs of CSim
+	
 
 #ifdef DEBUG //DEBUG preproc found in kfc.h
 	printf(" \n\ndebug - t = %f\n",t);
 #endif
-
+	// Convert the inputs of controller_step and assign the values that correspond to the inputs of CSim crosswind step (mainly state estimate)
+	// the inputs of controller_step are copied to thie corresponding variables found within StateEstimate 8
 	AssignInputs(dcm_g2b_c, pqr_c, acc_norm_c,
 				 Xg_c, Vg_c, Vb_c, Ag_c,
 				 Ab_c, rho_c, apparent_wind_c,
@@ -226,19 +232,22 @@ __attribute__((optimize(0)))  void controller_step(double t, double dcm_g2b_c[],
 				 errStat, errMsg, &controlglob.state_est,
 				 &controlglob.state.motor_state);
 
+	// intialize controller logging function
 	ControlLog control_log;
-	control_log.time = t;
-	control_log.stateEstLogPreStep = controlglob.state_est; // 
-	// Other modes to be added here
-	//#if DEBUG
-	//	printf("   debug marker - pre crosswindstep \n");
-	//#endif
+	control_log.time = t; // time
+	
+	// control_log is the structure that will be saved to the .csv file after each timestep (can change file name and variables being saved within control_log.c)
+	// Here, the state estimate data struct is being saves as "stateEstLogPreStep". 
+	// This was done when investigating if any state estimator variables are manipulated within the controller (a PostStep can be found after the CrosswindStep)
+	control_log.stateEstLogPreStep = controlglob.state_est; // logging state estimate data struct
+
+	// Call to crosswind step. This function is mostly staight from the crosswind controller in Csim.
 	CrosswindStep(&controlglob.flight_status, &controlglob.state_est, &GetControlParamsUnsafe()->crosswind,
 				  &controlglob.state.crosswind, &controlglob.raw_control_output);
-	//#if DEBUG
-	//	printf("   debug marker - post crosswindstep \n");
-	//#endif
-	// Motor sign change here:
+
+	// Apply sign directions to rotors before calling the motor control step. control_output.rotors[] are magnitudes of the rotor velocities.
+	// with the sign, the rotor magnitudes become rotor omegas.
+	// TODO JPM -> clean this reindexing up
 	controlglob.raw_control_output.rotors[kMotor1] = -controlglob.raw_control_output.rotors[kMotor1];
 	controlglob.raw_control_output.rotors[kMotor2] = controlglob.raw_control_output.rotors[kMotor2];
 	controlglob.raw_control_output.rotors[kMotor3] = controlglob.raw_control_output.rotors[kMotor3];
@@ -255,9 +264,13 @@ __attribute__((optimize(0)))  void controller_step(double t, double dcm_g2b_c[],
 		controlglob.raw_control_output.rotors, controlglob.state.motor_state.aero_torque, 
 		&controlglob.state.motor_state);
 
-	//SetMotorDirection(controlglob.state.motor_state.rotor_omegas,
-	//	controlglob.state.motor_state.rotor_accel, 
-	//	controlglob.state.motor_state.rotor_torques);
+	// set motor direction was used to change the direction of the motors.
+	// A new iteration saw that the rotors needed to be changed before going into MotorControlStep.
+	// The function can be found in motors.c
+	//SetMotorDirection(controlglob.state.motor_state.rotor_omegas, controlglob.state.motor_state.rotor_accel, 
+	// controlglob.state.motor_state.rotor_omegas)
+
+	// add default errMsg
 	char tmp[] = "   controller stepping";
 	int i;
 	for (i = 0; i < sizeof(tmp); i++)
@@ -267,14 +280,26 @@ __attribute__((optimize(0)))  void controller_step(double t, double dcm_g2b_c[],
 	// Saves all variables for this time step in ControlLog struct to txt file for analysis
 	control_log.controlOutputLog = controlglob.raw_control_output;
 	control_log.motor_state = controlglob.state.motor_state;
-	control_log.stateEstLogPostStep = controlglob.state_est;
+	control_log.stateEstLogPostStep = controlglob.state_est; // Post crosswind step saving
+	// Call to control log
 	ControlLogEntry(&control_log);
 
-	// convert outputs from controller to the kitefast frame
+	// Assign outputs takes the outputs needed for kitefast, and extracts them from the corresponding variables within the CSim data structs
+	// this function will also rearrange arrays to be in the correct indexing for kitefast. It was also flip some signs on the flaps. 
 	AssignOutputs(CtrlSettings, GenTorque, RotorAccel, RotorSpeed, RotorBladePitch,
 	errStat, errMsg, &controlglob.raw_control_output, &controlglob.state.motor_state);
 }
 
+// controller_end 
+// 		- performs a end step of the controller (currently doesn't do anything that will affect simulation/controller)
+// Inputs:
+// 		errStat 		- Error value (currently a placeholder, no value sent from controller to kitefast will trigger anything)
+// 		errMsg 			- Error msg (currently a placeholder, no value sent from controller to kitefast will trigger anything)
+// Outputs: 
+// 		errSta as pointer
+// 		errMsg as pointer
+//
+// TODO:
 void controller_end(int *errStat, char *errMsg)
 {
 	#ifdef DEBUG //DEBUG preproc found in kfc.h

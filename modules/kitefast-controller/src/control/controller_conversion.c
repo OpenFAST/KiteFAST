@@ -9,12 +9,43 @@
 #include "control/ground_station_frame.h"
 #include "kfc.h"
 
+// AssignInputs
+// 		- assigns input variables to kitefastcontroller and finds their corresponding variables in the csim data structures. 
+// Inputs:
+// 		dcm_g2b_c 	- "The DCM to go from the controller ground system to the kite body system"
+// 		pqr_c 		- "The kite angular velocities expressed in the kite body system" rad/s
+//		acc_norm_c 	- "Magnitude of the acceleration vector" m/s^2
+// 		Xg_c 		- "Location of the Kite Fuselage reference point in the controller ground system" m
+// 		Vg_c 		- "The kite translational velocities expressed in the controller ground system" m/s
+// 		Vb_c 		- "The kite translational velocities expressed in the kite body system" m/s
+//		Ag_c 		- "The kite accelerations expressed in the controller ground system" m/s^2
+// 		Ab_c 		- "The kite accelerations expressed in the kite body system" m/s^2
+// 		rho_c 		- "air density (constant in time and space)" kg/m^3
+// 		apparent_wind_c - "relative wind velocity at the fuselage reference point expressed in the controller ground system" m/s
+//		tether_force_c 	- "tether tension at bridle connection in the kite body system" N
+// 		wind_g_c 		- "wind velocity at the ground station point expressed in the controller ground system" m/s
+// 		AeroTorque 		- "control surface deflections" rad
+// 		errStat 		- Error value (currently a placeholder, no value sent from controller to kitefast will trigger anything)
+// 		errMsg 			- Error msg (currently a placeholder, no value sent from controller to kitefast will trigger anything)
+// Outputs: 
+// 		StateEstimate *state_est as pointer
+// 		MotorState *motor_state as pointer
+//
+// TODO:
+// 		- Evaluate chosen frequencies on low pass filters (tether_roll, alpha, beta, and pqr signals)
+//			- M. Abraham mentioned that low pass bandwidth on the tether roll (0.2Hz) is smaller than the controller's bandwidth (thats a nono)
+// 		- clean-up dcm_g2b transpose implementation
+// 		- check if sign flip on AeroTorque is no longer be necessary due to new act disk tables
+// 		- (done) update hard-coded low-pass filter func. argumetns from 0.01 to gsys.ts 
+
+// optimizer flag is included below to turn off optimizer which is used for debugging
 __attribute__((optimize(0)))  void AssignInputs(double dcm_g2b_c[], double pqr_c[], double *acc_norm_c,
 	double Xg_c[], double Vg_c[], double Vb_c[], double Ag_c[],
 	double Ab_c[], double *rho_c, double apparent_wind_c[],
 	double tether_force_c[], double wind_g_c[], double AeroTorque[], int *errStat, char *errMsg,
 	StateEstimate *state_est, MotorState *motor_state){
 
+	// print statements to allow user to view streaming kite state data
 	#if DEBUG
 		printf("  dcm_g2b_c = [%0.4f, %0.4f, %0.4f],[%0.4f, %0.4f, %0.4f],[%0.4f, %0.4f, %0.4f] \n",
 					dcm_g2b_c[0], dcm_g2b_c[1], dcm_g2b_c[2], dcm_g2b_c[3], dcm_g2b_c[4], dcm_g2b_c[5], dcm_g2b_c[6], dcm_g2b_c[7], dcm_g2b_c[8]);
@@ -39,15 +70,7 @@ __attribute__((optimize(0)))  void AssignInputs(double dcm_g2b_c[], double pqr_c
 			AeroTorque[5],
 			AeroTorque[6],
 			AeroTorque[7]);
-		// printf("  AeroTorque (kfas) = [%0.4f, %0.4f, %0.4f, %0.4f, %0.4f, %0.4f, %0.4f, %0.4f] \n",
-		// 	AeroTorque[0],
-		// 	AeroTorque[1],
-		// 	AeroTorque[2],
-		// 	AeroTorque[3],
-		// 	AeroTorque[4],
-		// 	AeroTorque[5],
-		// 	AeroTorque[6],
-		// 	AeroTorque[7]);
+
 	#endif
 	//dcm_2gb - convert and copy value into state_est->dcm_g2b
 	const Mat3 dcm_g2b_tmp = { { { dcm_g2b_c[0], dcm_g2b_c[1], dcm_g2b_c[2] },
@@ -55,6 +78,8 @@ __attribute__((optimize(0)))  void AssignInputs(double dcm_g2b_c[], double pqr_c
 		                     { dcm_g2b_c[6], dcm_g2b_c[7], dcm_g2b_c[8] } } };
 			 
 	Mat3 dcm_g2b_t;
+	// dcm_g2b given from kitefast is actually the transpose of the required matrix.
+	// It was discovered that Fortran is column major (i.e. a 2x1 array when defined in fortran is a 1 row 2 column matrix)
 	Mat3Trans(&dcm_g2b_tmp, &dcm_g2b_t);
 	memcpy(&state_est->dcm_g2b, &dcm_g2b_t, sizeof(state_est->dcm_g2b));
 
@@ -63,30 +88,30 @@ __attribute__((optimize(0)))  void AssignInputs(double dcm_g2b_c[], double pqr_c
 	memcpy(&state_est->pqr_f, &pqr_c_tmp, sizeof(state_est->pqr_f));
 	memcpy(&state_est->pqr, &pqr_c_tmp, sizeof(state_est->pqr));
 
-	state_est->pqr_f.x = Lpf(state_est->pqr_f.x, 5, 0.01, &state_est->pqr_f_lpf.x);
-	state_est->pqr_f.y = Lpf(state_est->pqr_f.y, 5, 0.01, &state_est->pqr_f_lpf.y);
-	state_est->pqr_f.z = Lpf(state_est->pqr_f.z, 5, 0.01, &state_est->pqr_f_lpf.z);
+	// Low pass filter added to help with transients - currently using 5Hz
+	state_est->pqr_f.x = Lpf(state_est->pqr_f.x, 5, *g_sys.ts, &state_est->pqr_f_lpf.x);
+	state_est->pqr_f.y = Lpf(state_est->pqr_f.y, 5, *g_sys.ts, &state_est->pqr_f_lpf.y);
+	state_est->pqr_f.z = Lpf(state_est->pqr_f.z, 5, *g_sys.ts, &state_est->pqr_f_lpf.z);
 
-	state_est->pqr_f_lpf.x = state_est->pqr_f.x;
+	// save values to pqr_f_lpf to use in next step (Lpf requires values from previous step)
+	state_est->pqr_f_lpf.x = state_est->pqr_f.x; 
 	state_est->pqr_f_lpf.y = state_est->pqr_f.y;	
 	state_est->pqr_f_lpf.z = state_est->pqr_f.z;
 
-	//acc_norm_c - convert and copy value into state_est->acc_norm_f  // RRD-Why does it have to be converted? Ask JUSTIN
+	//acc_norm_c - convert and copy value into state_est->acc_norm_f
 	double acc_norm_f_tmp = *acc_norm_c;
 	memcpy(&state_est->acc_norm_f, &acc_norm_f_tmp, sizeof(state_est->acc_norm_f));
-
+	
 	// Xg - convert and copy value into state_est->Xg
 	Vec3 Xg_tmp = { Xg_c[0] , Xg_c[1] , Xg_c[2] };
 	memcpy(&state_est->Xg, &Xg_tmp, sizeof(state_est->Xg));
 	
-	// Vg - convert and copy value into state_est->Vg
+	// Vg - convert and copy value into state_est->Vg & state_est->Vg_f since no filtered values are provided
 	Vec3 Vg_tmp = { Vg_c[0] , Vg_c[1] , Vg_c[2] };
-	//Vec3 Vg_tmp_csim;
-	//Mat3Vec3Mult(&dcm_kfast2csim_ground, &Vg_tmp, &Vg_tmp_csim);
 	memcpy(&state_est->Vg, &Vg_tmp, sizeof(state_est->Vg));
 	memcpy(&state_est->Vg_f, &Vg_tmp, sizeof(state_est->Vg_f));
 
-	// Vb - convert and copy value into state_est->Vb
+	// Vb - convert and copy value into state_est->Vb & state_est->Vb_f since no filtered values are provided
 	Vec3 Vb_tmp = { Vb_c[0] , Vb_c[1] , Vb_c[2] };
 	memcpy(&state_est->Vb, &Vb_tmp, sizeof(state_est->Vb));
 	memcpy(&state_est->Vb_f, &Vb_tmp, sizeof(state_est->Vb_f));
@@ -104,57 +129,48 @@ __attribute__((optimize(0)))  void AssignInputs(double dcm_g2b_c[], double pqr_c
 	double rho_tmp = *rho_c;
 	memcpy(&state_est->rho, &rho_tmp, sizeof(state_est->rho));
 
+	// apparent wind (consists of x,y,z velocity components)
+	// controller primarily uses spherical coordinates.
+	// Alpha, beta and V are needed in stead of cart. coords. 
+	// create temporary Vec3 to handle velocity in cart. coord.
 	Vec3 V_wind_b; 
 	const Vec3 V_wind_tmp = {apparent_wind_c[0],apparent_wind_c[1],apparent_wind_c[2]};
+
+	// find wind velocity in body frame
 	Mat3Vec3Mult(&dcm_g2b_t, &V_wind_tmp, &V_wind_b);
+	// magnitude of velocity vector
 	state_est->apparent_wind.sph_f.v = Sqrt(Square(V_wind_b.x)+Square(V_wind_b.y)+Square(V_wind_b.z));
-	state_est->apparent_wind.sph_f.alpha = atan(V_wind_b.z/V_wind_b.x);
-	state_est->apparent_wind.sph_f.beta = -asin(V_wind_b.y/state_est->apparent_wind.sph_f.v); // remove (-) and test
-	state_est->apparent_wind.solution_type = kApparentWindSolutionTypePitot; // added 6/27/19
-
-	state_est->apparent_wind.sph_f.alpha = Lpf(state_est->apparent_wind.sph_f.alpha , 2.0, 0.01, &state_est->apparent_wind.sph_f.alpha_lpf);
-	state_est->apparent_wind.sph_f.beta  = Lpf(state_est->apparent_wind.sph_f.beta  , 2.0, 0.01, &state_est->apparent_wind.sph_f.beta_lpf );
-
+	// angle of attack approximation
+	state_est->apparent_wind.sph_f.alpha = atan(V_wind_b.z/V_wind_b.x); 
+	// side-slip  approximation
+	state_est->apparent_wind.sph_f.beta = -asin(V_wind_b.y/state_est->apparent_wind.sph_f.v); 
+	// added solution type - 6/27/19 (found value using .h5)
+	state_est->apparent_wind.solution_type = kApparentWindSolutionTypePitot; 
+	// apply low-pass filters to alpha and beta approximations
+	state_est->apparent_wind.sph_f.alpha = Lpf(state_est->apparent_wind.sph_f.alpha , 2.0, *g_sys.ts, &state_est->apparent_wind.sph_f.alpha_lpf);
+	state_est->apparent_wind.sph_f.beta  = Lpf(state_est->apparent_wind.sph_f.beta  , 2.0, *g_sys.ts, &state_est->apparent_wind.sph_f.beta_lpf );
+	// save low-pass filtered values for next time step
 	state_est->apparent_wind.sph_f.alpha_lpf = state_est->apparent_wind.sph_f.alpha;
 	state_est->apparent_wind.sph_f.beta_lpf = state_est->apparent_wind.sph_f.beta;
-
-	// AeroTorque
-	// double AeroTorque_tmp[8];
-	// memcpy(&AeroTorque_tmp, &AeroTorque, sizeof(AeroTorque));
-	// AeroTorque Must be in Makani
-	// AeroTorque[0] = AeroTorque_tmp[3]; // SBo
-	// AeroTorque[1] = AeroTorque_tmp[1]; // SBi
-	// AeroTorque[2] = AeroTorque_tmp[5]; // PBi
-	// AeroTorque[3] = AeroTorque_tmp[7]; // PBo
-	// AeroTorque[4] = AeroTorque_tmp[6]; // PTo
-	// AeroTorque[5] = AeroTorque_tmp[4]; // PTi
-	// AeroTorque[6] = AeroTorque_tmp[0]; // STi
-	// AeroTorque[7] = AeroTorque_tmp[2]; // STo
 	
 	//RRD: changed this one to keep CSIM order in here
 	for (int i = 0; i < kNumMotors; i++) {
       motor_state->aero_torque[i] = AeroTorque[i];
 	}
-	// motor_state->aero_torque[0] = AeroTorque[3]; // SBo 
-	// motor_state->aero_torque[1] = AeroTorque[1]; // SBi
-	// motor_state->aero_torque[2] = AeroTorque[5]; // PBi
-	// motor_state->aero_torque[3] = AeroTorque[7]; // PBo
-	// motor_state->aero_torque[4] = AeroTorque[6]; // PTo
-	// motor_state->aero_torque[5] = AeroTorque[4]; // PTi
-	// motor_state->aero_torque[6] = AeroTorque[0]; // STi
-	// motor_state->aero_torque[7] = AeroTorque[2]; // STo
 		 
-	//tether_force_c
+	// tether_force_c
 	// calculate tether roll angle using force vector components:
 	double Tx = tether_force_c[0];
 	double Ty = tether_force_c[1];
 	double Tz = tether_force_c[2];
-	
-	//todo update 0.01 to gsys
+	// tether roll approximation using tether force
 	state_est->tether_force_b.sph.roll = acos((pow(Tx,2)+pow(Tz,2))/(sqrt(pow(Tx,2)+pow(Tz,2))*sqrt(pow(Tx,2)+pow(Ty,2)+pow(Tz,2))));
-	state_est->tether_force_b.sph.roll = Lpf(state_est->tether_force_b.sph.roll, 0.2, 0.01, &state_est->tether_force_b.sph.roll_lpf);
+	// add low-pass filter to filter out transients seen in force vectors
+	state_est->tether_force_b.sph.roll = Lpf(state_est->tether_force_b.sph.roll, 0.2, *g_sys.ts, &state_est->tether_force_b.sph.roll_lpf);
+	// save current tether roll angle to be using in next step.
 	state_est->tether_force_b.sph.roll_lpf = state_est->tether_force_b.sph.roll;
-	//state_est->tether_force_b.sph.pitch = Tz / (sqrt(pow(Tx,2)+pow(Tz,2))); // adding tether pitch - 6/27/19
+	// approximation for tether pitch (unused in controller)
+	state_est->tether_force_b.sph.pitch = Tz / (sqrt(pow(Tx,2)+pow(Tz,2))); // adding tether pitch - 6/27/19
 	printf("  Tether Roll Angle (rad): = [%0.4f] \n",state_est->tether_force_b.sph.roll);
 	state_est->tether_force_b.vector_f.x = Tx;
 	state_est->tether_force_b.vector_f.y = Ty;
@@ -173,6 +189,7 @@ __attribute__((optimize(0)))  void AssignInputs(double dcm_g2b_c[], double pqr_c
 	state_est->wind_g.vector.x = wind_g_csim.x;
 	state_est->wind_g.vector.y = wind_g_csim.y;
 	state_est->wind_g.vector.z = wind_g_csim.z;
+	// calculate direction of widn using VecGToAzimuthTz
 	state_est->wind_g.dir_f = VecGToAzimuth(&state_est->wind_g.vector);
 	// adding filtered versions - 6/27/19
 	state_est->wind_g.vector_f.x = wind_g_csim.x;
@@ -192,6 +209,7 @@ __attribute__((optimize(0)))  void AssignInputs(double dcm_g2b_c[], double pqr_c
 	state_est->wind_aloft_g.vector_f_slow.x = wind_g_csim.x;
 	state_est->wind_aloft_g.vector_f_slow.y = wind_g_csim.y;
 	state_est->wind_aloft_g.vector_f_slow.z = wind_g_csim.z;
+	// estimate for playbook speed (magnitude of the wind_aloft vector)
 	state_est->wind_aloft_g.speed_f_playbook = sqrt(pow(state_est->wind_aloft_g.vector_f.x,2) + pow(state_est->wind_aloft_g.vector_f.y,2) + pow(state_est->wind_aloft_g.vector_f.z,2));
 
 	// adding joystick throttle value: - 6/27/19
@@ -209,7 +227,8 @@ __attribute__((optimize(0)))  void AssignInputs(double dcm_g2b_c[], double pqr_c
 	// adding valid flag - 6/27/19
 	state_est->wind_g.valid = true;
 	state_est->gps_active = true;
-
+	
+	// added perch_azi values from .h5 file
 	state_est->perch_azi.valid = true;
 	state_est->perch_azi.angle = 0.8698;
 	state_est->perch_azi.angle_vel_f = 0;
@@ -218,22 +237,25 @@ __attribute__((optimize(0)))  void AssignInputs(double dcm_g2b_c[], double pqr_c
 
 }
 
+// AssignOutput
+// 		- assigns output variables to kitefastcontroller and finds their corresponding variables in the csim data structures. 
+// Inputs:
+//		- ControlOutput csim data structure
+//		- MotorState csim data structure
+// Outputs: 
+// 		- CtrlSettings 	- control surface deflections in kitefast frame (passed to function as pointer) (rad)
+// 		- Gen_Torque 	- generator torque in kitefast frame (passed to function as pointer) (N-m)
+// 		- Rotor_Accel 	- rotor accelerations in kitefast frame (passed to function as pointer) (m/s^2)
+// 		- Rotor_Speed 	- (in kitefast frame) (passed to function as pointer) (m/s)
+// 		- Blade_Pitch 	- (in kitefast frame) (passed to function as pointer) (rad)
+// 		- errStat 		- Error value (currently a placeholder, no value sent from controller to kitefast will trigger anything)
+// 		- errMsg 		- Error msg (currently a placeholder, no value sent from controller to kitefast will trigger anything)
+// TODO:
+// 		
 void AssignOutputs(double CtrlSettings[], double Gen_Torque[],
 	double Rotor_Accel[], double Rotor_Speed[], double Blade_Pitch[],
 	int *errStat, char *errMsg, 
 	ControlOutput* raw_control_output, MotorState* motor_state){
-
-	// Kite Fast control surfaces convention
-	// starboard-wing-1
-	// starboard-wing-2
-	// port-wing-1
-	// port-wing-2
-	// starboard-horizontalstab-1
-	// starboard-horizontalstab-2
-	// port-horizontalstab-1
-	// port-horizontalstab-2
-	// verticalstab-1
-	// verticalstab-2
 
 	// MAKANI FLAP convention (top-down view, nose facing up)
 	// 
@@ -245,37 +267,11 @@ void AssignOutputs(double CtrlSettings[], double Gen_Torque[],
 	// 							  ||
 	// KFAST FLAP convention
 
-	//kFlap_A
-	// (+) starboard deflection (TE up)  & (-) port deflection (TE down)-> induces Port Wing Down in Kitefast (-Roll Angle)
-	// (-) starboard deflection (TE down)& (+) port deflection (TE up)  -> induces Starboard Wing Down in Kitefast (+Roll Angle)
-	// Sign flip needed!
- 	// CtrlSettings[0] = -raw_control_output->flaps[kFlapA5]; //	Starboard wing control ID 1
-	// CtrlSettings[1] = -raw_control_output->flaps[kFlapA7]; //	Starboard wing control ID 2
-	// CtrlSettings[2] = -raw_control_output->flaps[kFlapA8]; //	Starboard wing control ID 3
-	// CtrlSettings[3] = -raw_control_output->flaps[kFlapA4]; //	Port      wing control ID 1
-	// CtrlSettings[4] = -raw_control_output->flaps[kFlapA2]; //	Port      wing control ID 2
-	// CtrlSettings[5] = -raw_control_output->flaps[kFlapA1]; //	Port      wing control ID 3
-	
 	//RRD replace CtrlSettings above with this copy/pass-through; Could not figure out how to use membpy, ask JUSTIN
 	//memcpy(&CtrlSettings, &raw_control_output->flaps, sizeof(CtrlSettings));
 	for (int i = 0; i < kNumFlaps; i++) {
       CtrlSettings[i] = raw_control_output->flaps[i];
 	}
-	
-
-	// (+) rudder deflection (TE to port side) -> induces a Left turn (towards port)
-	// (-) rudder deflection (TE to Starboard side) -> induces a Right turn (towards starboard)
-	// No sign flip needed
-	//CtrlSettings[6] = raw_control_output->flaps[kFlapRud]; //	Rudder
-	//CtrlSettings[7] = raw_control_output->flaps[kFlapRud]; //	Rudder
-
-	// (+) elevator deflection (TE up)   -> induces a pitch down in kitefast 
-	// (-) elevator deflection (TE down) -> induces a pitch up in kitefast
-	// Sign flip needed!
-	// CtrlSettings[8] =  -raw_control_output->flaps[kFlapEle]; // Elevators	
-	// CtrlSettings[9] =  -raw_control_output->flaps[kFlapEle]; // Elevators	
-	// CtrlSettings[10] = -raw_control_output->flaps[kFlapEle]; // Elevators	
-	// CtrlSettings[11] = -raw_control_output->flaps[kFlapEle]; // Elevators 
 	
 	// Blade Pitch 
 	// currently not apart of controller. Place holders can be found below:
@@ -349,34 +345,6 @@ void AssignOutputs(double CtrlSettings[], double Gen_Torque[],
 	  Rotor_Accel[i] = motor_state->rotor_accel[i];
 	  Rotor_Speed[i] = motor_state->rotor_omegas[i];
 	}
-	
-	// Gen_Torque[0] = motor_state->rotor_torques[kMotor7]; 		
-	// Gen_Torque[1] = motor_state->rotor_torques[kMotor2]; 		
-	// Gen_Torque[2] = motor_state->rotor_torques[kMotor8]; 		
-	// Gen_Torque[3] = motor_state->rotor_torques[kMotor1]; 		
-	// Gen_Torque[4] = motor_state->rotor_torques[kMotor6]; 		
-	// Gen_Torque[5] = motor_state->rotor_torques[kMotor3]; 		
-	// Gen_Torque[6] = motor_state->rotor_torques[kMotor5]; 		
-	// Gen_Torque[7] = motor_state->rotor_torques[kMotor4]; 		
-
-	// // Rotor Accelerations
-	// Rotor_Accel[0] = motor_state->rotor_accel[kMotor7]; 		
-	// Rotor_Accel[1] = motor_state->rotor_accel[kMotor2]; 		
-	// Rotor_Accel[2] = motor_state->rotor_accel[kMotor8]; 		
-	// Rotor_Accel[3] = motor_state->rotor_accel[kMotor1]; 		
-	// Rotor_Accel[4] = motor_state->rotor_accel[kMotor6]; 		
-	// Rotor_Accel[5] = motor_state->rotor_accel[kMotor3]; 		
-	// Rotor_Accel[6] = motor_state->rotor_accel[kMotor5]; 		
-	// Rotor_Accel[7] = motor_state->rotor_accel[kMotor4]; 		
-	// // Rotor Speeds
-	// Rotor_Speed[0] = motor_state->rotor_omegas[kMotor7];		
-	// Rotor_Speed[1] = motor_state->rotor_omegas[kMotor2];	
-	// Rotor_Speed[2] = motor_state->rotor_omegas[kMotor8];		
-	// Rotor_Speed[3] = motor_state->rotor_omegas[kMotor1];	
-	// Rotor_Speed[4] = motor_state->rotor_omegas[kMotor6];		
-	// Rotor_Speed[5] = motor_state->rotor_omegas[kMotor3];	
-	// Rotor_Speed[6] = motor_state->rotor_omegas[kMotor5];	
-	// Rotor_Speed[7] = motor_state->rotor_omegas[kMotor4];	
 
 
 	// Print outputs of controller:
@@ -390,10 +358,6 @@ void AssignOutputs(double CtrlSettings[], double Gen_Torque[],
 				CtrlSettings[5],
 				CtrlSettings[6],
 				CtrlSettings[7]);
-		//		CtrlSettings[8],
-				// CtrlSettings[9],
-				// CtrlSettings[10],
-				// CtrlSettings[11]);
 		printf("  kFlapA_c (csim frame) = [%0.4f, %0.4f, %0.4f, %0.4f, %0.4f, %0.4f, %0.4f, %0.4f] \n",
 				raw_control_output->flaps[kFlapA1],
 				raw_control_output->flaps[kFlapA2],
