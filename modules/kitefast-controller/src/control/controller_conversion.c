@@ -8,7 +8,7 @@
 #include "control/estimator/estimator_types.h"
 #include "control/ground_station_frame.h"
 #include "kfc.h"
-
+#include "control/system_params.h"
 // AssignInputs
 // 		- assigns input variables to kitefastcontroller and finds their corresponding variables in the csim data structures. 
 // Inputs:
@@ -89,6 +89,7 @@ __attribute__((optimize(0)))  void AssignInputs(double dcm_g2b_c[], double pqr_c
 	memcpy(&state_est->pqr, &pqr_c_tmp, sizeof(state_est->pqr));
 
 	// Low pass filter added to help with transients - currently using 5Hz
+
 	state_est->pqr_f.x = Lpf(state_est->pqr_f.x, 5, *g_sys.ts, &state_est->pqr_f_lpf.x);
 	state_est->pqr_f.y = Lpf(state_est->pqr_f.y, 5, *g_sys.ts, &state_est->pqr_f_lpf.y);
 	state_est->pqr_f.z = Lpf(state_est->pqr_f.z, 5, *g_sys.ts, &state_est->pqr_f_lpf.z);
