@@ -60,13 +60,13 @@ __attribute__((optimize(0)))  void MotorControlStep(const PowerSysSimParams *mot
     // Apply control with limits and anti-windup
     double omega_error = omega_cmd_filt - motor_state->motor_speeds[motor_number];
     double kp = motor_params->kp_rotor_vel_err;
-    double torque = kp * omega_error + motor_state->omega_cmd_int[motor_number];
+    double gen_torque = kp * omega_error + motor_state->omega_cmd_int[motor_number];
 
     double ki = motor_params->ki_rotor_vel_err * *g_sys.ts;
-    if (torque >= torque_limit.upper_limit) {
-      torque = torque_limit.upper_limit;
-    } else if (torque <= torque_limit.lower_limit) {
-      torque = torque_limit.lower_limit;
+    if (gen_torque >= torque_limit.upper_limit) {
+      gen_torque = torque_limit.upper_limit;
+    } else if (gen_torque <= torque_limit.lower_limit) {
+      gen_torque = torque_limit.lower_limit;
     } else {
       motor_state->omega_cmd_int[motor_number] += ki * omega_error;
     }
@@ -75,12 +75,13 @@ __attribute__((optimize(0)))  void MotorControlStep(const PowerSysSimParams *mot
     // Add in external_torques (assume contribution accelerates propeller).
     // Divide by individual propeller inertia and run discrete integrator.
     // TODO(gdolan): Consider whether a zoh is required on the torque.
-    double rotor_torque = torque + external_torques[motor_number]; // external torques coming in should be opposite sign  
-    double rotor_accel = rotor_torque / rotor_params[motor_number].I;
+    // total_torq = gen_torque + aero_torque
+    double total_torque = gen_torque + external_torques[motor_number]; // external torques coming in should be opposite sign  
+    double rotor_accel = total_torque / rotor_params[motor_number].I;
     motor_state->motor_speeds[motor_number] += rotor_accel * *g_sys.ts;
 
-    // Copy variables to output
-    motor_state->rotor_torques[motor_number] = torque;  //RRD>>> Replaced rotor_torque with torque
+    // Copy variables to output 
+    motor_state->rotor_torques[motor_number] = gen_torque;  //RRD>>> Replaced rotor_torque with torque
     motor_state->rotor_omegas[motor_number] = motor_state->motor_speeds[motor_number];
     motor_state->rotor_accel[motor_number]  = rotor_accel;
     // motor_state->aero_torque[motor_number] = external_torques[motor_number];

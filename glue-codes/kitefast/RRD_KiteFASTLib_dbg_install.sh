@@ -130,4 +130,4 @@ cd modules                     # move to the module directory
 make clean
 # sudo make                      # build the user defined element
 #sudo make # install              # install the user defined element in the right place
-make #thanks to links at the mbdyn usr/local level, we do not need sudo anylonger
+sudo make #thankthis must be sudo for some reasons to links at the mbdyn usr/local level, we do not need sudo anylonger

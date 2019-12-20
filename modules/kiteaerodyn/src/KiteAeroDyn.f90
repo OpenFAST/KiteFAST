@@ -101,7 +101,7 @@ subroutine RotorDisk_SetInputs(c_offset, numPylons, V_PyRtr, PyRtrMotions, RtSpd
             u_ActDsk(c)%skew = 0.0_ReKi
          else
                ! make sure we don't have numerical issues that make the ratio outside +/-1
-            tmp_sz_y = min(  1.0_ReKi, V_dot_x / tmp_sz )
+            tmp_sz_y = min(  1.0_ReKi, -V_dot_x / tmp_sz ) !RRD: changed sign to vdotx 
             tmp_sz_y = max( -1.0_ReKi, tmp_sz_y )
       
             u_ActDsk(c)%skew = acos( tmp_sz_y )
