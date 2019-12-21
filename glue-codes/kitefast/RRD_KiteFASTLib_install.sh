@@ -133,4 +133,4 @@ cd modules                     # move to the module directory
 make clean
 # sudo make                      # build the user defined element
 #sudo make # install              # install the user defined element in the right place
-make
+sudo make

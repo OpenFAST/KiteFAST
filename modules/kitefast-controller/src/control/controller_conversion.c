@@ -244,11 +244,11 @@ __attribute__((optimize(0)))  void AssignInputs(double dcm_g2b_c[], double pqr_c
 //		- ControlOutput csim data structure
 //		- MotorState csim data structure
 // Outputs: 
-// 		- CtrlSettings 	- control surface deflections in kitefast frame (passed to function as pointer) (rad)
-// 		- Gen_Torque 	- generator torque in kitefast frame (passed to function as pointer) (N-m)
-// 		- Rotor_Accel 	- rotor accelerations in kitefast frame (passed to function as pointer) (m/s^2)
-// 		- Rotor_Speed 	- (in kitefast frame) (passed to function as pointer) (m/s)
-// 		- Blade_Pitch 	- (in kitefast frame) (passed to function as pointer) (rad)
+// 		- CtrlSettings 	- control surface deflections in csim frame (passed to function as pointer) (rad)
+// 		- Gen_Torque 	- generator torque in csim frame (passed to function as pointer) (N-m)
+// 		- Rotor_Accel 	- rotor accelerations in csim frame (passed to function as pointer) (m/s^2)
+// 		- Rotor_Speed 	- (in csim frame) (passed to function as pointer) (m/s)
+// 		- Blade_Pitch 	- (in csim frame) (passed to function as pointer) (rad)
 // 		- errStat 		- Error value (currently a placeholder, no value sent from controller to kitefast will trigger anything)
 // 		- errMsg 		- Error msg (currently a placeholder, no value sent from controller to kitefast will trigger anything)
 // TODO:
@@ -264,7 +264,7 @@ void AssignOutputs(double CtrlSettings[], double Gen_Torque[],
 	// 							  ^	
 	// 						      ||
 	// -------------------------------------------------------- wing
-	// // A1  //  A2  //  A3  //  ||  \\  A5  \\  A7  \\  A8  \\  
+	// // A1  //  A2  //  A4  //  ||  \\  A5  \\  A7  \\  A8  \\  
 	// 							  ||
 	// KFAST FLAP convention
 
@@ -273,30 +273,14 @@ void AssignOutputs(double CtrlSettings[], double Gen_Torque[],
 	for (int i = 0; i < kNumFlaps; i++) {
       CtrlSettings[i] = raw_control_output->flaps[i];
 	}
-	
+	// just for fun try reverse the elevator #RRD
+	//CtrlSettings[6]= -CtrlSettings[6];
 	// Blade Pitch 
 	// currently not apart of controller. Place holders can be found below:
 	*Blade_Pitch    = 0.0; // Can this take care of all ?
-	// Blade_Pitch[0] = 0.0;
-	// Blade_Pitch[1] = 0.0; 
-	// Blade_Pitch[2] = 0.0; 
-	// Blade_Pitch[3] = 0.0; 
-	// Blade_Pitch[4] = 0.0; 
-	// Blade_Pitch[5] = 0.0; 
-	// Blade_Pitch[6] = 0.0; 
-	// Blade_Pitch[7] = 0.0; 
+
 
 	//// MOTORS
-	// Kitefast Motor Order -> Kitefast sign convention
-	// 
-	// [0] starboard-inboard-top      (-)
-	// [1] starboard-inboard-bottom   (+)
-	// [2] starboard-outboard-top     (+)
-	// [3] starboard-outboard-bottom  (-)
-	// [4] port-inboard-top           (-)
-	// [5] port-inboard-bottom        (+)
-	// [6] port-outboard-top          (+)
-	// [7] port-outboard-bottom       (-)
 
 	// Controller Motor Order -> Makani Sign Convention
 	// 
@@ -317,27 +301,6 @@ void AssignOutputs(double CtrlSettings[], double Gen_Torque[],
 	// hand rule) about the propeller axis, which is predominately in the
 	// same direction as the body x-axis.
 	// 
-	// SORTED BY MAKANI 0-7			// SORTED BY KFAST 0-7	
-	// ID   | Makani | KFast		ID   | KFast  | Makani	
-	// -----------------------	   -----------------------	
-	// SBo  |   1    |   3   		STi  |   0    |   7      			
-	// SBi  |   2    |   1   		SBi  |   1    |   2      	
-	// PBi  |   3    |   5   		STo  |   2    |   8      	
-	// PBo  |   4    |   7   		SBo  |   3    |   1      	
-	// PTo  |   5    |   6   		PTi  |   4    |   6      	
-	// PTi  |   6    |   4   		PBi  |   5    |   3      	
-	// STi  |   7    |   0   		PTo  |   6    |   5      	
-	// STo  |   8    |   2   		PBo  |   7    |   4    
-
-	// SUMMARY 
-	// [0] Starboard inner Top = kMotor7 (-)
-	// [1] Starboard inner Bot = kMotor2 (+)
-	// [2] Starboard outer Top = kMotor8 (+)
-	// [3] Starboard outer Bot = kMotor1 (-)
-	// [4] Port      inner Top = kMotor6 (-)
-	// [5] Port      inner Bot = kMotor3 (+)
-	// [6] Port      outer Top = kMotor5 (+)
-	// [7] Port      outer Bot = kMotor4 (-)
 
 	//Generator Torques
 	// RRD: Can we use memcpy to remove for loops?
@@ -366,7 +329,7 @@ void AssignOutputs(double CtrlSettings[], double Gen_Torque[],
 				raw_control_output->flaps[kFlapA5],
 				raw_control_output->flaps[kFlapA7],
 				raw_control_output->flaps[kFlapA8],
-				-raw_control_output->flaps[kFlapEle],
+				raw_control_output->flaps[kFlapEle],
 				raw_control_output->flaps[kFlapRud]);
 		printf("  Gen_Torque (csim frame) = [%0.4f, %0.4f, %0.4f, %0.4f, %0.4f, %0.4f, %0.4f, %0.4f] \n",
 				motor_state->rotor_torques[kMotor1],
