@@ -70,10 +70,6 @@ for text output, excluding the time channel. The resulting field should
 be 10 characters, but KiteAeroDyn does not check ``OutFmt`` for validity.
 If you want a sound generated on program exit, set ``Beep`` to true.
 
-.. figure:: figs/kad_driver_geom.png
-   :width: 60%
-   :align: center
-
 KiteAeroDyn Driver Kite Geometry
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
