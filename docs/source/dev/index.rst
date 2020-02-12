@@ -118,6 +118,6 @@ Specifically, the following documents are available for download:
 - :download:`KiteMBDyn Preprocessor Theory<../user/kitembdynpreprocessor/MBDyn_Preprocessor_Theory.pdf>`:
   preprocessor theory outline
 
-Furthermore, a 
-TODO: link to preprocessor dev guide
-TODO: link to MBDyn user module dev guide
+Furthermore, a guide to KiteMBDyn Preprocessor development is at
+:ref:`kitembdynpreprocessor_dev_guide` and details on the development of the
+MBDyn user modules is at :ref:`mbdyn_ude_dev_guide`.

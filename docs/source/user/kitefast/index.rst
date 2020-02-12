@@ -20,14 +20,10 @@ documentation is provided below.
 - `InflowWind <https://nwtc.nrel.gov/InflowWind/>`_: wind-inflow module
 - `MoorDyn <https://nwtc.nrel.gov/MoorDyn/>`_: tether dynamics module
 - Controller: kite controller module
-- `MBDyn <https://www.mbdyn.org>`_: third-party multibody dynamics
-  software developed at Politecnico di Milano. In KiteFAST, MBDyn is used for the
-  structural dynamics (except tether) and as the driver to move
-  the time-domain solution forward. Its documentation can be downloaded
-  :download:`here <mbdyn-input-1.7.3.pdf>` with further documentation
-  available at https://www.mbdyn.org/?Documentation. Contact
-  `Pierangelo Masarati <mailto:pierangelo.masarati@polimi.it>`_ for any
-  questions specific to MBDyn.
+- :ref:`mbdyn`: multibody dynamics software used for the
+  structural dynamics (except tether), as the driver to move
+  the time-domain solution forward, and the interface for forces and
+  kinematics between KiteFAST and MBDyn
 
 A series of test and example cases are included in the repository.
 See :ref:`kitefast_examples` for more information.

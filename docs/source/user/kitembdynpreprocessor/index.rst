@@ -11,7 +11,7 @@ mechanisms by which the simplified model described in the YAML file is
 converted to a full MBDyn model.
 
 Contact `Rafael Mudafort <mailto:rafael.mudafort@nrel.gov>`_
-and `Rick Damiani <mailto:rick.damiani@nrel.gov>`_.
+and `Rick Damiani <mailto:rrdengineering@gmail.com>`_.
 
 .. _kitembdynpreprocessor_user_guide:
 

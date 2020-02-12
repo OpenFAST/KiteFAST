@@ -1,6 +1,6 @@
 
-Developer Guide
-~~~~~~~~~~~~~~~
+Preprocessor Developer Guide
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 The KiteMBDyn Preprocessor (referred to as "preprocessor" going forward)
 is a Python-based tool for abstracting the complexities of creating an MBDyn
 for an energy kite. It contains various data structures to contain geometric
