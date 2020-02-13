@@ -58,6 +58,9 @@ simulation_controls:
     linear_solver:
         naive
 
+    eigen_analysis:
+        true
+
     rigid_model:
         # true | false
         false

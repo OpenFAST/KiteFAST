@@ -418,6 +418,16 @@ well.  Other solver options have not been fully explored.
     linear_solver:
         naive
 
+Eigen Analysis
+++++++++++++++
+This flag enables simulating a modal analysis. This is an MBDyn-only
+simulation.
+
+.. code-block:: yaml
+
+    eigen_analysis:
+        true
+
 Model Settings
 ++++++++++++++
 These are additional miscellaneous flags for further modeling configurations.

@@ -11,7 +11,7 @@ simulation_controls:
     fast_submodules:
         kiteaerodyn: true
         inflowwind: true
-        moordyn: false 
+        moordyn: true 
         controller: true
 
     fast_submodule_input_files:
@@ -37,13 +37,13 @@ simulation_controls:
             1e-3
 
         final:
-            60
+            0.5
 
     tolerance:
-        10
+        1e-3
 
     max_iterations:
-        "10, at most"
+        "60"
 
     derivatives:
         tolerance:
@@ -80,20 +80,21 @@ simulation_controls:
         location:
             # locates the kite coordinate system (MIP point) in the global frame
             # [x, y, z]
-            [0,0,200]
+            [126.6398, -379.6509, 172.8097]
 
         orientation:
             # [roll, pitch, yaw]
-            [0,180,0]
-            
+            #[-43.1531, -29.63091069, 7.88157559]
+            [-135.2768,-26.8122,15.2612]
+            #[3.8921,0.5236,0.1375]
         velocity:
             translational:
                 # [x, y, z]
-                [-40, 0, 0]
+                [53.9008, 3.3295, -29.7069]
 
             rotational:
                 # [roll, pitch, yaw]
-                [0, 0, 0]
+                [0.1474, -0.2842, -0.3232]
 
 keypoints:
     # component label                    X      Y      Z

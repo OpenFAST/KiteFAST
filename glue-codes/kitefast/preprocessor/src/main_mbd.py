@@ -52,6 +52,7 @@ class MainMBD():
         self.derivative_max_iteration = derivatives["max_iteration"]
         self.derivative_coefficient = derivatives["coefficient"]
         self.linear_solver = simulation_controls["linear_solver"]
+        self.eigen_analysis = simulation_controls["eigen_analysis"]
         self.debug = simulation_controls["debug"]
         self.rigid_model = simulation_controls["rigid_model"]
         ground_weather_station = simulation_controls["ground_weather_station"]
@@ -105,9 +106,10 @@ class MainMBD():
         output.write_line("# KiteMain.mbd")
         output.write_empty_line()
         output.write_empty_line()
-        output.write_line("module load: \"libmodule-kitefastmbd\";")
-        output.write_empty_line()
-        output.write_empty_line()
+        if not self.eigen_analysis:
+            output.write_line("module load: \"libmodule-kitefastmbd\";")
+            output.write_empty_line()
+            output.write_empty_line()
         output.write_line("begin: data;")
         output.write_line("    problem: initial value;")
         output.write_line("end: data;")
@@ -123,6 +125,13 @@ class MainMBD():
         output.write_line("    derivatives max iterations: {};".format(self.derivative_max_iteration))
         output.write_line("    derivatives coefficient: {};".format(self.derivative_coefficient))
         output.write_line("    linear solver: {}, colamd, mt, 1, pivot factor, 1e-8;".format(self.linear_solver))
+        if self.eigen_analysis:
+            output.write_line("    eigenanalysis:")
+            output.write_line("        1e-3,")
+            output.write_line("        output matrices,")
+            output.write_line("        output eigenvectors,")
+            output.write_line("        output geometry,")
+            output.write_line("        use lapack;")
         if self.debug:
             output.write_empty_line()
             output.write_line("    # for debugging")
@@ -163,7 +172,11 @@ class MainMBD():
         output.write_line("    beams: beam_count;")
         output.write_line("    joints: {};".format(str(len(self.joints))))
         output.write_line("    gravity;")
-        output.write_line("    loadable elements: 1;")
+        if self.eigen_analysis:
+            output.write_line("    loadable elements: 0;")
+            output.write_line("    output results: netcdf;")
+        else:
+            output.write_line("    loadable elements: 1;")
         output.write_line("end: control data;")
         output.write_empty_line()
         output.write_empty_line()
@@ -191,107 +204,108 @@ class MainMBD():
         output.write_empty_line()
         output.write_line("    inertia: 1, body, all;")
         output.write_empty_line()
-        output.write_line("    user defined: 1, ModuleKiteFAST,")
-        output.write_line("        fast_submodule_flags,")
-        output.write_line("            {},".format(1 if self.fast_submodules["kiteaerodyn"] is True else 0))
-        output.write_line("            {},".format(1 if self.fast_submodules["inflowwind"] is True else 0))
-        output.write_line("            {},".format(1 if self.fast_submodules["moordyn"] is True else 0))
-        output.write_line("            {},".format(1 if self.fast_submodules["controller"] is True else 0))
-        output.write_line("        fast_submodule_input_files,")
-        output.write_line("            \"{}\",".format(self.fast_submodule_input_files["kiteaerodyn_input"]))
-        output.write_line("            \"{}\",".format(self.fast_submodule_input_files["inflowwind_input"]))
-        output.write_line("            \"{}\",".format(self.fast_submodule_input_files["moordyn_input"]))
-        output.write_line("            \"{}\",".format(self.fast_submodule_input_files["controller_input"]))
-        output.write_line("        output_file_root,")
-        output.write_line("            \"{}\",".format(self.kitefast_output_file_root_name))
-        output.write_line("        print_kitefast_summary_file,")
-        output.write_line("            {},".format(1 if self.print_kitefast_summary_file is True else 0))
-        output.write_line("        time_step,")
-        output.write_line("            {},".format(self.timestep))
-        output.write_line("        gravity,")
-        output.write_line("            {},".format(-1 * self.gravity.x3))
-        output.write_line("        kiteaerodyn_interpolation_order,")
-        output.write_line("            {},".format(self.kiteaerodyn_interpolation_order))
-        output.write_line("        ground_weather_station_location,")
-        output.write_line("            {},".format(self.ground_weather_station_location))
-        output.write_line("        number_of_flaps_per_wing,")
-        output.write_line("            {},".format(self.number_of_flaps_per_wing))
-        output.write_line("        number_of_pylons_per_wing,")
-        output.write_line("            {},".format(self.number_of_pylons_per_wing))
-        output.write_line("        number_of_kite_components,")
-        output.write_line("            {},".format(self.number_of_kite_components))
-        output.write_line("        keypoints,")
-        output.write_line("         {},".format(self.initial_position))
-        output.write_line("         {},".format(self.keypoints["wing/starboard"]))
-        output.write_line("         {},".format(self.keypoints["wing/port"]))
-        output.write_line("         {},".format(self.keypoints["stabilizer/vertical"]))
-        output.write_line("         {},".format(self.keypoints["stabilizer/horizontal/starboard"]))
-        output.write_line("         {},".format(self.keypoints["stabilizer/horizontal/port"]))
-        for i, _ in enumerate(self.starboard_pylons):
-            output.write_line("         {},".format(self.keypoints["pylon/starboard/{}".format(str(i + 1))]))
-        for i, _ in enumerate(self.port_pylons):
-            output.write_line("         {},".format(self.keypoints["pylon/port/{}".format(str(i + 1))]))
-        output.write_line("        mip_node,")
-        output.write_line("            {},".format(self.mip_id))
-        for component in self.component_list:
-            output.write_line("        {},".format(component.component_name))
-            output.write_line("            {}_node_count,".format(component.component_name))
-            for i in range(component.node_count):
-                output.write_line("            {}_root_node + {},".format(component.component_name, i))
-            output.write_line("            {}_beam_count,".format(component.component_name))
-            for i in range(component.beam_count):
-                output.write_line("            {}_beam + {},".format(component.component_name, 10 * i))
-        output.write_line("        starboard_rotors,")
-        output.write_line("            {},".format(str(len(self.starboard_rotors))))
-        for component in self.starboard_rotors:
-            output.write_line("            {}_root_node + 0,".format(component.component_name))
-        output.write_line("        port_rotors,")
-        output.write_line("            {},".format(str(len(self.port_rotors))))
-        for i, component in enumerate(self.port_rotors):
-            output.write_line("            {}_root_node + 0,".format(component.component_name))
-        output.write_line("        starboard_rotor_properties,")
-        for component in self.starboard_rotors:
-            output.write_line("            {},".format(component.rotor_mass))
-            output.write_line("            {},".format(component.rotor_rot_inertia))
-            output.write_line("            {},".format(component.rotor_trans_inertia))
-            output.write_line("            {},".format(component.rotor_cm_offset))
-        output.write_line("        port_rotor_properties,")
-        for component in self.starboard_rotors:
-            output.write_line("            {},".format(component.rotor_mass))
-            output.write_line("            {},".format(component.rotor_rot_inertia))
-            output.write_line("            {},".format(component.rotor_trans_inertia))
-            output.write_line("            {},".format(component.rotor_cm_offset))
+        if not self.eigen_analysis:
+            output.write_line("    user defined: 1, ModuleKiteFAST,")
+            output.write_line("        fast_submodule_flags,")
+            output.write_line("            {},".format(1 if self.fast_submodules["kiteaerodyn"] is True else 0))
+            output.write_line("            {},".format(1 if self.fast_submodules["inflowwind"] is True else 0))
+            output.write_line("            {},".format(1 if self.fast_submodules["moordyn"] is True else 0))
+            output.write_line("            {},".format(1 if self.fast_submodules["controller"] is True else 0))
+            output.write_line("        fast_submodule_input_files,")
+            output.write_line("            \"{}\",".format(self.fast_submodule_input_files["kiteaerodyn_input"]))
+            output.write_line("            \"{}\",".format(self.fast_submodule_input_files["inflowwind_input"]))
+            output.write_line("            \"{}\",".format(self.fast_submodule_input_files["moordyn_input"]))
+            output.write_line("            \"{}\",".format(self.fast_submodule_input_files["controller_input"]))
+            output.write_line("        output_file_root,")
+            output.write_line("            \"{}\",".format(self.kitefast_output_file_root_name))
+            output.write_line("        print_kitefast_summary_file,")
+            output.write_line("            {},".format(1 if self.print_kitefast_summary_file is True else 0))
+            output.write_line("        time_step,")
+            output.write_line("            {},".format(self.timestep))
+            output.write_line("        gravity,")
+            output.write_line("            {},".format(-1 * self.gravity.x3))
+            output.write_line("        kiteaerodyn_interpolation_order,")
+            output.write_line("            {},".format(self.kiteaerodyn_interpolation_order))
+            output.write_line("        ground_weather_station_location,")
+            output.write_line("            {},".format(self.ground_weather_station_location))
+            output.write_line("        number_of_flaps_per_wing,")
+            output.write_line("            {},".format(self.number_of_flaps_per_wing))
+            output.write_line("        number_of_pylons_per_wing,")
+            output.write_line("            {},".format(self.number_of_pylons_per_wing))
+            output.write_line("        number_of_kite_components,")
+            output.write_line("            {},".format(self.number_of_kite_components))
+            output.write_line("        keypoints,")
+            output.write_line("         {},".format(self.initial_position))
+            output.write_line("         {},".format(self.keypoints["wing/starboard"]))
+            output.write_line("         {},".format(self.keypoints["wing/port"]))
+            output.write_line("         {},".format(self.keypoints["stabilizer/vertical"]))
+            output.write_line("         {},".format(self.keypoints["stabilizer/horizontal/starboard"]))
+            output.write_line("         {},".format(self.keypoints["stabilizer/horizontal/port"]))
+            for i, _ in enumerate(self.starboard_pylons):
+                output.write_line("         {},".format(self.keypoints["pylon/starboard/{}".format(str(i + 1))]))
+            for i, _ in enumerate(self.port_pylons):
+                output.write_line("         {},".format(self.keypoints["pylon/port/{}".format(str(i + 1))]))
+            output.write_line("        mip_node,")
+            output.write_line("            {},".format(self.mip_id))
+            for component in self.component_list:
+                output.write_line("        {},".format(component.component_name))
+                output.write_line("            {}_node_count,".format(component.component_name))
+                for i in range(component.node_count):
+                    output.write_line("            {}_root_node + {},".format(component.component_name, i))
+                output.write_line("            {}_beam_count,".format(component.component_name))
+                for i in range(component.beam_count):
+                    output.write_line("            {}_beam + {},".format(component.component_name, 10 * i))
+            output.write_line("        starboard_rotors,")
+            output.write_line("            {},".format(str(len(self.starboard_rotors))))
+            for component in self.starboard_rotors:
+                output.write_line("            {}_root_node + 0,".format(component.component_name))
+            output.write_line("        port_rotors,")
+            output.write_line("            {},".format(str(len(self.port_rotors))))
+            for i, component in enumerate(self.port_rotors):
+                output.write_line("            {}_root_node + 0,".format(component.component_name))
+            output.write_line("        starboard_rotor_properties,")
+            for component in self.starboard_rotors:
+                output.write_line("            {},".format(component.rotor_mass))
+                output.write_line("            {},".format(component.rotor_rot_inertia))
+                output.write_line("            {},".format(component.rotor_trans_inertia))
+                output.write_line("            {},".format(component.rotor_cm_offset))
+            output.write_line("        port_rotor_properties,")
+            for component in self.starboard_rotors:
+                output.write_line("            {},".format(component.rotor_mass))
+                output.write_line("            {},".format(component.rotor_rot_inertia))
+                output.write_line("            {},".format(component.rotor_trans_inertia))
+                output.write_line("            {},".format(component.rotor_cm_offset))
 
-        def _write_output_lines(nodes, header):
-            output.write_line("        {},".format(header))
+            def _write_output_lines(nodes, header):
+                output.write_line("        {},".format(header))
 
-            # if the only node listed is 0, no output nodes are requested
-            if nodes[0] is 0 and len(nodes) == 1:
-                output.write_line("            {},".format(0))
-            else:
-                output.write_line("            {},".format(len(nodes)))
-                for node in nodes:
-                    output.write_line("            {},".format(node))
-    
-        _write_output_lines(self.fuselage_output_nodes, "fuselage_outputs")
-        _write_output_lines(self.wing_starboard_nodes, "wing_starboard_outputs")
-        _write_output_lines(self.wing_port_outputs, "wing_port_outputs")
-        _write_output_lines(self.vertical_stabilizer_outputs, "vertical_stabilizer_outputs")
-        _write_output_lines(self.horizontal_stabilizer_starboard_outputs, "horizontal_stabilizer_starboard_outputs")
-        _write_output_lines(self.horizontal_stabilizer_port_outputs, "horizontal_stabilizer_port_outputs")
-        _write_output_lines(self.pylon_outputs, "pylon_outputs")
-        output.write_line("        output_channels,")
-        if len(self.output_channels) == 0:
-            output.write_line("            {};".format(len(self.output_channels)))
-        else:
-            output.write_line("            {},".format(len(self.output_channels)))
-            for i, channel in enumerate(self.output_channels):
-                output_string = "            {}".format(channel)
-                if i == len(self.output_channels)-1 :
-                    output_string += ";"
+                # if the only node listed is 0, no output nodes are requested
+                if nodes[0] is 0 and len(nodes) == 1:
+                    output.write_line("            {},".format(0))
                 else:
-                    output_string += ","
-                output.write_line(output_string)
+                    output.write_line("            {},".format(len(nodes)))
+                    for node in nodes:
+                        output.write_line("            {},".format(node))
+        
+            _write_output_lines(self.fuselage_output_nodes, "fuselage_outputs")
+            _write_output_lines(self.wing_starboard_nodes, "wing_starboard_outputs")
+            _write_output_lines(self.wing_port_outputs, "wing_port_outputs")
+            _write_output_lines(self.vertical_stabilizer_outputs, "vertical_stabilizer_outputs")
+            _write_output_lines(self.horizontal_stabilizer_starboard_outputs, "horizontal_stabilizer_starboard_outputs")
+            _write_output_lines(self.horizontal_stabilizer_port_outputs, "horizontal_stabilizer_port_outputs")
+            _write_output_lines(self.pylon_outputs, "pylon_outputs")
+            output.write_line("        output_channels,")
+            if len(self.output_channels) == 0:
+                output.write_line("            {};".format(len(self.output_channels)))
+            else:
+                output.write_line("            {},".format(len(self.output_channels)))
+                for i, channel in enumerate(self.output_channels):
+                    output_string = "            {}".format(channel)
+                    if i == len(self.output_channels)-1 :
+                        output_string += ";"
+                    else:
+                        output_string += ","
+                    output.write_line(output_string)
         output.write_line("end: elements;")
         output.write_empty_line()
 
