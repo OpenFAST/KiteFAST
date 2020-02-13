@@ -92,63 +92,63 @@
 		<Filter Name="RegistryFiles">
 		<File RelativePath="..\..\modules-local\actuatordisk\src\ActuatorDisk_Registry.txt">
 			<FileConfiguration Name="Debug_Double|Win32">
-				<Tool Name="VFCustomBuildTool" CommandLine="CALL ..\RunRegistry.bat ActuatorDisk" Description="Running Registry for ActuatorDisk" Outputs="..\..\build\types-files\ActuatorDisk_Types.f90"/></FileConfiguration>
+				<Tool Name="VFCustomBuildTool" CommandLine="CALL ..\RunRegistry.bat ActuatorDisk" Description="Running Registry for ActuatorDisk" Outputs="..\..\modules\actuatordisk\src\ActuatorDisk_Types.f90"/></FileConfiguration>
 			<FileConfiguration Name="Release_Double|Win32">
-				<Tool Name="VFCustomBuildTool" CommandLine="CALL ..\RunRegistry.bat ActuatorDisk" Description="Running Registry for ActuatorDisk" Outputs="..\..\build\types-files\ActuatorDisk_Types.f90"/></FileConfiguration>
+				<Tool Name="VFCustomBuildTool" CommandLine="CALL ..\RunRegistry.bat ActuatorDisk" Description="Running Registry for ActuatorDisk" Outputs="..\..\modules\actuatordisk\src\ActuatorDisk_Types.f90"/></FileConfiguration>
 			<FileConfiguration Name="Debug|Win32">
-				<Tool Name="VFCustomBuildTool" CommandLine="CALL ..\RunRegistry.bat ActuatorDisk" Description="Running Registry for ActuatorDisk" Outputs="..\..\build\types-files\ActuatorDisk_Types.f90"/></FileConfiguration>
+				<Tool Name="VFCustomBuildTool" CommandLine="CALL ..\RunRegistry.bat ActuatorDisk" Description="Running Registry for ActuatorDisk" Outputs="..\..\modules\actuatordisk\src\ActuatorDisk_Types.f90"/></FileConfiguration>
 			<FileConfiguration Name="Release|x64">
-				<Tool Name="VFCustomBuildTool" CommandLine="CALL ..\RunRegistry.bat ActuatorDisk" Description="Running Registry for ActuatorDisk" Outputs="..\..\build\types-files\ActuatorDisk_Types.f90"/></FileConfiguration>
+				<Tool Name="VFCustomBuildTool" CommandLine="CALL ..\RunRegistry.bat ActuatorDisk" Description="Running Registry for ActuatorDisk" Outputs="..\..\modules\actuatordisk\src\ActuatorDisk_Types.f90"/></FileConfiguration>
 			<FileConfiguration Name="Debug|x64">
-				<Tool Name="VFCustomBuildTool" CommandLine="CALL ..\RunRegistry.bat ActuatorDisk" Description="Running Registry for ActuatorDisk" Outputs="..\..\build\types-files\ActuatorDisk_Types.f90"/></FileConfiguration>
+				<Tool Name="VFCustomBuildTool" CommandLine="CALL ..\RunRegistry.bat ActuatorDisk" Description="Running Registry for ActuatorDisk" Outputs="..\..\modules\actuatordisk\src\ActuatorDisk_Types.f90"/></FileConfiguration>
 			<FileConfiguration Name="Debug_Double|x64">
-				<Tool Name="VFCustomBuildTool" CommandLine="CALL ..\RunRegistry.bat ActuatorDisk" Description="Running Registry for ActuatorDisk" Outputs="..\..\build\types-files\ActuatorDisk_Types.f90"/></FileConfiguration>
+				<Tool Name="VFCustomBuildTool" CommandLine="CALL ..\RunRegistry.bat ActuatorDisk" Description="Running Registry for ActuatorDisk" Outputs="..\..\modules\actuatordisk\src\ActuatorDisk_Types.f90"/></FileConfiguration>
 			<FileConfiguration Name="Release_Double|x64">
-				<Tool Name="VFCustomBuildTool" CommandLine="CALL ..\RunRegistry.bat ActuatorDisk" Description="Running Registry for ActuatorDisk" Outputs="..\..\build\types-files\ActuatorDisk_Types.f90"/></FileConfiguration>
+				<Tool Name="VFCustomBuildTool" CommandLine="CALL ..\RunRegistry.bat ActuatorDisk" Description="Running Registry for ActuatorDisk" Outputs="..\..\modules\actuatordisk\src\ActuatorDisk_Types.f90"/></FileConfiguration>
 			<FileConfiguration Name="Release|Win32">
-				<Tool Name="VFCustomBuildTool" CommandLine="CALL ..\RunRegistry.bat ActuatorDisk" Description="Running Registry for ActuatorDisk" Outputs="..\..\build\types-files\ActuatorDisk_Types.f90"/></FileConfiguration></File>
-		<File RelativePath="..\..\build\types-files\ActuatorDisk_Types.f90"/></Filter>
+				<Tool Name="VFCustomBuildTool" CommandLine="CALL ..\RunRegistry.bat ActuatorDisk" Description="Running Registry for ActuatorDisk" Outputs="..\..\modules\actuatordisk\src\ActuatorDisk_Types.f90"/></FileConfiguration></File>
+		<File RelativePath="..\..\modules\actuatordisk\src\ActuatorDisk_Types.f90"/></Filter>
 		<File RelativePath="..\..\modules-local\actuatordisk\src\ActuatorDisk.f90"/></Filter>
 		<Filter Name="AirfoilInfo">
 		<File RelativePath="..\..\modules-local\aerodyn\src\AirfoilInfo.f90"/>
 		<File RelativePath="..\..\modules-local\aerodyn\src\AirfoilInfo_Registry.txt">
 			<FileConfiguration Name="Debug_Double|Win32">
-				<Tool Name="VFCustomBuildTool" CommandLine="CALL ..\RunRegistry.bat AFI" Description="Running Registry for AirfoilInfo" Outputs="..\..\build\types-files\AirfoilInfo_Types.f90"/></FileConfiguration>
+				<Tool Name="VFCustomBuildTool" CommandLine="CALL ..\RunRegistry.bat AFI" Description="Running Registry for AirfoilInfo" Outputs="..\..\modules\aerodyn\src\AirfoilInfo_Types.f90"/></FileConfiguration>
 			<FileConfiguration Name="Release_Double|Win32">
-				<Tool Name="VFCustomBuildTool" CommandLine="CALL ..\RunRegistry.bat AFI" Description="Running Registry for AirfoilInfo" Outputs="..\..\build\types-files\AirfoilInfo_Types.f90"/></FileConfiguration>
+				<Tool Name="VFCustomBuildTool" CommandLine="CALL ..\RunRegistry.bat AFI" Description="Running Registry for AirfoilInfo" Outputs="..\..\modules\aerodyn\src\AirfoilInfo_Types.f90"/></FileConfiguration>
 			<FileConfiguration Name="Debug|Win32">
-				<Tool Name="VFCustomBuildTool" CommandLine="CALL ..\RunRegistry.bat AFI" Description="Running Registry for AirfoilInfo" Outputs="..\..\build\types-files\AirfoilInfo_Types.f90"/></FileConfiguration>
+				<Tool Name="VFCustomBuildTool" CommandLine="CALL ..\RunRegistry.bat AFI" Description="Running Registry for AirfoilInfo" Outputs="..\..\modules\aerodyn\src\AirfoilInfo_Types.f90"/></FileConfiguration>
 			<FileConfiguration Name="Release|x64">
-				<Tool Name="VFCustomBuildTool" CommandLine="CALL ..\RunRegistry.bat AFI" Description="Running Registry for AirfoilInfo" Outputs="..\..\build\types-files\AirfoilInfo_Types.f90"/></FileConfiguration>
+				<Tool Name="VFCustomBuildTool" CommandLine="CALL ..\RunRegistry.bat AFI" Description="Running Registry for AirfoilInfo" Outputs="..\..\modules\aerodyn\src\AirfoilInfo_Types.f90"/></FileConfiguration>
 			<FileConfiguration Name="Debug|x64">
-				<Tool Name="VFCustomBuildTool" CommandLine="CALL ..\RunRegistry.bat AFI" Description="Running Registry for AirfoilInfo" Outputs="..\..\build\types-files\AirfoilInfo_Types.f90"/></FileConfiguration>
+				<Tool Name="VFCustomBuildTool" CommandLine="CALL ..\RunRegistry.bat AFI" Description="Running Registry for AirfoilInfo" Outputs="..\..\modules\aerodyn\src\AirfoilInfo_Types.f90"/></FileConfiguration>
 			<FileConfiguration Name="Debug_Double|x64">
-				<Tool Name="VFCustomBuildTool" CommandLine="CALL ..\RunRegistry.bat AFI" Description="Running Registry for AirfoilInfo" Outputs="..\..\build\types-files\AirfoilInfo_Types.f90"/></FileConfiguration>
+				<Tool Name="VFCustomBuildTool" CommandLine="CALL ..\RunRegistry.bat AFI" Description="Running Registry for AirfoilInfo" Outputs="..\..\modules\aerodyn\src\AirfoilInfo_Types.f90"/></FileConfiguration>
 			<FileConfiguration Name="Release_Double|x64">
-				<Tool Name="VFCustomBuildTool" CommandLine="CALL ..\RunRegistry.bat AFI" Description="Running Registry for AirfoilInfo" Outputs="..\..\build\types-files\AirfoilInfo_Types.f90"/></FileConfiguration>
+				<Tool Name="VFCustomBuildTool" CommandLine="CALL ..\RunRegistry.bat AFI" Description="Running Registry for AirfoilInfo" Outputs="..\..\modules\aerodyn\src\AirfoilInfo_Types.f90"/></FileConfiguration>
 			<FileConfiguration Name="Release|Win32">
-				<Tool Name="VFCustomBuildTool" CommandLine="CALL ..\RunRegistry.bat AFI" Description="Running Registry for AirfoilInfo" Outputs="..\..\build\types-files\AirfoilInfo_Types.f90"/></FileConfiguration></File>
-		<File RelativePath="..\..\build\types-files\AirfoilInfo_Types.f90"/></Filter>
+				<Tool Name="VFCustomBuildTool" CommandLine="CALL ..\RunRegistry.bat AFI" Description="Running Registry for AirfoilInfo" Outputs="..\..\modules\aerodyn\src\AirfoilInfo_Types.f90"/></FileConfiguration></File>
+		<File RelativePath="..\..\modules\aerodyn\src\AirfoilInfo_Types.f90"/></Filter>
 		<Filter Name="KiteAeroDyn">
 		<Filter Name="RegistryFiles">
 		<File RelativePath="..\..\modules-local\kiteaerodyn\src\KiteAeroDyn_Registry.txt">
 			<FileConfiguration Name="Debug_Double|Win32">
-				<Tool Name="VFCustomBuildTool" CommandLine="CALL ..\RunRegistry.bat KiteAeroDyn" Description="Running Registry for KiteAeroDyn" Outputs="..\..\build\types-files\KiteAeroDyn_Types.f90"/></FileConfiguration>
+				<Tool Name="VFCustomBuildTool" CommandLine="CALL ..\RunRegistry.bat KiteAeroDyn" Description="Running Registry for KiteAeroDyn" Outputs="..\..\modules\kiteaerodyn\src\KiteAeroDyn_Types.f90"/></FileConfiguration>
 			<FileConfiguration Name="Release_Double|Win32">
-				<Tool Name="VFCustomBuildTool" CommandLine="CALL ..\RunRegistry.bat KiteAeroDyn" Description="Running Registry for KiteAeroDyn" Outputs="..\..\build\types-files\KiteAeroDyn_Types.f90"/></FileConfiguration>
+				<Tool Name="VFCustomBuildTool" CommandLine="CALL ..\RunRegistry.bat KiteAeroDyn" Description="Running Registry for KiteAeroDyn" Outputs="..\..\modules\kiteaerodyn\src\KiteAeroDyn_Types.f90"/></FileConfiguration>
 			<FileConfiguration Name="Debug|Win32">
-				<Tool Name="VFCustomBuildTool" CommandLine="CALL ..\RunRegistry.bat KiteAeroDyn" Description="Running Registry for KiteAeroDyn" Outputs="..\..\build\types-files\KiteAeroDyn_Types.f90"/></FileConfiguration>
+				<Tool Name="VFCustomBuildTool" CommandLine="CALL ..\RunRegistry.bat KiteAeroDyn" Description="Running Registry for KiteAeroDyn" Outputs="..\..\modules\kiteaerodyn\src\KiteAeroDyn_Types.f90"/></FileConfiguration>
 			<FileConfiguration Name="Release|x64">
-				<Tool Name="VFCustomBuildTool" CommandLine="CALL ..\RunRegistry.bat KiteAeroDyn" Description="Running Registry for KiteAeroDyn" Outputs="..\..\build\types-files\KiteAeroDyn_Types.f90"/></FileConfiguration>
+				<Tool Name="VFCustomBuildTool" CommandLine="CALL ..\RunRegistry.bat KiteAeroDyn" Description="Running Registry for KiteAeroDyn" Outputs="..\..\modules\kiteaerodyn\src\KiteAeroDyn_Types.f90"/></FileConfiguration>
 			<FileConfiguration Name="Debug|x64">
-				<Tool Name="VFCustomBuildTool" CommandLine="CALL ..\RunRegistry.bat KiteAeroDyn" Description="Running Registry for KiteAeroDyn" Outputs="..\..\build\types-files\KiteAeroDyn_Types.f90"/></FileConfiguration>
+				<Tool Name="VFCustomBuildTool" CommandLine="CALL ..\RunRegistry.bat KiteAeroDyn" Description="Running Registry for KiteAeroDyn" Outputs="..\..\modules\kiteaerodyn\src\KiteAeroDyn_Types.f90"/></FileConfiguration>
 			<FileConfiguration Name="Debug_Double|x64">
-				<Tool Name="VFCustomBuildTool" CommandLine="CALL ..\RunRegistry.bat KiteAeroDyn" Description="Running Registry for KiteAeroDyn" Outputs="..\..\build\types-files\KiteAeroDyn_Types.f90"/></FileConfiguration>
+				<Tool Name="VFCustomBuildTool" CommandLine="CALL ..\RunRegistry.bat KiteAeroDyn" Description="Running Registry for KiteAeroDyn" Outputs="..\..\modules\kiteaerodyn\src\KiteAeroDyn_Types.f90"/></FileConfiguration>
 			<FileConfiguration Name="Release|Win32">
-				<Tool Name="VFCustomBuildTool" CommandLine="CALL ..\RunRegistry.bat KiteAeroDyn" Description="Running Registry for KiteAeroDyn" Outputs="..\..\build\types-files\KiteAeroDyn_Types.f90"/></FileConfiguration>
+				<Tool Name="VFCustomBuildTool" CommandLine="CALL ..\RunRegistry.bat KiteAeroDyn" Description="Running Registry for KiteAeroDyn" Outputs="..\..\modules\kiteaerodyn\src\KiteAeroDyn_Types.f90"/></FileConfiguration>
 			<FileConfiguration Name="Release_Double|x64">
-				<Tool Name="VFCustomBuildTool" CommandLine="CALL ..\RunRegistry.bat KiteAeroDyn" Description="Running Registry for KiteAeroDyn" Outputs="..\..\build\types-files\KiteAeroDyn_Types.f90"/></FileConfiguration></File>
-		<File RelativePath="..\..\build\types-files\KiteAeroDyn_Types.f90">
+				<Tool Name="VFCustomBuildTool" CommandLine="CALL ..\RunRegistry.bat KiteAeroDyn" Description="Running Registry for KiteAeroDyn" Outputs="..\..\modules\kiteaerodyn\src\KiteAeroDyn_Types.f90"/></FileConfiguration></File>
+		<File RelativePath="..\..\modules\kiteaerodyn\src\KiteAeroDyn_Types.f90">
 			<FileConfiguration Name="Debug_Double|Win32">
 				<Tool Name="VFFortranCompilerTool" DisableSpecificDiagnostics="5268" WarnUnusedVariables="false"/></FileConfiguration>
 			<FileConfiguration Name="Debug|Win32">
@@ -337,20 +337,20 @@
 		<File RelativePath="..\..\modules-local\vsm\src\VSM.f90"/>
 		<File RelativePath="..\..\modules-local\vsm\src\VSM_Registry.txt">
 			<FileConfiguration Name="Debug_Double|Win32">
-				<Tool Name="VFCustomBuildTool" CommandLine="CALL ..\RunRegistry.bat VSM" Description="Running Registry for VSM" Outputs="..\..\build\types-files\VSM_Types.f90"/></FileConfiguration>
+				<Tool Name="VFCustomBuildTool" CommandLine="CALL ..\RunRegistry.bat VSM" Description="Running Registry for VSM" Outputs="..\..\modules\vsm\src\VSM_Types.f90"/></FileConfiguration>
 			<FileConfiguration Name="Release_Double|Win32">
-				<Tool Name="VFCustomBuildTool" CommandLine="CALL ..\RunRegistry.bat VSM" Description="Running Registry for VSM" Outputs="..\..\build\types-files\VSM_Types.f90"/></FileConfiguration>
+				<Tool Name="VFCustomBuildTool" CommandLine="CALL ..\RunRegistry.bat VSM" Description="Running Registry for VSM" Outputs="..\..\modules\vsm\src\VSM_Types.f90"/></FileConfiguration>
 			<FileConfiguration Name="Debug|Win32">
-				<Tool Name="VFCustomBuildTool" CommandLine="CALL ..\RunRegistry.bat VSM" Description="Running Registry for VSM" Outputs="..\..\build\types-files\VSM_Types.f90"/></FileConfiguration>
+				<Tool Name="VFCustomBuildTool" CommandLine="CALL ..\RunRegistry.bat VSM" Description="Running Registry for VSM" Outputs="..\..\modules\vsm\src\VSM_Types.f90"/></FileConfiguration>
 			<FileConfiguration Name="Release|x64">
-				<Tool Name="VFCustomBuildTool" CommandLine="CALL ..\RunRegistry.bat VSM" Description="Running Registry for VSM" Outputs="..\..\build\types-files\VSM_Types.f90"/></FileConfiguration>
+				<Tool Name="VFCustomBuildTool" CommandLine="CALL ..\RunRegistry.bat VSM" Description="Running Registry for VSM" Outputs="..\..\modules\vsm\src\VSM_Types.f90"/></FileConfiguration>
 			<FileConfiguration Name="Debug|x64">
-				<Tool Name="VFCustomBuildTool" CommandLine="CALL ..\RunRegistry.bat VSM" Description="Running Registry for VSM" Outputs="..\..\build\types-files\VSM_Types.f90"/></FileConfiguration>
+				<Tool Name="VFCustomBuildTool" CommandLine="CALL ..\RunRegistry.bat VSM" Description="Running Registry for VSM" Outputs="..\..\modules\vsm\src\VSM_Types.f90"/></FileConfiguration>
 			<FileConfiguration Name="Debug_Double|x64">
-				<Tool Name="VFCustomBuildTool" CommandLine="CALL ..\RunRegistry.bat VSM" Description="Running Registry for VSM" Outputs="..\..\build\types-files\VSM_Types.f90"/></FileConfiguration>
+				<Tool Name="VFCustomBuildTool" CommandLine="CALL ..\RunRegistry.bat VSM" Description="Running Registry for VSM" Outputs="..\..\modules\vsm\src\VSM_Types.f90"/></FileConfiguration>
 			<FileConfiguration Name="Release_Double|x64">
-				<Tool Name="VFCustomBuildTool" CommandLine="CALL ..\RunRegistry.bat VSM" Description="Running Registry for VSM" Outputs="..\..\build\types-files\VSM_Types.f90"/></FileConfiguration>
+				<Tool Name="VFCustomBuildTool" CommandLine="CALL ..\RunRegistry.bat VSM" Description="Running Registry for VSM" Outputs="..\..\modules\vsm\src\VSM_Types.f90"/></FileConfiguration>
 			<FileConfiguration Name="Release|Win32">
-				<Tool Name="VFCustomBuildTool" CommandLine="CALL ..\RunRegistry.bat VSM" Description="Running Registry for VSM" Outputs="..\..\build\types-files\VSM_Types.f90"/></FileConfiguration></File>
-		<File RelativePath="..\..\build\types-files\VSM_Types.f90"/></Filter></Filter></Files>
+				<Tool Name="VFCustomBuildTool" CommandLine="CALL ..\RunRegistry.bat VSM" Description="Running Registry for VSM" Outputs="..\..\modules\vsm\src\VSM_Types.f90"/></FileConfiguration></File>
+		<File RelativePath="..\..\modules\vsm\src\VSM_Types.f90"/></Filter></Filter></Files>
 	<Globals/></VisualStudioProject>

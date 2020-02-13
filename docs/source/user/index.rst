@@ -13,6 +13,10 @@ Details on the transition from FAST v8 to OpenFAST may be found in :numref:`fast
    :maxdepth: 1
 
    api_change.rst
+   kitefast/index.rst
+   kiteaerodyn/index.rst
+   kitembdynpreprocessor/index.rst
+   mbdyn/index.rst
    aerodyn/index.rst
    beamdyn/index.rst
    fast_to_openfast.rst

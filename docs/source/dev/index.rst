@@ -99,3 +99,25 @@ generally debugging and building out features.
     debugging.rst
     performance.rst
     versioning.rst
+
+KiteFAST Development
+~~~~~~~~~~~~~~~~~~~~
+The KiteFAST developer resources are included with the :ref:`user_guide`.
+Specifically, the following documents are available for download:
+
+- :download:`KiteFASTMBD Implementation Plan<../user/kitefast/KiteFASTMBD_Plan.pdf>`:
+  high-level implementation plan, including the interfaces to the
+  physics modules of KiteFAST, the coupling with MBDyn, and the
+  outputs available to the user not otherwise set at the module level
+- :download:`KiteAeroDyn Implementation Plan<../user/kiteaerodyn/KiteAeroDyn_Plan.pdf>`:
+  module-specific implementation plan including a description of
+  theory and inputs and outputs
+- :download:`VSM Implementation Plan<../user/kiteaerodyn/VSM_Theory.pdf>`:
+  module-specific implementation plan including a description of
+  theory
+- :download:`KiteMBDyn Preprocessor Theory<../user/kitembdynpreprocessor/MBDyn_Preprocessor_Theory.pdf>`:
+  preprocessor theory outline
+
+Furthermore, a guide to KiteMBDyn Preprocessor development is at
+:ref:`kitembdynpreprocessor_dev_guide` and details on the development of the
+MBDyn user modules is at :ref:`mbdyn_ude_dev_guide`.

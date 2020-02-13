@@ -55,6 +55,7 @@ package:
    source/testing/index.rst
    source/user/index.rst
    source/dev/index.rst
+   source/examples/index.rst
    source/license.rst
    source/help.rst
    source/acknowledgements.rst
