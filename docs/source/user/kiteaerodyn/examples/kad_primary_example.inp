@@ -12,9 +12,9 @@ True               UseCm              Include aerodynamic pitching moment in cal
 340.3              SpdSound           Speed of sound (m/s) [>0.0]
 --- LIFTING LINE VORTEX-STEP METHOD OPTIONS --- [used only when LiftMod=2]
 2                  VSMMod             Trailing vortices alignment model (-) (switch) {1:chord, 2: local free stream}
-DEFAULT            VSMToler           Tolerance                                    in the Newton iterations (m^3/s^2) [>0.0] or DEFAULT [DEFAULT=0.0001]
+DEFAULT            VSMToler           Tolerance                                    in the Newton iterations (m^2/s) [>0.0] or DEFAULT [DEFAULT=0.0001]
 DEFAULT            VSMMaxIter         Maximum number of                                   Newton iterations (-      ) [>0  ] or DEFAULT [DEFAULT=40]
-DEFAULT            VSMPerturb         Perturbation size for computing the Jacobian in the Newton iterations (m^3/s^2) [>0.0] or DEFAULT [DEFAULT=0.05]
+DEFAULT            VSMPerturb         Perturbation size for computing the Jacobian in the Newton iterations (m^2/s) [>0.0] or DEFAULT [DEFAULT=0.05]
 --- AIRFOIL INFORMATION ---
 3                  AFTabMod           Airfoil table interpolation model (-) (switch) {1:1D on AoA, 2:2D on AoA and Re, 3:2D on AoA and Ctrl}
 1                  InCol_Alfa         The column in the airfoil tables that contains the angle of attack             (-)
