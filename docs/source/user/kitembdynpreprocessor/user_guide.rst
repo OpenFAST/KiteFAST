@@ -371,7 +371,27 @@ For onshore models, no more than 10 iterations are typically required
   line) to see if the residual and iteration count are stable, then adjust
   ``timestep`` and ``max_iterations`` as necessary.
 
-TODO: describe ``derivatives``
+The ``derivatives`` block configures the "derivates solution" step that is
+executed by MBDyn after initial assembly of the model and before the simulation
+begins. This step is described in the MBDyn user guide:
+
+.. epigraph::
+
+    The system is solved with the kinematic unknowns
+    constrained, in order to properly determine the dynamic unknowns, namely
+    momenta and constraint reactions. For this purpose, the coefficient that
+    relates the state perturbation to the derivative perturbation
+    must be set to a value that is small enough to allow the determination
+    of accurate derivatives with very small change in the states. This
+    coefficient should be zero, but this leads to matrix singularity, so
+    it must be chosen by the user, since it is highly problem dependent.
+    A rule-of-thumb is: if the system has small stiffness and high inertia,
+    the coefficient can be big, if the system has high stiffness and small
+    inertia, the coefficient must be small.
+    The derivatives solution is always performed and cannot be disabled.
+    If for any reason it does not converge, to practically disable it one
+    can set a very large tolerance. Subsequent time steps may start
+    with a less than ideal initialization, resulting in a rough transient.
 
 Several options are available for the ``linear_solver``.  The ``naive``
 solver works well for most models.  The ``klu`` solver also works fairly
@@ -488,10 +508,8 @@ for these nodes, the corresponding strings are "Fus1TDx" for node 4 and
 "Fus2TDx" for node 5. Additional channels are available for the entire kite.
 To turn off output for a particular component, list "- 0" for the nodes.
 
-See the module documentation listed in :ref:`kitefast` for more information
+See the module documentations in :ref:`kitefast` for more information
 and the full list of outputs.
-
-TODO: Describe outputs for the pylons and rotors
 
 .. code-block:: yaml
 

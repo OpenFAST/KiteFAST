@@ -186,14 +186,23 @@ series of text files with extensions such as `.out`, `.ine`,
 
 Postprocess results
 -------------------
+Since the output consists of two general types of data, MBDyn output
+and OpenFAST output, there are two general options for postprocessing.
 
-TODO
-
+The OpenFAST data is a timeseries of loads and positions organized
+into channels requested by the user. These can be easily parsed and
+plotted for inspection. The primary method of postprocessing the MBDyn
+results is visualization with Blender, a third party utility for
+animation and visualization of data. See the installation script
+for details on installing Blender. Additionally, the
+`Blendyn <https://github.com/zanoni-mbdyn/blendyn/wiki>`_ extension
+is required to import all MBDyn data.
 
 Troubleshooting
 ~~~~~~~~~~~~~~~
 
 TODO: Guidance on things to tweak if issues
+
 - timestep
 - initial conditions
 - solver settings
