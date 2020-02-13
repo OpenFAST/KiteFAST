@@ -166,21 +166,28 @@ Lifting Line Vortex-step Method Options
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 The input parameters in this section are not used when ``LiftMod = 1``.
 
-``VSMMod`` determines the propagation direction for the wakes. Set ``VSMMod`` to 1 
-to use the local chord to determine the wake alignment.
-Set ``VSMMod`` to 2 to align the wakes with the kite-averaged free stream direction.
+``VSMMod`` determines the propagation direction for the wakes.
+Set ``VSMMod`` to 1 to use the local chord to determine the wake alignment.
+Set ``VSMMod`` to 2 to align the wakes with the kite-averaged free stream
+direction.
+
 ``VSMToler`` sets the convergence threshold for the iterative
-nonlinear Newton solve of the vortex solution. ``VSMToler`` represents the tolerance of the
-residual equation, which has the units of circulation times velocity.
-When the keyword ``DEFAULT`` is used in place of a numerical value,
-``VSMToler`` will be set to 1E-4. ``VSMMaxIter`` determines the maximum
-number of Netwon iterations in the solve. When the keyword ``DEFAULT`` is used in place of a numerical value,
-``VSMMaxIter`` will be set to 40. If the residual value of
+nonlinear Newton solve of the vortex solution. ``VSMToler`` represents
+the tolerance of the residual equation, which has the units of
+circulation (m^2/s). When the keyword ``DEFAULT`` is used in place of a
+numerical value, ``VSMToler`` will be set to 1E-4.
+
+``VSMMaxIter`` determines the maximum number of Netwon iterations in
+the solve. When the keyword ``DEFAULT`` is used in place of a numerical
+value, ``VSMMaxIter`` will be set to 40. If the residual value of
 the solve is not less than or equal to ``VSMToler`` in
-``VSMMaxIter`` iterations, KiteAeroDyn will exit the solver and return an error
-message.  ``VSMPerturb`` sets the perturbation size for computing the Jacobian in the Newton iterations.
-When the keyword ``DEFAULT`` is used in place of a numerical value,
-``VSMPerturb`` will be set to 0.05, which has the units of circulation times velocity. We recommend using these defaults.
+``VSMMaxIter`` iterations, KiteAeroDyn will exit the solver and return
+an error message.
+
+``VSMPerturb`` sets the perturbation size for computing the
+Jacobian in the Newton iterations. When the keyword ``DEFAULT`` is used
+in place of a numerical value, ``VSMPerturb`` will be set to 0.05, which
+has the units of circulation (m^2/s). We recommend using these defaults.
 
 .. _airfoil_information:
 
