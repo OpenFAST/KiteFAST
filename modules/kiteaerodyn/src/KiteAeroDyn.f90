@@ -4047,7 +4047,7 @@ subroutine KAD_Init( InitInp, u, p, y, interval, x, xd, z, OtherState, m, InitOu
    ! Create the file-related output data
    !----------------------------------
    allocate( m%AllOuts(0:MaxOutPts), STAT=errStat2 ) ! allocate starting at zero to account for invalid output channels
-   IF ( ErrStat /= 0 )  THEN
+   IF ( errStat2 /= 0 )  THEN
       errStat = ErrID_Fatal
       errMsg  = ' Error allocating memory for the AllOuts array.'
       RETURN
