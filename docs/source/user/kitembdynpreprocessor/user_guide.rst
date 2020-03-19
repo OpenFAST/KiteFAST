@@ -477,7 +477,7 @@ Reference Points
 Some reference points must be defined for the offshore simulation.
 
 The ``wind_reference_station`` locates the anemometer location on the buoy,
-the ``ground_weather_station`` locates the ground station. These points are
+the ``base_station`` locates the ground station. These points are
 passed directly to KiteFAST and used to interface with the controller. Both
 points are given in order of x-y-z components relative to the global origin.
 
@@ -487,7 +487,7 @@ points are given in order of x-y-z components relative to the global origin.
         location:
             [2.0, 2.0, 2.0]
 
-    ground_weather_station:
+    base_station:
         location:
             [-0.202, -1.627, 19.860]
 

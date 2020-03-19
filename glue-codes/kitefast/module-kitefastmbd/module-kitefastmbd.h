@@ -119,7 +119,7 @@ extern int KFAST_Init(
 extern int KFAST_AssRes(
   double *t,                     // t
   int *first_iteration,          // isInitialTime
-  double ground_station_point[], // WindPt
+  double base_station_point[], // WindPt
   double mip_position[],         // FusO
   double mip_dcm[],              // FusODCM
   double mip_vels[],             // FusOv
@@ -179,7 +179,7 @@ private:
   const static int AbortErrLev = ErrID_Fatal; // abort error level; compare with NWTC Library
 
   doublereal time_step;
-  doublereal ground_station_point[3];
+  doublereal base_station_point[3];
   integer n_rotor_points;
   integer node_count_no_rotors;
   integer first_iteration;

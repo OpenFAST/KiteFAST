@@ -109,10 +109,10 @@ ModuleKiteFAST::ModuleKiteFAST(unsigned uLabel, const DofOwner *pDO, DataManager
   integer KAD_interpolation_order = HP.GetInt();
   
   // parse the ground station location
-  ValidateInputKeyword(HP, "ground_weather_station_location");
-  ground_station_point[0] = HP.GetReal();
-  ground_station_point[1] = HP.GetReal();
-  ground_station_point[2] = HP.GetReal();
+  ValidateInputKeyword(HP, "base_station_location");
+  base_point[0] = HP.GetReal();
+  base_point[1] = HP.GetReal();
+  base_point[2] = HP.GetReal();
 
   // parse the component counts
   ValidateInputKeyword(HP, "number_of_flaps_per_wing");
@@ -757,7 +757,7 @@ void ModuleKiteFAST::_AssRes(doublereal *node_loads, doublereal *rotor_loads)
   char error_message[INTERFACE_STRING_LENGTH];
   KFAST_AssRes(&t,
                &first_iteration,
-               ground_station_point,
+               base_station_point,
                mip_position,
                mip_dcm,
                mip_vels,

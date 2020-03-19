@@ -77,6 +77,7 @@ class MainMBD():
         self.eigen_analysis = simulation_controls["eigen_analysis"]
         self.debug = simulation_controls["debug"]
         self.rigid_model = simulation_controls["rigid_model"]
+
         output = simulation_controls["output"]
         self.mip_id = mip_id
         self.fuselage_output_nodes = output["fuselage_nodes"]
@@ -89,8 +90,8 @@ class MainMBD():
         self.output_channels = [] if output["output_channels"] is None else output["output_channels"]
 
         if self.simulation_type == 1:
-            ground_weather_station = simulation_controls["ground_weather_station"]
-            self.ground_weather_station_location = ground_weather_station["location"]
+            base_station = simulation_controls["base_station"]
+            self.base_station_location = base_station["location"]
 
         self.keypoints = keypoints
 
@@ -261,8 +262,8 @@ class MainMBD():
             output.write_line("        kiteaerodyn_interpolation_order,")
             output.write_line("            {},".format(self.kiteaerodyn_interpolation_order))
             if self.simulation_type == 1:
-                output.write_line("        ground_weather_station_location,")
-                output.write_line("            {},".format(self.ground_weather_station_location))
+                output.write_line("        base_station_location,")
+                output.write_line("            {},".format(self.base_station_location))
             output.write_line("        number_of_flaps_per_wing,")
             output.write_line("            {},".format(self.number_of_flaps_per_wing))
             output.write_line("        number_of_pylons_per_wing,")
