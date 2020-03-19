@@ -85,7 +85,7 @@ class BaseModel():
         return model_dict
 
     def _preprocess_simulation_dict(self, simulation_dict):
-        simulation_dict["ground_weather_station"]["location"] = self._list_to_vec3(simulation_dict["ground_weather_station"]["location"])
+        simulation_dict["base_station"]["location"] = self._list_to_vec3(simulation_dict["base_station"]["location"])
         simulation_dict["initial_conditions"]["location"] = self._list_to_vec3(simulation_dict["initial_conditions"]["location"])
         simulation_dict["initial_conditions"]["orientation"] = self._list_to_vec3(simulation_dict["initial_conditions"]["orientation"])
         simulation_dict["initial_conditions"]["velocity"]["translational"] = self._list_to_vec3(simulation_dict["initial_conditions"]["velocity"]["translational"])

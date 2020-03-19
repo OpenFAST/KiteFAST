@@ -449,16 +449,16 @@ must be either "true" or "false"
     debug:
         false
 
-ground_weather_station
+base_station
 ++++++++++++++++++++++
-The ``ground_weather_station`` field specifies the location of the ground
+The ``base_station`` field specifies the location of the ground
 station. This point is passed directly to KiteFAST and used to interface with
 the controller. This point is given as x-y-z components relative to
 the global origin.
 
 .. code-block:: yaml
 
-    ground_weather_station:
+    base_station:
         location:
             [-0.202, -1.627, 19.860]
 

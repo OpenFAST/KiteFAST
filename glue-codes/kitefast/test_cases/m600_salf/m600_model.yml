@@ -69,7 +69,7 @@ simulation_controls:
         # true | false
         false
 
-    ground_weather_station:
+    base_station:
         location:
             # locates the weather station; this point is passed directly to
             # KiteFAST which uses it to interface with the controller

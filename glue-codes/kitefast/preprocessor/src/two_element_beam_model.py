@@ -211,8 +211,8 @@ class MainMBD():
         self.linear_solver = simulation_controls["linear_solver"]
         self.debug = simulation_controls["debug"]
         self.rigid_model = simulation_controls["rigid_model"]
-        ground_weather_station = simulation_controls["ground_weather_station"]
-        self.ground_weather_station_location = ground_weather_station["location"]
+        base_station = simulation_controls["base_station"]
+        self.base_station_location = base_station["location"]
 
         self.keypoints = keypoints
         self.fuselage = fuselage
