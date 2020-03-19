@@ -82,7 +82,7 @@ class KiteModel(BaseModel):
 
         if self.simulation_type == 1:
             reference_point_paths = [
-                ["ground_weather_station", "location"]
+                ["base_station", "location"]
             ]
             for path in reference_point_paths:
                 point = self._deep_get(simulation_dict, path)
@@ -92,7 +92,7 @@ class KiteModel(BaseModel):
                 ["platform", "node_location"],
                 ["platform", "imu_location"],
                 ["platform", "wind_reference_station_location"],
-                ["platform", "ground_station_location"]
+                ["platform", "base_station_location"]
             ]
             for path in reference_point_paths:
                 point = self._deep_get(model_dict, path)

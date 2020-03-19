@@ -117,7 +117,7 @@ extern int KFAST_OS_Init(
   int pylon_output_nodes[],                           // PylOutNd
   double platform_mip_position[],                     // PtfmO[]
   double platform_mip_dcm[],                          // PtfmODCM[]
-  double ground_station_reference_point[],            // GSRefPtR[]
+  double base_station_reference_point[],            // GSRefPtR[]
   int *n_output_channels,                             // numOutChan
   char *output_channel_array[],                       // chanList
   int output_channel_lengths[],                       // ChanList_len
@@ -159,11 +159,11 @@ extern int KFAST_OS_AssRes(
   double platform_imu_vels[],               // PtfmIMUv
   double platform_imu_omegas[],             // PtfmIMUomegas
   double platform_imu_accs[],               // PtfmIMUacc
-  double ground_station_position[],         // GSRefPt
-  double ground_station_dcm[],              // GSRefDCM
-  double ground_station_vels[],             // GSRefv
-  double ground_station_omegas[],           // GSRefomegas
-  double ground_station_accs[],             // GSRefacc
+  double base_station_position[],         // GSRefPt
+  double base_station_dcm[],              // GSRefDCM
+  double base_station_vels[],             // GSRefv
+  double base_station_omegas[],           // GSRefomegas
+  double base_station_accs[],             // GSRefacc
   double node_loads[],                      // nodeLoads
   double rotor_loads[],                     // rtrLoads
   double platform_loads[],                  // ptfmLoads
@@ -215,7 +215,7 @@ private:
   KiteFASTNode platform_node;
   KiteFASTNode platform_imu_node;
   KiteFASTNode wind_reference_station_node;
-  KiteFASTNode ground_station_node;
+  KiteFASTNode base_station_node;
 
   std::vector<KiteFASTNode> nodes;
   std::vector<KiteFASTNode> nodes_fuselage;

@@ -38,7 +38,7 @@ class BasePlatform():
 
         # these are other reference locations
         self.wind_reference_station_location = model_dict["wind_reference_station_location"]
-        self.ground_station_location = model_dict["ground_station_location"]
+        self.base_station_location = model_dict["base_station_location"]
 
         # mass properties
         self.platform_cm_offset = model_dict["cm_offset"]
@@ -80,7 +80,7 @@ class BasePlatform():
                 parent_component=self.component_name,
                 root_offset_index=3,
                 reference_frame="global",
-                position=self.ground_station_location
+                position=self.base_station_location
             )
         ])
         self.node_count = self.nodes.shape[0]

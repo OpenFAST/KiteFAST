@@ -291,7 +291,7 @@ class MainMBD():
                 output.write_line("            {},".format(self.platform.nodes[1].id))
                 output.write_line("        wind_reference_station_node,")
                 output.write_line("            {},".format(self.platform.nodes[2].id))
-                output.write_line("        ground_station_node,")
+                output.write_line("        base_station_node,")
                 output.write_line("            {},".format(self.platform.nodes[3].id))
             if self.simulation_type < 3:
                 for component in self.component_list:

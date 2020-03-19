@@ -175,13 +175,13 @@ ModuleKiteFASTOS::ModuleKiteFASTOS(unsigned uLabel, const DofOwner *pDO, DataMan
   wind_reference_station_position[2] = vec3_wind_ref_pos[2];
 
   // parse the ground station location
-  ValidateInputKeyword(HP, "ground_station_node");
-  ground_station_node.pNode = dynamic_cast<StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
-  doublereal ground_station_position[3];
-  Vec3 vec3_ground_station_pos = ground_station_node.pNode->GetXCurr();
-  ground_station_position[0] = vec3_ground_station_pos[0];
-  ground_station_position[1] = vec3_ground_station_pos[1];
-  ground_station_position[2] = vec3_ground_station_pos[2];
+  ValidateInputKeyword(HP, "base_station_node");
+  base_station_node.pNode = dynamic_cast<StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
+  doublereal base_station_position[3];
+  Vec3 vec3_base_station_pos = base_station_node.pNode->GetXCurr();
+  base_station_position[0] = vec3_base_station_pos[0];
+  base_station_position[1] = vec3_base_station_pos[1];
+  base_station_position[2] = vec3_base_station_pos[2];
 
   // parse the component nodes and beams into arrays
   BuildComponentArrays(pDM, HP, "fuselage", nodes_fuselage, beams_fuselage);
@@ -459,7 +459,7 @@ ModuleKiteFASTOS::ModuleKiteFASTOS(unsigned uLabel, const DofOwner *pDO, DataMan
              pylon_output_nodes.data(),
              platform_position,
              platform_mip_dcm,
-             ground_station_position,
+             base_station_position,
              &n_output_channels,
              output_channel_array.data(),
              output_channel_lengths,
@@ -905,41 +905,41 @@ void ModuleKiteFASTOS::_AssRes(doublereal *node_loads, doublereal *rotor_loads, 
   platform_imu_accs[2] = vec3_platform_imu_acc[2];
 
   // ground station point
-  doublereal ground_station_position[3];
-  Vec3 vec3_ground_station_pos = ground_station_node.pNode->GetXCurr();
-  ground_station_position[0] = vec3_ground_station_pos[0];
-  ground_station_position[1] = vec3_ground_station_pos[1];
-  ground_station_position[2] = vec3_ground_station_pos[2];
+  doublereal base_station_position[3];
+  Vec3 vec3_base_station_pos = base_station_node.pNode->GetXCurr();
+  base_station_position[0] = vec3_base_station_pos[0];
+  base_station_position[1] = vec3_base_station_pos[1];
+  base_station_position[2] = vec3_base_station_pos[2];
 
-  doublereal ground_station_dcm[9];
-  Mat3x3 mat3_ground_station_dcm = ground_station_node.pNode->GetRCurr();
-  ground_station_dcm[0] = mat3_ground_station_dcm.dGet(1, 1);
-  ground_station_dcm[1] = mat3_ground_station_dcm.dGet(1, 2);
-  ground_station_dcm[2] = mat3_ground_station_dcm.dGet(1, 3);
-  ground_station_dcm[3] = mat3_ground_station_dcm.dGet(2, 1);
-  ground_station_dcm[4] = mat3_ground_station_dcm.dGet(2, 2);
-  ground_station_dcm[5] = mat3_ground_station_dcm.dGet(2, 3);
-  ground_station_dcm[6] = mat3_ground_station_dcm.dGet(3, 1);
-  ground_station_dcm[7] = mat3_ground_station_dcm.dGet(3, 2);
-  ground_station_dcm[8] = mat3_ground_station_dcm.dGet(3, 3);
+  doublereal base_station_dcm[9];
+  Mat3x3 mat3_base_station_dcm = base_station_node.pNode->GetRCurr();
+  base_station_dcm[0] = mat3_base_station_dcm.dGet(1, 1);
+  base_station_dcm[1] = mat3_base_station_dcm.dGet(1, 2);
+  base_station_dcm[2] = mat3_base_station_dcm.dGet(1, 3);
+  base_station_dcm[3] = mat3_base_station_dcm.dGet(2, 1);
+  base_station_dcm[4] = mat3_base_station_dcm.dGet(2, 2);
+  base_station_dcm[5] = mat3_base_station_dcm.dGet(2, 3);
+  base_station_dcm[6] = mat3_base_station_dcm.dGet(3, 1);
+  base_station_dcm[7] = mat3_base_station_dcm.dGet(3, 2);
+  base_station_dcm[8] = mat3_base_station_dcm.dGet(3, 3);
 
-  doublereal ground_station_vels[3];
-  Vec3 vec3_ground_station_vels = ground_station_node.pNode->GetVCurr();
-  ground_station_vels[0] = vec3_ground_station_vels[0];
-  ground_station_vels[1] = vec3_ground_station_vels[1];
-  ground_station_vels[2] = vec3_ground_station_vels[2];
+  doublereal base_station_vels[3];
+  Vec3 vec3_base_station_vels = base_station_node.pNode->GetVCurr();
+  base_station_vels[0] = vec3_base_station_vels[0];
+  base_station_vels[1] = vec3_base_station_vels[1];
+  base_station_vels[2] = vec3_base_station_vels[2];
 
-  doublereal ground_station_omegas[3];
-  Vec3 vec3_ground_station_omegas = ground_station_node.pNode->GetWCurr();
-  ground_station_omegas[0] = vec3_ground_station_omegas[0];
-  ground_station_omegas[1] = vec3_ground_station_omegas[1];
-  ground_station_omegas[2] = vec3_ground_station_omegas[2];
+  doublereal base_station_omegas[3];
+  Vec3 vec3_base_station_omegas = base_station_node.pNode->GetWCurr();
+  base_station_omegas[0] = vec3_base_station_omegas[0];
+  base_station_omegas[1] = vec3_base_station_omegas[1];
+  base_station_omegas[2] = vec3_base_station_omegas[2];
 
-  doublereal ground_station_accs[3];
-  Vec3 vec3_ground_station_accs = ground_station_node.pNode->GetXPPCurr();
-  ground_station_accs[0] = vec3_ground_station_accs[0];
-  ground_station_accs[1] = vec3_ground_station_accs[1];
-  ground_station_accs[2] = vec3_ground_station_accs[2];
+  doublereal base_station_accs[3];
+  Vec3 vec3_base_station_accs = base_station_node.pNode->GetXPPCurr();
+  base_station_accs[0] = vec3_base_station_accs[0];
+  base_station_accs[1] = vec3_base_station_accs[1];
+  base_station_accs[2] = vec3_base_station_accs[2];
 
 #ifdef DEBUGUDE
   silent_cout("****** inputs to KFAST_OS_AssRes" << std::endl);
@@ -958,14 +958,14 @@ void ModuleKiteFASTOS::_AssRes(doublereal *node_loads, doublereal *rotor_loads, 
   silent_cout("platform_imu_vels: " << platform_imu_vels[0] << "\t" << platform_imu_vels[1] << "\t" << platform_imu_vels[2] << std::endl);
   silent_cout("platform_imu_omegas: " << platform_imu_omegas[0] << "\t" << platform_imu_omegas[1] << "\t" << platform_imu_omegas[2] << std::endl);
   silent_cout("platform_imu_accs: " << platform_imu_accs[0] << "\t" << platform_imu_accs[1] << "\t" << platform_imu_accs[2] << std::endl);
-  silent_cout("ground_station_position: " << ground_station_position[0] << "\t" << ground_station_position[1] << "\t" << ground_station_position[2] << std::endl);
-  silent_cout("ground_station_dcm: " << ground_station_dcm[0] << "\t" << ground_station_dcm[1] << "\t" << ground_station_dcm[2] << std::endl);
-  silent_cout("ground_station_dcm: " << ground_station_dcm[0] << "\t" << ground_station_dcm[1] << "\t" << ground_station_dcm[2] << std::endl);
-  silent_cout("                    " << ground_station_dcm[3] << "\t" << ground_station_dcm[4] << "\t" << ground_station_dcm[5] << std::endl);
-  silent_cout("                    " << ground_station_dcm[6] << "\t" << ground_station_dcm[7] << "\t" << ground_station_dcm[8] << std::endl);
-  silent_cout("ground_station_vels: " << ground_station_vels[0] << "\t" << ground_station_vels[1] << "\t" << ground_station_vels[2] << std::endl);
-  silent_cout("ground_station_omegas: " << ground_station_omegas[0] << "\t" << ground_station_omegas[1] << "\t" << ground_station_omegas[2] << std::endl);
-  silent_cout("ground_station_accs: " << ground_station_accs[0] << "\t" << ground_station_accs[1] << "\t" << ground_station_accs[2] << std::endl);
+  silent_cout("base_station_position: " << base_station_position[0] << "\t" << base_station_position[1] << "\t" << base_station_position[2] << std::endl);
+  silent_cout("base_station_dcm: " << base_station_dcm[0] << "\t" << base_station_dcm[1] << "\t" << base_station_dcm[2] << std::endl);
+  silent_cout("base_station_dcm: " << base_station_dcm[0] << "\t" << base_station_dcm[1] << "\t" << base_station_dcm[2] << std::endl);
+  silent_cout("                    " << base_station_dcm[3] << "\t" << base_station_dcm[4] << "\t" << base_station_dcm[5] << std::endl);
+  silent_cout("                    " << base_station_dcm[6] << "\t" << base_station_dcm[7] << "\t" << base_station_dcm[8] << std::endl);
+  silent_cout("base_station_vels: " << base_station_vels[0] << "\t" << base_station_vels[1] << "\t" << base_station_vels[2] << std::endl);
+  silent_cout("base_station_omegas: " << base_station_omegas[0] << "\t" << base_station_omegas[1] << "\t" << base_station_omegas[2] << std::endl);
+  silent_cout("base_station_accs: " << base_station_accs[0] << "\t" << base_station_accs[1] << "\t" << base_station_accs[2] << std::endl);
 #endif
 
   int error_status;
@@ -1004,11 +1004,11 @@ void ModuleKiteFASTOS::_AssRes(doublereal *node_loads, doublereal *rotor_loads, 
                platform_imu_vels,
                platform_imu_omegas,
                platform_imu_accs,
-               ground_station_position,
-               ground_station_dcm,
-               ground_station_vels,
-               ground_station_omegas,
-               ground_station_accs,
+               base_station_position,
+               base_station_dcm,
+               base_station_vels,
+               base_station_omegas,
+               base_station_accs,
                node_loads,
                rotor_loads,
                platform_loads,

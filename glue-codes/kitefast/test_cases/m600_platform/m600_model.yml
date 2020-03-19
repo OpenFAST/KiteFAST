@@ -518,7 +518,7 @@ wind_reference_station:
     location:
         [2.0, 2.0, 2.0]
 
-ground_station:
+base_station:
     location:
         # locates the weather station; this point is passed directly to
         # KiteFAST which uses it to interface with the controller
