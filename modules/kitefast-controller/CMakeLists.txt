@@ -84,9 +84,9 @@ target_link_libraries(kitefastcontroller_testexe kitefastcontroller_controller)
 #target_link_libraries(rotortest_exe C_MATH ${GSL_LIBRARIES} m)
 
 # kitefastcontroller-driver
-set(DRIVER_SOURCES src/KiteFastController_Driver.f90)
+set(DRIVER_SOURCES src/KiteFastController_Driver.f90 src/KFC_Dvr_Subs.f90)
 add_executable(kitefastcontroller_driver ${DRIVER_SOURCES})
-target_link_libraries(kitefastcontroller_driver kitefastcontroller_controller kitefastcontrollerlib ${CMAKE_DL_LIBS})
+target_link_libraries(kitefastcontroller_driver kitefastcontroller_controller kitefastcontrollerlib nwtclibs ${CMAKE_DL_LIBS})
 
 # installation
 install(TARGETS kitefastcontrollerlib kitefastcontroller_controller kitefastcontroller_driver C_MATH kitefastcontroller_testexe

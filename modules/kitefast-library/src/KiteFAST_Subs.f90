@@ -3663,7 +3663,15 @@ subroutine AssRes_OnShore( t_c, isInitialTime_c, WindPt_c, WindPtVel_c, AnchorPt
          m%KFC%u%SPyAeroTorque = 0.0_ReKi
          m%KFC%u%PPyAeroTorque = 0.0_ReKi
       end if
-      
+
+      !RRD: I am adding this here because the initial time step was not passed 
+      numFairLeads = size(m%MD_Tether%y%PtFairLeadLoad(1)%Force,2)
+      OtherSt%totalFairLeadLoads = 0.0_ReKi
+      do i = 1, numFairLeads
+         OtherSt%totalFairLeadLoads = OtherSt%totalFairLeadLoads + m%MD_Tether%y%PtFairLeadLoad(1)%Force(:,i) 
+      end do
+      !RRD end
+
       m%KFC%u%tether_forceb = matmul(OtherSt%FusODCM, OtherSt%totalFairLeadLoads)
       m%KFC%u%dcm_g2b       = matmul(OtherSt%FusODCM, transpose(p%DCM_Fast2Ctrl))
       m%KFC%u%pqr           = matmul(OtherSt%FusODCM, OtherSt%FusOomegas)

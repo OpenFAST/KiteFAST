@@ -32,18 +32,18 @@ fortran_compiler=/usr/bin/gfortran
 #sudo apt update
 
 # install these general software development tools
-# install_if_not_found "git"
-# install_if_not_found "cmake"
-# install_if_not_found "build-essential"
-# install_if_not_found "software-properties-common"
-# install_if_not_found "gfortran-6"
-# install_if_not_found "libblas-dev"   # blas math library
-# install_if_not_found "liblapack-dev" # lapack math library
-# install_if_not_found "libltdl-dev"   # libltdl headers, used in mbdyn for linking
-# install_if_not_found "libgsl-dev"    # used in the STI controller
-# install_if_not_found "python3-pip"   # used in the STI controller
-# install_if_not_found "libnetcdf-dev"
-# install_if_not_found "libnetcdf-cxx-legacy-dev"
+install_if_not_found "git"
+install_if_not_found "cmake"
+install_if_not_found "build-essential"
+install_if_not_found "software-properties-common"
+install_if_not_found "gfortran-6"
+install_if_not_found "libblas-dev"   # blas math library
+install_if_not_found "liblapack-dev" # lapack math library
+install_if_not_found "libltdl-dev"   # libltdl headers, used in mbdyn for linking
+install_if_not_found "libgsl-dev"    # used in the STI controller
+install_if_not_found "python3-pip"   # used in the STI controller
+install_if_not_found "libnetcdf-dev"
+install_if_not_found "libnetcdf-cxx-legacy-dev"
 
 # remove lingering packages
 # sudo apt-get autoremove
@@ -67,9 +67,10 @@ fi
 cd build
 
 #/usr/lib/lapack  /usr/lib/x86_64-linux-gnu/libgslcblas.so.0
-cmake ..  -DDOUBLE_PRECISION=OFF  -DGENERATE_TYPES=ON #-DLAPACK_LIBRARIES="~/anaconda3/pkgs/lapack-3.8.0-0/lib"  -DBLAS_LIBRARIES="~/anaconda3/lib/"
+cmake .. -DCMAKE_BUILD_TYPE=Release -DDOUBLE_PRECISION=OFF  -DGENERATE_TYPES=ON #-Wuninitialized -DGENERATE_TYPES=ON # -DCMAKE_Fortran_FLAGS='-ffpe-trap=underflow,overflow,inexact,denormal,zero' #-DLAPACK_LIBRARIES="~/anaconda3/pkgs/lapack-3.8.0-0/lib"  -DBLAS_LIBRARIES="~/anaconda3/lib/"
 #cmake ..  -DDOUBLE_PRECISION=OFF  -DGENERATE_TYPES=ON -DLAPACK_LIBRARIES="/usr/lib/lapack"  -DBLAS_LIBRARIES="~/usr/lib/x86_64-linux-gnu/"
-make -j 2 kitefastlib kitefastoslib kitefastcontroller_controller
+#cmake .. -DDOUBLE_PRECISION=OFF -DGENERATE_TYPES=ON -DCMAKE_BUILD_TYPE=Debug -DCMAKE_Fortran_FLAGS="-O2 -ffpe-trap=underflow,overflow,zero" for numerics captcha
+make -j 2 kitefastlib kitefastoslib kitefastcontroller_controller kitefastcontroller_driver
 #cmake ..  -DCMAKE_BUIKD_TYPE=DEBUG -DDOUBLE_PRECISION=OFF  -DGENERATE_TYPES=ON
 #make -j 2  kitefastcontroller_controller
 
@@ -93,6 +94,7 @@ fi
 # create_link $openfast_directory/glue-codes/kitefast/module-kitefastmbd/Makefile.inc $destination_directory/Makefile.inc
 # create_link $openfast_directory/glue-codes/kitefast/module-kitefastmbd/module-kitefastmbd.cc $destination_directory/module-kitefastmbd.cc
 # create_link $openfast_directory/glue-codes/kitefast/module-kitefastmbd/module-kitefastmbd.h $destination_directory/module-kitefastmbd.h
+# create_link $openfast_directory/glue-codes/kitefast/module-kitefastmbd/KiteFASTNode.cc $destination_directory/KiteFASTNode.cc
 # create_link $openfast_directory/build/modules/kitefast-library/libkitefastlib.a $destination_directory/libkitefastlib.a
 # create_link $openfast_directory/build/modules/nwtc-library/libnwtclibs.a $destination_directory/libnwtclibs.a
 # create_link $openfast_directory/build/modules/moordyn/libmoordynlib.a $destination_directory/libmoordynlib.a
@@ -126,9 +128,15 @@ fi
 # create_link $openfast_directory/build/modules/hydrodyn/libhydrodynlib.a $destination_directory/libhydrodynlib.a
 
 # Now build mbdyn's USER MODULE and install it in the right place
-
+# # configure and build mbdyn
+export LDFLAGS=-rdynamic
 cd $mbdyn_directory
 
+# modify the line below as needed
+# for debug, add --enable-debug
+#./configure --enable-runtime-loading --with-module="kitefastmbd kitefastmbd-os" --enable-netcdf --with-lapack --enable-eig
+
+sudo make                      # build mbdyn
 cd modules                     # move to the module directory
 make clean
 # sudo make                      # build the user defined element

@@ -51,7 +51,7 @@ __attribute__((optimize(0)))  void AssignInputs(double dcm_g2b_c[], double pqr_c
 					dcm_g2b_c[0], dcm_g2b_c[1], dcm_g2b_c[2], dcm_g2b_c[3], dcm_g2b_c[4], dcm_g2b_c[5], dcm_g2b_c[6], dcm_g2b_c[7], dcm_g2b_c[8]);
 		printf("  pqr_c = [%0.4f, %0.4f, %0.4f] \n",pqr_c[0],pqr_c[1],pqr_c[2]);
 		//printf("  acc_norm_c = %0.4f \n", *(double*)acc_norm_c);
-		printf("  acc_norm_c = %0.4f \n", acc_norm_c);
+		printf("  acc_norm_c = %0.4f \n", *acc_norm_c);
 		printf("  Xg_c = [%0.4f, %0.4f, %0.4f] \n",Xg_c[0],Xg_c[1],Xg_c[2]);
 		printf("  Vg_c = [%0.4f, %0.4f, %0.4f] \n",Vg_c[0],Vg_c[1],Vg_c[2]);
 		printf("  Vb_c = [%0.4f, %0.4f, %0.4f] \n",Vb_c[0],Vb_c[1],Vb_c[2]);
@@ -88,11 +88,11 @@ __attribute__((optimize(0)))  void AssignInputs(double dcm_g2b_c[], double pqr_c
 	memcpy(&state_est->pqr_f, &pqr_c_tmp, sizeof(state_est->pqr_f));
 	memcpy(&state_est->pqr, &pqr_c_tmp, sizeof(state_est->pqr));
 
-	// Low pass filter added to help with transients - currently using 5Hz
+	// Low pass filter added to help with transients - currently using 5Hz --> RRD trying to smooth everything @2Hz
 
-	state_est->pqr_f.x = Lpf(state_est->pqr_f.x, 5, *g_sys.ts, &state_est->pqr_f_lpf.x);
-	state_est->pqr_f.y = Lpf(state_est->pqr_f.y, 5, *g_sys.ts, &state_est->pqr_f_lpf.y);
-	state_est->pqr_f.z = Lpf(state_est->pqr_f.z, 5, *g_sys.ts, &state_est->pqr_f_lpf.z);
+	state_est->pqr_f.x = Lpf(state_est->pqr_f.x, 2.0, *g_sys.ts, &state_est->pqr_f_lpf.x);
+	state_est->pqr_f.y = Lpf(state_est->pqr_f.y, 2.0, *g_sys.ts, &state_est->pqr_f_lpf.y);
+	state_est->pqr_f.z = Lpf(state_est->pqr_f.z, 2.0, *g_sys.ts, &state_est->pqr_f_lpf.z);
 
 	// save values to pqr_f_lpf to use in next step (Lpf requires values from previous step)
 	state_est->pqr_f_lpf.x = state_est->pqr_f.x; 
@@ -100,8 +100,8 @@ __attribute__((optimize(0)))  void AssignInputs(double dcm_g2b_c[], double pqr_c
 	state_est->pqr_f_lpf.z = state_est->pqr_f.z;
 
 	//acc_norm_c - convert and copy value into state_est->acc_norm_f
-	double acc_norm_f_tmp = *acc_norm_c;
-	memcpy(&state_est->acc_norm_f, &acc_norm_f_tmp, sizeof(state_est->acc_norm_f));
+	// RRD: commented this one and the next and replaced with a filtered quantity double acc_norm_f_tmp = *acc_norm_c;
+	// RRD: I commented this one memcpy(&state_est->acc_norm_f, &acc_norm_f_tmp, sizeof(state_est->acc_norm_f));
 	
 	// Xg - convert and copy value into state_est->Xg
 	Vec3 Xg_tmp = { Xg_c[0] , Xg_c[1] , Xg_c[2] };
@@ -125,7 +125,27 @@ __attribute__((optimize(0)))  void AssignInputs(double dcm_g2b_c[], double pqr_c
 	// Ab_f - convert and copy value into state_est->Ab_f  // RRD-Why does it have to be converted? Ask JUSTIN. Also I removed the - signs
 	Vec3 Ab_tmp = { Ab_c[0] , Ab_c[1] , Ab_c[2] };
 	// Vec3 Ab_tmp = { Ab_c[0] , Ab_c[1] , Ab_c[2] };
+	
+	// RRD start: add Low pass filter trying to smooth everything @0.1Hz
 	memcpy(&state_est->Ab_f, &Ab_tmp, sizeof(state_est->Ab_f));
+
+	state_est->Ab_f.x = Lpf(state_est->Ab_f.x, 1., *g_sys.ts, &state_est->Ab_f_lpf.x);
+	state_est->Ab_f.y = Lpf(state_est->Ab_f.y, 1., *g_sys.ts, &state_est->Ab_f_lpf.x);
+	state_est->Ab_f.z = Lpf(state_est->Ab_f.z, 1., *g_sys.ts, &state_est->Ab_f_lpf.x);
+
+	// save values to pqr_f_lpf to use in next step (Lpf requires values from previous step)
+	state_est->Ab_f_lpf.x = state_est->Ab_f.x; 
+	state_est->Ab_f_lpf.y = state_est->Ab_f.y;	
+	state_est->Ab_f_lpf.z = state_est->Ab_f.z;
+	
+	// memcpy(&state_est->Ab_f, &Ab_t1mp, sizeof(state_est->Ab_f)); //RRD commented this one out and replaced with what's above --RRD end
+	//RRD start: passing also acc_norm_f now here and commented above 
+    double acc_norm_f_tmp =sqrt( pow(state_est->Ab_f.x,2) + pow(state_est->Ab_f.y,2) + pow(state_est->Ab_f.z,2) ); //not sure this is legit, but for now it is just ot see something smooth
+	memcpy(&state_est->acc_norm_f, &acc_norm_f_tmp, sizeof(state_est->acc_norm_f));
+	printf("  acc_norm_f = %0.4f, acc_norm_c = %0.4f \n", state_est->acc_norm_f,*acc_norm_c);
+	//RRD end
+	
+	
 	// rho - convert and copy value into state_est->rho
 	double rho_tmp = *rho_c;
 	memcpy(&state_est->rho, &rho_tmp, sizeof(state_est->rho));
@@ -165,13 +185,13 @@ __attribute__((optimize(0)))  void AssignInputs(double dcm_g2b_c[], double pqr_c
 	double Ty = tether_force_c[1];
 	double Tz = tether_force_c[2];
 	// tether roll approximation using tether force
-	state_est->tether_force_b.sph.roll = acos((pow(Tx,2)+pow(Tz,2))/(sqrt(pow(Tx,2)+pow(Tz,2))*sqrt(pow(Tx,2)+pow(Ty,2)+pow(Tz,2))));
+	state_est->tether_force_b.sph.roll = acos((pow(Tx,2)+pow(Tz,2))/( sqrt(pow(Tx,2)+pow(Tz,2))*sqrt(pow(Tx,2)+pow(Ty,2)+pow(Tz,2)) ) );
 	// add low-pass filter to filter out transients seen in force vectors
 	state_est->tether_force_b.sph.roll = Lpf(state_est->tether_force_b.sph.roll, 0.2, *g_sys.ts, &state_est->tether_force_b.sph.roll_lpf);
 	// save current tether roll angle to be using in next step.
 	state_est->tether_force_b.sph.roll_lpf = state_est->tether_force_b.sph.roll;
 	// approximation for tether pitch (unused in controller)
-	state_est->tether_force_b.sph.pitch = Tz / (sqrt(pow(Tx,2)+pow(Tz,2))); // adding tether pitch - 6/27/19
+	state_est->tether_force_b.sph.pitch = acos( Tz / (sqrt(pow(Tx,2)+pow(Tz,2))) ); // adding tether pitch - 6/27/19  #3/26/20 RRD added to acos to this formula that seems wrong
 	printf("  Tether Roll Angle (rad): = [%0.4f] \n",state_est->tether_force_b.sph.roll);
 	state_est->tether_force_b.vector_f.x = Tx;
 	state_est->tether_force_b.vector_f.y = Ty;

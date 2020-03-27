@@ -1,0 +1,17 @@
+--- KiteFastControllerDriver INPUT FILE i.e. InitInp%DrvInputFile---
+Testing Controller launch like this: ~/sandbox/build/modules/kitefast-controller/kitefastcontroller_driver RRD_CTRLDRIVER_input.dat
+--- SIMULATION CONTROL ---
+False     Echo      ! Echo input data to <RootName>.ech? (flag)
+3         numFlaps  ! Number of Flaps per wing; note for Makani's CTRL this must be =3
+2         numPylons = 2 ! Number of Pylons per wing; note for Makani's CTRL this must be =2 
+1.61  1.61  1.61  1.61    SPyRtrIrot(i,j) !Starboard rotor inertias with KFAST order of: do j = 1, p%numPylons [ do i = top,bot]
+1.61  1.61  1.61  1.61    PPyRtrIrot(i,j) !Port rotor inertias with KFAST order of: do j = 1, p%numPylons [ do i = top,bot]
+1         KFCmode   ! how to calculate control outputs: 0=dummy (hardwired in KiteFASTcontroller.f90), 1=ctrl proper,2=ctrl data file 
+--- INPUTS ---
+'/home/rdamiani/sandbox/glue-codes/kitefast/test_cases/RRD_m600_land_hiStart/KFCdriver_test'         OutFileRoot  ! Root for outputfiles
+'/home/rdamiani/sandbox/glue-codes/kitefast/test_cases/RRD_m600_land_hiStart/RRD_ctrl_input.dat'     InputFileName  !the input file for the controller routine 
+1         KFCdrivermode ! 1=reading inputs for the ctrl from this file; 2=old static test of the controller lib with one step only and hardcoded parameters   
+'/home/rdamiani/sandbox/glue-codes/kitefast/test_cases/RRD_m600_land_hiStart/CSIMstates.inp'      DrvCtrlInputs  !the data file containing the time series of CTRL inputs, ignored if  KFCdrivermode=2         
+
+END of input file (the word "END" must appear in the first 3 columns of this last OutList line)
+

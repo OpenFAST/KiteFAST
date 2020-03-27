@@ -67,8 +67,8 @@ fi
 cd build
 
 #/usr/lib/lapack  /usr/lib/x86_64-linux-gnu/libgslcblas.so.0
-cmake ..  -DCMAKE_BUILD_TYPE=DEBUG -DDOUBLE_PRECISION=OFF  -DGENERATE_TYPES=ON
-make -j 2 kitefastlib kitefastoslib kitefastcontroller_controller
+cmake ..  -DCMAKE_BUILD_TYPE=DEBUG -DDOUBLE_PRECISION=OFF  #-DGENERATE_TYPES=ON
+make -j 2 kitefastlib kitefastoslib kitefastcontroller_controller kitefastcontroller_driver kiteaerodyn_driver
 
 # download mbdyn, configure, and build
 cd $source_code_parent_directory
@@ -90,6 +90,7 @@ fi
 # create_link $openfast_directory/glue-codes/kitefast/module-kitefastmbd/Makefile.inc $destination_directory/Makefile.inc
 # create_link $openfast_directory/glue-codes/kitefast/module-kitefastmbd/module-kitefastmbd.cc $destination_directory/module-kitefastmbd.cc
 # create_link $openfast_directory/glue-codes/kitefast/module-kitefastmbd/module-kitefastmbd.h $destination_directory/module-kitefastmbd.h
+# create_link $openfast_directory/glue-codes/kitefast/module-kitefastmbd/KiteFASTNode.cc $destination_directory/KiteFASTNode.cc
 # create_link $openfast_directory/build/modules/kitefast-library/libkitefastlib.a $destination_directory/libkitefastlib.a
 # create_link $openfast_directory/build/modules/nwtc-library/libnwtclibs.a $destination_directory/libnwtclibs.a
 # create_link $openfast_directory/build/modules/moordyn/libmoordynlib.a $destination_directory/libmoordynlib.a

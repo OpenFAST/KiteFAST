@@ -31,7 +31,10 @@ ControlGlobal controlglob = {	.state_est = {
     								.Vb_f = {61.5573534961638,1.65877222531134, -2.61162923749005},
 									.Vb = {61.5573534961638,1.65877222531134, -2.61162923749005},
     								.Ag = {-4.10429877138525, 18.8476886549997, -10.3879191238667},
-    								.Ab_f = {0.160085873782321, -22.5059243248619, 0.695634407713604},
+    								//.Ab_f = {0.160085873782321, -22.5059243248619, 0.695634407713604},
+									//.Ab_f_lpf = {0.160085873782321, -22.5059243248619, 0.695634407713604}, //RRD added this to test filtering of Accel
+									.Ab_f     = {-1.15392349, -9.43911201,  2.20878391},//RRD added this to test filtering of Accel with hi_start
+									.Ab_f_lpf = {-1.15392349, -9.43911201,  2.20878391},//RRD added this to test filtering of Accel with hi_start
     								.rho = 1.0747,
     								.apparent_wind.sph_f.v = 54.4623229188392,
 									.apparent_wind.sph_f.alpha = 0.0809881150728984,
@@ -55,8 +58,8 @@ ControlGlobal controlglob = {	.state_est = {
 									.wind_g.vector_f.x = -7.6604,
 									.wind_g.vector_f.y = -6.4279,
 									.wind_g.vector_f.z = 0,
-									.wind_g.dir_f = -2.4435,
-									.wind_aloft_g.speed_f_playbook = 10.0743,
+									.wind_g.dir_f = 0., //#RRD:original value was:-2.4435,
+									.wind_aloft_g.speed_f_playbook = 12, //RRD: original value was 10.0743,
 									.wind_g.valid = true,
 									//adding joystick throttle value: - 6/27/19
 									.joystick.throttle_f = 0.81,
@@ -72,7 +75,7 @@ ControlGlobal controlglob = {	.state_est = {
 									.stacking_state = 0,
 									.gps_active = true,
 									.perch_azi.valid = true,
-									.perch_azi.angle = 0.8698,
+									.perch_azi.angle = 0., //#RRD:original value was:0.8698,
 									.perch_azi.angle_vel_f = 0,
 								},
 								.flight_status = {	

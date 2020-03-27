@@ -6,7 +6,7 @@
 !!
 ! ..................................................................................................................................
 !! ## LICENSING 
-!! Copyright (C) 2019  National Renewable Energy Laboratory
+!! Copyright (C) 2020 Makani and RRD Engineering, LLC
 !!
 !!    This file is part of KiteFAST.
 !!
@@ -34,6 +34,10 @@ module KiteFastController
    
    integer,        parameter    :: IntfStrLen  = 1025       ! length of strings through the C interface
    type(ProgDesc), parameter    :: KFC_Ver = ProgDesc( 'KiteFastController', '', '' )
+   
+   !Default values
+   CHARACTER(*),      parameter    :: DLL_FileName_Default="~/sandbox/build/modules/kitefast-controller/libkitefastcontroller_controller.so"
+   !integer                      :: interval = 0.01_DbKi          ! This is the Default dt for the controller, but it can be changed by input file
 
       !> Definition of the DLL Interface for the KiteFast Controller
       !! 
@@ -207,7 +211,22 @@ module KiteFastController
       m%AllOuts( FlpDef(i) ) = o%ctrlSettings(i)
 
     end do
-
+   !Assign Allouts-DCMG2B here, but we should check whether or not it is requested
+    !!print *, ">>>>>>>> RRD_Debug: In ",routineName," befdore DCMG2B to ALLOUTS =p%NumOuts", p%NumOuts," <<<<<<<<<<<<<<<<<<<<< \n"  
+    m%AllOuts( DCMG2Bc1:DCMG2Bc9 ) = RESHAPE(u%dcm_g2b,(/9/))    
+    if (errStat >= AbortErrLev) then
+          call SetErrStat( ErrID_Fatal, 'The DCMg2bC', errStat, errMsg, RoutineName )
+          return
+    end if
+  
+   !Assign Allouts-TethFb here, but we should check whether or not it is requested
+    
+    m%AllOuts( TethFxb:TethFzb ) = u%tether_forceb
+    if (errStat >= AbortErrLev) then
+          call SetErrStat( ErrID_Fatal, 'The Tether_Forceb', errStat, errMsg, RoutineName )
+          return
+    end if
+    !!print *, ">>>>>>>> RRD_Debug: In ",routineName," after DCMG2B to ALLOUTS=", DCMG2Bc((i-1)*3 +j)," <<<<<<<<<<<<<<<<<<<<< \n"  
    end subroutine KFC_MapOutputs 
    
    subroutine KFC_End(p, errStat, errMsg)
@@ -225,21 +244,25 @@ module KiteFastController
       errStat = ErrID_None
       errMsg= ''
       
-      if (.not. p%useDummy) then
-            ! Call the DLL's end subroutine:
-         call C_F_PROCPOINTER( p%DLL_Trgt%ProcAddr(3), DLL_KFC_End_Subroutine) 
-         call DLL_KFC_End_Subroutine ( errStat, errMsg_c ) 
-         call c_to_fortran_string(errMsg_c, errMsg)
-      
-         print *, " KFC_End errStat - ", errStat, " errMsg - ", trim(errMsg)
+      IF (p%KFCmode .EQ. 1) THEN
+
+        ! Call the DLL's end subroutine:
+         Call C_F_PROCPOINTER( p%DLL_Trgt%ProcAddr(3), DLL_KFC_End_Subroutine) 
+         Call DLL_KFC_End_Subroutine ( errStat, errMsg_c ) 
+         Call c_to_fortran_string(errMsg_c, errMsg)
+
+      ENDIF   
+
+      CALL KFC_CloseOutput ( p, ErrStat, ErrMsg )
+
+      print *, " KFC_End errStat - ", errStat, " errMsg - ", trim(errMsg)
 
          ! TODO: Check errors
       
             ! Free the library
          call FreeDynamicLib( p%DLL_Trgt, errStat2, errMsg2 )  
             call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
-      end if
-      
+     
    end subroutine KFC_End
 
    subroutine KFC_Init(InitInp, u, p, y, interval, m, o, InitOut, errStat, errMsg )
@@ -284,14 +307,17 @@ module KiteFastController
       !   if (errStat >= AbortErrLev ) return
       !=============================================================================================  
       
+      interval    = 0.01_DbKi          ! This is the Default dt for the controller, but it can be changed by input file
+
+      
                ! Set the module's parameters
       p%numFlaps  = InitInp%numFlaps
       p%numPylons = InitInp%numPylons
-      interval    = 0.01_DbKi          ! Forcing a controller dt of 0.01 sec
-      p%DT        = interval            
+
       p%useDummy  = InitInp%useDummy
       p%nCtrlSettings = 2*p%numFlaps+2 ! "Number of Flap Deflections " -
       p%nRotors       = 4*p%numPylons  ! "Number of Rotors[ (rad/s^2)" -
+      p%KFCmode = InitInp%KFCmode
 
          ! allocate the inputs and outputs
       call AllocAry( u%SPyAeroTorque, 2, p%numPylons, 'u%SPyAeroTorque', errStat2, errMsg2 )
@@ -333,139 +359,149 @@ module KiteFastController
       call AllocAry( o%AeroTorq,p%nRotors, 'o%AeroTorque', errStat2, errMsg2 )
          call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
       
-      
       if (errStat >= AbortErrLev ) return
 
       !>>>>>>>>>>>>>>>>>>>>>>>>>RRD Get ICs in case and then call Controller_Init<<<<<<<<<<<<<<<<<<<<<<<<<<<
       
-      InitInp%Filename='./RRD_ctrl_input.dat'  !RRD:hardwire for now, it will be read elsewhere in the future from InitInp%Filename
+      !InitInp%Filename='./RRD_ctrl_input.dat'  !RRD:hardwire for now, it will be read elsewhere in the future from InitInp%Filename
 
+      
       ! Read Input file, otherwise the caller must have fully populated the Initialization inputs
-         if ( trim(InitInp%Filename) /= '' ) then
+         if ( trim(InitInp%InputFileName) /= '' ) then
             call ReadKFCFile(InitInp, interval, p, errStat, errMsg)
             if ( errStat > ErrID_None ) return
       !      print *, ">>>>>>>> RRD_Debug: In ",routineName,"InitInp%Filename is ",InitInp%Filename," <<<<<<<<<<<<<<<<<<<<< \n"  
          endif
       
          ! Validate the input file data and issue errors as needed
-         call ValidateInitData(InitInp, errStat, errMsg)
+         call ValidateInitData(InitInp,p%KFCmode, errStat, errMsg)
          if ( errStat >= AbortErrLev ) return
       
-      ! Are we simply using a dummy controller?  If so, we will skip trying to call into a DLL/SO      
-      
-      if (.not. p%useDummy) then
-     
-            ! Define and load the DLL:
-         p%DLL_Trgt%FileName = InitInp%DLL_FileName
+      ! Update dt based on the input file
+         interval        = InitInp%InpFileData%DTctrl
 
-         p%DLL_Trgt%ProcName = "" ! initialize all procedures to empty so we try to load only one
-         p%DLL_Trgt%ProcName(1) = 'kfc_dll_init'
-         p%DLL_Trgt%ProcName(2) = 'kfc_dll_step'
-         p%DLL_Trgt%ProcName(3) = 'kfc_dll_end'
-      
-         call LoadDynamicLib ( p%DLL_Trgt, errStat2, errMsg2 )
-            call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
-         if (errStat >= AbortErrLev ) return
+   
+         ! Are we simply using a dummy controller?  If so, we will skip trying to call into a DLL/SO      
+         
+      SELECT CASE (p%KFCmode)
 
-         ! Now that the library is loaded, call the controller's kfc_dll_init routine
-
-            ! Call the DLL (first associate the address from the procedure in the DLL with the subroutine):
-         call C_F_PROCPOINTER( p%DLL_Trgt%ProcAddr(1), DLL_KFC_Init_Subroutine) 
-      
-         !RRD I replaced the following allocs with OtherStates above
-         ! allocate(rtrIrot(p%numPylons*4), stat = errStat)
-         ! allocate(genTorq(p%numPylons*4), stat = errStat)
-         ! allocate(rtrSpd(p%numPylons*4), stat = errStat)
-         ! allocate(rtrAcc(p%numPylons*4), stat = errStat)
-         ! allocate(rtrBladePitch(p%numPylons*4), stat = errStat)
-         ! allocate(ctrlSettings(p%numFlaps*2+6), stat = errStat)
-         
-         dt_c = real(interval, C_DOUBLE)  ! RRD replaced 0.01 with interval :This is hardcoded for the Makani Controller
-         
-         c = 1
-         wingOffset = 2*p%numPylons
-         do j=1,p%numPylons
-            do i=1,2
-               o%rtrIrot(c)              = InitInp%SPyRtrIrot(i,j)
-               o%rtrIrot(c + wingOffset) = InitInp%PPyRtrIrot(i,j)
-               c = c + 1
-            end do
-         end do
-
-         o%genTorq        = InitInp%InpFileData%genTorq
-         o%rtrSpd         = InitInp%InpFileData%rtrSpd
-         o%rtrAcc         = InitInp%InpFileData%rtrAcc
-         o%rtrBladePitch  = InitInp%InpFileData%rtrBladePitch
-         o%ctrlSettings   = InitInp%InpFileData%ctrlSettings
-         
-         !print *, ">>>>>>>> RRD_Debug: In ",routineName,"- dt_c, o%genTorq before DLL_INIT=",dt_c, o%genTorq, "<<<<<<<<<<<<<<<<"  
-         !call DLL_KFC_Init_Subroutine ( dt_c, p%numFlaps*2+2, p%numPylons, rtrIrot, o%genTorq, rtrSpd, rtrAcc, rtrBladePitch, ctrlSettings, errStat, errMsg_c ) 
-         call DLL_KFC_Init_Subroutine ( dt_c, p%numFlaps*2+2, p%numPylons, o%rtrIrot, o%genTorq, o%rtrSpd, o%rtrAcc, o%rtrBladePitch, o%ctrlSettings, errStat, errMsg_c )  !RRD
-         !print *, ">>>>>>>> RRD_Debug: In ",routineName,"- o%genTorq after DLL_INIT=",o%genTorq, "<<<<<<<<<<<<<<<<"  
-         
-         call c_to_fortran_string(errMsg_c, errMsg)
-         ! print *, " KFC_Init errStat - ", errStat, " errMsg - ", trim(errMsg)
-         ! TODO: Check errors
-         !print *, " debug marker - pre errStat >= Abort"
-         if (errStat >= AbortErrLev ) return
-         
-         !print *, " debug marker - post errStat >= Abort"
-         !print *, " debug - o%genTorq     : ", o%genTorq
-         ! print *, " debug - rtrSpd      : ", rtrSpd
-         !print *, " debug - o%ctrlSettings: ", o%ctrlSettings
-         
-         ! obtain initial outputs from the DLL and set them
-         !!call KFC_MapOutputs( p%numFlaps, p%numPylons, genTorq, rtrSpd, rtrAcc, rtrBladePitch, ctrlSettings, y)
-        ! call KFC_MapOutputs(p, u,  y, m, o,  rtrSpd, rtrAcc, rtrBladePitch, ctrlSettings, errStat, errMsg)
-      else
-           ! Set outputs to zero except for RtrSpd which is set to be constant for the dummy controller
-         !y%SPyGenTorque = 0.0_ReKi
-         !y%PPyGenTorque = 0.0_ReKi
+         CASE (0) ! Dummy Controller
+               ! Set outputs to zero except for RtrSpd which is set to be constant for the dummy controller
             ! TODO: Determine what would be a realistic dummy set of speed and the correct signs for each rotor
-         o%genTorq=0.0_ReKi
-         o%genTorq(3)=110.0_ReKi
-         o%rtrSpd=100
-         o%rtrSpd(1)=-100
-         o%rtrSpd(3)=-100
+            o%genTorq=0.0_ReKi
+            o%genTorq(3)=110.0_ReKi
+            o%rtrSpd=100
+            o%rtrSpd(1)=-100
+            o%rtrSpd(3)=-100
+            
+            if ( p%numPylons > 1 ) then
+               o%rtrSpd(5)=-100
+               o%rtrSpd(7)=-100
+               ! y%SPyRtrSpd(1,2) = 100.0  ! starboard top rotor, outer pylons 
+               !y%SPyRtrSpd(2,2) = -100.0  ! starboard bottom rotor, outer pylons
+               !y%PPyRtrSpd(1,2) = 100.0  ! port top rotor, outer pylon
+               !y%PPyRtrSpd(2,2) = -100.0  ! port bottom rotor, outer pylon
+            end if
+            o%rtrAcc=10.0_ReKi  ! rad/s^2
+            o%rtrAcc(3)=12.0_ReKi  ! rad/s^2
+            !y%SPyRtrAcc    =   10.0_ReKi  ! rad/s^2
+            !y%PPyRtrAcc    =   12.0_ReKi  ! rad/s^2
+            o%rtrBladePitch=2.0_ReKi  ! deg ???
+            o%rtrBladePitch(3)=1.0_ReKi  ! deg ???
+            
+            !y%SPyBldPitch  = 0.0_ReKi
+   
+            !y%PPyBldPitch  = 0.0_ReKi
+               ! All flag commands are constant for the dummy controller
+             !RRD I introduced o% for all otherstates, i.e. those given by external controller
+            o%ctrlSettings(1:p%numFlaps)=0.1_ReKi !starboard flap
+            o%ctrlSettings(p%numFlaps+1:2*p%numFlaps)=-0.3_ReKi !port flap
+            o%ctrlSettings(2*p%numFlaps+1:p%nCtrlSettings)=0.2_ReKi !rudder
+            o%ctrlSettings(2*p%numFlaps+3:2*p%numFlaps+4)=0.4_ReKi ! starboard elevator
+            o%ctrlSettings(2*p%numFlaps+5:2*p%numFlaps+6)=0.5_ReKi ! port elevator
+           
          
-         !y%SPyRtrSpd(1,1) = -100.0  ! starboard top rotor, inner pylons   rad/s
-         !y%SPyRtrSpd(2,1) = 100.0  ! starboard bottom rotor, inner pylons     
-         !y%PPyRtrSpd(1,1) = -100.0  ! port top rotor, inner pylons
-         !y%PPyRtrSpd(2,1) = 100.0  ! port bottom rotor, inner pylons
-         if ( p%numPylons > 1 ) then
-            o%rtrSpd(5)=-100
-            o%rtrSpd(7)=-100
-            ! y%SPyRtrSpd(1,2) = 100.0  ! starboard top rotor, outer pylons 
-            !y%SPyRtrSpd(2,2) = -100.0  ! starboard bottom rotor, outer pylons
-            !y%PPyRtrSpd(1,2) = 100.0  ! port top rotor, outer pylon
-            !y%PPyRtrSpd(2,2) = -100.0  ! port bottom rotor, outer pylon
-         end if
-         o%rtrAcc=10.0_ReKi  ! rad/s^2
-         o%rtrAcc(3)=12.0_ReKi  ! rad/s^2
-         !y%SPyRtrAcc    =   10.0_ReKi  ! rad/s^2
-         !y%PPyRtrAcc    =   12.0_ReKi  ! rad/s^2
-         o%rtrBladePitch=2.0_ReKi  ! deg ???
-         o%rtrBladePitch(3)=1.0_ReKi  ! deg ???
+         CASE(2)  ! External Data File
+            ! Now, assess whether we need to start reading from dummyCtrlFile (which is not the dummy controller hardcoded here)
+            IF  (InitInp%InpFileData%DmyCtl_FName .NE. " ") THEN
+               ! Open and initialize the CTRL DATA FILE
+                p%DmyCtl_FName = InitInp%InpFileData%DmyCtl_FName
+                Call KFC_OpenDmyFile( o, p, ErrStat, ErrMsg )
+                if (ErrStat >= AbortErrLev) return
+            ELSE
+               ErrMsg= 'The DmyCtl_FName is blank and must be set when KFCmode=2'
+               ErrStat =AbortErrLev
+            ENDIF
+                  
+         CASE DEFAULT !=1, regular controller
          
-         !y%SPyBldPitch  = 0.0_ReKi
-
-         !y%PPyBldPitch  = 0.0_ReKi
-            ! All flag commands are constant for the dummy controller
-          !RRD I introduced o% for all otherstates, i.e. those given by external controller
-         o%ctrlSettings(1:p%numFlaps)=0.1_ReKi !starboard flap
-         o%ctrlSettings(p%numFlaps+1:2*p%numFlaps)=-0.3_ReKi !port flap
-         o%ctrlSettings(2*p%numFlaps+1:p%nCtrlSettings)=0.2_ReKi !rudder
-         o%ctrlSettings(2*p%numFlaps+3:2*p%numFlaps+4)=0.4_ReKi ! starboard elevator
-         o%ctrlSettings(2*p%numFlaps+5:2*p%numFlaps+6)=0.5_ReKi ! port elevator
-
-         !y%SFlp =  0.1_ReKi
-         !y%PFlp = -0.3_ReKi
-         !y%Rudr =  0.2_ReKi
-         !y%SElv =  0.4_ReKi
-         !y%PElv =  0.5_ReKi
-         
-      end if
+            ! Set up the actual c-controller library
+               call RemoveNullChar(InitInp%InpFileData%DLL_FileName)
       
+            ! Define and load the DLL:
+               p%DLL_Trgt%FileName = InitInp%InpFileData%DLL_FileName
+
+               p%DLL_Trgt%ProcName = "" ! initialize all procedures to empty so we try to load only one
+               p%DLL_Trgt%ProcName(1) = 'kfc_dll_init'
+               p%DLL_Trgt%ProcName(2) = 'kfc_dll_step'
+               p%DLL_Trgt%ProcName(3) = 'kfc_dll_end'
+            
+               call LoadDynamicLib ( p%DLL_Trgt, errStat2, errMsg2 )
+                  call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
+               if (errStat >= AbortErrLev ) return
+
+               ! Now that the library is loaded, call the controller's kfc_dll_init routine
+
+                  ! Call the DLL (first associate the address from the procedure in the DLL with the subroutine):
+               call C_F_PROCPOINTER( p%DLL_Trgt%ProcAddr(1), DLL_KFC_Init_Subroutine) 
+            
+               !RRD I replaced the following allocs with OtherStates above
+               ! allocate(rtrIrot(p%numPylons*4), stat = errStat)
+               ! allocate(genTorq(p%numPylons*4), stat = errStat)
+               ! allocate(rtrSpd(p%numPylons*4), stat = errStat)
+               ! allocate(rtrAcc(p%numPylons*4), stat = errStat)
+               ! allocate(rtrBladePitch(p%numPylons*4), stat = errStat)
+               ! allocate(ctrlSettings(p%numFlaps*2+6), stat = errStat)
+               
+               dt_c = real(interval, C_DOUBLE)  ! RRD replaced 0.01 with interval :This is hardcoded for the Makani Controller
+               
+               c = 1
+               wingOffset = 2*p%numPylons
+               do j=1,p%numPylons
+                  do i=1,2
+                     o%rtrIrot(c)              = InitInp%SPyRtrIrot(i,j)
+                     o%rtrIrot(c + wingOffset) = InitInp%PPyRtrIrot(i,j)
+                     c = c + 1
+                  end do
+               end do
+
+               o%genTorq        = InitInp%InpFileData%genTorq
+               o%rtrSpd         = InitInp%InpFileData%rtrSpd
+               o%rtrAcc         = InitInp%InpFileData%rtrAcc
+               o%rtrBladePitch  = InitInp%InpFileData%rtrBladePitch
+               o%ctrlSettings   = InitInp%InpFileData%ctrlSettings
+               
+               !print *, ">>>>>>>> RRD_Debug: In ",routineName,"- dt_c, o%genTorq before DLL_INIT=",dt_c, o%genTorq, "<<<<<<<<<<<<<<<<"  
+               !call DLL_KFC_Init_Subroutine ( dt_c, p%numFlaps*2+2, p%numPylons, rtrIrot, o%genTorq, rtrSpd, rtrAcc, rtrBladePitch, ctrlSettings, errStat, errMsg_c ) 
+               call DLL_KFC_Init_Subroutine ( dt_c, p%numFlaps*2+2, p%numPylons, o%rtrIrot, o%genTorq, o%rtrSpd, o%rtrAcc, o%rtrBladePitch, o%ctrlSettings, errStat, errMsg_c )  !RRD
+               !print *, ">>>>>>>> RRD_Debug: In ",routineName,"- o%genTorq after DLL_INIT=",o%genTorq, "<<<<<<<<<<<<<<<<"  
+               
+               call c_to_fortran_string(errMsg_c, errMsg)
+               ! print *, " KFC_Init errStat - ", errStat, " errMsg - ", trim(errMsg)
+               ! TODO: Check errors
+               !print *, " debug marker - pre errStat >= Abort"
+               if (errStat >= AbortErrLev ) return
+               
+               !print *, " debug marker - post errStat >= Abort"
+               !print *, " debug - o%genTorq     : ", o%genTorq
+               ! print *, " debug - rtrSpd      : ", rtrSpd
+               !print *, " debug - o%ctrlSettings: ", o%ctrlSettings
+               
+               ! obtain initial outputs from the DLL and set them
+               !!call KFC_MapOutputs( p%numFlaps, p%numPylons, genTorq, rtrSpd, rtrAcc, rtrBladePitch, ctrlSettings, y)
+            ! call KFC_MapOutputs(p, u,  y, m, o,  rtrSpd, rtrAcc, rtrBladePitch, ctrlSettings, errStat, errMsg)
+      END SELECT
+
       !----------------------------------
       ! Create the file-related output data
       !----------------------------------
@@ -483,7 +519,7 @@ module KiteFastController
       p%OutFmt    = InitInp%InpFileData%OutFmt
       p%NRotOuts  = InitInp%InpFileData%NRotOuts
       p%RotOuts   = InitInp%InpFileData%RotOuts
-
+      
 
       !print *, ">>>>>RRD_debug: In ",RoutineName," p%NFlpOuts, p%NumOuts=",p%NFlpOuts, p%NumOuts
                   !!call KFC_MapOutputs( p%numFlaps, p%numPylons, genTorq, rtrSpd, rtrAcc, rtrBladePitch, ctrlSettings, y)
@@ -536,7 +572,7 @@ module KiteFastController
 
       if (p%OutSwtch /= 2) call KFC_WrOutputLine(0.0_DbKi, p, y%WriteOutput, errStat, errMsg)
 
-      print *, ">>>>>>>> RRD_Debug: At the end of ",routineName,"Passed <<<<<<<<<<<<<<<<<<<<< \n"  
+      !!print *, ">>>>>>>> RRD_Debug: At the end of ",routineName,"Passed <<<<<<<<<<<<<<<<<<<<< \n"  
 
    end subroutine KFC_Init
 
@@ -558,7 +594,7 @@ module KiteFastController
       character(ErrMsgLen)                          :: errMsg2        ! The error message, if an error occurred     
       procedure(KFC_DLL_Step_PROC),pointer          :: DLL_KFC_Step_Subroutine              ! The address of the supercontroller sc_calcoutputs procedure in the DLL
       real(C_DOUBLE)                                :: t_c
-      real(C_DOUBLE)                                :: dcm_g2b_c(9)
+      real(C_DOUBLE)                                :: dcm_g2b_c(9) 
       real(C_DOUBLE)                                :: pqr_c(3)
       real(C_DOUBLE)                                :: acc_norm_c
       real(C_DOUBLE)                                :: Xg_c(3)
@@ -592,10 +628,45 @@ module KiteFastController
       tether_forceb_c = u%tether_forceb
       wind_g_c        = u%wind_g
       
-      !print *, ">>>>>>>> RRD_Debug: At the start of ",routineName," t=,",t,"  <<<<<<<<<<<<<<<<<<<<< \n"  
+      !!print *, ">>>>>>>> RRD_Debug: At the start of ",routineName," t=,",t,"  <<<<<<<<<<<<<<<<<<<<< \n"  
+      SELECT CASE (p%KFCmode)
 
-      if (.not. p%useDummy) then
+      CASE (0) ! Dummy Controller
+            ! TODO: Determine what would be a realistic dummy set of speed and the correct signs for each rotor
+            ! NOTE: Speed should match the settings used in the Init routine.
+         o%rtrSpd=(/-100.0,100.0,200.0,210.0,-300.0,310.0,400.0,-410.0/)
          
+            ! Zero rotor acceleration
+         o%rtrSpd=(/-10.0,10.0,11.0,-12.0,-30.0,31.0,22.0,-22.0/)
+         !y%SPyRtrAcc(1,:) = 10.0_ReKi ! starboard top rotor, all pylons 
+         !y%SPyRtrAcc(2,:) = 11.0_ReKi ! starboard bottom rotor, all pylons
+         !y%PPyRtrAcc(1,:) = 12.0_ReKi ! port top rotor, all pylons
+         !y%PPyRtrAcc(2,:) = 13.0_ReKi ! port bottom rotor, all pylons
+         
+            ! Currently blade pitch is not being set by controller and was initialized to 0.0
+         o%rtrBladePitch= 0.0_ReKi
+         !y%SPyBldPitch  = 0.0_ReKi
+         !y%PPyBldPitch  = 0.0_ReKi
+         
+         ! Set GenTorque = -AeroTorque
+         o%genTorq=(/-123.0,123.0,111.0,-112.0,-320.0,131.0,122.0,-121.0/)
+         !y%SPyGenTorque = -u%SPyAeroTorque  ! starboard rotors
+         !y%PPyGenTorque = -u%PPyAeroTorque  ! port rotors
+        
+            ! All flag commands are constant for the dummy controller
+         o%ctrlSettings(1:p%numFlaps)=-0.1_ReKi !port flaps
+         o%ctrlSettings(p%numFlaps+1:2*p%numFlaps)=+0.3_ReKi !starboard flaps
+         o%ctrlSettings(2*p%numFlaps+1)=-0.01_ReKi !elevator
+         o%ctrlSettings(p%nCtrlSettings)=-0.4_ReKi ! rudder
+   
+      CASE (2)   
+         !Override controller output if user requested to read a data file
+         !print *, ">>>>>>RRD_Debug:  Before Step-KFC_RdCtrlDataLine t=", t
+         CALL KFC_RdCtrlDataLine( o, p, ErrStat, ErrMsg)
+         IF ( ErrStat >= AbortErrLev ) RETURN
+
+      CASE DEFAULT !=1, regular controller
+                  
          !RRD replaced the following with otherstates
          !allocate(AeroTorq(p%numPylons*4), stat = errStat)
          !allocate(genTorq(p%numPylons*4), stat = errStat)
@@ -656,60 +727,13 @@ module KiteFastController
          ! print *, " debug - y%SElv : ", y%SElv
          ! print *, " debug - y%PElv : ", y%PElv
          ! print *, " ======================================="
+      END SELECT   
          
-      else
-         
-         ! TODO: Determine what would be a realistic dummy set of speed and the correct signs for each rotor
-            ! NOTE: Speed should match the settings used in the Init routine.
-         o%rtrSpd=(/-100.0,100.0,200.0,210.0,-300.0,310.0,400.0,-410.0/)
-          !y%SPyRtrSpd(1,1) = -100.0  ! starboard top rotor, inner pylons    rad/s
-         !y%SPyRtrSpd(2,1) = 100.0  ! starboard bottom rotor, inner pylons        
-         !y%PPyRtrSpd(1,1) = -100.0  ! port top rotor, inner pylons
-         !y%PPyRtrSpd(2,1) = 100.0  ! port bottom rotor, inner pylons
-         
-         !if ( p%numPylons > 1 ) then
-         !   y%SPyRtrSpd(1,2) = 100.0  ! starboard top rotor, outer pylons 
-          !  y%SPyRtrSpd(2,2) = -100.0  ! starboard bottom rotor, outer pylons
-           ! y%PPyRtrSpd(1,2) = 100.0  ! port top rotor, outer pylon
-            !y%PPyRtrSpd(2,2) = -100.0  ! port bottom rotor, outer pylon
-         !end if
-            ! Zero rotor acceleration
-         o%rtrSpd=(/-10.0,10.0,11.0,-12.0,-30.0,31.0,22.0,-22.0/)
-         !y%SPyRtrAcc(1,:) = 10.0_ReKi ! starboard top rotor, all pylons 
-         !y%SPyRtrAcc(2,:) = 11.0_ReKi ! starboard bottom rotor, all pylons
-         !y%PPyRtrAcc(1,:) = 12.0_ReKi ! port top rotor, all pylons
-         !y%PPyRtrAcc(2,:) = 13.0_ReKi ! port bottom rotor, all pylons
-         
-
-            ! Currently blade pitch is not being set by controller and was initialized to 0.0
-         o%rtrBladePitch= 0.0_ReKi
-         !y%SPyBldPitch  = 0.0_ReKi
-         !y%PPyBldPitch  = 0.0_ReKi
-         
-            ! Set GenTorque = -AeroTorque
-         o%genTorq=(/-123.0,123.0,111.0,-112.0,-320.0,131.0,122.0,-121.0/)
-         !y%SPyGenTorque = -u%SPyAeroTorque  ! starboard rotors
-         !y%PPyGenTorque = -u%PPyAeroTorque  ! port rotors
-        
-            ! All flag commands are constant for the dummy controller
-         o%ctrlSettings(1:p%numFlaps)=-0.1_ReKi !port flaps
-         o%ctrlSettings(p%numFlaps+1:2*p%numFlaps)=+0.3_ReKi !starboard flaps
-         o%ctrlSettings(2*p%numFlaps+1)=-0.01_ReKi !elevator
-         o%ctrlSettings(p%nCtrlSettings)=-0.4_ReKi ! rudder
-
-         !y%SFlp =  0.1_ReKi
-         !y%PFlp = -0.3_ReKi
-         !y%Rudr =  0.2_ReKi
-         !y%SElv =  0.4_ReKi
-         !y%PElv =  0.5_ReKi
-         
-      end if
-      
-         ! Map the output quantities to the AllOuts array --RRD
-   
-   call  KFC_MapOutputs(p, u,  y, m, o,  errStat, errMsg)
+   ! Map the output quantities to the AllOuts array --RRD
+   CALL  KFC_MapOutputs(p, u,  y, m, o,  errStat, errMsg)
       if ( errStat >= AbortErrLev ) return
-      
+   
+
    !...............................................................................................................................
    ! Place the selected output channels into the WriteOutput(:) array with the proper sign:
    !...............................................................................................................................
@@ -773,7 +797,7 @@ module KiteFastController
          OutFileName = TRIM(OutRootName)//'.KFC.out'
          
         !!RRD hardcode here in case of dummy controller
-         print *, ">>>>>>>> RRD_Debug: In ",routineName," OutFileName=", trim(OutFileName),"LEN_TRIM(OutRootName)=", LEN_TRIM(OutRootName)," <<<<<<<<<<<<<<<<<<<<< \n"  
+         !!print *, ">>>>>>>> RRD_Debug: In ",routineName," OutFileName=", trim(OutFileName),"LEN_TRIM(OutRootName)=", LEN_TRIM(OutRootName)," <<<<<<<<<<<<<<<<<<<<< \n"  
         
        !!  IF (len_trim(OutFileName) .EQ. 1024) THEN 
        !!      OutFileName="./Kite.KFC.out"
@@ -889,7 +913,12 @@ module KiteFastController
       CLOSE( p%UnOutFile, IOSTAT = ErrStat )
       IF ( ErrStat /= 0 ) Err = .TRUE.
    
-     
+      !-------------------------------------------------------------------------------------------------
+      ! Close Dummy Ctrl Data File
+      !-------------------------------------------------------------------------------------------------
+      CLOSE( p%UnCtrlFile, IOSTAT = ErrStat )
+      IF ( ErrStat /= 0 ) Err = .TRUE.
+  
     
       !-------------------------------------------------------------------------------------------------
       ! Make sure ErrStat is non-zero if an error occurred
@@ -901,20 +930,20 @@ module KiteFastController
    END SUBROUTINE KFC_CloseOutput
    !==================================================================================================== 
 !----------------------------------------------------------------------------------------------------------------------------------
-!> This routine parse the KiteAeroDyn input file.
-   subroutine ReadKFCFile(InitInp, interval,p, errStat, errMsg)
+!> This routine parse the KFC input file.
+   subroutine ReadKFCFile(InitInp, interval, p, errStat, errMsg)
 
-      type(KFC_InitInputType),          intent(inout)  :: InitInp     !< Initialization input data for KiteFastController
-      real(DbKi),                       intent(in   )  :: interval    !< Default time step for controller calculations, s
-      TYPE(KFC_ParameterType),          INTENT( INOUT ):: p           !< parameters
-      integer(IntKi),                   intent(  out)  :: errStat     !< Error status of the operation
-      character(*),                     intent(  out)  :: errMsg      !< Error message if errStat /= ErrID_None
+      type(KFC_InitInputType),          intent(inout)  :: InitInp              !< Initialization input data for KiteFastController
+      real(DbKi),                       intent(in   )  :: interval             !< Default time step for controller calculations, s
+      TYPE(KFC_ParameterType),          INTENT( INOUT ):: p                    !< parameters
+      integer(IntKi),                   intent(  out)  :: errStat              !< Error status of the operation
+      character(*),                     intent(  out)  :: errMsg               !< Error message if errStat /= ErrID_None
    
             ! Local variables
       integer(IntKi)            :: i                ! loop counter
       character(ErrMsgLen)      :: errMsg2          ! temporary Error message if errStat /= ErrID_None
       integer(IntKi)            :: errStat2         ! temporary Error status of the operation
-      character(1024)           :: fileName         ! file name
+      character(1024)           :: fileName,homedir,sodir    ! file name, homedirectory, and directory of the .so ctrl file
       integer(IntKi)            :: UnIn, UnEc       ! file units
       character(1024)           :: FTitle           ! "File Title": the 2nd line of the input file, which contains a description of its contents
       logical                   :: Echo             ! echo flag, true=echo the file
@@ -925,7 +954,7 @@ module KiteFastController
       errMsg   = ""
       UnEc     = -1 
       Echo = .false.   
-      fileName = trim(InitInp%Filename)
+      fileName = trim(InitInp%InputFileName)
       
       call GetNewUnit( UnIn )   
      
@@ -990,7 +1019,7 @@ module KiteFastController
       end do    
    
       if (NWTC_VerboseLevel == NWTC_Verbose) then
-         call WrScr( ' Heading of the '//trim(KFC_Ver%Name)//' input file: ' )      
+         call WrScr( ' Header of the '//trim(KFC_Ver%Name)//' input file: ' )      
          call WrScr( '   '//trim( FTitle ) )
       end if
       
@@ -999,7 +1028,31 @@ module KiteFastController
       
       call ReadVarWDefault( UnIn, fileName, InitInp%InpFileData%DTctrl, "DTctrl", "Time interval for controller calculations {or default} (s)", interval, errStat2, errMsg2, UnEc)
          call SetErrStat( errStat2, errMsg2, errStat, errMsg, RoutineName )
-      !-------------------------- INITIAL CONDITIONS ------------------------
+         IF ( ErrStat >= AbortErrLev ) THEN
+            CALL Cleanup()
+            RETURN
+         END IF
+         ! DLL_FileName - The actual controller .so file  
+         
+      call ReadVar( UnIn, fileName, InitInp%InpFileData%DLL_FileName, "DLL_FileName", "C-controller DLL (9).so)  {or default}", errStat2, errMsg2, UnEc)
+         call SetErrStat( errStat2, errMsg2, errStat, errMsg, RoutineName )
+       print *, routineName//":  Requested InitInp%InpFileData%DLL_FileName=",InitInp%InpFileData%DLL_FileName
+       
+       IF ( ( trim(InitInp%InpFileData%DLL_FileName) == 'DEFAULT' ) .OR. ( trim(InitInp%InpFileData%DLL_FileName) == 'default' ) ) InitInp%InpFileData%DLL_FileName= trim(DLL_FileName_Default)
+         sodir=trim(InitInp%InpFileData%DLL_FileName) 
+         IF ( sodir(1:2) == "~/" ) THEN
+            call GET_ENVIRONMENT_VARIABLE("HOME", homedir)   
+            print *, routineName//": HOME ="//trim(homedir)   
+            sodir = homedir(:LNBLNK(homedir))//sodir(2:LNBLNK(sodir))
+         ENDIF      
+         
+         InitInp%InpFileData%DLL_FileName =sodir 
+         print *, routineName//": Now Using InitInp%InpFileData%DLL_FileName=",InitInp%InpFileData%DLL_FileName  
+         IF ( ErrStat >= AbortErrLev ) THEN
+            CALL Cleanup()
+            RETURN
+         END IF
+         !-------------------------- INITIAL CONDITIONS ------------------------
 
       CALL ReadCom( UnIn, fileName, 'Section Header: Initial Conditions', ErrStat2, ErrMsg2, UnEc )
       CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
@@ -1008,7 +1061,7 @@ module KiteFastController
             RETURN
       END IF
 
-      ! rtrBladePitch - Rotor blade putchs [1 to NRotOuts] 
+      ! rtrBladePitch - Rotor blade pitches [1 to NRotOuts] 
       CALL ReadAry( UnIn, fileName, InitInp%InpFileData%rtrBladePitch, p%nRotors, "rtrBladePitch", "List of initial rotor blade pitches (rad) [nRotors]", ErrStat2, ErrMsg2, UnEc)
          CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
          IF ( ErrStat >= AbortErrLev ) THEN
@@ -1048,6 +1101,17 @@ module KiteFastController
             RETURN
          END IF
    
+       !---------------------- DUMMY CONTROLLER DATA FILE --------------------------------------------------
+      CALL ReadCom( UnIn, fileName, 'Section Header: DUMMY CONTROLLER DATA FILE ', ErrStat2, ErrMsg2, UnEc )
+        CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
+         IF ( ErrStat >= AbortErrLev ) THEN
+            CALL Cleanup()
+            RETURN
+         END IF
+ 
+      CALL ReadVar ( UnIn, fileName, InitInp%InpFileData%DmyCtl_FName, 'AFNames', 'Dummy Controller Filename', errStat2, errMsg2, UnEc )
+        CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )  
+  
          !---------------------- OUTPUT --------------------------------------------------
 
       CALL ReadCom( UnIn, fileName, 'Section Header: Output', ErrStat2, ErrMsg2, UnEc )
@@ -1132,7 +1196,7 @@ module KiteFastController
                RETURN
             END IF
             InitInp%InpFileData%NFlpOuts = p%nCtrlSettings
-            print *, ">>>>>RRD_debug: In ",RoutineName," InitInp%InpFileData%NFlpOuts=",InitInp%InpFileData%NFlpOuts
+            !!print *, ">>>>>RRD_debug: In ",RoutineName," InitInp%InpFileData%NFlpOuts=",InitInp%InpFileData%NFlpOuts
          END IF
          
          ! FlpOuts - List of flaps whose values will be output (-) [1 to NFlpOuts] [unused for NFlpOuts=0]:
@@ -1175,7 +1239,7 @@ module KiteFastController
             !     any existing echo information
             !----------------------------------------------------------------------------------------------------  
          
-                    
+               print *, ">>>>>RRD_debug: In ",RoutineName," ErrMsg=",errMsg     
                close(UnIn)
                if ( UnEc > 0 ) close(UnEc)
                
@@ -1186,9 +1250,10 @@ module KiteFastController
 !< This routine is called as part of the initialization step.
 !< The parameters are set here and not changed during the simulation.
 !< The initial states and initial guess for the input are defined.
-   subroutine ValidateInitData(InitInp, errStat, errMsg)
+   subroutine ValidateInitData(InitInp, KFCmode, errStat, errMsg)
 
    type(KFC_InitInputType),          intent(in   )  :: InitInp
+   integer(IntKi),                   intent(in   )  :: KFCmode     !< type of controller
    integer(IntKi),                   intent(  out)  :: errStat     !< Error status of the operation
    character(*),                     intent(  out)  :: errMsg      !< Error message if errStat /= ErrID_None
 
@@ -1202,7 +1267,8 @@ module KiteFastController
    InpData = InitInp%InpFileData
    
    if ( InpData%DTctrl   <= 0.0_DbKi ) call SetErrStat( ErrID_Fatal, 'Simulation timestep must be greater than zero', errStat, errMsg, routineName )
-   if ( InpData%DTctrl   .NE. 0.01_DbKi ) call SetErrStat( ErrID_Fatal, 'Simulation timestep must be equal to 0.01s for now, CSIM imposed', errStat, errMsg, routineName )
+   if ( (KFCmode == 1) .AND. (InpData%DTctrl   .NE. 0.01_DbKi ) ) call SetErrStat( ErrID_Fatal, 'Simulation timestep <> 0.01s , and that does not match CSIM ctrl', errStat, errMsg, routineName )
+ 
    if ( InpData%NRotOuts >8 ) call SetErrStat( ErrID_Fatal, 'Number of generators must be less than 8', errStat, errMsg, routineName )
    if ( (InpData%OutSwtch   < 1) .or. (InpData%OutSwtch   > 3) ) call SetErrStat( ErrID_Fatal, 'OutSwtch must be set to 1=KiteAeroDyn.out, 2=GlueCode.out, 3=both files', errStat, errMsg, routineName )
    
@@ -1211,4 +1277,123 @@ module KiteFastController
    
    end subroutine ValidateInitData
    
+   !====================================================================================================
+   SUBROUTINE KFC_OpenDmyFile( o, p, ErrStat, ErrMsg )
+      ! This subroutine initializes the dummy controller data file for reading,
+      ! contains valid names, and opening the output file if there are any requested outputs
+      !----------------------------------------------------------------------------------------------------
+            ! Passed variables
+         TYPE(KFC_OtherStateType), INTENT(INOUT) :: o                                  !< KAD other states (ctrl outputs
+         TYPE(KFC_ParameterType),        INTENT( INOUT ) :: p   
+         INTEGER,                       INTENT(   OUT ) :: ErrStat              ! a non-zero value indicates an error occurred           
+         CHARACTER(*),                  INTENT(   OUT ) :: ErrMsg               ! Error message if ErrStat /= ErrID_None
+         
+            ! Local variables
+         INTEGER                                        :: ErrStat2      
+         CHARACTER(ErrMsgLen)                           :: errMsg2          ! temporary Error message if errStat /= ErrID_None        
+         character(*), parameter                       :: routineName = 'KFC_OpenDmyFile'
+         !-------------------------------------------------------------------------------------------------      
+         ! Initialize local variables
+         !-------------------------------------------------------------------------------------------------      
+         ErrStat = ErrID_None  
+         ErrMsg  = ""
+          
+         !-------------------------------------------------------------------------------------------------      
+         ! Open the data file
+         !-------------------------------------------------------------------------------------------------      
+         
+         print *, ">>>>>>>> RRD_Debug: In ",routineName," CtrlFile=", trim(p%DmyCtl_FName)," <<<<<<<<<<<<<<<<<<<<< \n"  
+        
+         CALL GetNewUnit( p%UnCtrlFile )
+      
+         CALL OpenFInpFile ( p%UnCtrlFile, p%DmyCtl_FName, ErrStat2, ErrMsg2) 
+            CALL SetErrStat( errStat2, errMsg2, errStat, errMsg, RoutineName )
+         if ( errStat >= AbortErrLev ) then
+            ErrMsg = ' Error opening DummyController-level data file: '//TRIM(ErrMsg)
+            close(p%UnCtrlFile)
+            return
+         end if
+
+         p%CtrlLineLength  =  (p%nCtrlSettings+p%nRotors*4) +1      !flaps per wing+el/rud + rotor related fields + time channel
+         Call AllocAry( o%OneCtrlLine, p%CtrlLineLength, 'p%OneCtrlLine', errStat2, errMsg2 )
+            Call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
+         
+         !Then Call Readoneliner for t=0 ctrl info (skip first lines) and rewind file for the next kfc_step still at t=0
+         Call ReadCom( p%UnCtrlFile, p%DmyCtl_FName, 'KiteFastController Ctrl data file header (line 1)', errStat2, errMsg2 )
+            call SetErrStat( errStat2, errMsg2, errStat, errMsg, RoutineName )
+         Call ReadCom( p%UnCtrlFile, p%DmyCtl_FName, 'KiteFastController Ctrl data file header (line 2)', errStat2, errMsg2 )
+            call SetErrStat( errStat2, errMsg2, errStat, errMsg, RoutineName )
+         Call ReadCom( p%UnCtrlFile, p%DmyCtl_FName, 'KiteFastController Ctrl data file: Units header line', errStat2, errMsg2 )
+            call SetErrStat( errStat2, errMsg2, errStat, errMsg, RoutineName )
+            if ( errStat >= AbortErrLev ) then
+               call Cleanup()
+               return
+            end if
+      
+   
+         CALL KFC_RdCtrlDataLine( o, p, ErrStat, ErrMsg)
+         BackSpace( p%UnCtrlFile, IOSTAT=errStat2 )  
+         if (errStat2 /= 0_IntKi ) then
+            call SetErrStat( ErrID_Fatal, 'Error rewinding file "'//trim(p%DmyCtl_FName)//'".', errStat, errMsg, RoutineName )
+            call Cleanup()
+            return
+         end if           
+            !print *, ">>>>>>>> RRD_Debug: End of ",routineName,"  <<<<<<<<<<<<<<<<<<<<<"
+                    !====================================================================================================
+         contains
+         subroutine Cleanup()
+            !     The routine closes the file in case of problems
+               print *, ">>>>>RRD_debug: In ",RoutineName," ErrMsg=",errMsg
+               close(p%UnCtrlFile)
+         end subroutine Cleanup      
+
+      END SUBROUTINE KFC_OpenDmyFile
+  !====================================================================================================
+      SUBROUTINE KFC_RdCtrlDataLine( o, p, ErrStat, ErrMsg)
+         ! This routine reads the data from control data file when called and assigns them to structure "o"
+         !-----------------------------------------------------------------------------------------------
+            IMPLICIT                        NONE
+            
+               ! Passed variables
+            TYPE(KFC_ParameterType), INTENT(IN)     :: p                                  !< KAD parameters
+            TYPE(KFC_OtherStateType), INTENT(INOUT) :: o                                  !< KAD other states (ctrl outputs
+            
+            INTEGER(IntKi),           INTENT(OUT)   :: ErrStat                            !< Error status
+            CHARACTER(*),             INTENT(OUT)   :: ErrMsg                             !< Error message
+         
+               ! Local variables.
+            
+            INTEGER                                        :: ErrStat2  
+            CHARACTER(ErrMsgLen)                           :: errMsg2        ! The error message, if an error occurred
+            character(*), parameter                       :: routineName = 'KFC_RdCtrlDataLine'
+            ErrStat = ErrID_None
+            ErrMsg  = ''
+            
+            
+            CALL ReadAry( p%UnCtrlFile, p%DmyCtl_FName, o%OneCtrlLine, p%CtrlLineLength, "OneLine", "Array of controls GenTorqs[p%nRrotors](Nm), rtrSpd[p%nRrotors] (rad/s), rtrAcc[p%nRrotors] (rad/s^2), rtrBladePitch[p%nRrotors] (rad), ctrlSettings[p%numflaps] (rad) ", ErrStat2, ErrMsg2)
+            
+            CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
+            IF ( ErrStat >= AbortErrLev ) THEN
+               
+               CALL Cleanup()
+               RETURN
+            END IF
+            
+            !print *, ">>>>>>RRD_Debug:  In ", routineName, " read-in t=", o%OneCtrlLine(1)
+
+            o%genTorq        = o%OneCtrlLine(2:p%nRotors+1)
+            o%rtrSpd         = o%OneCtrlLine(p%nRotors+2:2*p%nRotors+1)
+            o%rtrAcc         = o%OneCtrlLine(2*p%nRotors+2:3*p%nRotors+1)
+            o%rtrBladePitch  = o%OneCtrlLine(3*p%nRotors+2:4*p%nRotors+1)
+            o%ctrlSettings   = o%OneCtrlLine(4*p%nRotors+2:4*p%nRotors+1+p%nCtrlSettings)
+
+            contains
+            subroutine Cleanup()
+               !     The routine closes the file in case of problems
+                  close(p%UnCtrlFile)
+            end subroutine Cleanup      
+         
+         END SUBROUTINE KFC_RdCtrlDataLine
+         
+         !====================================================================================================
 end module KiteFastController
