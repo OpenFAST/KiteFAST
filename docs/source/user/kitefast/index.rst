@@ -14,6 +14,8 @@ documentation is provided below.
   including the interfaces to the physics modules of KiteFAST, the
   coupling with MBDyn, and the outputs available to the user not
   otherwise set at the module level is available for download
+- :download:`KiteFASTMBD-OS <KiteFASTMBD_Plan_OS.pdf>`: offshore-specific
+  version of the above
 - KiteAeroDyn Driver: standalone driver for running KiteAeroDyn uncoupled
   from OpenFAST
 - :ref:`KiteAeroDyn<kiteaerodyn>`: kite-specific aerodynamics module
