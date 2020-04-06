@@ -1234,7 +1234,6 @@ subroutine BEMT_CalcOutput( t, u, p, x, xd, z, OtherState, AFInfo, y, m, errStat
    integer(IntKi)                                 :: errStat2    ! temporary Error status of the operation
    character(*), parameter                        :: RoutineName = 'BEMT_CalcOutput'
    
-   character(20)                                  :: NodeTxt
    type(AFI_OutputType)                           :: AFI_interp
    
    
@@ -1403,8 +1402,10 @@ subroutine BEMT_CalcOutput( t, u, p, x, xd, z, OtherState, AFInfo, y, m, errStat
             y%Cm(i,j) = AFI_interp%Cm
             y%Cpmin(i,j) = AFI_interp%Cpmin
 
-               call SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,RoutineName//trim(NodeTxt))
-               if (errStat >= AbortErrLev) return
+               if (ErrStat2 /= ErrID_None) then
+                  call SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,RoutineName//trim(NodeText(i,j)))
+                  if (errStat >= AbortErrLev) return
+               end if
          end if
 
          

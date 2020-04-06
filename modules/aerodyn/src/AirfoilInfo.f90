@@ -429,9 +429,6 @@ MODULE AirfoilInfo
       
       ! Default to linear interpolation
    DefaultInterpOrd = 1      
-#ifdef SPLINE_INTERP
-   DefaultInterpOrd = 3      
-#endif
       
       CALL ParseVarWDefault ( FileInfo, CurLine, 'InterpOrd', p%InterpOrd, DefaultInterpOrd, ErrStat2, ErrMsg2, UnEc )
          CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
@@ -966,8 +963,10 @@ subroutine AFI_ComputeAirfoilCoefs1D( AOA, p, AFI_interp, errStat, errMsg, Table
       ! needed if using UnsteadyAero:
    if (p%Table(iTab)%InclUAdata) then
       AFI_interp%Cd0 = p%Table(iTab)%UA_BL%Cd0
+      AFI_interp%Cm0 = p%Table(iTab)%UA_BL%Cm0
    else
       AFI_interp%Cd0 = 0.0_ReKi
+      AFI_interp%Cm0 = 0.0_ReKi
    end if
    
 end subroutine AFI_ComputeAirfoilCoefs1D
