@@ -88,10 +88,14 @@ structure in the absence of aerodynamics, the tether, and control actions
 NOTE: Configuring MBDyn with `--enable-netcdf --with-lapack --enable-eig`
 is required to use the eigen analysis features of this case.
 
-The MBDyn input files are included directly in the repository and no
-preprocessor input files is included. This case was created manually so that
-the eigen analysis could be correcly configured. To modify this case, start
-with `KiteMain.mbd`.
+The preprocessor input file is included with this case.  This includes the
+directive to setup the eigen analysis.  To create the case, run the
+preprocessor as per usual to create the MBDyn input file set. When the
+eigen analysis is performed, the begining of the  KiteMain.out file will
+contain the results of the eigen analysis with the real, imaginary, damping,
+and frequency results for each of the modes.  This may include several
+hundred modes. Visualization of the modes can be done with BlenDyn in
+Blender.
 
 NOTE: dummy nodes cannot be included in the `KiteMain.mbd`.  These will cause
 parsing issues when `BlenDyn` is used to visualize modes with `Blender`.

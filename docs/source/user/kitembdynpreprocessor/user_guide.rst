@@ -421,7 +421,15 @@ well.  Other solver options have not been fully explored.
 Eigen Analysis
 ++++++++++++++
 This flag enables simulating a modal analysis. This is an MBDyn-only
-simulation.
+simulation.  When the eigen analysis is performed, the begining of the 
+KiteMain.out file will contain the results of the eigen analysis with
+the real, imaginary, damping, and frequency results for each of the
+modes.  This may include several hundred modes. Visualization of the
+modes can be done with BlenDyn in Blender. The preprocessor and MBDyn
+are run as usual.
+
+NOTE: Configuring MBDyn with `--enable-netcdf --with-lapack --enable-eig`
+is required to use the eigen analysis features of this case.
 
 .. code-block:: yaml
 
