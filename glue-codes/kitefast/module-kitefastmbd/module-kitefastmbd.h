@@ -119,7 +119,7 @@ extern int KFAST_Init(
 extern int KFAST_AssRes(
   double *t,                     // t
   int *first_iteration,          // isInitialTime
-  double base_station_point[], // WindPt
+  double base_station_point[],   // WindPt
   double mip_position[],         // FusO
   double mip_dcm[],              // FusODCM
   double mip_vels[],             // FusOv

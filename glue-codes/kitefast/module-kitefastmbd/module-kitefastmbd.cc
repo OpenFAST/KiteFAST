@@ -110,9 +110,9 @@ ModuleKiteFAST::ModuleKiteFAST(unsigned uLabel, const DofOwner *pDO, DataManager
   
   // parse the ground station location
   ValidateInputKeyword(HP, "base_station_location");
-  base_point[0] = HP.GetReal();
-  base_point[1] = HP.GetReal();
-  base_point[2] = HP.GetReal();
+  base_station_point[0] = HP.GetReal();
+  base_station_point[1] = HP.GetReal();
+  base_station_point[2] = HP.GetReal();
 
   // parse the component counts
   ValidateInputKeyword(HP, "number_of_flaps_per_wing");
