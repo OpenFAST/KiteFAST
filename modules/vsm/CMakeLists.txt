@@ -27,16 +27,16 @@ set(LIB_SOURCES
 add_library(vsmlib ${LIB_SOURCES})
 target_link_libraries(vsmlib airfoilinfolib nwtclibs)
 
-set(DRIVER_SOURCES
-  src/VSM_Driver.f90
-  src/VSM_Dvr_Subs.f90
-  tests/VSM_Test.f90
-  )
+# set(DRIVER_SOURCES
+#   src/VSM_Driver.f90
+#   src/VSM_Dvr_Subs.f90
+#   tests/VSM_Test.f90
+#   )
 
-add_executable(vsm_driver ${DRIVER_SOURCES})
-target_link_libraries(vsm_driver vsmlib kiteaerodynlib actuatordisklib nwtclibs ${CMAKE_DL_LIBS})
+# add_executable(vsm_driver ${DRIVER_SOURCES})
+# target_link_libraries(vsm_driver vsmlib kiteaerodynlib actuatordisklib nwtclibs ${CMAKE_DL_LIBS})
 
-install(TARGETS vsm_driver vsmlib
+install(TARGETS vsmlib # vsm_driver
   EXPORT "${CMAKE_PROJECT_NAME}Libraries"
   RUNTIME DESTINATION bin
   LIBRARY DESTINATION lib
