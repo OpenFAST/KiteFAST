@@ -15,7 +15,7 @@
 #
 
 if (GENERATE_TYPES)
-  generate_f90_types(src/ActuatorDisk_Registry.txt ${CMAKE_CURRENT_LIST_DIR}/src/ActuatorDisk_Types.f90)
+  generate_f90_types(src/ActuatorDisk_Registry.txt ${CMAKE_CURRENT_LIST_DIR}/src/ActuatorDisk_Types.f90 -noextrap)
 endif()
 
 set(LIB_SOURCES
