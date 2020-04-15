@@ -147,6 +147,7 @@ subroutine KFAST_Init(dt_c, numFlaps, numPylons, numComp, numCompNds, modFlags, 
       MD_InitInp%rhoW      = p%AirDens                  ! This needs to be set according to air density at the Kite      
       MD_InitInp%WtrDepth  = 0.0_ReKi                   ! No water depth in this application
       MD_InitInp%NBodies   = 1                          ! Kite is the only body
+      MD_InitInp%rhoW      = 1.225
    end if
    call Init_KiteSystem(dt_c, numFlaps, numPylons, numComp, numCompNds, modFlags, KAD_FileName_c, IfW_FileName_c, MD_FileName_c, KFC_FileName_c, &
                        outFileRoot_c, printSum, gravity, KAD_InterpOrder, MD_InitInp, FusODCM_c, numRtrPts_c, rtrPts_c, rtrMass_c, rtrI_Rot_c, rtrI_trans_c, rtrXcm_c, refPts_c, &
