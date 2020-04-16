@@ -106,6 +106,8 @@ IMPLICIT NONE
     TYPE(KFC_ParameterType)  :: p      !< Parameter data for KiteFAST controller module [-]
     TYPE(KFC_InputType)  :: u      !< Input data for KiteFAST controller module [-]
     TYPE(KFC_OutputType)  :: y      !< Output data for KiteFAST controller module [-]
+    TYPE(KFC_MiscVarType)  :: m      !< Misc vars for KiteFAST controller module [-]
+    TYPE(KFC_OtherStateType)  :: o      !< Other states for KiteFAST controller module [-]
     REAL(DbKi)  :: dt      !< Time interval for KFC calculations [s]
   END TYPE KFC_Data
 ! =======================
@@ -232,7 +234,7 @@ IMPLICIT NONE
     REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: PPyRtrFReact      !<  [N]
     REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: SPyRtrMReact      !<  [N-m]
     REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: PPyRtrMReact      !<  [N-m]
-    REAL(ReKi) , DIMENSION(1:3978)  :: AllOuts      !<  [-]
+    REAL(ReKi) , DIMENSION(1:3999)  :: AllOuts      !<  [-]
     REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: WriteOutput      !<  [-]
   END TYPE KFAST_MiscVarType
 ! =======================
@@ -246,6 +248,7 @@ IMPLICIT NONE
     LOGICAL  :: useIfW      !< Using InflowWind module? [-]
     LOGICAL  :: useMD_Tether      !< Using MoorDyn module for the tether? [-]
     LOGICAL  :: useKFC      !< Using KiteFAST Controller module? [-]
+    INTEGER(IntKi)  :: KFCmode      !< KiteFAST Controller mode (0=dummy,1=ctrl,2=read external control file [-]
     REAL(DbKi)  :: dt      !< Time interval for calculations [s]
     REAL(DbKi)  :: KAD_dt      !< Time interval for KAD calculations [s]
     REAL(DbKi)  :: KAD_filtConst      !< KAD input Filter time constant, based on 10Hz cut-off freq. [-]
@@ -277,6 +280,7 @@ IMPLICIT NONE
     INTEGER(IntKi)  :: numKFASTOuts = 0      !< Number of KFAST-specific outputs requested [-]
     INTEGER(IntKi)  :: numKADOuts = 0      !< Number of KAD outputs requested [-]
     INTEGER(IntKi)  :: numMDOuts = 0      !< Number of MD outputs requested [-]
+    INTEGER(IntKi)  :: numKFCOuts = 0      !< Number of KFC outputs requested [-]
     INTEGER(IntKi)  :: numIfWOuts = 0      !< Number of IfW outputs requested [-]
     INTEGER(IntKi)  :: NFusOuts = 0      !<  [-]
     INTEGER(IntKi) , DIMENSION(1:9)  :: FusOutNds      !<  [-]
@@ -3869,6 +3873,12 @@ ENDDO
       CALL KFC_CopyOutput( SrcKFC_DataData%y, DstKFC_DataData%y, CtrlCode, ErrStat2, ErrMsg2 )
          CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
          IF (ErrStat>=AbortErrLev) RETURN
+      CALL KFC_CopyMisc( SrcKFC_DataData%m, DstKFC_DataData%m, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL KFC_CopyOtherState( SrcKFC_DataData%o, DstKFC_DataData%o, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
+         IF (ErrStat>=AbortErrLev) RETURN
     DstKFC_DataData%dt = SrcKFC_DataData%dt
  END SUBROUTINE KFAST_CopyKFC_Data
 
@@ -3884,6 +3894,8 @@ ENDDO
   CALL KFC_DestroyParam( KFC_DataData%p, ErrStat, ErrMsg )
   CALL KFC_DestroyInput( KFC_DataData%u, ErrStat, ErrMsg )
   CALL KFC_DestroyOutput( KFC_DataData%y, ErrStat, ErrMsg )
+  CALL KFC_DestroyMisc( KFC_DataData%m, ErrStat, ErrMsg )
+  CALL KFC_DestroyOtherState( KFC_DataData%o, ErrStat, ErrMsg )
  END SUBROUTINE KFAST_DestroyKFC_Data
 
  SUBROUTINE KFAST_PackKFC_Data( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
@@ -3973,6 +3985,40 @@ ENDDO
          Int_BufSz = Int_BufSz + SIZE( Int_Buf )
          DEALLOCATE(Int_Buf)
       END IF
+      Int_BufSz   = Int_BufSz + 3  ! m: size of buffers for each call to pack subtype
+      CALL KFC_PackMisc( Re_Buf, Db_Buf, Int_Buf, InData%m, ErrStat2, ErrMsg2, .TRUE. ) ! m 
+        CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
+        IF (ErrStat >= AbortErrLev) RETURN
+
+      IF(ALLOCATED(Re_Buf)) THEN ! m
+         Re_BufSz  = Re_BufSz  + SIZE( Re_Buf  )
+         DEALLOCATE(Re_Buf)
+      END IF
+      IF(ALLOCATED(Db_Buf)) THEN ! m
+         Db_BufSz  = Db_BufSz  + SIZE( Db_Buf  )
+         DEALLOCATE(Db_Buf)
+      END IF
+      IF(ALLOCATED(Int_Buf)) THEN ! m
+         Int_BufSz = Int_BufSz + SIZE( Int_Buf )
+         DEALLOCATE(Int_Buf)
+      END IF
+      Int_BufSz   = Int_BufSz + 3  ! o: size of buffers for each call to pack subtype
+      CALL KFC_PackOtherState( Re_Buf, Db_Buf, Int_Buf, InData%o, ErrStat2, ErrMsg2, .TRUE. ) ! o 
+        CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
+        IF (ErrStat >= AbortErrLev) RETURN
+
+      IF(ALLOCATED(Re_Buf)) THEN ! o
+         Re_BufSz  = Re_BufSz  + SIZE( Re_Buf  )
+         DEALLOCATE(Re_Buf)
+      END IF
+      IF(ALLOCATED(Db_Buf)) THEN ! o
+         Db_BufSz  = Db_BufSz  + SIZE( Db_Buf  )
+         DEALLOCATE(Db_Buf)
+      END IF
+      IF(ALLOCATED(Int_Buf)) THEN ! o
+         Int_BufSz = Int_BufSz + SIZE( Int_Buf )
+         DEALLOCATE(Int_Buf)
+      END IF
       Db_BufSz   = Db_BufSz   + 1  ! dt
   IF ( Re_BufSz  .GT. 0 ) THEN 
      ALLOCATE( ReKiBuf(  Re_BufSz  ), STAT=ErrStat2 )
@@ -4058,6 +4104,62 @@ ENDDO
         IntKiBuf( Int_Xferred ) = 0; Int_Xferred = Int_Xferred + 1
       ENDIF
       CALL KFC_PackOutput( Re_Buf, Db_Buf, Int_Buf, InData%y, ErrStat2, ErrMsg2, OnlySize ) ! y 
+        CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
+        IF (ErrStat >= AbortErrLev) RETURN
+
+      IF(ALLOCATED(Re_Buf)) THEN
+        IntKiBuf( Int_Xferred ) = SIZE(Re_Buf); Int_Xferred = Int_Xferred + 1
+        IF (SIZE(Re_Buf) > 0) ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_Buf)-1 ) = Re_Buf
+        Re_Xferred = Re_Xferred + SIZE(Re_Buf)
+        DEALLOCATE(Re_Buf)
+      ELSE
+        IntKiBuf( Int_Xferred ) = 0; Int_Xferred = Int_Xferred + 1
+      ENDIF
+      IF(ALLOCATED(Db_Buf)) THEN
+        IntKiBuf( Int_Xferred ) = SIZE(Db_Buf); Int_Xferred = Int_Xferred + 1
+        IF (SIZE(Db_Buf) > 0) DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_Buf)-1 ) = Db_Buf
+        Db_Xferred = Db_Xferred + SIZE(Db_Buf)
+        DEALLOCATE(Db_Buf)
+      ELSE
+        IntKiBuf( Int_Xferred ) = 0; Int_Xferred = Int_Xferred + 1
+      ENDIF
+      IF(ALLOCATED(Int_Buf)) THEN
+        IntKiBuf( Int_Xferred ) = SIZE(Int_Buf); Int_Xferred = Int_Xferred + 1
+        IF (SIZE(Int_Buf) > 0) IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_Buf)-1 ) = Int_Buf
+        Int_Xferred = Int_Xferred + SIZE(Int_Buf)
+        DEALLOCATE(Int_Buf)
+      ELSE
+        IntKiBuf( Int_Xferred ) = 0; Int_Xferred = Int_Xferred + 1
+      ENDIF
+      CALL KFC_PackMisc( Re_Buf, Db_Buf, Int_Buf, InData%m, ErrStat2, ErrMsg2, OnlySize ) ! m 
+        CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
+        IF (ErrStat >= AbortErrLev) RETURN
+
+      IF(ALLOCATED(Re_Buf)) THEN
+        IntKiBuf( Int_Xferred ) = SIZE(Re_Buf); Int_Xferred = Int_Xferred + 1
+        IF (SIZE(Re_Buf) > 0) ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_Buf)-1 ) = Re_Buf
+        Re_Xferred = Re_Xferred + SIZE(Re_Buf)
+        DEALLOCATE(Re_Buf)
+      ELSE
+        IntKiBuf( Int_Xferred ) = 0; Int_Xferred = Int_Xferred + 1
+      ENDIF
+      IF(ALLOCATED(Db_Buf)) THEN
+        IntKiBuf( Int_Xferred ) = SIZE(Db_Buf); Int_Xferred = Int_Xferred + 1
+        IF (SIZE(Db_Buf) > 0) DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_Buf)-1 ) = Db_Buf
+        Db_Xferred = Db_Xferred + SIZE(Db_Buf)
+        DEALLOCATE(Db_Buf)
+      ELSE
+        IntKiBuf( Int_Xferred ) = 0; Int_Xferred = Int_Xferred + 1
+      ENDIF
+      IF(ALLOCATED(Int_Buf)) THEN
+        IntKiBuf( Int_Xferred ) = SIZE(Int_Buf); Int_Xferred = Int_Xferred + 1
+        IF (SIZE(Int_Buf) > 0) IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_Buf)-1 ) = Int_Buf
+        Int_Xferred = Int_Xferred + SIZE(Int_Buf)
+        DEALLOCATE(Int_Buf)
+      ELSE
+        IntKiBuf( Int_Xferred ) = 0; Int_Xferred = Int_Xferred + 1
+      ENDIF
+      CALL KFC_PackOtherState( Re_Buf, Db_Buf, Int_Buf, InData%o, ErrStat2, ErrMsg2, OnlySize ) ! o 
         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
         IF (ErrStat >= AbortErrLev) RETURN
 
@@ -4235,6 +4337,86 @@ ENDDO
         Int_Xferred = Int_Xferred + Buf_size
       END IF
       CALL KFC_UnpackOutput( Re_Buf, Db_Buf, Int_Buf, OutData%y, ErrStat2, ErrMsg2 ) ! y 
+        CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
+        IF (ErrStat >= AbortErrLev) RETURN
+
+      IF(ALLOCATED(Re_Buf )) DEALLOCATE(Re_Buf )
+      IF(ALLOCATED(Db_Buf )) DEALLOCATE(Db_Buf )
+      IF(ALLOCATED(Int_Buf)) DEALLOCATE(Int_Buf)
+      Buf_size=IntKiBuf( Int_Xferred )
+      Int_Xferred = Int_Xferred + 1
+      IF(Buf_size > 0) THEN
+        ALLOCATE(Re_Buf(Buf_size),STAT=ErrStat2)
+        IF (ErrStat2 /= 0) THEN 
+           CALL SetErrStat(ErrID_Fatal, 'Error allocating Re_Buf.', ErrStat, ErrMsg,RoutineName)
+           RETURN
+        END IF
+        Re_Buf = ReKiBuf( Re_Xferred:Re_Xferred+Buf_size-1 )
+        Re_Xferred = Re_Xferred + Buf_size
+      END IF
+      Buf_size=IntKiBuf( Int_Xferred )
+      Int_Xferred = Int_Xferred + 1
+      IF(Buf_size > 0) THEN
+        ALLOCATE(Db_Buf(Buf_size),STAT=ErrStat2)
+        IF (ErrStat2 /= 0) THEN 
+           CALL SetErrStat(ErrID_Fatal, 'Error allocating Db_Buf.', ErrStat, ErrMsg,RoutineName)
+           RETURN
+        END IF
+        Db_Buf = DbKiBuf( Db_Xferred:Db_Xferred+Buf_size-1 )
+        Db_Xferred = Db_Xferred + Buf_size
+      END IF
+      Buf_size=IntKiBuf( Int_Xferred )
+      Int_Xferred = Int_Xferred + 1
+      IF(Buf_size > 0) THEN
+        ALLOCATE(Int_Buf(Buf_size),STAT=ErrStat2)
+        IF (ErrStat2 /= 0) THEN 
+           CALL SetErrStat(ErrID_Fatal, 'Error allocating Int_Buf.', ErrStat, ErrMsg,RoutineName)
+           RETURN
+        END IF
+        Int_Buf = IntKiBuf( Int_Xferred:Int_Xferred+Buf_size-1 )
+        Int_Xferred = Int_Xferred + Buf_size
+      END IF
+      CALL KFC_UnpackMisc( Re_Buf, Db_Buf, Int_Buf, OutData%m, ErrStat2, ErrMsg2 ) ! m 
+        CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
+        IF (ErrStat >= AbortErrLev) RETURN
+
+      IF(ALLOCATED(Re_Buf )) DEALLOCATE(Re_Buf )
+      IF(ALLOCATED(Db_Buf )) DEALLOCATE(Db_Buf )
+      IF(ALLOCATED(Int_Buf)) DEALLOCATE(Int_Buf)
+      Buf_size=IntKiBuf( Int_Xferred )
+      Int_Xferred = Int_Xferred + 1
+      IF(Buf_size > 0) THEN
+        ALLOCATE(Re_Buf(Buf_size),STAT=ErrStat2)
+        IF (ErrStat2 /= 0) THEN 
+           CALL SetErrStat(ErrID_Fatal, 'Error allocating Re_Buf.', ErrStat, ErrMsg,RoutineName)
+           RETURN
+        END IF
+        Re_Buf = ReKiBuf( Re_Xferred:Re_Xferred+Buf_size-1 )
+        Re_Xferred = Re_Xferred + Buf_size
+      END IF
+      Buf_size=IntKiBuf( Int_Xferred )
+      Int_Xferred = Int_Xferred + 1
+      IF(Buf_size > 0) THEN
+        ALLOCATE(Db_Buf(Buf_size),STAT=ErrStat2)
+        IF (ErrStat2 /= 0) THEN 
+           CALL SetErrStat(ErrID_Fatal, 'Error allocating Db_Buf.', ErrStat, ErrMsg,RoutineName)
+           RETURN
+        END IF
+        Db_Buf = DbKiBuf( Db_Xferred:Db_Xferred+Buf_size-1 )
+        Db_Xferred = Db_Xferred + Buf_size
+      END IF
+      Buf_size=IntKiBuf( Int_Xferred )
+      Int_Xferred = Int_Xferred + 1
+      IF(Buf_size > 0) THEN
+        ALLOCATE(Int_Buf(Buf_size),STAT=ErrStat2)
+        IF (ErrStat2 /= 0) THEN 
+           CALL SetErrStat(ErrID_Fatal, 'Error allocating Int_Buf.', ErrStat, ErrMsg,RoutineName)
+           RETURN
+        END IF
+        Int_Buf = IntKiBuf( Int_Xferred:Int_Xferred+Buf_size-1 )
+        Int_Xferred = Int_Xferred + Buf_size
+      END IF
+      CALL KFC_UnpackOtherState( Re_Buf, Db_Buf, Int_Buf, OutData%o, ErrStat2, ErrMsg2 ) ! o 
         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
         IF (ErrStat >= AbortErrLev) RETURN
 
@@ -13509,6 +13691,7 @@ ENDIF
     DstParamData%useIfW = SrcParamData%useIfW
     DstParamData%useMD_Tether = SrcParamData%useMD_Tether
     DstParamData%useKFC = SrcParamData%useKFC
+    DstParamData%KFCmode = SrcParamData%KFCmode
     DstParamData%dt = SrcParamData%dt
     DstParamData%KAD_dt = SrcParamData%KAD_dt
     DstParamData%KAD_filtConst = SrcParamData%KAD_filtConst
@@ -13666,6 +13849,7 @@ ENDIF
     DstParamData%numKFASTOuts = SrcParamData%numKFASTOuts
     DstParamData%numKADOuts = SrcParamData%numKADOuts
     DstParamData%numMDOuts = SrcParamData%numMDOuts
+    DstParamData%numKFCOuts = SrcParamData%numKFCOuts
     DstParamData%numIfWOuts = SrcParamData%numIfWOuts
     DstParamData%NFusOuts = SrcParamData%NFusOuts
     DstParamData%FusOutNds = SrcParamData%FusOutNds
@@ -13794,6 +13978,7 @@ ENDIF
       Int_BufSz  = Int_BufSz  + 1  ! useIfW
       Int_BufSz  = Int_BufSz  + 1  ! useMD_Tether
       Int_BufSz  = Int_BufSz  + 1  ! useKFC
+      Int_BufSz  = Int_BufSz  + 1  ! KFCmode
       Db_BufSz   = Db_BufSz   + 1  ! dt
       Db_BufSz   = Db_BufSz   + 1  ! KAD_dt
       Db_BufSz   = Db_BufSz   + 1  ! KAD_filtConst
@@ -13865,6 +14050,7 @@ ENDIF
       Int_BufSz  = Int_BufSz  + 1  ! numKFASTOuts
       Int_BufSz  = Int_BufSz  + 1  ! numKADOuts
       Int_BufSz  = Int_BufSz  + 1  ! numMDOuts
+      Int_BufSz  = Int_BufSz  + 1  ! numKFCOuts
       Int_BufSz  = Int_BufSz  + 1  ! numIfWOuts
       Int_BufSz  = Int_BufSz  + 1  ! NFusOuts
       Int_BufSz  = Int_BufSz  + SIZE(InData%FusOutNds)  ! FusOutNds
@@ -13951,6 +14137,8 @@ ENDIF
       IntKiBuf ( Int_Xferred:Int_Xferred+1-1 ) = TRANSFER( InData%useMD_Tether , IntKiBuf(1), 1)
       Int_Xferred   = Int_Xferred   + 1
       IntKiBuf ( Int_Xferred:Int_Xferred+1-1 ) = TRANSFER( InData%useKFC , IntKiBuf(1), 1)
+      Int_Xferred   = Int_Xferred   + 1
+      IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%KFCmode
       Int_Xferred   = Int_Xferred   + 1
       DbKiBuf ( Db_Xferred:Db_Xferred+(1)-1 ) = InData%dt
       Db_Xferred   = Db_Xferred   + 1
@@ -14150,6 +14338,8 @@ ENDIF
       Int_Xferred   = Int_Xferred   + 1
       IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%numMDOuts
       Int_Xferred   = Int_Xferred   + 1
+      IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%numKFCOuts
+      Int_Xferred   = Int_Xferred   + 1
       IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%numIfWOuts
       Int_Xferred   = Int_Xferred   + 1
       IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%NFusOuts
@@ -14288,6 +14478,8 @@ ENDIF
       OutData%useMD_Tether = TRANSFER( IntKiBuf( Int_Xferred ), mask0 )
       Int_Xferred   = Int_Xferred + 1
       OutData%useKFC = TRANSFER( IntKiBuf( Int_Xferred ), mask0 )
+      Int_Xferred   = Int_Xferred + 1
+      OutData%KFCmode = IntKiBuf( Int_Xferred ) 
       Int_Xferred   = Int_Xferred + 1
       OutData%dt = DbKiBuf( Db_Xferred ) 
       Db_Xferred   = Db_Xferred + 1
@@ -14606,6 +14798,8 @@ ENDIF
       OutData%numKADOuts = IntKiBuf( Int_Xferred ) 
       Int_Xferred   = Int_Xferred + 1
       OutData%numMDOuts = IntKiBuf( Int_Xferred ) 
+      Int_Xferred   = Int_Xferred + 1
+      OutData%numKFCOuts = IntKiBuf( Int_Xferred ) 
       Int_Xferred   = Int_Xferred + 1
       OutData%numIfWOuts = IntKiBuf( Int_Xferred ) 
       Int_Xferred   = Int_Xferred + 1

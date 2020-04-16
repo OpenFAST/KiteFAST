@@ -48,8 +48,8 @@ module KiteFastController
          real(C_DOUBLE),         intent(inout) :: rtrSpd(*)           !< The initial rotor speeds (rad/s), follows ordering for genTorq.
          real(C_DOUBLE),         intent(inout) :: rtrAcc(*)           !< The initial rotor accelerations (rad/s^2), follows ordering for genTorq.
          real(C_DOUBLE),         intent(inout) :: rtrBladePitch(*)    !< The initial rotor-collective blade pitch angles (rad), follows ordering for genTorq.
-         real(C_DOUBLE),         intent(inout) :: ctrlSettings(*)     !< The initial control surfaces angles(rad), Starts with starboard wing flaps (numFlaps of them), then port wing flaps, 
-                                                                      !<   then 2 rudder values, then 2 starboard elevators, then 2 port elevators.
+         real(C_DOUBLE),         intent(inout) :: ctrlSettings(*)     !< see CSIM all in rads
+                                                                      
          integer(C_INT),         intent(  out) :: errStat             !< error status code (uses NWTC_Library error codes)
          character(kind=C_CHAR), intent(inout) :: errMsg          (*) !< Error Message from DLL to simulation code        
       end subroutine KFC_DLL_Init_PROC   

@@ -90,7 +90,7 @@ IMPLICIT NONE
     TYPE(MeshMapType)  :: HD_P_2_HD_M_L      !<  [-]
     TYPE(MeshMapType)  :: MD_M_P_2_MBD_P      !<  [-]
     TYPE(MeshMapType)  :: HD_P_2_MD_P      !<  [-]
-    REAL(ReKi) , DIMENSION(1:3978)  :: AllOuts      !<  [-]
+    REAL(ReKi) , DIMENSION(1:3999)  :: AllOuts      !<  [-]
     REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: WriteOutput      !<  [-]
     REAL(ReKi) , DIMENSION(1:3)  :: PtfmO      !< Current timestep position of the Platform reference point, expressed in global coordinates. [m]
     REAL(R8Ki) , DIMENSION(1:3,1:3)  :: PtfmODCM      !< Current timestep DCM matrix to transform the location of the Platform reference point from global to kite coordinates. [-]

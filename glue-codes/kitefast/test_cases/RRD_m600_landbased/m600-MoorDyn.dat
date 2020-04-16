@@ -1,0 +1,42 @@
+--------------------- MoorDyn Input File ------------------------------------
+M600 tether and bridle SIMPLE model (hi-discretization and damping suggestions from Matt) -- RRD case
+FALSE    Echo      - echo the input file data (flag)
+----------------------- LINE TYPES ------------------------------------------
+3         NTypes    - number of LineTypes The EAs were : 1.8E7 and 2.1e7 and 2.1e7, I am testing a slightly lower value
+Name      Diam      MassDen      EA    BA/-zeta  Can   Cat   Cdn   Cdt
+(-)        (m)      (kg/m)       (N)   (N-s/-)   (-)   (-)   (-)   (-)
+main       0.0294    0.917     1.5E7    1.0e5    0.0   0.0   0.7   0.0
+bridle_s   0.0240    3.468     2.1E7    1.0e5    0.0   0.0   1.0   0.0
+bridle_p   0.0400    3.468     2.1E7    1.0e5    0.0   0.0   1.0   0.0
+---------------------- CONNECTION PROPERTIES --------------------------------
+4       NConnects - number of connections including anchors and fairleads
+Node    Type      X        Y        Z      M     V      FX   FY   FZ   CdA   CA
+(-)     (-)      (m)      (m)      (m)     (kg)  (m^3)  (kN) (kN) (kN) (m^2) (-)
+1      Fixed     1.66    -0.275       1.702   0.0   0.0    0.0  0.0  0.0  0.0   0.0
+2      Connect   417.3    22.53      107.16   0.0   0.0    0.0  0.0  0.0  0.0   0.0
+3      Vessel1   0.1494  -5.8843    -0.13035 0.0   0.0    0.0  0.0  0.0  0.0   0.0
+4      Vessel1   0.1494   5.8661    -0.13035 0.0   0.0    0.0  0.0  0.0  0.0   0.0
+---------------------- LINE PROPERTIES --------------------------------------
+3        NLines    - number of line objects
+Line    LineType  UnstrLen  NumSegs   NodeAnch  NodeFair  Flags/Outputs
+(-)       (-)       (m)       (-)       (-)       (-)         (-)
+1         main    425.8       200        1         2          pts
+2         bridle_p  7.100       7        2         3          pts
+3         bridle_s  7.900       7        2         4          pts
+---------------------- SOLVER OPTIONS ---------------------------------------
+0.00001    dtM       - time step to use in mooring integration (s)
+0.0      kbot      - bottom stiffness (Pa/m)
+0.0      cbot      - bottom damping (Pa-s/m)
+0.05      dtIC      - time interval for analyzing convergence during IC gen (s)
+600.0     TmaxIC    - max time for ic gen (s)
+4.0      CdScaleIC - factor by which to scale drag coefficients during dynamic relaxation (-)
+0.01     threshIC  - threshold for IC convergence (-)
+------------------------ OUTPUTS --------------------------------------------
+FairTen1
+FairTen2
+FairTen3
+AnchTen1
+AnchTen2
+AnchTen3
+END
+------------------------- need this line --------------------------------------

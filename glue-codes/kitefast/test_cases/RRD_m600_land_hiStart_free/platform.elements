@@ -1,0 +1,8 @@
+# *** bodies ***
+body: platform_root_node + 1, platform_root_node + 1,
+    1.044282E+06,
+        reference, global,   0.000,   0.000,   -3.062207E+01,
+        sym,    2.452533E+08,      0.000,      0.000,
+                            2.452513E+08,      0.000,
+                                        1.534000E+06;
+

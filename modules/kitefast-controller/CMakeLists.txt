@@ -27,18 +27,18 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c99 -g -fPIC")
 find_package(GSL REQUIRED)
 
 if (GENERATE_TYPES)
-	generate_f90_types(src/KiteFastController_Registry.txt ${CMAKE_CURRENT_LIST_DIR}/src/KiteFastController_Types.f90 -noextrap)
+  generate_f90_types(src/KiteFastController_Registry.txt ${CMAKE_CURRENT_LIST_DIR}/src/KiteFastController_Types.f90 -noextrap)
 endif()
 
 # kitefastcontroller-lib
-set(LIB_SOURCES src/KiteFastController.f90 src/KiteFastController_Types.f90 )
+set(LIB_SOURCES src/KiteFastController.f90 src/KiteFastController_IO.f90 src/KiteFastController_Types.f90)
+
 add_library(kitefastcontrollerlib ${LIB_SOURCES})
 target_link_libraries(kitefastcontrollerlib nwtclibs)
 
 # kitefastcontroller-controller
 file(GLOB C_MATH_SOURCES "src/common/c_math/*")
 add_library(C_MATH ${C_MATH_SOURCES})
-target_include_directories(C_MATH PRIVATE ${GSL_INCLUDE_DIR})
 
 set(DYLIB_SOURCES
 	src/KiteFastController.c 
@@ -86,9 +86,9 @@ target_link_libraries(kitefastcontroller_testexe kitefastcontroller_controller)
 #target_link_libraries(rotortest_exe C_MATH ${GSL_LIBRARIES} m)
 
 # kitefastcontroller-driver
-set(DRIVER_SOURCES src/KiteFastController_Driver.f90)
+set(DRIVER_SOURCES src/KiteFastController_Driver.f90 src/KFC_Dvr_Subs.f90)
 add_executable(kitefastcontroller_driver ${DRIVER_SOURCES})
-target_link_libraries(kitefastcontroller_driver kitefastcontroller_controller kitefastcontrollerlib ${CMAKE_DL_LIBS})
+target_link_libraries(kitefastcontroller_driver kitefastcontroller_controller kitefastcontrollerlib nwtclibs ${CMAKE_DL_LIBS})
 
 # installation
 install(TARGETS kitefastcontrollerlib kitefastcontroller_controller kitefastcontroller_driver C_MATH kitefastcontroller_testexe

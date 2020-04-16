@@ -27,10 +27,10 @@ fortran_compiler="/usr/bin/gfortran"
 packages=`apt -qq list --installed`
 
 # install these general software development tools
-uninstall_if_found "git"
-uninstall_if_found "cmake"
-uninstall_if_found "build-essential"
-uninstall_if_found "software-properties-common"
+#uninstall_if_found "git"
+#uninstall_if_found "cmake"
+#uninstall_if_found "build-essential"
+#uninstall_if_found "software-properties-common"
 uninstall_if_found "gfortran-6"
 uninstall_if_found "libblas-dev"   # blas math library
 uninstall_if_found "liblapack-dev" # lapack math library

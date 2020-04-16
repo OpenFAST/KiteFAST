@@ -1,0 +1,27 @@
+# Structural nodes for the platform
+
+# *** nodes ***
+structural: platform_root_node + 0, dynamic,
+    reference, global,   0.000,   0.000,   16.55,
+    reference, global,eye,
+    reference, global,   0.000,   0.000,   0.000,
+    reference, global,   0.000,   0.000,   0.000;
+
+structural: platform_root_node + 1, dynamic,
+    reference, global,   0.000,   0.000,   0.0,
+    reference, global,eye,
+    reference, global,   0.000,   0.000,   0.000,
+    reference, global,   0.000,   0.000,   0.000;
+
+structural: platform_root_node + 2, dynamic,
+    reference, global,   0.000,   0.000,   -45.5,
+    reference, global,eye,
+    reference, global,   0.000,   0.000,   0.000,
+    reference, global,   0.000,   0.000,   0.000;
+
+structural: platform_root_node + 3, dynamic,
+    reference, global,   0.000,   0.000,   -45.5,
+    reference, global,eye,
+    reference, global,   0.000,   0.000,   0.000,
+    reference, global,   0.000,   0.000,   0.000;
+

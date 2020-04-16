@@ -563,7 +563,7 @@ subroutine VSM_Compute_Influence(CtrlPtMod, KinVisc,  numVolElem, numElem, inPtA
                tmpAB_v = cross_product(r1_primeprime_v,r2_primeprime_v)
                FactorAB = dot_product(tmpAB_v,tmpAB_v)
 
-               if ( EqualRealNos(4.0*Pi*FactorAB,0.0_ReKi) ) then
+               if ( EqualRealNos(4.0_ReKi*Pi*FactorAB,0.0_ReKi) ) then
                   
                   !errMsg2 = 'Cross products of r1_primeprime and r2_primeprime produce a zero length vector which creates a divide by zero error'
                   !errStat2 = ErrID_Fatal
@@ -636,7 +636,7 @@ subroutine VSM_Compute( AirDens, numVolElem, numElem, elemLens, U_Inf_v, x_hat, 
       call AFI_ComputeAirfoilCoefs( alpha(j), 0.0_ReKi, deltaf(j), p_AFI(AFIDs(j)), &
                          AFI_Interp, errStat, errMsg )
       Cl(j) = AFI_Interp%Cl
-      Cd(j) = AFI_Interp%Cd
+      Cd(j) = AFI_Interp%Cd  +0.075 ! RRD: brutally adding a fudge factor everywhere; this should be 0.075*Swing=Sum(fudge*c*dy)==>fudge=0.075*S/Stot
       Cm(j) = AFI_Interp%Cm
       
       U_2D = Ux**2+Uy**2

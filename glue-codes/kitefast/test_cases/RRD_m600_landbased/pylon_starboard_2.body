@@ -1,0 +1,58 @@
+# Bodies for the pylon_starboard_2
+
+body: pylon_starboard_2_beam + 0, pylon_starboard_2_root_node + 0,
+         5.2,
+    reference, node,    0.622,   0.000,   0.337,
+    sym,    0.232,      0.0,  -0.0621,
+                        0.7,      0.0,
+                                0.505;
+
+body: pylon_starboard_2_beam + 1, pylon_starboard_2_root_node + 1,
+        5.16,
+    reference, node,    0.622,   0.000,  -0.338,
+    sym,     0.23,      0.0,  -0.0623,
+                      0.613,      0.0,
+                                0.417;
+
+body: pylon_starboard_2_beam + 2, pylon_starboard_2_root_node + 1,
+        5.13,
+    reference, node,    0.409,   0.000,   0.337,
+    sym,    0.223,      0.0,  -0.0612,
+                      0.521,      0.0,
+                                0.329;
+
+body: pylon_starboard_2_beam + 3, pylon_starboard_2_root_node + 2,
+        5.09,
+    reference, node,    0.409,   0.000,  -0.338,
+    sym,    0.221,      0.0,  -0.0615,
+                      0.434,      0.0,
+                                0.242;
+
+body: pylon_starboard_2_beam + 10, pylon_starboard_2_root_node + 2,
+        7.35,
+    reference, node,    0.354,   0.000,   0.489,
+    sym,    0.627,      0.0,   0.0624,
+                      0.934,      0.0,
+                                0.351;
+
+body: pylon_starboard_2_beam + 11, pylon_starboard_2_root_node + 3,
+        7.39,
+    reference, node,    0.354,   0.000,  -0.487,
+    sym,    0.637,      0.0,   0.0623,
+                       1.11,      0.0,
+                                0.524;
+
+body: pylon_starboard_2_beam + 12, pylon_starboard_2_root_node + 3,
+        7.42,
+    reference, node,    0.458,   0.000,   0.489,
+    sym,    0.654,      0.0,    0.063,
+                       1.28,      0.0,
+                                0.697;
+
+body: pylon_starboard_2_beam + 13, pylon_starboard_2_root_node + 4,
+        7.46,
+    reference, node,    0.458,   0.000,  -0.487,
+    sym,    0.664,      0.0,   0.0629,
+                       1.46,      0.0,
+                                0.869;
+

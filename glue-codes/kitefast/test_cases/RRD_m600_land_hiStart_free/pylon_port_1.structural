@@ -1,0 +1,110 @@
+# Beam elements for the pylon_port_1
+
+set: integer pylon_port_1_beam = 11000;
+set: integer pylon_port_1_body = 11000;
+
+# *** beam elements ***
+set: current_beam = pylon_port_1_beam + 0;
+set: twist1 = 0.0;
+set: twist2 = 0.0;
+set: beam_node1 = pylon_port_1_root_node + 0;
+set: beam_node2 = pylon_port_1_root_node + 1;
+set: beam_node3 = pylon_port_1_root_node + 2;
+set: k1_11 = 999999999.9999999;
+set: k1_12 = 0.0;
+set: k1_13 = 0.0;
+set: k1_14 = 0.0;
+set: k1_15 = 0.0;
+set: k1_16 = 0.0;
+set: k1_22 = 999999999.9999999;
+set: k1_23 = 0.0;
+set: k1_24 = 0.0;
+set: k1_25 = 0.0;
+set: k1_26 = 0.0;
+set: k1_33 = 20256317.95931466;
+set: k1_34 = 0.0;
+set: k1_35 = 0.0;
+set: k1_36 = 0.0;
+set: k1_44 = 88749.96012766776;
+set: k1_45 = 0.0;
+set: k1_46 = 0.0;
+set: k1_55 = 204734.229472318;
+set: k1_56 = 0.0;
+set: k1_66 = 99440.02220577652;
+
+set: k2_11 = 999999999.9999999;
+set: k2_12 = 0.0;
+set: k2_13 = 0.0;
+set: k2_14 = 0.0;
+set: k2_15 = 0.0;
+set: k2_16 = 0.0;
+set: k2_22 = 999999999.9999999;
+set: k2_23 = 0.0;
+set: k2_24 = 0.0;
+set: k2_25 = 0.0;
+set: k2_26 = 0.0;
+set: k2_33 = 17213682.040685333;
+set: k2_34 = 0.0;
+set: k2_35 = 0.0;
+set: k2_36 = 0.0;
+set: k2_44 = 109650.03987233223;
+set: k2_45 = 0.0;
+set: k2_46 = 0.0;
+set: k2_55 = 507265.770527682;
+set: k2_56 = 0.0;
+set: k2_66 = 261559.97779422347;
+
+include: "pylon_port_1.beam";
+
+set: current_beam = pylon_port_1_beam + 10;
+set: twist1 = 0.0;
+set: twist2 = 0.0;
+set: beam_node1 = pylon_port_1_root_node + 2;
+set: beam_node2 = pylon_port_1_root_node + 3;
+set: beam_node3 = pylon_port_1_root_node + 4;
+set: k1_11 = 1000000000.0;
+set: k1_12 = 0.0;
+set: k1_13 = 0.0;
+set: k1_14 = 0.0;
+set: k1_15 = 0.0;
+set: k1_16 = 0.0;
+set: k1_22 = 1000000000.0;
+set: k1_23 = 0.0;
+set: k1_24 = 0.0;
+set: k1_25 = 0.0;
+set: k1_26 = 0.0;
+set: k1_33 = 14447439.552531438;
+set: k1_34 = 0.0;
+set: k1_35 = 0.0;
+set: k1_36 = 0.0;
+set: k1_44 = 100710.99806569281;
+set: k1_45 = 0.0;
+set: k1_46 = 0.0;
+set: k1_55 = 573199.1285341004;
+set: k1_56 = 0.0;
+set: k1_66 = 261306.38795573727;
+
+set: k2_11 = 1000000000.0000001;
+set: k2_12 = 0.0;
+set: k2_13 = 0.0;
+set: k2_14 = 0.0;
+set: k2_15 = 0.0;
+set: k2_16 = 0.0;
+set: k2_22 = 1000000000.0000001;
+set: k2_23 = 0.0;
+set: k2_24 = 0.0;
+set: k2_25 = 0.0;
+set: k2_26 = 0.0;
+set: k2_33 = 9932560.447468566;
+set: k2_34 = 0.0;
+set: k2_35 = 0.0;
+set: k2_36 = 0.0;
+set: k2_44 = 55389.00193430721;
+set: k2_45 = 0.0;
+set: k2_46 = 0.0;
+set: k2_55 = 450800.87146589975;
+set: k2_56 = 0.0;
+set: k2_66 = 98493.61204426282;
+
+include: "pylon_port_1.beam";
+

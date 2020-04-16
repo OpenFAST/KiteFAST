@@ -10,7 +10,7 @@ set -e
 
 # Set the directories in the variables below. These are the 
 # directories where kitefast and mbdyn will ultimately go.
-source_code_parent_directory="/Users/rmudafor/Development/makani"
+source_code_parent_directory="/usr/local/google/home/ruthmarsh/Desktop"
 mbdyn_directory=$source_code_parent_directory"/mbdyn-1.7.3"
 openfast_directory=$source_code_parent_directory"/sandbox"
 
@@ -50,7 +50,7 @@ fi
 cd $source_code_parent_directory
 
 # build KiteFAST
-git_branch="dev-offshore"
+git_branch="ctrlwork"
 if [ -d $openfast_directory ]; then
   cd $openfast_directory
   git checkout $git_branch
@@ -64,13 +64,20 @@ if [ ! -d $openfast_directory ]; then
    exit 1
 fi
 
-export FC=$fortran_compiler
+export FC=/home/rdamiani/anaconda3/bin/x86_64-conda_cos6-linux-gnu-gfortran
+# export FC=$fortran_compiler
+
 cd $openfast_directory
 if [ ! -d build ]; then
   mkdir build
 fi
 cd build
-cmake .. -DDOUBLE_PRECISION=OFF
+
+cmake .. \
+  -DDOUBLE_PRECISION=OFF \
+  -DGENERATE_TYPES=ON
+  -DLAPACK_LIBRARIES="~/anaconda3/pkgs/lapack-3.8.0-0/lib" \
+  -DBLAS_LIBRARIES="~/anaconda3/lib/"
 make -j 2 kitefastlib kitefastoslib kitefastcontroller_controller
 
 # download mbdyn, configure, and build

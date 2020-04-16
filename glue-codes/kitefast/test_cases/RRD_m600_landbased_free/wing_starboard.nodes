@@ -1,0 +1,57 @@
+# Structural nodes for the wing_starboard
+
+# *** nodes ***
+structural: wing_starboard_root_node + 0, dynamic,
+    reference, mip_rf,   0.000,   0.050,   0.000,
+    reference, mip_rf,eye,
+    reference, mip_rf,   0.000,   0.000,   0.000,
+    reference, mip_rf,   0.000,   0.000,   0.000;
+
+structural: wing_starboard_root_node + 1, dynamic,
+    reference, mip_rf,   0.000,   0.580,   0.000,
+    reference, mip_rf,eye,
+    reference, mip_rf,   0.000,   0.000,   0.000,
+    reference, mip_rf,   0.000,   0.000,   0.000;
+
+structural: wing_starboard_root_node + 2, dynamic,
+    reference, mip_rf,   0.000,   1.110,   0.000,
+    reference, mip_rf,eye,
+    reference, mip_rf,   0.000,   0.000,   0.000,
+    reference, mip_rf,   0.000,   0.000,   0.000;
+
+structural: wing_starboard_root_node + 3, dynamic,
+    reference, mip_rf,   0.000,   2.323,   0.000,
+    reference, mip_rf,eye,
+    reference, mip_rf,   0.000,   0.000,   0.000,
+    reference, mip_rf,   0.000,   0.000,   0.000;
+
+structural: wing_starboard_root_node + 4, dynamic,
+    reference, mip_rf,   0.000,   3.536,   0.000,
+    reference, mip_rf,eye,
+    reference, mip_rf,   0.000,   0.000,   0.000,
+    reference, mip_rf,   0.000,   0.000,   0.000;
+
+structural: wing_starboard_root_node + 5, dynamic,
+    reference, mip_rf,   0.000,   5.009,   0.000,
+    reference, mip_rf,eye,
+    reference, mip_rf,   0.000,   0.000,   0.000,
+    reference, mip_rf,   0.000,   0.000,   0.000;
+
+structural: wing_starboard_root_node + 6, dynamic,
+    reference, mip_rf,   0.000,   6.482,   0.000,
+    reference, mip_rf,eye,
+    reference, mip_rf,   0.000,   0.000,   0.000,
+    reference, mip_rf,   0.000,   0.000,   0.000;
+
+structural: wing_starboard_root_node + 7, dynamic,
+    reference, mip_rf,   0.000,   9.681,   0.000,
+    reference, mip_rf,eye,
+    reference, mip_rf,   0.000,   0.000,   0.000,
+    reference, mip_rf,   0.000,   0.000,   0.000;
+
+structural: wing_starboard_root_node + 8, dynamic,
+    reference, mip_rf,   0.000,  12.881,   0.000,
+    reference, mip_rf,eye,
+    reference, mip_rf,   0.000,   0.000,   0.000,
+    reference, mip_rf,   0.000,   0.000,   0.000;
+

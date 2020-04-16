@@ -1,0 +1,30 @@
+--- KiteFastController INPUT FILE ---
+Testing Controller
+--- SIMULATION CONTROL ---
+False     Echo      ! Echo input data to <RootName>.ech? (flag)
+0.01      DTctrl    ! Time interval for controller calculations (Default=0.01)(s)  #Use 0.02 when you use KFCmod=2 RRD
+DEFAULT   DLL_Filename  ! DLL_Filename   default is "~/sandbox/build/modules/kitefast-controller/libkitefastcontroller_controller.so"
+--- INITIAL CONDITIONS ---
+0.          0.        0.        0.         0.        0.         0.        0.          rtrBladePitch         !< The rotor blade pitches [8 values] [rad], for all rotors in CSIM order convention
+-30.173     21.697     12.640     -3.371     61.978    -68.994    -76.138     83.087  genTorq               !< The generator torques [8 values] [Nm], for all rotors in CSIM order convention.
+-147.040    144.957    142.847   -140.691    164.788   -166.670   -168.517    170.323 rtrSpd                !< The rotor speeds [8 values] (rad/s), for all rotors in CSIM order convention.
+7.521       -8.332     -9.234     10.085     -9.473      8.807      8.287     -7.706  rtrAcc                !< The rotor accelerations [8 values] (rad/s^2), for all rotors in CSIM order convention.
+-0.137     -0.138     -0.002     -0.002    -0.153     -0.152      0.064      0.015    ctrlSettings          !< The control surfaces angles [8 values] [rad], for all surfaces in CSIM order convention. 
+--- DUMMY CONTROLLER DATA FILE ---
+"./RRD_ctrl.outs"       DummyCFil         !  If KFCmode=2 AND this is not blank, it points to a data file that has time series of CTRL output data, and above Initial Conditions will be trumped
+--- OUTPUT ---
+True                             SumPrint          !  Print summary data to <RootName>.sum? (flag)
+1                                OutSwtch          !  Output requested channels to? (-) (switch) {1=KiteFAST.KFC.out, 2=GlueCode.out, 3=three files]
+"ES10.3E2"                       OutFmt            !  Format used for text tabular output, excluding the time channel; resulting field should be 10 characters (string)
+8                                NRotOuts          !  Number of Rotors whose gentroque will be output [0 to 8]
+1 2 3  4 5 6 7 8                 RotOuts           !  List of rotors whose gen_torque will be output (-) [1 to NRotOuts] [unused for NRotOuts=0]
+8                                NFlpOuts          !  Number of Flaps whose deflections will be output [0 to 8]
+1 2 3  4 5 6 7 8                 FlapOuts          !  List of flaps whose deflections will be output (-) [1 to NFlpOuts] [unused for NFlpOuts=0]
+OutList            The next line(s) contains a list of output parameters.  See OutListParameters.xlsx for a listing of available output channels (quoted string)
+"Rot1GTq,Rot2GTq,Rot3GTq,Rot4GTq,Rot5GTq,Rot6GTq,Rot7GTq,Rot8GTq"
+"Rot1Spd,Rot2Spd,Rot3Spd,Rot4Spd,Rot5Spd,Rot6Spd,Rot7Spd,Rot8Spd"
+"Flp1Def, Flp2Def, Flp3Def, Flp4Def, Flp5Def, Flp6Def, Flp7Def, Flp8Def"
+"DCMG2Bc1, DCMG2Bc2, DCMG2Bc3, DCMG2Bc4, DCMG2Bc5, DCMG2Bc6, DCMG2Bc7, DCMG2Bc8, DCMG2Bc9"
+"TethFxb, TethFyb, TethFzb"
+END of input file (the word "END" must appear in the first 3 columns of this last OutList line)
+

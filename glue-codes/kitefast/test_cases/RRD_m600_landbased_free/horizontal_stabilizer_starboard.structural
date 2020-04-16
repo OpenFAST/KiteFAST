@@ -1,0 +1,110 @@
+# Beam elements for the horizontal_stabilizer_starboard
+
+set: integer horizontal_stabilizer_starboard_beam = 4000;
+set: integer horizontal_stabilizer_starboard_body = 4000;
+
+# *** beam elements ***
+set: current_beam = horizontal_stabilizer_starboard_beam + 0;
+set: twist1 = 0.0;
+set: twist2 = 0.0;
+set: beam_node1 = horizontal_stabilizer_starboard_root_node + 0;
+set: beam_node2 = horizontal_stabilizer_starboard_root_node + 1;
+set: beam_node3 = horizontal_stabilizer_starboard_root_node + 2;
+set: k1_11 = 1000000000.0;
+set: k1_12 = 0.0;
+set: k1_13 = 0.0;
+set: k1_14 = 0.0;
+set: k1_15 = 0.0;
+set: k1_16 = 0.0;
+set: k1_22 = 42647223.25026743;
+set: k1_23 = 0.0;
+set: k1_24 = 0.0;
+set: k1_25 = 0.0;
+set: k1_26 = 0.0;
+set: k1_33 = 1000000000.0;
+set: k1_34 = 0.0;
+set: k1_35 = 0.0;
+set: k1_36 = 0.0;
+set: k1_44 = 121056.62432702593;
+set: k1_45 = 0.0;
+set: k1_46 = 0.0;
+set: k1_55 = 60831.7662265051;
+set: k1_56 = 0.0;
+set: k1_66 = 694237.3906318495;
+
+set: k2_11 = 1000000000.0;
+set: k2_12 = 0.0;
+set: k2_13 = 0.0;
+set: k2_14 = 0.0;
+set: k2_15 = 0.0;
+set: k2_16 = 0.0;
+set: k2_22 = 50152776.74973257;
+set: k2_23 = 0.0;
+set: k2_24 = 0.0;
+set: k2_25 = 0.0;
+set: k2_26 = 0.0;
+set: k2_33 = 1000000000.0;
+set: k2_34 = 0.0;
+set: k2_35 = 0.0;
+set: k2_36 = 0.0;
+set: k2_44 = 123943.37567297407;
+set: k2_45 = 0.0;
+set: k2_46 = 0.0;
+set: k2_55 = 54498.2337734949;
+set: k2_56 = 0.0;
+set: k2_66 = 2235762.60936815;
+
+include: "horizontal_stabilizer_starboard.beam";
+
+set: current_beam = horizontal_stabilizer_starboard_beam + 10;
+set: twist1 = 0.0;
+set: twist2 = 0.0;
+set: beam_node1 = horizontal_stabilizer_starboard_root_node + 2;
+set: beam_node2 = horizontal_stabilizer_starboard_root_node + 3;
+set: beam_node3 = horizontal_stabilizer_starboard_root_node + 4;
+set: k1_11 = 1000000000.0;
+set: k1_12 = 0.0;
+set: k1_13 = 0.0;
+set: k1_14 = 0.0;
+set: k1_15 = 0.0;
+set: k1_16 = 0.0;
+set: k1_22 = 48060660.582221225;
+set: k1_23 = 0.0;
+set: k1_24 = 0.0;
+set: k1_25 = 0.0;
+set: k1_26 = 0.0;
+set: k1_33 = 1000000000.0;
+set: k1_34 = 0.0;
+set: k1_35 = 0.0;
+set: k1_36 = 0.0;
+set: k1_44 = 104924.13778650724;
+set: k1_45 = 0.0;
+set: k1_46 = 0.0;
+set: k1_55 = 50778.91614236361;
+set: k1_56 = 0.0;
+set: k1_66 = 2273801.0851410846;
+
+set: k2_11 = 1000000000.0;
+set: k2_12 = 0.0;
+set: k2_13 = 0.0;
+set: k2_14 = 0.0;
+set: k2_15 = 0.0;
+set: k2_16 = 0.0;
+set: k2_22 = 34839339.41777878;
+set: k2_23 = 0.0;
+set: k2_24 = 0.0;
+set: k2_25 = 0.0;
+set: k2_26 = 0.0;
+set: k2_33 = 1000000000.0;
+set: k2_34 = 0.0;
+set: k2_35 = 0.0;
+set: k2_36 = 0.0;
+set: k2_44 = 50075.862213492765;
+set: k2_45 = 0.0;
+set: k2_46 = 0.0;
+set: k2_55 = 46951.08385763639;
+set: k2_56 = 0.0;
+set: k2_66 = 836198.9148589157;
+
+include: "horizontal_stabilizer_starboard.beam";
+

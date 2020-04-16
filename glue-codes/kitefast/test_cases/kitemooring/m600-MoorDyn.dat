@@ -14,8 +14,8 @@ Node    Type      X        Y        Z      M     V      FX   FY   FZ   CdA   CA
 (-)     (-)      (m)      (m)      (m)     (kg)  (m^3)  (kN) (kN) (kN) (m^2) (-)
 1      Fixed     1.15    -1.2       1.702   0.0   0.0    0.0  0.0  0.0  0.0   0.0
 2      Connect   124.6  -376.15    169.99   0.0   0.0    0.0  0.0  0.0  0.0   0.0
-3      Vessel    0.1494  -5.8843    -0.13035 0.0   0.0    0.0  0.0  0.0  0.0   0.0
-4      Vessel    0.1494   5.8661    -0.13035 0.0   0.0    0.0  0.0  0.0  0.0   0.0
+3      Vessel1   0.1494  -5.8843    -0.13035 0.0   0.0    0.0  0.0  0.0  0.0   0.0
+4      Vessel1   0.1494   5.8661    -0.13035 0.0   0.0    0.0  0.0  0.0  0.0   0.0
 ---------------------- LINE PROPERTIES --------------------------------------
 3        NLines    - number of line objects
 Line    LineType  UnstrLen  NumSegs   NodeAnch  NodeFair  Flags/Outputs
