@@ -39,6 +39,7 @@ target_link_libraries(kitefastcontrollerlib nwtclibs)
 # kitefastcontroller-controller
 file(GLOB C_MATH_SOURCES "src/common/c_math/*")
 add_library(C_MATH ${C_MATH_SOURCES})
+target_include_directories(C_MATH PRIVATE ${GSL_INCLUDE_DIR})
 
 set(DYLIB_SOURCES
 	src/KiteFastController.c 
