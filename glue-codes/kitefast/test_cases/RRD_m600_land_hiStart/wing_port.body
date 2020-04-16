@@ -1,0 +1,114 @@
+# Bodies for the wing_port
+
+body: wing_port_beam + 0, wing_port_root_node + 0,
+        7.83,
+    reference, node,    0.000,   1.908,   0.269,
+    sym,     9.56,      0.0,      0.0,
+                      0.389,   -0.565,
+                                 9.74;
+
+body: wing_port_beam + 1, wing_port_root_node + 1,
+        14.2,
+    reference, node,    0.000,  -1.291,   0.269,
+    sym,     7.61,      0.0,      0.0,
+                      0.909,   -0.438,
+                                 8.13;
+
+body: wing_port_beam + 2, wing_port_root_node + 1,
+        20.6,
+    reference, node,    0.000,   1.743,   0.087,
+    sym,     21.6,      0.0,      0.0,
+                       1.49,    -1.27,
+                                 22.4;
+
+body: wing_port_beam + 3, wing_port_root_node + 2,
+        39.2,
+    reference, node,    0.000,  -1.457,   0.087,
+    sym,     19.2,      0.0,      0.0,
+                        2.0,    -1.11,
+                                 20.3;
+
+body: wing_port_beam + 10, wing_port_root_node + 2,
+        25.8,
+    reference, node,    0.000,   0.725,   0.000,
+    sym,      2.7,      0.0,      0.0,
+                       1.01,      0.0,
+                                 3.32;
+
+body: wing_port_beam + 11, wing_port_root_node + 3,
+        12.9,
+    reference, node,    0.000,  -0.748,   0.000,
+    sym,     2.75,      0.0,      0.0,
+                       1.01,      0.0,
+                                 3.38;
+
+body: wing_port_beam + 12, wing_port_root_node + 3,
+        12.3,
+    reference, node,    0.000,   0.724,   0.000,
+    sym,     2.47,      0.0,      0.0,
+                       1.01,      0.0,
+                                  3.1;
+
+body: wing_port_beam + 13, wing_port_root_node + 4,
+        23.5,
+    reference, node,    0.000,  -0.749,   0.000,
+    sym,     2.53,      0.0,      0.0,
+                       1.01,      0.0,
+                                 3.16;
+
+body: wing_port_beam + 20, wing_port_root_node + 4,
+        21.2,
+    reference, node,    0.000,   0.607,   0.000,
+    sym,     1.43,      0.0,      0.0,
+                      0.835,      0.0,
+                                 1.94;
+
+body: wing_port_beam + 21, wing_port_root_node + 5,
+        9.42,
+    reference, node,    0.000,  -0.606,   0.000,
+    sym,     1.43,      0.0,      0.0,
+                      0.835,      0.0,
+                                 1.94;
+
+body: wing_port_beam + 22, wing_port_root_node + 5,
+        9.45,
+    reference, node,    0.000,   0.607,   0.000,
+    sym,     1.43,      0.0,      0.0,
+                      0.835,      0.0,
+                                 1.95;
+
+body: wing_port_beam + 23, wing_port_root_node + 6,
+        21.3,
+    reference, node,    0.000,  -0.606,   0.000,
+    sym,     1.43,      0.0,      0.0,
+                      0.835,      0.0,
+                                 1.95;
+
+body: wing_port_beam + 30, wing_port_root_node + 6,
+        16.1,
+    reference, node,    0.000,   0.271,   0.000,
+    sym,    0.224,      0.0,      0.0,
+                      0.365,      0.0,
+                                 0.45;
+
+body: wing_port_beam + 31, wing_port_root_node + 7,
+        4.57,
+    reference, node,    0.000,  -0.259,   0.000,
+    sym,    0.221,      0.0,      0.0,
+                      0.365,      0.0,
+                                0.446;
+
+body: wing_port_beam + 32, wing_port_root_node + 7,
+        4.85,
+    reference, node,    0.000,   0.270,   0.000,
+    sym,    0.238,      0.0,      0.0,
+                      0.365,      0.0,
+                                0.463;
+
+body: wing_port_beam + 33, wing_port_root_node + 8,
+        5.13,
+    reference, node,    0.000,  -0.260,   0.000,
+    sym,    0.234,      0.0,      0.0,
+                      0.365,      0.0,
+                                 0.46;
+

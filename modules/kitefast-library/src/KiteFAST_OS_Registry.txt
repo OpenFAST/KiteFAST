@@ -52,7 +52,7 @@ typedef   ^    ^              MeshMapType      HD_P_2_HD_M_P    -    -  - "" -
 typedef   ^    ^              MeshMapType      HD_P_2_HD_M_L    -    -  - "" -
 typedef   ^    ^              MeshMapType      MD_M_P_2_MBD_P   -    -  - "" -
 typedef   ^    ^              MeshMapType      HD_P_2_MD_P      -    -  - "" -
-typedef   ^    ^              ReKi             AllOuts     {3978}    -  - "" -
+typedef   ^    ^              ReKi             AllOuts     {3999}    -  - "" -
 typedef   ^    ^              ReKi             WriteOutput   {:}     -  - "" -
 typedef   ^    ^              ReKi             PtfmO          {3} - - "Current timestep position of the Platform reference point, expressed in global coordinates." m
 typedef   ^    ^              R8Ki             PtfmODCM       {3}{3} - - "Current timestep DCM matrix to transform the location of the Platform reference point from global to kite coordinates."

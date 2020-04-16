@@ -26,7 +26,9 @@ endif()
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c99 -g -fPIC")
 find_package(GSL REQUIRED)
 
-generate_f90_types(src/KiteFastController_Registry.txt KiteFastController_Types.f90 -noextrap)
+if (GENERATE_TYPES)
+  generate_f90_types(src/KiteFastController_Registry.txt ${CMAKE_CURRENT_LIST_DIR}/src/KiteFastController_Types.f90 -noextrap)
+endif()
 
 # kitefastcontroller-lib
 set(LIB_SOURCES src/KiteFastController.f90 src/KiteFastController_IO.f90 src/KiteFastController_Types.f90)

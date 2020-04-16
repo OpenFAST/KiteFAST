@@ -126,12 +126,12 @@ __attribute__((optimize(0)))  void AssignInputs(double dcm_g2b_c[], double pqr_c
 	Vec3 Ab_tmp = { Ab_c[0] , Ab_c[1] , Ab_c[2] };
 	// Vec3 Ab_tmp = { Ab_c[0] , Ab_c[1] , Ab_c[2] };
 	
-	// RRD start: add Low pass filter trying to smooth everything @0.1Hz
+	// RRD start: add Low pass filter trying to smooth everything @0.1Hz due to MBDYN's crazy accel
 	memcpy(&state_est->Ab_f, &Ab_tmp, sizeof(state_est->Ab_f));
 
 	state_est->Ab_f.x = Lpf(state_est->Ab_f.x, 1., *g_sys.ts, &state_est->Ab_f_lpf.x);
-	state_est->Ab_f.y = Lpf(state_est->Ab_f.y, 1., *g_sys.ts, &state_est->Ab_f_lpf.x);
-	state_est->Ab_f.z = Lpf(state_est->Ab_f.z, 1., *g_sys.ts, &state_est->Ab_f_lpf.x);
+	state_est->Ab_f.y = Lpf(state_est->Ab_f.y, 1., *g_sys.ts, &state_est->Ab_f_lpf.y);
+	state_est->Ab_f.z = Lpf(state_est->Ab_f.z, 1., *g_sys.ts, &state_est->Ab_f_lpf.z);
 
 	// save values to pqr_f_lpf to use in next step (Lpf requires values from previous step)
 	state_est->Ab_f_lpf.x = state_est->Ab_f.x; 
@@ -158,13 +158,23 @@ __attribute__((optimize(0)))  void AssignInputs(double dcm_g2b_c[], double pqr_c
 	const Vec3 V_wind_tmp = {apparent_wind_c[0],apparent_wind_c[1],apparent_wind_c[2]};
 
 	// find wind velocity in body frame
-	Mat3Vec3Mult(&dcm_g2b_t, &V_wind_tmp, &V_wind_b);
+	/* Mat3Vec3Mult(&dcm_g2b_t, &V_wind_tmp, &V_wind_b);  //RRD:WHY ARE YOU DOING THIS??? apparent wind is being passed by KFAST!
 	// magnitude of velocity vector
 	state_est->apparent_wind.sph_f.v = Sqrt(Square(V_wind_b.x)+Square(V_wind_b.y)+Square(V_wind_b.z));
 	// angle of attack approximation
 	state_est->apparent_wind.sph_f.alpha = atan(V_wind_b.z/V_wind_b.x); 
 	// side-slip  approximation
-	state_est->apparent_wind.sph_f.beta = -asin(V_wind_b.y/state_est->apparent_wind.sph_f.v); 
+	 state_est->apparent_wind.sph_f.beta = -asin(V_wind_b.y/state_est->apparent_wind.sph_f.v); 
+	 */
+
+//RRD I think the stuff above should be replaced as follows:
+	state_est->apparent_wind.sph_f.v = Sqrt(Square(apparent_wind_c[0])+Square(apparent_wind_c[1])+Square(apparent_wind_c[2]));
+	// angle of attack approximation
+	state_est->apparent_wind.sph_f.alpha = atan(apparent_wind_c[2]/apparent_wind_c[0]); 
+	// side-slip  approximation
+	state_est->apparent_wind.sph_f.beta = -asin(apparent_wind_c[1]/state_est->apparent_wind.sph_f.v); 
+
+
 	// added solution type - 6/27/19 (found value using .h5)
 	state_est->apparent_wind.solution_type = kApparentWindSolutionTypePitot; 
 	// apply low-pass filters to alpha and beta approximations

@@ -234,7 +234,7 @@ IMPLICIT NONE
     REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: PPyRtrFReact      !<  [N]
     REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: SPyRtrMReact      !<  [N-m]
     REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: PPyRtrMReact      !<  [N-m]
-    REAL(ReKi) , DIMENSION(1:3978)  :: AllOuts      !<  [-]
+    REAL(ReKi) , DIMENSION(1:3999)  :: AllOuts      !<  [-]
     REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: WriteOutput      !<  [-]
   END TYPE KFAST_MiscVarType
 ! =======================
@@ -248,6 +248,7 @@ IMPLICIT NONE
     LOGICAL  :: useIfW      !< Using InflowWind module? [-]
     LOGICAL  :: useMD_Tether      !< Using MoorDyn module for the tether? [-]
     LOGICAL  :: useKFC      !< Using KiteFAST Controller module? [-]
+    INTEGER(IntKi)  :: KFCmode      !< KiteFAST Controller mode (0=dummy,1=ctrl,2=read external control file [-]
     REAL(DbKi)  :: dt      !< Time interval for calculations [s]
     REAL(DbKi)  :: KAD_dt      !< Time interval for KAD calculations [s]
     REAL(DbKi)  :: KAD_filtConst      !< KAD input Filter time constant, based on 10Hz cut-off freq. [-]
@@ -279,6 +280,7 @@ IMPLICIT NONE
     INTEGER(IntKi)  :: numKFASTOuts = 0      !< Number of KFAST-specific outputs requested [-]
     INTEGER(IntKi)  :: numKADOuts = 0      !< Number of KAD outputs requested [-]
     INTEGER(IntKi)  :: numMDOuts = 0      !< Number of MD outputs requested [-]
+    INTEGER(IntKi)  :: numKFCOuts = 0      !< Number of KFC outputs requested [-]
     INTEGER(IntKi)  :: numIfWOuts = 0      !< Number of IfW outputs requested [-]
     INTEGER(IntKi)  :: NFusOuts = 0      !<  [-]
     INTEGER(IntKi) , DIMENSION(1:9)  :: FusOutNds      !<  [-]
@@ -13689,6 +13691,7 @@ ENDIF
     DstParamData%useIfW = SrcParamData%useIfW
     DstParamData%useMD_Tether = SrcParamData%useMD_Tether
     DstParamData%useKFC = SrcParamData%useKFC
+    DstParamData%KFCmode = SrcParamData%KFCmode
     DstParamData%dt = SrcParamData%dt
     DstParamData%KAD_dt = SrcParamData%KAD_dt
     DstParamData%KAD_filtConst = SrcParamData%KAD_filtConst
@@ -13846,6 +13849,7 @@ ENDIF
     DstParamData%numKFASTOuts = SrcParamData%numKFASTOuts
     DstParamData%numKADOuts = SrcParamData%numKADOuts
     DstParamData%numMDOuts = SrcParamData%numMDOuts
+    DstParamData%numKFCOuts = SrcParamData%numKFCOuts
     DstParamData%numIfWOuts = SrcParamData%numIfWOuts
     DstParamData%NFusOuts = SrcParamData%NFusOuts
     DstParamData%FusOutNds = SrcParamData%FusOutNds
@@ -13974,6 +13978,7 @@ ENDIF
       Int_BufSz  = Int_BufSz  + 1  ! useIfW
       Int_BufSz  = Int_BufSz  + 1  ! useMD_Tether
       Int_BufSz  = Int_BufSz  + 1  ! useKFC
+      Int_BufSz  = Int_BufSz  + 1  ! KFCmode
       Db_BufSz   = Db_BufSz   + 1  ! dt
       Db_BufSz   = Db_BufSz   + 1  ! KAD_dt
       Db_BufSz   = Db_BufSz   + 1  ! KAD_filtConst
@@ -14045,6 +14050,7 @@ ENDIF
       Int_BufSz  = Int_BufSz  + 1  ! numKFASTOuts
       Int_BufSz  = Int_BufSz  + 1  ! numKADOuts
       Int_BufSz  = Int_BufSz  + 1  ! numMDOuts
+      Int_BufSz  = Int_BufSz  + 1  ! numKFCOuts
       Int_BufSz  = Int_BufSz  + 1  ! numIfWOuts
       Int_BufSz  = Int_BufSz  + 1  ! NFusOuts
       Int_BufSz  = Int_BufSz  + SIZE(InData%FusOutNds)  ! FusOutNds
@@ -14131,6 +14137,8 @@ ENDIF
       IntKiBuf ( Int_Xferred:Int_Xferred+1-1 ) = TRANSFER( InData%useMD_Tether , IntKiBuf(1), 1)
       Int_Xferred   = Int_Xferred   + 1
       IntKiBuf ( Int_Xferred:Int_Xferred+1-1 ) = TRANSFER( InData%useKFC , IntKiBuf(1), 1)
+      Int_Xferred   = Int_Xferred   + 1
+      IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%KFCmode
       Int_Xferred   = Int_Xferred   + 1
       DbKiBuf ( Db_Xferred:Db_Xferred+(1)-1 ) = InData%dt
       Db_Xferred   = Db_Xferred   + 1
@@ -14330,6 +14338,8 @@ ENDIF
       Int_Xferred   = Int_Xferred   + 1
       IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%numMDOuts
       Int_Xferred   = Int_Xferred   + 1
+      IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%numKFCOuts
+      Int_Xferred   = Int_Xferred   + 1
       IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%numIfWOuts
       Int_Xferred   = Int_Xferred   + 1
       IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%NFusOuts
@@ -14468,6 +14478,8 @@ ENDIF
       OutData%useMD_Tether = TRANSFER( IntKiBuf( Int_Xferred ), mask0 )
       Int_Xferred   = Int_Xferred + 1
       OutData%useKFC = TRANSFER( IntKiBuf( Int_Xferred ), mask0 )
+      Int_Xferred   = Int_Xferred + 1
+      OutData%KFCmode = IntKiBuf( Int_Xferred ) 
       Int_Xferred   = Int_Xferred + 1
       OutData%dt = DbKiBuf( Db_Xferred ) 
       Db_Xferred   = Db_Xferred + 1
@@ -14786,6 +14798,8 @@ ENDIF
       OutData%numKADOuts = IntKiBuf( Int_Xferred ) 
       Int_Xferred   = Int_Xferred + 1
       OutData%numMDOuts = IntKiBuf( Int_Xferred ) 
+      Int_Xferred   = Int_Xferred + 1
+      OutData%numKFCOuts = IntKiBuf( Int_Xferred ) 
       Int_Xferred   = Int_Xferred + 1
       OutData%numIfWOuts = IntKiBuf( Int_Xferred ) 
       Int_Xferred   = Int_Xferred + 1

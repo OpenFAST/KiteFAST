@@ -708,6 +708,7 @@ subroutine KFAST_OS_Init(SimMod, dt_c, TMAX_c, numFlaps, numPylons, numComp, num
    type(HydroDyn_InitOutputType)   :: HD_InitOut
    type(MD_InitOutputType)         :: MD_Mooring_InitOut
    type(KFC_InitInputType)         :: KFC_InitInp
+   type(KFC_InitOutputType)        :: KFC_InitOut
    character(*), parameter         :: routineName = 'KFAST_OS_Init'
    integer(IntKi)                  :: SumFileUnit
    CHARACTER(ChanLen)              :: OutList(MaxOutPts)              ! MaxOutPts is defined in KiteFAST_IO.f90, ChanLen defined in NWTC_Base.f90
@@ -766,7 +767,7 @@ subroutine KFAST_OS_Init(SimMod, dt_c, TMAX_c, numFlaps, numPylons, numComp, num
       call Init_KiteSystem(dt_c, numFlaps, numPylons, numComp, numCompNds, modFlags, KAD_FileName_c, IfW_FileName_c, MD_Tether_FileName_c, KFC_FileName_c, &
                        outFileRoot_c, printSum, gravity, KAD_InterpOrder, MD_InitInp, FusODCM_c, numRtrPts_c, rtrPts_c, rtrMass_c, rtrI_Rot_c, rtrI_trans_c, rtrXcm_c, refPts_c, &
                        numNodePts_c, nodePts_c, nodeDCMs_c, nFusOuts_c, FusOutNd_c, nSWnOuts_c, SWnOutNd_c, &
-                       nPWnOuts_c, PWnOutNd_c, nVSOuts_c, VSOutNd_c, nSHSOuts_c, SHSOutNd_c, nPHSOuts_c, PHSOutNd_c, nPylOuts_c, PylOutNd_c, KAD_InitOut, MD_Tether_InitOut, IfW_InitOut, errStat, errMsg )
+                       nPWnOuts_c, PWnOutNd_c, nVSOuts_c, VSOutNd_c, nSHSOuts_c, SHSOutNd_c, nPHSOuts_c, PHSOutNd_c, nPylOuts_c, PylOutNd_c, KAD_InitOut, MD_Tether_InitOut, KFC_InitOut, IfW_InitOut, errStat, errMsg )
       if (errStat >= AbortErrLev ) then
          call TransferErrors(errStat, errMsg, errStat_c, errMsg_c)
          return
@@ -821,7 +822,7 @@ subroutine KFAST_OS_Init(SimMod, dt_c, TMAX_c, numFlaps, numPylons, numComp, num
          end if
          
          ! This sets the p%numOuts data based on p%numKFASTOuts + outputs from the submodules: KAD, MD, IfW
-      call KFAST_SetNumOutputs( p, KAD_InitOut, MD_Tether_InitOut, IfW_InitOut, errStat, errMsg )
+      call KFAST_SetNumOutputs( p, KAD_InitOut, MD_Tether_InitOut, KFC_InitOut, IfW_InitOut, errStat, errMsg )
    end if
    
   
@@ -846,12 +847,12 @@ subroutine KFAST_OS_Init(SimMod, dt_c, TMAX_c, numFlaps, numPylons, numComp, num
       p_OS%OutFmt    = p%OutFmt
       p_OS%Delim     = p%Delim
       call KFAST_WriteOutputTimeChanName( p%UnOutFile )
-      if (simMod == 2) call KFAST_WriteOutputChanNames( p, KAD_InitOut, MD_Tether_InitOut, IfW_InitOut )
+      if (simMod == 2) call KFAST_WriteOutputChanNames( p, KAD_InitOut, MD_Tether_InitOut, KFC_InitOut, IfW_InitOut )
       call KFAST_OS_WriteOutputChanNames( p_OS, HD_InitOut, MD_Mooring_InitOut )
       call KFAST_WriteOutputNL( p%UnOutFile )      
       
       call KFAST_WriteOutputTimeChanUnits( p%UnOutFile )
-      if (simMod == 2) call KFAST_WriteOutputUnitNames( p, KAD_InitOut, MD_Tether_InitOut, IfW_InitOut )  
+      if (simMod == 2) call KFAST_WriteOutputUnitNames( p, KAD_InitOut, MD_Tether_InitOut, KFC_InitOut, IfW_InitOut )  
       call KFAST_OS_WriteOutputUnitNames( p_OS, HD_InitOut, MD_Mooring_InitOut )
       call KFAST_WriteOutputNL( p%UnOutFile )
    end if  
@@ -863,7 +864,7 @@ subroutine KFAST_OS_Init(SimMod, dt_c, TMAX_c, numFlaps, numPylons, numComp, num
    if (printSum == 1) then  
       call SumModuleStatus( p, enabledModules, disabledModules ) ! TODO: Add OS modules
       call KFAST_OpenSummary( KFAST_Ver, p%outFileRoot, enabledModules, disabledModules, p%dt, SumFileUnit, errStat, errMsg )
-      if (simMod == 2) call KFAST_WriteSummary( SumFileUnit, p, m, KAD_InitOut, MD_Tether_InitOut, IfW_InitOut, ErrStat2, ErrMsg2 )
+      if (simMod == 2) call KFAST_WriteSummary( SumFileUnit, p, m, KAD_InitOut, MD_Tether_InitOut, KFC_InitOut, IfW_InitOut, ErrStat2, ErrMsg2 )
          call SetErrStat(errStat2,errMsg2,errStat,errMsg,routineName)
       ! TODO: Write OS Summary info
       call KFAST_OS_WriteSummary( SumFileUnit, GSRefPtR_c, p_OS, m_OS, HD_InitOut, MD_Mooring_InitOut, ErrStat2, ErrMsg2 )
@@ -1255,7 +1256,7 @@ subroutine KFAST_OS_Output(t_c, numGaussPts_c, gaussPtLoads_c, errStat_c, errMsg
 
       call KFAST_WriteOutputTime( t, p%UnOutFile )
       if (p%numOuts  > 0 .and. p_OS%simMod == 2) then
-         call KFAST_WriteOutput( p, m%KAD%y, m%MD_Tether%y, m%IfW%y, errStat2, errMsg2 )
+         call KFAST_WriteOutput( p, m%KAD%y, m%MD_Tether%y, m%KFC%y, m%IfW%y, errStat2, errMsg2 )
          call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
       end if
       if ( p_OS%numOuts > 0 ) then

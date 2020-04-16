@@ -10,7 +10,7 @@ set -e
 
 # Set the directories in the variables below. These are the 
 # directories where kitefast and mbdyn will ultimately go.
-source_code_parent_directory="/home/rdamiani"
+source_code_parent_directory="/usr/local/google/home/ruthmarsh/Desktop"
 mbdyn_directory=$source_code_parent_directory"/mbdyn-1.7.3"
 openfast_directory=$source_code_parent_directory"/sandbox"
 

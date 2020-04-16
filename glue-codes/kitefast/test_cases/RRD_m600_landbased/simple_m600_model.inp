@@ -196,13 +196,22 @@ True                             SumPrint           Print summary data to <RootN
 0          NPylOuts           Number of pylon node outputs (-) [0 to 9]
 1 2        PylOutNd           List of pylon nodes whose values will be output (-) [1 to NPylOuts] [unused for NPylOuts=0]
 OutList            The next line(s) contains a list of output parameters.  See OutListParameters.xlsx for a listing of available output channels (quoted string)
-"KiteFxi, KiteFyi, KiteFzi, KiteMxi, KiteMyi, KiteMzi"     
+"KiteFxi, KiteFyi, KiteFzi, KiteMxi, KiteMyi, KiteMzi"   
+"AirfFxi, AirfFyi, AirfFzi, AirfMxi, AirfMyi, AirfMzi"    
 "SFlp1Ctrl, SFlp2Ctrl, SFlp3Ctrl, PFlp1Ctrl, PFlp2Ctrl, PFlp3Ctrl, Rudr1Ctrl, SElv1Ctrl, PElv1Ctrl"
 "SP1TMX,SP1BMX,SP2TMX,SP2BMX,PP1TMX,PP1BMX,PP2TMX,PP2BMX"
 "SP1TTSR,SP1BTSR,SP2TTSR,SP2BTSR,PP1TTSR,PP1BTSR,PP2TTSR,PP2BTSR"
 "SP1TPWR,SP1BPWR,SP2TPWR,SP2BPWR,PP1TPWR,PP1BPWR,PP2TPWR,PP2BPWR"
 "SP1TRTSPD,SP1BRTSPD,SP2TRTSPD,SP2BRTSPD,PP1TRTSPD,PP1BRTSPD,PP2TRTSPD,PP2BRTSPD"
+"SP1TSkew, SP1BSkew ,SP2TSkew,SP2BSkew, PP1TSkew,PP1BSkew,PP2TSkew,PP2BSkew"
+"SP1TVrel, SP1BVrel ,SP2TVrel,SP2BVrel, PP1TVrel,PP1BVrel,PP2TVrel,PP2BVrel"
+"SP1TFx, SP1BFx, SP2TFx, SP2BFx, PP1TFx, PP1BFx, PP2TFx, PP2BFx"  !thrusts
+"SP1TFy, SP1BFy, SP2TFy, SP2BFy, PP1TFy, PP1BFy, PP2TFy, PP2BFy"  !shears
+"SP1TFz, SP1BFz, SP2TFz, SP2BFz, PP1TFz, PP1BFz, PP2TFz, PP2BFz"  !shears
+"SP1TMy, SP1BMy, SP2TMy, SP2BMy, PP1TMy, PP1BMy, PP2TMy, PP2BMy"  !pitching moments
+"SP1TMz, SP1BMz, SP2TMz, SP2BMz, PP1TMz, PP1BMz, PP2TMz, PP2BMz"  !yaw moments
 END                                               Integerated Kite Loads
+
 "SP1TCP,SP1BCP,SP2TCP,SP2BCP,PP1TCP,PP1BCP,PP2TCP,PP2BCP"
 "SP1TCT,SP1BCT,SP2TCT,SP2BCT,PP1TCT,PP1BCT,PP2TCT,PP2BCT"
 "SP1TCQ,SP1BCQ,SP2TCQ,SP2BCQ,PP1TCQ,PP1BCQ,PP2TCQ,PP2BCQ"
@@ -286,3 +295,5 @@ END                                               Integerated Kite Loads
 "PP11Cd, PP12Cd, PP13Cd, PP14Cd, PP15Cd, PP16Cd, PP17Cd, PP18Cd, PP19Cd"          All the PP1 Cds
 "PP21Cd, PP22Cd, PP23Cd, PP24Cd, PP25Cd, PP26Cd, PP27Cd, PP28Cd, PP29Cd"          All the PP2 Cds
 END of input file (the word "END" must appear in the first 3 columns of this last OutList line)
+
+

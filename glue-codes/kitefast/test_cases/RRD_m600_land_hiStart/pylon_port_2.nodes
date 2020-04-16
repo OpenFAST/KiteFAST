@@ -1,0 +1,33 @@
+# Structural nodes for the pylon_port_2
+
+# *** nodes ***
+structural: pylon_port_2_root_node + 0, dynamic,
+    reference, mip_rf,   0.857,  -3.793,  -1.470,
+    reference, mip_rf,eye,
+    reference, mip_rf,   0.000,   0.000,   0.000,
+    reference, mip_rf,   0.000,   0.000,   0.000;
+
+structural: pylon_port_2_root_node + 1, dynamic,
+    reference, mip_rf,   0.857,  -3.793,  -0.795,
+    reference, mip_rf,eye,
+    reference, mip_rf,   0.000,   0.000,   0.000,
+    reference, mip_rf,   0.000,   0.000,   0.000;
+
+structural: pylon_port_2_root_node + 2, dynamic,
+    reference, mip_rf,   0.857,  -3.793,  -0.120,
+    reference, mip_rf,eye,
+    reference, mip_rf,   0.000,   0.000,   0.000,
+    reference, mip_rf,   0.000,   0.000,   0.000;
+
+structural: pylon_port_2_root_node + 3, dynamic,
+    reference, mip_rf,   0.857,  -3.793,   0.856,
+    reference, mip_rf,eye,
+    reference, mip_rf,   0.000,   0.000,   0.000,
+    reference, mip_rf,   0.000,   0.000,   0.000;
+
+structural: pylon_port_2_root_node + 4, dynamic,
+    reference, mip_rf,   0.857,  -3.793,   1.832,
+    reference, mip_rf,eye,
+    reference, mip_rf,   0.000,   0.000,   0.000,
+    reference, mip_rf,   0.000,   0.000,   0.000;
+

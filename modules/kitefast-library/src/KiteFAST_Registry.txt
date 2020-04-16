@@ -185,7 +185,7 @@ typedef   ^    MiscVarType    ReKi             SPyRtrFReact {:}{:}{:} - - "" N
 typedef   ^    MiscVarType    ReKi             PPyRtrFReact {:}{:}{:} - - "" N
 typedef   ^    MiscVarType    ReKi             SPyRtrMReact {:}{:}{:} - - "" N-m
 typedef   ^    MiscVarType    ReKi             PPyRtrMReact {:}{:}{:} - - "" N-m
-typedef   ^    MiscVarType    ReKi             AllOuts     {3978} - - "" -
+typedef   ^    MiscVarType    ReKi             AllOuts     {3999} - - "" -
 typedef   ^    MiscVarType    ReKi             WriteOutput   {:}      - - "" -
 #
 # ..... Parameters ................................................................................................................
@@ -200,6 +200,7 @@ typedef   ^  ^              Logical          useKAD      -  -  -  "Using KiteAer
 typedef   ^  ^              Logical          useIfW      -  -  -  "Using InflowWind module?" -
 typedef   ^  ^              Logical          useMD_Tether -  -  -  "Using MoorDyn module for the tether?" -
 typedef   ^  ^              Logical          useKFC      -  -  -  "Using KiteFAST Controller module?" -
+typedef   ^  ^              IntKi            KFCmode     -  -  -  "KiteFAST Controller mode (0=dummy,1=ctrl,2=read external control file" -
 typedef   ^  ^              DbKi             dt          -  -  -  "Time interval for calculations" s
 typedef   ^  ^              DbKi             KAD_dt      -  -  -  "Time interval for KAD calculations" s
 typedef   ^  ^              DbKi             KAD_filtConst - - -  "KAD input Filter time constant, based on 10Hz cut-off freq." -
@@ -231,6 +232,7 @@ typedef   ^  ^              IntKi            numOuts       -     0     -      "T
 typedef   ^  ^              IntKi            numKFASTOuts  -     0     -      "Number of KFAST-specific outputs requested"  -
 typedef   ^  ^              IntKi            numKADOuts    -     0     -      "Number of KAD outputs requested" -
 typedef   ^  ^              IntKi            numMDOuts     -     0     -      "Number of MD outputs requested"  -
+typedef   ^  ^              IntKi            numKFCOuts    -     0     -      "Number of KFC outputs requested"  -
 typedef   ^  ^              IntKi            numIfWOuts    -     0     -      "Number of IfW outputs requested" -
 typedef   ^  ^              IntKi            NFusOuts        -  0 - "" - 
 typedef   ^  ^              IntKi            FusOutNds     {9}  - - "" - 

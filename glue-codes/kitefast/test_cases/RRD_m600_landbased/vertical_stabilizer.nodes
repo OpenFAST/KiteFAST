@@ -1,0 +1,33 @@
+# Structural nodes for the vertical_stabilizer
+
+# *** nodes ***
+structural: vertical_stabilizer_root_node + 0, dynamic,
+    reference, mip_rf,  -6.891,   0.000,  -2.850,
+    reference, mip_rf,eye,
+    reference, mip_rf,   0.000,   0.000,   0.000,
+    reference, mip_rf,   0.000,   0.000,   0.000;
+
+structural: vertical_stabilizer_root_node + 1, dynamic,
+    reference, mip_rf,  -6.891,   0.000,  -1.425,
+    reference, mip_rf,eye,
+    reference, mip_rf,   0.000,   0.000,   0.000,
+    reference, mip_rf,   0.000,   0.000,   0.000;
+
+structural: vertical_stabilizer_root_node + 2, dynamic,
+    reference, mip_rf,  -6.891,   0.000,   0.000,
+    reference, mip_rf,eye,
+    reference, mip_rf,   0.000,   0.000,   0.000,
+    reference, mip_rf,   0.000,   0.000,   0.000;
+
+structural: vertical_stabilizer_root_node + 3, dynamic,
+    reference, mip_rf,  -6.891,   0.000,   0.356,
+    reference, mip_rf,eye,
+    reference, mip_rf,   0.000,   0.000,   0.000,
+    reference, mip_rf,   0.000,   0.000,   0.000;
+
+structural: vertical_stabilizer_root_node + 4, dynamic,
+    reference, mip_rf,  -6.891,   0.000,   0.712,
+    reference, mip_rf,eye,
+    reference, mip_rf,   0.000,   0.000,   0.000,
+    reference, mip_rf,   0.000,   0.000,   0.000;
+

@@ -1,0 +1,58 @@
+# Bodies for the horizontal_stabilizer_port
+
+body: horizontal_stabilizer_port_beam + 0, horizontal_stabilizer_port_root_node + 0,
+        0.87,
+    reference, node,   -0.352,   0.381,   0.000,
+    sym,   0.0468,  0.00722,      0.0,
+                     0.0182,      0.0,
+                                 0.06;
+
+body: horizontal_stabilizer_port_beam + 1, horizontal_stabilizer_port_root_node + 1,
+        1.02,
+    reference, node,   -0.352,  -0.343,   0.000,
+    sym,   0.0452,  0.00668,      0.0,
+                     0.0362,      0.0,
+                               0.0748;
+
+body: horizontal_stabilizer_port_beam + 2, horizontal_stabilizer_port_root_node + 1,
+        1.17,
+    reference, node,   -0.230,   0.376,   0.000,
+    sym,    0.063,  0.00944,      0.0,
+                     0.0548,      0.0,
+                                 0.11;
+
+body: horizontal_stabilizer_port_beam + 3, horizontal_stabilizer_port_root_node + 2,
+        1.32,
+    reference, node,   -0.230,  -0.347,   0.000,
+    sym,   0.0613,  0.00889,      0.0,
+                     0.0728,      0.0,
+                                0.124;
+
+body: horizontal_stabilizer_port_beam + 10, horizontal_stabilizer_port_root_node + 2,
+       0.916,
+    reference, node,   -0.130,   0.241,   0.000,
+    sym,   0.0241,  0.00301,      0.0,
+                     0.0498,      0.0,
+                               0.0668;
+
+body: horizontal_stabilizer_port_beam + 11, horizontal_stabilizer_port_root_node + 3,
+       0.826,
+    reference, node,   -0.130,  -0.259,   0.000,
+    sym,   0.0244,  0.00317,      0.0,
+                     0.0374,      0.0,
+                                0.055;
+
+body: horizontal_stabilizer_port_beam + 12, horizontal_stabilizer_port_root_node + 3,
+       0.736,
+    reference, node,   -0.045,   0.239,   0.000,
+    sym,   0.0191,  0.00237,      0.0,
+                     0.0248,      0.0,
+                               0.0374;
+
+body: horizontal_stabilizer_port_beam + 13, horizontal_stabilizer_port_root_node + 4,
+        5.87,
+    reference, node,   -0.045,  -0.261,   0.000,
+    sym,   0.0194,  0.00253,      0.0,
+                     0.0124,      0.0,
+                               0.0256;
+

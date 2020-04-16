@@ -58,15 +58,17 @@ subroutine RotorDisk_SetInputs(c_offset, numPylons, V_PyRtr, PyRtrMotions, RtSpd
       ! Local Variables
    integer(IntKi)                         :: i,j,c, index      ! counters
    real(ReKi)                             :: Vrel(3)           ! Relative velocity
-   real(ReKi)                             :: V_dot_x           ! Dot product of V and the local x-axis unit vector
+   real(ReKi)                             :: V_dot_x ,V_dot_y, V_dot_z          ! Dot product of V and the local x-,y-,z-axis unit vector
    real(ReKi)                             :: x_hat_disk(3)     ! Unit vector normal to the rotor disk
    real(ReKi)                             :: y_hat_disk(3)     ! Unit vector in the plane of the rotor disk
    real(ReKi)                             :: z_hat_disk(3)     ! Unit vector in the plane of the rotor disk
    real(ReKi)                             :: tmp(3)            ! temporary vector
    
-   real(ReKi)                             :: tmp_sz, tmp_sz_y  ! temporary quantities for calculations
+   real(ReKi), parameter, dimension(2)    :: Cp=(/-0.1501,0.1448/)    ! Cp values (hardcoded) for acceleration/slowing of the rotors
+   
+   real(ReKi)                             :: tmp_sz, tmp_sz_y, factor  ! temporary quantities for calculations
    character(*), parameter                :: routineName = 'RotorDisk_SetInputs'
-
+   
    errStat   = ErrID_None           ! no error has occurred
    errMsg    = ""
 
@@ -85,8 +87,21 @@ subroutine RotorDisk_SetInputs(c_offset, numPylons, V_PyRtr, PyRtrMotions, RtSpd
             
             ! Magnitude of the average motion along  x-axis        
          V_dot_x  = dot_product( Vrel, x_hat_disk )
+         V_dot_y= dot_product(Vrel, PyRtrMotions(index)%Orientation(2,:,1))  !unfactored !!!!
+
+         !RRD:Foloowing CSIM: Increase speed by factor -0.1501 or 0.1448 =1-(v/voo)^2 ==> v= sqrt(1-cp)*Uoo for the component in x,z of the kite
+         !print *, ">>>>>>>> RRD_Debug: In ",routineName," pre tmp_sz=", tmp_sz," <<<<<<<<<<<<<<<<<<<<< \n"  
+         factor=sqrt(1.0_ReKi - Cp(i))
+         V_dot_x= factor * V_dot_x
+
+         V_dot_z= factor * dot_product(Vrel, PyRtrMotions(index)%Orientation(3,:,1)) 
+         Vrel=  (/V_dot_x,V_dot_y,V_dot_z/)   
+         !print *, ">>>>>>>> RRD_Debug: In ",routineName," post tmp_sz=", tmp_sz," <<<<<<<<<<<<<<<<<<<<< \n"  
+
          tmp    = V_dot_x * x_hat_disk - Vrel
          tmp_sz = TwoNorm(tmp)
+
+
          if ( EqualRealNos( tmp_sz, 0.0_ReKi ) ) then
             y_hat_disk = PyRtrMotions(index)%Orientation(2,:,1)
             z_hat_disk = PyRtrMotions(index)%Orientation(3,:,1)
@@ -94,9 +109,12 @@ subroutine RotorDisk_SetInputs(c_offset, numPylons, V_PyRtr, PyRtrMotions, RtSpd
             y_hat_disk = tmp / tmp_sz
             z_hat_disk = cross_product( Vrel, x_hat_disk ) / tmp_sz
          end if
+
          
             ! "Angle between the negative vector normal to the rotor plane and the wind vector (e.g., the yaw angle in the case of no tilt)" rad 
-         tmp_sz = TwoNorm( Vrel )
+         
+         tmp_sz=TwoNorm(Vrel)
+         
          if ( EqualRealNos( tmp_sz, 0.0_ReKi ) ) then
             u_ActDsk(c)%skew = 0.0_ReKi
          else
@@ -107,7 +125,8 @@ subroutine RotorDisk_SetInputs(c_offset, numPylons, V_PyRtr, PyRtrMotions, RtSpd
             u_ActDsk(c)%skew = acos( tmp_sz_y )
       
          end if         
-         
+
+
          u_ActDsk(c)%DiskAve_Vrel = tmp_sz
          u_ActDsk(c)%RtSpd = RtSpds(i,j)
          u_ActDsk(c)%pitch = pitches(i,j)
@@ -1694,13 +1713,16 @@ end subroutine Init_u
 !end subroutine Init_FusAFIparams
 
 
-subroutine ComputeKiteLoads( p, u, y, m, kiteForces, kiteMoments, errStat, errMsg)
+subroutine ComputeKiteLoads( p, u, y, m, kiteForces, kiteMoments, AirfForces, AirfMoments, errStat, errMsg)
    type(KAD_ParameterType),       intent(in   )  :: p              !< KAD Parameters
    type(KAD_InputType),           intent(in   )  :: u              !< KAD system inputs
    type(KAD_OutputType),          intent(in   )  :: y              !< KAD system outputs
    type(KAD_MiscVarType),         intent(inout)  :: m              !< KAD MiscVars for the module
    real(ReKi),                    intent(  out)  :: kiteForces(3)  !< Integrated kite loads
    real(ReKi),                    intent(  out)  :: kiteMoments(3) !< Integrated kite moments
+   real(ReKi),                    intent(  out)  :: AirfForces(3)  !< Integrated airframe-only loads
+   real(ReKi),                    intent(  out)  :: AirfMoments(3) !< Integrated airframe-only moments
+
    integer(IntKi)      ,          intent(  out)  :: errStat        !< Error status of the operation
    character(*)        ,          intent(  out)  :: errMsg         !< Error message if errStat /= ErrID_None
 
@@ -1714,7 +1736,9 @@ subroutine ComputeKiteLoads( p, u, y, m, kiteForces, kiteMoments, errStat, errMs
    
    kiteForces  = 0.0_ReKi
    kiteMoments = 0.0_ReKi
-   
+   AirfForces  = 0.0_ReKi
+   AirfMoments = 0.0_ReKi
+
    call Transfer_Point_to_Point( y%FusLoads, m%FusOLoads, m%Fus_P_2_P, errStat2, errMsg2, y%FusLoads, u%FusOMotions )
       call SetErrStat(errStat2, errMsg2, errStat, errMsg,' ComputeKiteLoads: Transfer_Fus_P_2_P' )    
    kiteForces  = kiteForces  + m%FusOLoads%Force (:,1)
@@ -1740,16 +1764,27 @@ subroutine ComputeKiteLoads( p, u, y, m, kiteForces, kiteMoments, errStat, errMs
    kiteForces  = kiteForces  + m%FusOLoads%Force (:,1)
    kiteMoments = kiteMoments + m%FusOLoads%Moment(:,1)
    
+   !Isolate the airframe forces and moments
+   AirfForces = kiteForces 
+   AirfMoments = kiteMoments
+   
    do i = 1, p%NumPylons
       call Transfer_Point_to_Point( y%SPyLoads(i), m%FusOLoads, m%SPy_P_2_P(i), errStat2, errMsg2, y%SPyLoads(i), u%FusOMotions )
          call SetErrStat(errStat2, errMsg2, errStat, errMsg,' ComputeKiteLoads: Transfer_m%SPy_P_2_P' )    
       kiteForces  = kiteForces  + m%FusOLoads%Force (:,1)
       kiteMoments = kiteMoments + m%FusOLoads%Moment(:,1)
+      !Airframe Forces and Moments      
+      AirfForces = AirfForces + m%FusOLoads%Force (:,1)
+      AirfMoments = AirfMoments + m%FusOLoads%Moment(:,1)
+
       call Transfer_Point_to_Point( y%PPyLoads(i), m%FusOLoads, m%PPy_P_2_P(i), errStat2, errMsg2, y%PPyLoads(i), u%FusOMotions )
          call SetErrStat(errStat2, errMsg2, errStat, errMsg,' ComputeKiteLoads: Transfer_m%PPy_P_2_P' )    
       kiteForces  = kiteForces  + m%FusOLoads%Force (:,1)
       kiteMoments = kiteMoments + m%FusOLoads%Moment(:,1)
-      
+      !Airframe Forces and Moments      
+      AirfForces = AirfForces + m%FusOLoads%Force (:,1)
+      AirfMoments = AirfMoments + m%FusOLoads%Moment(:,1)
+
       j = (i-1)*p%NumPylons + 1
       call Transfer_Point_to_Point( y%SPyRtrLoads(j), m%FusOLoads, m%SPyRtr_P_2_P(j), errStat2, errMsg2, u%SPyRtrMotions(j), u%FusOMotions )
          call SetErrStat(errStat2, errMsg2, errStat, errMsg,' ComputeKiteLoads: Transfer_m%SPyRtr_P_2_P' )    
@@ -1875,21 +1910,21 @@ subroutine ComputeAeroOnMotionNodes(i, outNds, motionMesh, VSMoffset, u_VSM, y_V
    elemLen  = VSMelemLens(VSMElemIndx)
    Re       = Vrel * chord / (1e6*kinVisc)  ! in millions
    XM       = Vrel / speedOfSound
-   DynP     = 0.5 * airDens * Vrel**2
+   DynP     = 0.5 * airDens * Vrel**2 *chord
    
    Cl  = y_VSM%Cl(VSMElemIndx)
-   Cd  = y_VSM%Cd(VSMElemIndx)
+   Cd  = y_VSM%Cd(VSMElemIndx) 
    Cm  = y_VSM%Cm(VSMElemIndx)
    AoA = y_VSM%AoA(VSMElemIndx)
    Cn  =  Cl*cos(AoA)+Cd*sin(AoA)
    Cc  = -Cl*sin(AoA)+Cd*cos(AoA)  ! This is negative of the original Ct definition
    
-      ! Forces per unit length
-   Fc = DynP*Cc
-   Fn = DynP*Cn
-   Fl = DynP*Cl
-   Fd = DynP*Cd
-   Mm = DynP*Cm*chord
+      ! Forces per unit length : RRD where is the chord??? 2/10/2020 now fixed
+   Fc = DynP*Cc*chord
+   Fn = DynP*Cn*chord
+   Fl = DynP*Cl*chord
+   Fd = DynP*Cd*chord
+   Mm = DynP*Cm*chord*chord
    
          
 end subroutine ComputeAeroOnMotionNodes
@@ -2033,13 +2068,13 @@ subroutine ReadKADFile(InitInp, interval, errStat, errMsg)
    call ReadVar ( UnIn, fileName, InitInp%InpFileData%VSMMod, 'VSMMod', 'Trailing vortices alignment model (-) (switch) {1:chord, 2: local free stream}', errStat2, errMsg2, UnEc )
       call SetErrStat( errStat2, errMsg2, errStat, errMsg, RoutineName )
       
-   call ReadVarWDefault ( UnIn, fileName, InitInp%InpFileData%VSMToler, 'VSMToler', 'Tolerance in the Newton iterations (m^2/s) or DEFAULT', 0.0001, errStat2, errMsg2, UnEc )
+   call ReadVarWDefault ( UnIn, fileName, InitInp%InpFileData%VSMToler, 'VSMToler', 'Tolerance in the Newton iterations (m^2/s) or DEFAULT', 0.0001_ReKi, errStat2, errMsg2, UnEc )
       call SetErrStat( errStat2, errMsg2, errStat, errMsg, RoutineName )
       
-   call ReadVarWDefault ( UnIn, fileName, InitInp%InpFileData%VSMMaxIter, 'VSMMaxIter', 'Maximum number of Newton iterations (-) or DEFAULT', 40, errStat2, errMsg2, UnEc )
+   call ReadVarWDefault ( UnIn, fileName, InitInp%InpFileData%VSMMaxIter, 'VSMMaxIter', 'Maximum number of Newton iterations (-) or DEFAULT', 40_IntKi, errStat2, errMsg2, UnEc )
       call SetErrStat( errStat2, errMsg2, errStat, errMsg, RoutineName )
       
-   call ReadVarWDefault ( UnIn, fileName, InitInp%InpFileData%VSMPerturb, 'VSMPerturb', 'Perturbation size for computing the Jacobian in the Newton iterations (m^2/s) or DEFAULT', 0.05, errStat2, errMsg2, UnEc )
+   call ReadVarWDefault ( UnIn, fileName, InitInp%InpFileData%VSMPerturb, 'VSMPerturb', 'Perturbation size for computing the Jacobian in the Newton iterations (m^2/s) or DEFAULT', 0.05_ReKi, errStat2, errMsg2, UnEc )
       call SetErrStat( errStat2, errMsg2, errStat, errMsg, RoutineName )
 
    !-------------------------- AIRFOIL INFORMATION ------------------------
@@ -3247,7 +3282,7 @@ subroutine KAD_MapOutputs(p, u, u_VSM, y, y_VSM, p_VSM, u_ActDsk, y_ActDsk, m, z
    real   (ReKi), allocatable  :: chords(:)
    real   (ReKi), allocatable  :: elemLens(:)
    real   (ReKi), allocatable  :: forces(:,:), moments(:,:)
-   real   (ReKi)               :: kiteForces(3), kiteMoments(3)
+   real   (ReKi)               :: kiteForces(3), kiteMoments(3), AirfForces(3), AirfMoments(3)
    integer(IntKi)              :: n, offset
    character(*), parameter     :: RoutineName = 'KAD_MapOutputs'
 
@@ -3786,7 +3821,7 @@ end do
  m%AllOuts( PP2BPwr  ) = y_ActDsk(4+offset)%P
  end if
  ! Kite Loads
- call ComputeKiteLoads( p, u, y, m, kiteForces, kiteMoments, errStat, errMsg)
+ call ComputeKiteLoads( p, u, y, m, kiteForces, kiteMoments, AirfForces, AirfMoments, errStat, errMsg)
    if (errStat >= AbortErrLev) return
  
  m%AllOuts( KiteFxi ) = kiteForces(1)
@@ -3796,6 +3831,15 @@ end do
  m%AllOuts( KiteMyi ) = kiteMoments(2)
  m%AllOuts( KiteMzi ) = kiteMoments(3)
  
+ !Airframe-only loads : TODO(RRD) add the body reference-frame ones
+ m%AllOuts( AirfFxi ) = AirfForces(1)
+ m%AllOuts( AirfFyi ) = AirfForces(2)
+ m%AllOuts( AirfFzi ) = AirfForces(3)
+ m%AllOuts( AirfMxi ) = AirfMoments(1)
+ m%AllOuts( AirfMyi ) = AirfMoments(2)
+ m%AllOuts( AirfMzi ) = AirfMoments(3)
+ 
+
 end subroutine KAD_MapOutputs
 
 !==============================================================================

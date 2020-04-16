@@ -533,7 +533,7 @@ joint: 10 +100, total pin joint, #This is to prescribe motion at the MIP which i
             9.81,
         kiteaerodyn_interpolation_order,
             0,
-         ground_weather_station_location,
+         base_station_location,
               -0.202,  -1.627,  19.860,
          number_of_flaps_per_wing,
             3,

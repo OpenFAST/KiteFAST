@@ -683,6 +683,7 @@ typedef struct {
 
   // Position, velocity, and acceleration estimates.
   Vec3 Xg, Vg, Vg_f, Vb, Vb_f, Ag, Ab_f;
+  Vec3 Ab_f_lpf; // RRD added this variable to test things
   bool gps_active;
 
   // Whether the tether has been released. This field latches and is only set to

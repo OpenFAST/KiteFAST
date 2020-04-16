@@ -1,0 +1,58 @@
+# Bodies for the vertical_stabilizer
+
+body: vertical_stabilizer_beam + 0, vertical_stabilizer_root_node + 0,
+        2.01,
+    reference, node,   -0.088,   0.000,   0.808,
+    sym,    0.489,      0.0,   0.0191,
+                      0.536,      0.0,
+                                0.105;
+
+body: vertical_stabilizer_beam + 1, vertical_stabilizer_root_node + 1,
+        3.03,
+    reference, node,   -0.088,   0.000,  -0.617,
+    sym,    0.435,      0.0,   0.0158,
+                      0.506,      0.0,
+                                0.157;
+
+body: vertical_stabilizer_beam + 2, vertical_stabilizer_root_node + 1,
+        4.05,
+    reference, node,   -0.028,   0.000,   0.766,
+    sym,    0.894,      0.0,   0.0345,
+                      0.989,      0.0,
+                                 0.21;
+
+body: vertical_stabilizer_beam + 3, vertical_stabilizer_root_node + 2,
+        18.6,
+    reference, node,   -0.028,   0.000,  -0.659,
+    sym,    0.834,      0.0,   0.0309,
+                      0.952,      0.0,
+                                0.262;
+
+body: vertical_stabilizer_beam + 10, vertical_stabilizer_root_node + 2,
+        14.8,
+    reference, node,   -0.010,   0.000,   0.168,
+    sym,   0.0408,      0.0, -0.000733,
+                     0.0708,      0.0,
+                               0.0657;
+
+body: vertical_stabilizer_beam + 11, vertical_stabilizer_root_node + 3,
+        1.08,
+    reference, node,   -0.010,   0.000,  -0.188,
+    sym,   0.0357,      0.0, -0.000799,
+                     0.0613,      0.0,
+                               0.0535;
+
+body: vertical_stabilizer_beam + 12, vertical_stabilizer_root_node + 3,
+       0.875,
+    reference, node,   -0.032,   0.000,   0.162,
+    sym,    0.024,      0.0, -0.000459,
+                     0.0451,      0.0,
+                               0.0413;
+
+body: vertical_stabilizer_beam + 13, vertical_stabilizer_root_node + 4,
+        6.48,
+    reference, node,   -0.032,   0.000,  -0.194,
+    sym,   0.0189,      0.0, -0.000523,
+                     0.0355,      0.0,
+                               0.0291;
+

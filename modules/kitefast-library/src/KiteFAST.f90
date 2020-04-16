@@ -110,6 +110,7 @@ subroutine KFAST_Init(dt_c, numFlaps, numPylons, numComp, numCompNds, modFlags, 
    type(MD_InitInputType)          :: MD_InitInp
    type(MD_InitOutputType)         :: MD_InitOut
    type(KFC_InitInputType)         :: KFC_InitInp
+   type(KFC_InitOutputType)        :: KFC_InitOut
    character(*), parameter         :: routineName = 'KFAST_Init'
    integer(IntKi)                  :: i,j,c, count, maxSPyNds, maxPPyNds, SumFileUnit
    real(DbKi)                      :: interval
@@ -124,6 +125,12 @@ subroutine KFAST_Init(dt_c, numFlaps, numPylons, numComp, numCompNds, modFlags, 
    errStat = ErrID_None
    errMsg  = ''
   
+   !!!DEBUG
+   print*, 'ReKi: ',ReKi
+   !!!CALL ProgAbort( 'TESTING DOUBLE AND SINGLE PRECISION: '&
+   !!!//TRIM(GetErrStr(ErrStat)), TrapErrors=.FALSE., TimeWait=3._ReKi )  ! wait 3 seconds (in case they double-clicked and got an error)
+   !!!
+
          ! Initialize the NWTC Subroutine Library
    call NWTC_Init( EchoLibVer=.FALSE. )
 
@@ -152,7 +159,7 @@ subroutine KFAST_Init(dt_c, numFlaps, numPylons, numComp, numCompNds, modFlags, 
    call Init_KiteSystem(dt_c, numFlaps, numPylons, numComp, numCompNds, modFlags, KAD_FileName_c, IfW_FileName_c, MD_FileName_c, KFC_FileName_c, &
                        outFileRoot_c, printSum, gravity, KAD_InterpOrder, MD_InitInp, FusODCM_c, numRtrPts_c, rtrPts_c, rtrMass_c, rtrI_Rot_c, rtrI_trans_c, rtrXcm_c, refPts_c, &
                        numNodePts_c, nodePts_c, nodeDCMs_c, nFusOuts_c, FusOutNd_c, nSWnOuts_c, SWnOutNd_c, &
-                       nPWnOuts_c, PWnOutNd_c, nVSOuts_c, VSOutNd_c, nSHSOuts_c, SHSOutNd_c, nPHSOuts_c, PHSOutNd_c, nPylOuts_c, PylOutNd_c, KAD_InitOut, MD_InitOut, IfW_InitOut, errStat, errMsg )
+                       nPWnOuts_c, PWnOutNd_c, nVSOuts_c, VSOutNd_c, nSHSOuts_c, SHSOutNd_c, nPHSOuts_c, PHSOutNd_c, nPylOuts_c, PylOutNd_c, KAD_InitOut, MD_InitOut, KFC_InitOut, IfW_InitOut, errStat, errMsg )
    if (errStat >= AbortErrLev ) then
       call TransferErrors(errStat, errMsg, errStat_c, errMsg_c)
       return
@@ -165,6 +172,7 @@ subroutine KFAST_Init(dt_c, numFlaps, numPylons, numComp, numCompNds, modFlags, 
          call TransferErrors(errStat, errMsg, errStat_c, errMsg_c)
          return
       end if
+      !print *, ">>>>>>>> RRD_Debug: After KFAST_SetOutParam ",routineName,"  <<<<<<<<<<<<<<<<<<<<< \n"  
 
    call AllocAry( m%WriteOutput, p%numKFASTOuts, 'KFAST outputs', errStat2, errMsg2 )
       call SetErrStat(errStat2,errMsg2,errStat,errMsg,routineName)
@@ -175,16 +183,16 @@ subroutine KFAST_Init(dt_c, numFlaps, numPylons, numComp, numCompNds, modFlags, 
 ! -------------------------------------------------------------------------
 ! Open the Output file and generate header data
 ! -------------------------------------------------------------------------      
-   call KFAST_SetNumOutputs( p, KAD_InitOut, MD_InitOut, IfW_InitOut, errStat, errMsg )
+   call KFAST_SetNumOutputs( p, KAD_InitOut, MD_InitOut, KFC_InitOut, IfW_InitOut, errStat, errMsg )
    if ( p%numOuts > 0 ) then
       call KFAST_OpenOutput( KFAST_Ver, p%outFileRoot, p, errStat, errMsg )    
    
       call KFAST_WriteOutputTimeChanName( p%UnOutFile )
-      call KFAST_WriteOutputChanNames( p, KAD_InitOut, MD_InitOut, IfW_InitOut )
+      call KFAST_WriteOutputChanNames( p, KAD_InitOut, MD_InitOut, KFC_InitOut, IfW_InitOut )
       call KFAST_WriteOutputNL( p%UnOutFile )
    
       call KFAST_WriteOutputTimeChanUnits( p%UnOutFile )   
-      call KFAST_WriteOutputUnitNames( p, KAD_InitOut, MD_InitOut, IfW_InitOut )    
+      call KFAST_WriteOutputUnitNames( p, KAD_InitOut, MD_InitOut, KFC_InitOut, IfW_InitOut )    
       call KFAST_WriteOutputNL( p%UnOutFile )
    end if  
 ! -------------------------------------------------------------------------
@@ -194,16 +202,16 @@ subroutine KFAST_Init(dt_c, numFlaps, numPylons, numComp, numCompNds, modFlags, 
    if (printSum == 1) then  
       call SumModuleStatus( p, enabledModules, disabledModules )
       call KFAST_OpenSummary( KFAST_Ver, p%outFileRoot, enabledModules, disabledModules, p%dt, SumFileUnit, errStat, errMsg )
-      call KFAST_WriteSummary( SumFileUnit, p, m, KAD_InitOut, MD_InitOut, IfW_InitOut, ErrStat2, ErrMsg2 )
+      call KFAST_WriteSummary( SumFileUnit, p, m, KAD_InitOut, MD_InitOut, KFC_InitOut, IfW_InitOut, ErrStat2, ErrMsg2 )
          call SetErrStat(errStat2,errMsg2,errStat,errMsg,routineName)
       close(SumFileUnit)
          
    end if 
-   
+   !print *, ">>>>>>>> RRD_Debug: At the end of KFAST_Init ",routineName,"  <<<<<<<<<<<<<<<<<<<<< \n"  
    call TransferErrors(errStat, errMsg, errStat_c, errMsg_c)
    return
 
-
+   
                        
 end subroutine KFAST_Init
 
@@ -259,13 +267,15 @@ subroutine KFAST_AssRes(t_c, isInitialTime_c, WindPt_c, FusO_c, FusODCM_c, FusOv
    WindPtVel_c = (/0.0, 0.0, 0.0/)  ! The wind measurement station is not in motion in these simulations
    PtfmO       = 0.0
    PtfmOv      = 0.0
+   
+ 
    call AssRes_OnShore( t_c, isInitialTime_c, WindPt_c, WindPtVel_c, p%anchorPt, FusO_c, FusODCM_c, FusOv_c, FusOomegas_c, FusOacc_c, FusOalphas_c, numNodePts_c, nodePts_c, &
                           nodeDCMs_c, nodeVels_c, nodeOmegas_c, nodeAccs_c,  numRtrPts_c, rtrPts_c, &
                           rtrDCMs_c, rtrVels_c, rtrOmegas_c, rtrAccs_c, rtrAlphas_c, PtfmO, PtfmOv, nodeLoads_c, rtrLoads_c, ptfmLoads_c, errStat, errMsg ) 
 
    call TransferErrors(errStat, errMsg, errStat_c, errMsg_c)
    
-
+   !!print *, ">>>>>>>> RRD_Debug: After AssRes_OnShore ",routineName,"  <<<<<<<<<<<<<<<<<<<<< \n"  
 end subroutine KFAST_AssRes
 
 subroutine KFAST_AfterPredict(t_c, errStat_c, errMsg_c) BIND (C, NAME='KFAST_AfterPredict')
@@ -316,7 +326,7 @@ subroutine KFAST_Output(t_c, numGaussPts_c, gaussPtLoads_c, errStat_c, errMsg_c)
       call KFAST_ProcessOutputs()
       
       call KFAST_WriteOutputTime( t, p%UnOutFile )
-      call KFAST_WriteOutput( p, m%KAD%y, m%MD_Tether%y, m%IfW%y, errStat2, errMsg2 )
+      call KFAST_WriteOutput( p, m%KAD%y, m%MD_Tether%y, m%KFC%y, m%IfW%y, errStat2, errMsg2 )
          call SetErrStat( errStat2, errMsg2, errStat, errMsg, routineName )
       call KFAST_WriteOutputNL( p%UnOutFile ) 
       

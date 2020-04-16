@@ -1,0 +1,15 @@
+# *** bodies ***
+body: rotor_assembly_starboard_2_lower_root_node + 0, rotor_assembly_starboard_2_lower_root_node + 0,
+         0.0,
+    reference, node,    0.000,   0.000,   0.000,
+    sym,      0.0,      0.0,      0.0,
+                        0.0,      0.0,
+                                  0.0;
+
+body: rotor_assembly_starboard_2_lower_root_node + 1, rotor_assembly_starboard_2_lower_root_node + 1,
+        55.1,
+    reference, node,    0.000,   0.000,   0.000,
+    sym,      0.0,      0.0,      0.0,
+                        0.0,      0.0,
+                                  0.0;
+

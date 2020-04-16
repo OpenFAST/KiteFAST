@@ -22,21 +22,23 @@ include Registry_NWTC_Library.txt
 # ..... Input file data ...........................................................................................................                                                                
 typedef   KiteFastController/KFC    KFC_InputFile    DbKi   DTctrl  -    -    -    "Time interval for controller calculations {or "default"}"    s
 # .... Output related data ..............................
-typedef    ^    KFC_InputFile                      Logical            SumPrint        -    -    -    "Print summary data to <RootName>.sum? (flag)" - 
-typedef    ^             ^                         IntKi              OutSwtch        -    -    -    "Output requested channels to? (-) (switch) {1=KiteAeroDyn.out, 2=GlueCode.out, 3=both files]" -
-typedef    ^             ^                         CHARACTER(ChanLen) OutFmt          -    -    -    "Format used for text tabular output, excluding the time channel; resulting field should be 10 characters (string)" -
-typedef    ^             ^                         IntKi              NFlpOuts        -    -    -    "Number of flap outputs (-) [0 to 8]" -
-typedef    ^             ^                         IntKi              NRotOuts        -    -    -    "Number of generator outputs (-) [0 to 8]" -
-typedef    ^             ^                         IntKi              RotOuts         8    -    -     "List of generators whose torques will be output (-) [1 to NRotOuts] [unused for NRotOuts=0]" -
-typedef    ^             ^                         IntKi              FlpOuts         8    -    -     "List of flaps whose deflections will be output (-) [1 to NFlpOuts] [unused for NFlpOuts=0]" -
-typedef    ^             ^                         IntKi              NumOuts         -    0    -     "Number of parameters in the output list (number of outputs requested)"    -
+typedef    ^    KFC_InputFile                      Logical            SumPrint         -    -    -    "Print summary data to <RootName>.sum? (flag)" - 
+typedef    ^             ^                         IntKi              OutSwtch         -    -    -    "Output requested channels to? (-) (switch) {1=KiteAeroDyn.out, 2=GlueCode.out, 3=both files]" -
+typedef    ^             ^                         CHARACTER(ChanLen) OutFmt           -    -    -    "Format used for text tabular output, excluding the time channel; resulting field should be 10 characters (string)" -
+typedef    ^             ^                         IntKi              NFlpOuts         -    -    -    "Number of flap outputs (-) [0 to 8]" -
+typedef    ^             ^                         IntKi              NRotOuts         -    -    -    "Number of generator outputs (-) [0 to 8]" -
+typedef    ^             ^                         IntKi              RotOuts          8    -    -     "List of generators whose torques will be output (-) [1 to NRotOuts] [unused for NRotOuts=0]" -
+typedef    ^             ^                         IntKi              FlpOuts          8    -    -     "List of flaps whose deflections will be output (-) [1 to NFlpOuts] [unused for NFlpOuts=0]" -
+typedef    ^             ^                         IntKi              NumOuts          -    0    -     "Number of parameters in the output list (number of outputs requested)"    -
 typedef    ^             ^                         R8Ki               genTorq          8    -    -    "Initial generator Torques" Nm 
 typedef    ^             ^                         R8Ki               rtrSpd           8    -    -    "Initial rotor Speeds" rad/s
 typedef    ^             ^                         R8Ki               rtrAcc           8    -    -    "Initial rotor Accelerations" rad/s^2
 typedef    ^             ^                         R8Ki               rtrBladePitch    8    -    -    "Initial rotor blade pitches" rad
 typedef    ^             ^                         R8Ki               ctrlSettings     8    -    -    "Initial flap deflections" rad
-typedef    ^             ^                         LOGICAL            TabDelim        -    -    -     "Flag to cause tab-delimited text output (delimited by space otherwise)"    -
-typedef    ^             ^                         CHARACTER(ChanLen) OutList        {:}   -    -     "List of output parameters. See OutListParameters.xlsx for a listing of available output channels (quoted string)" -
+typedef    ^             ^                         LOGICAL            TabDelim         -    -    -     "Flag to cause tab-delimited text output (delimited by space otherwise)"    -
+typedef    ^             ^                         CHARACTER(ChanLen) OutList         {:}   -    -     "List of output parameters. See OutListParameters.xlsx for a listing of available output channels (quoted string)" -
+typedef    ^             ^                         CHARACTER(1024)    DmyCtl_FName     -    -    -    "Name of the dummy controller data file. Used only if KFCmode=2." -
+typedef    ^             ^                         CHARACTER(1024)    DLL_FileName     -    -    -    "Name of the c-controller library '.so'. Used only if KFCmode=1." -
 # ..... InitInput  ................................................................................................................
 typedef  KiteFastController/KFC InitInputType      CHARACTER(1024) DLL_FileName    -    -       - "Name of the shared library which the super controller logic [ignored if using a dummy controller]" -
 typedef  ^                  ^                      Logical         useDummy        -    -       - "Flag indicating whether to use a dummy controller or an actual controller" -
@@ -45,9 +47,10 @@ typedef  ^                  ^                      IntKi           numFlaps     
 typedef  ^                  ^                      DbKi            DT              -    -       - "Time step for continuous state integration & discrete state update [controller expects 0.01]" s
 typedef  ^                  ^                      ReKi            SPyRtrIrot   {:}{:}  -       - "2 by numPylons matrix - Starboard rotor rotational inertia" m^3
 typedef  ^                  ^                      ReKi            PPyRtrIrot   {:}{:}  -       - "2 by numPylons matrix - Port rotor rotational inertia" m^3
-typedef  ^                  ^                      CHARACTER(1024)   FileName      -    -       - "Supplied by Driver:  The name of the root file including the full path" -
+typedef  ^                  ^                      CHARACTER(1024) InputFileName   -    -       - "Supplied by Driver:  The name of the input file including the full path" -
 typedef  ^                  ^                      KFC_InputFile     InpFileData   -    -       - "Either populated when parsing the KFC inputfile or supplied by the Driver" -
 typedef  ^                  ^                      CHARACTER(1024)   OutFileRoot   -    -       - "Rootname of the KFC output file" -
+typedef  ^                  ^                      IntKi           KFCmode         -    -       - "KiteFAST Controller mode (0=dummy,1=ctrl,2=read external control file" -
 # ..... InitOutput ................................................................................................................
 typedef  ^             InitOutputType              ProgDesc        Ver            -    -    -  "This module's name, version, and date" -                                        
 typedef  ^                  ^                 CHARACTER(ChanLen) WriteOutputHdr  {:}   -    -  "Names of the output-to-file channels" -
@@ -69,9 +72,13 @@ typedef  ^                  ^                      IntKi           RotOuts      
 typedef  ^                  ^                 OutParmType          OutParam       {:}   -    - "Names and units (and other characteristics) of all requested output parameters" -
 typedef  ^                  ^                 CHARACTER(1)         Delim           -    -    - "Column delimiter for output text files" -
 typedef  ^                  ^                 CHARACTER(1024)      OutFileRoot     -    -    - "Rootname of the KFC output file" -
+typedef  ^                  ^                 CHARACTER(1024)      DmyCtl_FName    -    -    - "Name of the dummy controller data file. Used only if not blank string." -
 typedef  ^                  ^                      IntKi           UnOutFile       -    -    - "File unit for the KFC-generated output file" -
+typedef  ^                  ^                      IntKi           UnCtrlFile      -    -    - "File unit for the KFC-read data file" -
 typedef  ^                  ^                      IntKi           nCtrlSettings   -    -    - "Number of control Surfaces" -
 typedef  ^                  ^                      IntKi           nRotors         -    -    - "Number of Rotors" -
+typedef  ^                  ^                      IntKi           CtrlLineLength  -    -    - "Length of array of ctrl outputs at one time step" -
+typedef  ^                  ^                      IntKi           KFCmode         -    -    - "KiteFAST Controller mode (0=dummy,1=ctrl,2=read external control file" -
 # ..... Discrete (nondifferentiable) States .........................................................................................................
 typedef  ^                  DiscreteStateType      SiKi            Dummy           -    -       - "Remove this variable if you have discrete states" -
 # ..... Continuous States  ......................................................................................
@@ -87,7 +94,8 @@ typedef  ^                  ^                     R8Ki             rtrIrot      
 typedef  ^                  ^                     R8Ki             rtrSpd          {:}  -       - "Rotor Speeds from CSIM controller" rad/s
 typedef  ^                  ^                     R8Ki             rtrAcc          {:}  -       - "Rotor accelerations from CSIM controller" rad/s^2
 typedef  ^                  ^                     R8Ki             rtrBladePitch   {:}  -       - "Rotor blade pitches from CSIM controller" rad
-typedef  ^                  ^                     R8Ki             ctrlSettings   {:}  -       - "Flap deflections from CSIM controller" rad
+typedef  ^                  ^                     R8Ki             ctrlSettings    {:}  -       - "Flap deflections from CSIM controller" rad
+typedef  ^                  ^                     R8Ki             OneCtrlLine     {:}  -       - "Ctrl Output Array " varies 
 # ..... Inputs ....................................................................................................................
 typedef  ^                  InputType             R8Ki             dcm_g2b       {3}{3} -       - "The DCM to go from the controller ground system to the kite body system" -
 typedef  ^                  ^                     ReKi             pqr           {3}    -       - "The kite angular velocities expressed in the kite body system" rad/s
