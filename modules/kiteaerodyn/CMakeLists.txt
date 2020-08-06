@@ -25,7 +25,7 @@ set(LIB_SOURCES
 )
 
 add_library(kiteaerodynlib ${LIB_SOURCES})
-target_link_libraries(kiteaerodynlib airfoilinfolib actuatordisklib vsmlib nwtclibs)
+target_link_libraries(kiteaerodynlib afinfolib actuatordisklib vsmlib nwtclibs)
 
 set(DRIVER_SOURCES
   src/KiteAeroDyn_Driver.f90

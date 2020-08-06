@@ -18,7 +18,10 @@ Details on the transition from FAST v8 to OpenFAST may be found in :numref:`fast
    kitembdynpreprocessor/index.rst
    mbdyn/index.rst
    aerodyn/index.rst
+   aerodyn-olaf/index.rst
+   aerodyn-aeroacoustics/index.rst
    beamdyn/index.rst
+   elastodyn/index.rst
    fast_to_openfast.rst
    cppapi/index.rst
 

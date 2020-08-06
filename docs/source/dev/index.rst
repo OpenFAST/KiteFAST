@@ -100,6 +100,17 @@ generally debugging and building out features.
     performance.rst
     versioning.rst
 
+Other Documentation
+~~~~~~~~~~~~~~~~~~~
+Additional documentation exists that may be useful for developers seeking deeper
+understanding of the solver and mathematics.  This documentation is not generally
+necessary for most development efforts.
+
+.. toctree::
+   :maxdepth: 1
+
+   other_docs.rst
+
 KiteFAST Development
 ~~~~~~~~~~~~~~~~~~~~
 The KiteFAST developer resources are included with the :ref:`user_guide`.

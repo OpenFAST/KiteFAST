@@ -111,7 +111,7 @@ create_link $openfast_directory/build/modules/moordyn/libmoordynlib.a $destinati
 create_link $openfast_directory/build/modules/kiteaerodyn/libkiteaerodynlib.a $destination_directory/libkiteaerodynlib.a
 create_link $openfast_directory/build/modules/vsm/libvsmlib.a $destination_directory/libvsmlib.a
 create_link $openfast_directory/build/modules/actuatordisk/libactuatordisklib.a $destination_directory/libactuatordisklib.a
-create_link $openfast_directory/build/modules/aerodyn/libairfoilinfolib.a $destination_directory/libairfoilinfolib.a
+create_link $openfast_directory/build/modules/aerodyn/libafinfolib.a $destination_directory/libafinfolib.a
 create_link $openfast_directory/build/modules/inflowwind/libifwlib.a $destination_directory/libifwlib.a
 create_link $openfast_directory/build/modules/version/libversioninfolib.a $destination_directory/libversioninfolib.a
 create_link $openfast_directory/build/modules/kitefast-controller/libkitefastcontrollerlib.a $destination_directory/libkitefastcontrollerlib.a
@@ -131,7 +131,7 @@ create_link $openfast_directory/build/modules/moordyn/libmoordynlib.a $destinati
 create_link $openfast_directory/build/modules/kiteaerodyn/libkiteaerodynlib.a $destination_directory/libkiteaerodynlib.a
 create_link $openfast_directory/build/modules/vsm/libvsmlib.a $destination_directory/libvsmlib.a
 create_link $openfast_directory/build/modules/actuatordisk/libactuatordisklib.a $destination_directory/libactuatordisklib.a
-create_link $openfast_directory/build/modules/aerodyn/libairfoilinfolib.a $destination_directory/libairfoilinfolib.a
+create_link $openfast_directory/build/modules/aerodyn/libafinfolib.a $destination_directory/libafinfolib.a
 create_link $openfast_directory/build/modules/inflowwind/libifwlib.a $destination_directory/libifwlib.a
 create_link $openfast_directory/build/modules/kitefast-controller/libkitefastcontrollerlib.a $destination_directory/libkitefastcontrollerlib.a
 create_link $openfast_directory/build/modules/hydrodyn/libhydrodynlib.a $destination_directory/libhydrodynlib.a

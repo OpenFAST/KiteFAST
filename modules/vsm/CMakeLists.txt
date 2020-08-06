@@ -25,7 +25,7 @@ set(LIB_SOURCES
 )
 
 add_library(vsmlib ${LIB_SOURCES})
-target_link_libraries(vsmlib airfoilinfolib nwtclibs)
+target_link_libraries(vsmlib afinfolib nwtclibs)
 
 # set(DRIVER_SOURCES
 #   src/VSM_Driver.f90

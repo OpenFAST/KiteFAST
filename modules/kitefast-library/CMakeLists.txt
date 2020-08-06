@@ -33,7 +33,7 @@ set(LIB_SOURCES
 add_library(kitefastlib ${LIB_SOURCES})
 target_link_libraries(kitefastlib
   actuatordisklib
-  airfoilinfolib
+  afinfolib
   ifwlib
   kiteaerodynlib
   kitefastcontrollerlib
@@ -53,7 +53,7 @@ set(LIB_SOURCES
 add_library(kitefastoslib ${LIB_SOURCES})
 target_link_libraries(kitefastoslib
   actuatordisklib
-  airfoilinfolib
+  afinfolib
   hydrodynlib
   ifwlib
   kiteaerodynlib
