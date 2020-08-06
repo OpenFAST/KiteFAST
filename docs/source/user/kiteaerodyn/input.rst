@@ -189,8 +189,6 @@ Jacobian in the Newton iterations. When the keyword ``DEFAULT`` is used
 in place of a numerical value, ``VSMPerturb`` will be set to 0.05, which
 has the units of circulation (m^2/s). We recommend using these defaults.
 
-.. _airfoil_information:
-
 Airfoil Information
 ~~~~~~~~~~~~~~~~~~~
 This section defines the airfoil data input file information. The
@@ -198,7 +196,7 @@ airfoil data input files themselves (one for each airfoil) include
 tables containing coefficients of lift force, drag force, and optionally
 pitching moment versus AoA, as well as UA model
 parameters (currently unused by KiteAeroDyn), and are described
-in :numref:`airfoil_data_input_file`.
+in :numref:`kad_airfoil_data_input_file`.
 
 The ``AFTabMod`` setting determines the form of table lookup used
 in each airfoil data file.
@@ -208,8 +206,7 @@ in each airfoil data file.
 user-generated control value.
 The next 4 lines in the AIRFOIL INFORMATION section relate to the
 format of the tables of static airfoil coefficients within each of the
-airfoil input files. ``InCol_Alfa``, ``InCol_Cl``,
-``InCol_Cd``, and ``InCol_Cm are column
+airfoil input files. ``InCol_Alfa``, ``InCol_Cl``, ``InCol_Cd``, and ``InCol_Cm`` are column
 numbers in the tables containing the AoA, lift-force coefficient,
 drag-force coefficient, and pitching-moment coefficient, respectively
 (normally these are 1, 2, 3, and 4, respectively).
@@ -441,7 +438,7 @@ unknown/invalid channel name, it warns the users and will mark the
 units of the suspect channel as ``Invalid``. Please refer to the Appendix for a
 complete list of possible output parameters.
 
-.. _airfoil_data_input_file:
+.. _kad_airfoil_data_input_file:
 
 Airfoil Data Input File
 ~~~~~~~~~~~~~~~~~~~~~~~
