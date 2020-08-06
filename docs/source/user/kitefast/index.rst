@@ -31,6 +31,16 @@ documentation is provided below.
 A series of test and example cases are included in the repository.
 See :ref:`kitefast_examples` for more information.
 
+Where things stopped
+~~~~~~~~~~~~~~~~~~~~
+Development and testing in KiteFAST was very active until the hard-stop
+date. Thus, the team stopped work abruptly and compiled a summary of
+final thoughts for future reference.
+
+- :download:`Tips and tricks <Tips_and_Tricks.pdf>`
+- :download:`General final thoughts <MakaniFinalThoughts.pdf>`
+- :download:`Final thoughts on the controller <ThoughtsOnController.pdf>`
+
 Repository map
 ~~~~~~~~~~~~~~
 The repository is called `sandbox` and contains all of the source code
@@ -205,12 +215,3 @@ animation and visualization of data. See the installation script
 for details on installing Blender. Additionally, the
 `Blendyn <https://github.com/zanoni-mbdyn/blendyn/wiki>`_ extension
 is required to import all MBDyn data.
-
-Troubleshooting
-~~~~~~~~~~~~~~~
-
-TODO: Guidance on things to tweak if issues
-
-- timestep
-- initial conditions
-- solver settings
