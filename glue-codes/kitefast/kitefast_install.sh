@@ -10,9 +10,9 @@ set -e
 
 # Set the directories in the variables below. These are the 
 # directories where kitefast and mbdyn will ultimately go.
-source_code_parent_directory="/usr/local/google/home/ruthmarsh/Desktop"
+source_code_parent_directory="change/this"
 mbdyn_directory=$source_code_parent_directory"/mbdyn-1.7.3"
-openfast_directory=$source_code_parent_directory"/sandbox"
+openfast_directory=$source_code_parent_directory"/kitefast"
 
 # set the fortran compiler path
 fortran_compiler="/usr/bin/gfortran"
@@ -30,7 +30,7 @@ install_if_not_found "git"
 install_if_not_found "cmake"
 install_if_not_found "build-essential"
 install_if_not_found "software-properties-common"
-install_if_not_found "gfortran-6"
+install_if_not_found "gfortran-9"    # mbdyn doesn't compile with higher versions
 install_if_not_found "libblas-dev"   # blas math library
 install_if_not_found "liblapack-dev" # lapack math library
 install_if_not_found "libltdl-dev"   # libltdl headers, used in mbdyn for linking
@@ -50,22 +50,21 @@ fi
 cd $source_code_parent_directory
 
 # build KiteFAST
-git_branch="ctrlwork"
+git_branch="kitefast"
 if [ -d $openfast_directory ]; then
   cd $openfast_directory
   git checkout $git_branch
   git pull origin $git_branch
 else
-  git config --global http.sslVerify false
-  git clone -b $git_branch https://makani-private.googlesource.com/kite_fast/sandbox
+  # git config --global http.sslVerify false
+  git clone -b $git_branch git@github.com:/openfast/kitefast
 fi
 if [ ! -d $openfast_directory ]; then
    echo "openfast_directory does not exist as given: "$openfast_directory
    exit 1
 fi
 
-export FC=/home/rdamiani/anaconda3/bin/x86_64-conda_cos6-linux-gnu-gfortran
-# export FC=$fortran_compiler
+export FC=$fortran_compiler
 
 cd $openfast_directory
 if [ ! -d build ]; then
@@ -75,7 +74,7 @@ cd build
 
 cmake .. \
   -DDOUBLE_PRECISION=OFF \
-  -DGENERATE_TYPES=ON
+  -DGENERATE_TYPES=ON \
   -DLAPACK_LIBRARIES="~/anaconda3/pkgs/lapack-3.8.0-0/lib" \
   -DBLAS_LIBRARIES="~/anaconda3/lib/"
 make -j 2 kitefastlib kitefastoslib kitefastcontroller_controller
@@ -143,7 +142,8 @@ cd $mbdyn_directory
 
 # modify the line below as needed
 # for debug, add --enable-debug
-./configure --enable-runtime-loading --with-module="kitefastmbd kitefastmbd-os" --enable-netcdf --with-lapack --enable-eig
+# for eigen analysis, add --enable-eig
+./configure --enable-runtime-loading --with-module="kitefastmbd kitefastmbd-os" --enable-netcdf --with-lapack
 
 sudo make                      # build mbdyn
 cd modules                     # move to the module directory
