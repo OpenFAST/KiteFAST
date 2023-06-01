@@ -28,7 +28,7 @@ builddir = sys.argv[-1]
 sourcedir = sys.argv[-2]
 
 # Use this to turn Doxygen on or off
-useDoxygen = True
+useDoxygen = False
 
 # This function was adapted from https://gitlab.kitware.com/cmb/smtk
 # Only run when on readthedocs
@@ -58,12 +58,18 @@ if readTheDocs and useDoxygen:
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
+    'sphinx_rtd_theme',
     'sphinx.ext.autodoc',
     'sphinx.ext.autosummary',
     'sphinx.ext.mathjax',
     'sphinx.ext.intersphinx',
     'sphinxcontrib.doxylink',
     'sphinxcontrib.bibtex',
+]
+bibtex_bibfiles = [
+    'source/user/aerodyn-aeroacoustics/references.bib',
+    'source/user/aerodyn-olaf/bibliography.bib',
+    'source/user/beamdyn/references.bib',
 ]
 
 autodoc_default_flags = [
@@ -124,7 +130,7 @@ release = u'v2.4.0'
 #
 # This is also used if you do content translation via gettext catalogs.
 # Usually you set "language" from the command line for these cases.
-language = None
+# language = None  # Default is English and None is not a valid option
 
 #If true, figures, tables and code-blocks are automatically numbered if they 
 #have a caption. At same time, the numref role is enabled. For now, it works 
